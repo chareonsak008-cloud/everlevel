@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Everlevel</title>
+<meta name="description" content="Everlevel — เกม MMORPG แฟนตาซีบนเบราว์เซอร์ เล่นกับเพื่อนได้">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Cinzel:wght@600;700&family=Lilita+One&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!--GAME-START-->
+<div id="game">
+  <canvas id="view" aria-label="โลก 3 มิติของ Everlevel"></canvas>
+  <div id="labels" class="labels"></div>
+  <div class="hud">
+    <div class="panel char">
+      <div class="crest" aria-hidden="true">N</div>
+      <div class="char-info">
+        <div class="name" id="charName">Novice</div>
+        <div class="job" id="charJob">Novice · Base Lv.1 · Job Lv.1</div>
+        <div class="bar-row"><b>HP</b><div class="bar hp"><i id="hpBar" style="width:100%"></i></div><span id="hpText">60 / 60</span></div>
+        <div class="bar-row"><b>SP</b><div class="bar sp"><i id="spBar" style="width:100%"></i></div><span id="spText">13 / 13</span></div>
+        <div class="bar-row exp-row"><b>B</b><div class="bar exp"><i id="bexpBar" style="width:0%"></i></div><span id="bexpText">0.0%</span></div>
+        <div class="bar-row exp-row"><b>J</b><div class="bar jexp"><i id="jexpBar" style="width:0%"></i></div><span id="jexpText">0.0%</span></div>
+        <div class="char-btns">
+          <button class="status-btn" id="btnStatus" type="button" aria-label="เปิดหน้าต่างสถานะ">สถานะ <kbd>C</kbd><span class="badge" id="ptBadge" hidden>0</span></button>
+          <button class="status-btn" id="btnInv" type="button" aria-label="เปิดกระเป๋า">กระเป๋า <kbd>I</kbd></button>
+          <button class="status-btn" id="btnSkill" type="button" aria-label="เปิดหน้าต่างสกิล">สกิล <kbd>K</kbd><span class="badge" id="skBadge" hidden>0</span></button>
+          <button class="status-btn ward-btn" id="btnWard" type="button" aria-label="เปิดตู้แฟชั่น">แฟชั่น <kbd>O</kbd></button>
+          <button class="status-btn quest-btn" id="btnQuest" type="button" aria-label="เปิดหน้าต่างเควส">เควส <kbd>J</kbd></button>
+        </div>
+      </div>
+    </div>
+    <div class="buffs" id="buffs" aria-label="บัฟที่ทำงานอยู่"></div>
+    <div class="panel mini">
+      <div class="mini-title"><span id="mapName">Asteria Town</span><span id="coords">0, 0</span></div>
+      <canvas id="minimap"></canvas>
+      <div class="cam-btns">
+        <button id="rotL" type="button" aria-label="หมุนกล้องซ้าย">⟲</button>
+        <button id="rotR" type="button" aria-label="หมุนกล้องขวา">⟳</button>
+      </div>
+    </div>
+    <div class="banner" id="banner"></div>
+    <div class="panel target" id="target" hidden>
+      <div class="target-head"><span id="targetName">-</span><span id="targetLv"></span></div>
+      <div class="bar hp"><i id="targetBar" style="width:100%"></i></div>
+      <div class="target-hp" id="targetHp">0 / 0</div>
+    </div>
+    <div class="panel bossbar" id="bossBar" hidden>
+      <div class="bb-head"><span class="bb-tag">MVP</span><b id="bossName">-</b><span id="bossLv"></span></div>
+      <div class="bar hp bb-bar"><i id="bossHpBar" style="width:100%"></i></div>
+      <div class="bb-hp" id="bossHp"></div>
+    </div>
+    <div class="chat-wrap" id="chatWrap">
+      <div class="panel chat" id="chat" aria-live="polite"></div>
+      <form class="chat-form" id="chatForm" autocomplete="off">
+        <input id="chatInput" type="text" maxlength="120" enterkeyhint="send" placeholder="พิมพ์ข้อความ… (กด Enter)" aria-label="พิมพ์ข้อความแชต">
+        <button type="submit">ส่ง</button>
+      </form>
+      <button type="button" class="chat-toggle" id="chatToggle" aria-expanded="false" aria-label="ขยาย/ย่อกล่องแชต">💬</button>
+    </div>
+    <section class="panel inv" id="inv" hidden aria-labelledby="invTitle">
+      <header class="st-head">
+        <div><h2 id="invTitle">กระเป๋า</h2><p>ช่องที่ใช้ <span id="invCount">0 / 60</span></p></div>
+        <button type="button" class="st-close" id="invClose" aria-label="ปิดกระเป๋า">✕</button>
+      </header>
+      <div class="inv-body">
+        <div class="inv-equip" id="invEquip" aria-label="อุปกรณ์ที่สวมใส่"></div>
+        <div class="inv-bag">
+          <div class="inv-tabs" id="invTabs" role="tablist"></div>
+          <div class="inv-grid" id="invGrid"></div>
+          <div class="inv-detail" id="invDetail"></div>
+        </div>
+      </div>
+      <footer class="inv-foot"><span class="zeny-ico" aria-hidden="true"></span><span>Zeny</span><b id="invZeny">0 z</b></footer>
+    </section>
+    <section class="panel dlg" id="dlg" hidden aria-live="polite" aria-labelledby="dlgName">
+      <header class="dlg-head"><div><b id="dlgName">NPC</b><small id="dlgTitle"></small></div><button type="button" class="st-close" id="dlgClose" aria-label="ปิดบทสนทนา">✕</button></header>
+      <p class="dlg-text" id="dlgText"></p>
+      <div class="dlg-opts" id="dlgOpts"></div>
+    </section>
+    <section class="panel shop" id="shop" hidden aria-labelledby="shopTitle">
+      <header class="st-head">
+        <div><h2 id="shopTitle">ร้านค้า</h2><p id="shopSub"></p></div>
+        <button type="button" class="st-close" id="shopClose" aria-label="ปิดร้านค้า">✕</button>
+      </header>
+      <div class="inv-tabs shop-tabs" id="shopTabs" role="tablist">
+        <button type="button" role="tab" data-tab="buy">ซื้อ</button>
+        <button type="button" role="tab" data-tab="sell">ขาย</button>
+      </div>
+      <div class="shop-list" id="shopList"></div>
+      <p class="shop-msg" id="shopMsg" aria-live="polite"></p>
+      <footer class="shop-foot">
+        <div class="shop-sum">
+          <span class="sz"><span class="zeny-ico" aria-hidden="true"></span>Zeny <b id="shopZeny">0 z</b></span>
+          <span class="st"><span id="shopTotalLbl">ราคารวม</span> <b id="shopTotal">0 z</b></span>
+        </div>
+        <div class="shop-btns">
+          <button type="button" class="ghost" id="shopQuick">เลือกของสะสมทั้งหมด</button>
+          <button type="button" class="ghost" id="shopClear">ล้าง</button>
+          <button type="button" class="primary" id="shopOk">ซื้อ</button>
+        </div>
+      </footer>
+    </section>
+    <section class="panel stor" id="stor" hidden aria-labelledby="storTitle">
+      <header class="st-head">
+        <div><h2 id="storTitle">คลังเก็บของ</h2><p>ฝาก/ถอนฟรี · ใช้ร่วมกันทุกตัวละครในบัญชี</p></div>
+        <button type="button" class="st-close" id="storClose" aria-label="ปิดคลังเก็บของ">✕</button>
+      </header>
+      <div class="stor-body">
+        <div class="stor-col"><h3>กระเป๋า <small id="storBagCount"></small></h3><div class="inv-grid stor-grid" id="storBag"></div></div>
+        <div class="stor-col"><h3>คลัง <small id="storCount"></small></h3><div class="inv-grid stor-grid" id="storGrid"></div></div>
+      </div>
+      <div class="stor-act" id="storAct"></div>
+      <footer class="stor-foot"><button type="button" class="ghost" id="storAllEtc">ฝากของสะสมทั้งหมด</button></footer>
+    </section>
+    <div class="hotbar" id="hotbar" aria-label="ปุ่มลัด F1 ถึง F9"></div>
+    <section class="panel skw" id="skw" hidden aria-labelledby="skwTitle">
+      <header class="st-head">
+        <div><h2 id="skwTitle">สกิล</h2><p id="skwSub">Novice</p></div>
+        <button type="button" class="st-close" id="skwClose" aria-label="ปิดหน้าต่างสกิล">✕</button>
+      </header>
+      <div class="inv-tabs skw-tabs" id="skwTabs" role="tablist"></div>
+      <div class="skw-list" id="skwList"></div>
+      <p class="st-hint" id="skwHint"></p>
+      <footer class="st-foot">
+        <span class="pts">Skill Point <b id="skwPoints">0</b></span>
+        <span class="skw-job" id="skwJob"></span>
+      </footer>
+    </section>
+    <section class="panel status" id="status" hidden aria-labelledby="stTitle">
+      <header class="st-head">
+        <div><h2 id="stTitle">สถานะตัวละคร</h2><p id="stSub">Novice</p></div>
+        <button type="button" class="st-close" id="stClose" aria-label="ปิดหน้าต่างสถานะ">✕</button>
+      </header>
+      <div class="st-levels">
+        <div class="lv"><div class="lv-top"><span>Base Lv.<b id="stBase">1</b></span><span id="stBaseExp">0 / 0</span></div><div class="bar exp"><i id="stBaseBar"></i></div></div>
+        <div class="lv"><div class="lv-top"><span>Job Lv.<b id="stJob">1</b></span><span id="stJobExp">0 / 0</span></div><div class="bar jexp"><i id="stJobBar"></i></div></div>
+      </div>
+      <div class="st-body">
+        <div class="st-stats" id="stStats"></div>
+        <dl class="st-derived" id="stDerived"></dl>
+      </div>
+      <p class="st-hint" id="stHint"></p>
+      <footer class="st-foot">
+        <span class="pts">Status Point <b id="stPoints">0</b></span>
+        <span class="skp" title="กด K เพื่อเปิดหน้าต่างสกิล">Skill Point <b id="stSkill">0</b></span>
+      </footer>
+      <div class="st-reset-row"><button type="button" class="st-reset" id="stReset">รีเซ็ตสเตตัส</button></div>
+    </section>
+    <section class="panel ward" id="ward" hidden aria-labelledby="wardTitle">
+      <header class="st-head">
+        <div><h2 id="wardTitle">ตู้แฟชั่น</h2><p id="wardSub">สะสมแล้ว 0 ชิ้น</p></div>
+        <button type="button" class="st-close" id="wardClose" aria-label="ปิดตู้แฟชั่น">✕</button>
+      </header>
+      <div class="ward-worn" id="wardWorn" aria-label="แฟชั่นที่สวมอยู่"></div>
+      <div class="inv-tabs ward-tabs" id="wardTabs" role="tablist"></div>
+      <div class="ward-bar"><span id="wardCount"></span><label><input type="checkbox" id="wardOwned"> เฉพาะที่มี</label></div>
+      <div class="ward-grid" id="wardGrid"></div>
+      <div class="ward-detail inv-detail" id="wardDetail"></div>
+      <footer class="ward-foot">
+        <button type="button" class="ghost" id="wardHide" aria-pressed="false">ซ่อนแฟชั่น</button>
+        <button type="button" class="ghost" id="wardOff">ถอดทั้งหมด</button>
+        <span>ได้จากกล่องแฟชั่นที่มอนสเตอร์ดรอป</span>
+      </footer>
+    </section>
+    <section class="panel refine" id="refine" hidden aria-labelledby="refTitle">
+      <header class="st-head">
+        <div><h2 id="refTitle">ตีบวกอุปกรณ์</h2><p>โรงตีเหล็กการ์ธ · +1~+4 สำเร็จแน่นอน · +5~+7 พลาดลดระดับ · +8~+10 พลาดแตก</p></div>
+        <button type="button" class="st-close" id="refClose" aria-label="ปิดหน้าต่างตีบวก">✕</button>
+      </header>
+      <div class="ref-body">
+        <div class="ref-list" id="refList" aria-label="อุปกรณ์ที่ตีบวกได้"></div>
+        <div class="ref-detail" id="refDetail"></div>
+      </div>
+      <div class="ref-result" id="refResult" aria-live="polite"></div>
+      <footer class="ref-foot"><span id="refMats"></span><span class="rz"><span class="zeny-ico" aria-hidden="true"></span><b id="refZeny">0 z</b></span></footer>
+    </section>
+    <section class="panel quest" id="quest" hidden aria-labelledby="qTitle">
+      <header class="st-head">
+        <div><h2 id="qTitle">เควส</h2><p id="qSub"></p></div>
+        <button type="button" class="st-close" id="qClose" aria-label="ปิดหน้าต่างเควส">✕</button>
+      </header>
+      <div class="inv-tabs q-tabs" id="qTabs" role="tablist"></div>
+      <div class="q-list" id="qList"></div>
+    </section>
+    <div class="panel qtrack" id="qtrack" hidden aria-label="เควสที่กำลังทำ">
+      <button type="button" class="qt-head" id="qtHead">📜 เควส <span id="qtCount">0</span><i aria-hidden="true">▾</i></button>
+      <div class="qt-list" id="qtList"></div>
+    </div>
+    <div class="panel help">คลิกมอนสเตอร์เพื่อโจมตี · <kbd>Space</kbd> ตีตัวใกล้สุด · <kbd>C</kbd> สถานะ · <kbd>I</kbd> กระเป๋า · <kbd>K</kbd> สกิล · <kbd>O</kbd> ตู้แฟชั่น · <kbd>J</kbd> เควส · <kbd>F1</kbd>–<kbd>F9</kbd> ปุ่มลัด · <kbd>Enter</kbd> แชต · คลิก NPC เพื่อซื้อขาย/ฝากของ/วาร์ป · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> เดิน · <kbd>Q</kbd><kbd>E</kbd> หมุนกล้อง · ⚙ ตั้งค่าเสียง/กราฟิก</div>
+    <div class="skill-arc" id="skillArc" hidden aria-label="ปุ่มลัด 1 ถึง 4"></div>
+    <button class="attack-btn" id="btnAttack" type="button" aria-label="โจมตีมอนสเตอร์ที่ใกล้ที่สุด">⚔</button>
+    <button class="menu-btn" id="btnMenu" type="button" aria-label="เมนู" aria-expanded="false" aria-controls="menuPanel">☰</button>
+    <div class="tools">
+      <span class="net" id="netStatus" data-s="offline" title="ออฟไลน์"><i aria-hidden="true"></i><span>ออฟไลน์</span></span>
+      <span id="fps">60 FPS</span>
+      <span class="ver">v0.12</span>
+      <button id="btnOnline" type="button" aria-label="ผู้เล่นออนไลน์" title="ผู้เล่นออนไลน์">👥</button>
+      <button id="btnSettings" type="button" aria-label="ตั้งค่า" title="ตั้งค่า">⚙</button>
+      <button id="btnSave" type="button">บันทึก</button>
+    </div>
+    <section class="panel menu-panel" id="menuPanel" hidden aria-label="เมนู">
+      <header class="mp-head"><b>เมนู</b><button type="button" class="st-close mp-close" aria-label="ปิดเมนู">✕</button></header>
+      <div class="mp-grid"></div>
+    </section>
+    <section class="panel settings" id="settings" hidden aria-labelledby="setTitle">
+      <header class="st-head">
+        <div><h2 id="setTitle">ตั้งค่า</h2><p>เสียง · กราฟิก · หน้าจอ · บัญชี (ตั้งค่าแยกตามเครื่อง)</p></div>
+        <button type="button" class="st-close" id="setClose" aria-label="ปิดหน้าต่างตั้งค่า">✕</button>
+      </header>
+      <div class="set-body" id="setBody"></div>
+    </section>
+    <section class="panel online-win" id="online" hidden aria-labelledby="onTitle">
+      <header class="st-head">
+        <div><h2 id="onTitle">ผู้เล่นออนไลน์</h2><p id="onSub"></p></div>
+        <button type="button" class="st-close" id="onClose" aria-label="ปิดหน้าต่างผู้เล่นออนไลน์">✕</button>
+      </header>
+      <div class="inv-tabs on-tabs" id="onTabs" role="tablist"></div>
+      <div class="on-list" id="onList"></div>
+    </section>
+    <div class="joystick" id="joystick"><div class="knob"></div></div>
+  </div>
+  <div class="hurt" id="hurt"></div>
+  <div class="fade"></div>
+  <div class="loading" id="loading">
+    <div class="loading-title">Everlevel</div>
+    <div class="loading-sub">กำลังสร้างโลก…</div>
+    <div class="loading-bar"><i></i></div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="module" src="js/main.js"></script>
+<!--GAME-END-->
+</body>
+</html>
