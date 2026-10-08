@@ -31,10 +31,27 @@ export class ChatBox {
     this.toggleBtn.addEventListener('click', () => this.toggle());
     // แตะกล่องแชตบนมือถือ = ขยาย
     this.box.addEventListener('click', () => { if (document.body.classList.contains('touch') && !this.expanded) this.toggle(true); });
+    // v0.13: มือถือ — ข้อความใหม่แสดงชัด แล้วจางลงหลัง 6 วินาที (ไม่บังจอ)
+    this.fadeTimer = 0;
+    new MutationObserver(() => {
+      this.wrap.classList.add('fresh');
+      clearTimeout(this.fadeTimer);
+      this.fadeTimer = setTimeout(() => this.wrap.classList.remove('fresh'), 6000);
+    }).observe(this.box, { childList: true });
+  }
+
+  // มือถือ: กล่องแชตที่ขยายแล้วไปอยู่ใต้แถบสถานะตัวละคร/แผนที่ย่อ ไม่บังตัวละครกลางจอ และคีย์บอร์ดไม่บังช่องพิมพ์
+  placeOpen() {
+    if (!document.body.classList.contains('touch')) return;
+    let top = 0;
+    for (const sel of ['.panel.char', '.panel.mini']) { const el = this.root.querySelector(sel); if (el && el.offsetParent) top = Math.max(top, el.getBoundingClientRect().bottom); }
+    const host = this.root.getBoundingClientRect();
+    if (top) this.wrap.style.setProperty('--chatTop', `${Math.round(top - host.top + 6)}px`);
   }
 
   toggle(force) {
     this.expanded = typeof force === 'boolean' ? force : !this.expanded;
+    if (this.expanded) this.placeOpen();
     this.wrap.classList.toggle('open', this.expanded);
     this.toggleBtn.setAttribute('aria-expanded', String(this.expanded));
     if (this.expanded) this.box.scrollTop = this.box.scrollHeight;

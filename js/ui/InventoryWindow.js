@@ -7,6 +7,8 @@ import { JOBS } from '../data/progression.js';
 import { iconURL } from '../render/ItemIcons.js';
 import { sellPrice, fmtZ } from '../data/shops.js';
 import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js';
+import { fmtDur } from '../data/consumables.js';
+import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js';
 
 const TABS = [
   { id: 'all', name: 'ทั้งหมด', test: () => true },
@@ -131,6 +133,8 @@ export class InventoryWindow {
       if (it.heal.sp) h.push(`SP +${it.heal.sp[0]}~${it.heal.sp[1]}`);
       lines.push(`ฟื้นฟู ${h.join(' · ')}`);
     }
+    // v0.13: ไอเทมใช้งานชุดใหม่ — ผล + ระยะเวลา
+    if (it.effect) lines.push(`<span class="eff-line">${it.effect}${it.dur ? ` · ${fmtDur(it.dur)}` : ''}</span>`);
     // อุปกรณ์: แยกโบนัสฐาน / ตีบวก / การ์ด
     const mods = it.type === 'equip' ? itemMods(id) : null;
     if (mods && (mods.refine || mods.cards.length)) {
@@ -141,9 +145,10 @@ export class InventoryWindow {
     if (mods && mods.slots) lines.push(`ช่องการ์ด: ${Array.from({ length: mods.slots }, (_, i) => (mods.cards[i] ? `[${ITEMS[mods.cards[i]].name}]` : '[ว่าง]')).join(' ')}`);
     if (mods && !canRefine(it) && it.slot === 'accessory') lines.push('<span class="muted">เครื่องประดับตีบวกไม่ได้</span>');
     // กล่องแฟชั่น: ตารางโอกาสสุ่มแต่ละระดับ
+    const eggOdds = it.use && it.use.hatch && PET_EGGS[it.use.hatch] && PET_EGGS[it.use.hatch].odds;
     const odds = it.type === 'box' && BOX_ODDS[id]
       ? `<div class="d-odds">${FASHION_TIERS.filter((t) => BOX_ODDS[id][t] > 0).map((t) => `<span data-rarity="${t}" style="--rc:${FASHION_RARITY[t].color}"><b>${FASHION_RARITY[t].name}</b>${fmtPct(BOX_ODDS[id][t])}</span>`).join('')}</div>`
-      : '';
+      : eggOdds ? `<div class="d-odds">${PET_TIERS.filter((t) => eggOdds[t] > 0).map((t) => `<span data-rarity="${t}" style="--rc:${PET_RARITY[t].color}"><b>${PET_RARITY[t].name}</b>${fmtPct(eggOdds[t])}</span>`).join('')}</div>` : '';
     if (it.reqLevel) lines.push(`<span class="${p.baseLevel < it.reqLevel ? 'bad' : ''}">ต้องการ Base Lv.${it.reqLevel}</span>`);
     if (it.jobs) lines.push(`<span class="${canJobUse(it, p.jobId) ? '' : 'bad'}">อาชีพ: ${it.jobs.map((j) => JOBS[j].name).join(', ')}</span>`);
     const slotName = it.slot ? ' · ' + EQUIP_SLOTS.find((s) => s.id === it.slot).name : '';
@@ -162,7 +167,7 @@ export class InventoryWindow {
     if (this.sel.from === 'equip') {
       btn('ถอดออก', () => this.act.unequip(this.sel.slot), 'primary');
     } else {
-      if (it.type === 'usable') btn('ใช้', () => this.act.use(id), 'primary');
+      if (it.type === 'usable') btn(it.use && it.use.hatch ? 'ฟักไข่' : 'ใช้', () => this.act.use(id), 'primary');
       if (it.type === 'card') {
         const targets = socketTargets(p, id);
         btn(this.sockPick === undefined || this.sockPick === null ? `ใส่การ์ด (${targets.length})` : 'ซ่อนรายการ', () => { this.sockPick = this.sockPick == null ? '' : null; this.renderDetail(); }, 'primary').disabled = !targets.length;

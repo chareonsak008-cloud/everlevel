@@ -94,9 +94,9 @@ export function derive({ baseLevel: lv, attr, bonus = {}, weaponName = 'มื�
     total: a,
     // atkPct/defPct = บัฟเปอร์เซ็นต์ (v0.8: เสียงคำรามศึก, ใจเหล็ก)
     atk: [statusAtk + Math.round(wAtk * 0.75) + b('atkFlat'), statusAtk + Math.round(wAtk * 1.15) + b('atkFlat')].map((v) => Math.round(v * (1 + b('atkPct') / 100))),
-    matk: [a.int + Math.floor(a.int / 7) ** 2 + mat, a.int + Math.floor(a.int / 5) ** 2 + Math.round(mat * 1.2)],
+    matk: [a.int + Math.floor(a.int / 7) ** 2 + mat, a.int + Math.floor(a.int / 5) ** 2 + Math.round(mat * 1.2)].map((v) => Math.round(v * (1 + b('matkPct') / 100))),
     def: Math.floor((Math.floor(a.vit / 2) + Math.floor(lv / 10) + b('def')) * (1 + b('defPct') / 100)),
-    mdef: Math.floor(a.int / 2) + Math.floor(a.vit / 5) + b('mdef'),
+    mdef: Math.floor((Math.floor(a.int / 2) + Math.floor(a.vit / 5) + b('mdef')) * (1 + b('mdefPct') / 100)),
     hit: 90 + a.dex + Math.floor(lv / 2) + b('hit'),
     flee: 5 + a.agi + Math.floor(lv / 2) + b('flee'),
     crit: 0.03 + a.luk * 0.004 + b('crit'),

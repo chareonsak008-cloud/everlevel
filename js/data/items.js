@@ -9,6 +9,7 @@
 import { BOX_ITEMS } from './fashionBoxes.js';
 import { CARD_ITEMS, CARDS } from './cards.js';
 import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js';
+import { CONSUMABLES } from './consumables.js';   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
 
 export const EQUIP_SLOTS = [
   { id: 'head', name: 'หัว' },
@@ -25,6 +26,7 @@ export const RARITY = {
   uncommon: { name: 'ดี', color: '#8fe08a' },
   rare: { name: 'หายาก', color: '#7fc4ff' },
   epic: { name: 'ล้ำค่า', color: '#d49bff' },
+  legend: { name: 'ตำนาน', color: '#ffb347' },   // v0.13
 };
 
 const BASE = {
@@ -117,6 +119,7 @@ const BASE = {
   /* ---------- การ์ด + วัสดุตีบวก (v0.10) ---------- */
   ...CARD_ITEMS,
   ...REFINE_ITEMS,
+  ...Object.fromEntries(Object.entries(CONSUMABLES).map(([id, c]) => [id, { ...c, type: 'usable' }])),
 };
 
 /* ---------- อุปกรณ์ตีบวก/ใส่การ์ด (v0.10) ----------
@@ -173,6 +176,7 @@ export const BONUS_LABEL = {
   atk: 'ATK', matk: 'MATK', def: 'DEF', mdef: 'MDEF', hit: 'HIT', flee: 'FLEE', crit: 'CRIT', maxHp: 'Max HP', maxSp: 'Max SP',
   str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', dex: 'DEX', luk: 'LUK',
   maxHpPct: 'Max HP', maxSpPct: 'Max SP', atkPct: 'ATK', defPct: 'DEF', aspdPct: 'ASPD',
+  matkPct: 'MATK', mdefPct: 'MDEF', speedPct: 'ความเร็วเดิน', regenPct: 'ฟื้น HP', spRegenPct: 'ฟื้น SP',
 };
 
 // สวมใส่อาวุธ/อุปกรณ์นี้ได้ไหมตามอาชีพ

@@ -13,16 +13,18 @@ import { CharacterView } from './Characters.js';
 import { iconCanvas } from './ItemIcons.js';
 import { ITEMS, RARITY } from '../data/items.js';
 import { MonsterView } from './Monsters.js';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs } from './Effects.js';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js';
 import { SkillFX } from './SkillFX.js';
 import { PostFX } from './PostFX.js';
 import { costumeLook, wearCostume } from './Costumes.js';
 import { TIER_RANK } from '../data/fashionBoxes.js';
+import { PetView } from './Pets.js';   // v0.13: สัตว์เลี้ยงช่วยเก็บของ
 
 // ความแรงแสงเรืองของแฟชั่นระดับล้ำค่าขึ้นไป (ตอนไม่มีเอฟเฟกต์สกิล)
 const COSTUME_GLOW = 1.6;
 
 const S = 1 / TILE; // พิกัดโลก (px) → หน่วย 3 มิติ
+const isRareDrop = (it) => !!it && (it.type === 'card' || it.type === 'box' || ['rare', 'epic', 'legend'].includes(it.rarity));
 
 export class Renderer3D {
   constructor(canvas, labelLayer) {
@@ -84,6 +86,10 @@ export class Renderer3D {
     this.costumeWorld = new THREE.Group(); this.costumeWorld.name = 'costumes';
     this.scene.add(this.costumeWorld);
     this.baseGlow = 0.7;
+    // v0.13: สัตว์เลี้ยง (key = ออบเจ็กต์ตำแหน่งของสัตว์เลี้ยง) + ของที่ลอยเข้าหาสัตว์เลี้ยง/ผู้เล่น
+    this.pets = new Map();
+    this.flyDrops = [];
+    this.rareBeam = false;
   }
 
   /* ---------- สร้างฉากจากแผนที่ ---------- */
@@ -106,6 +112,7 @@ export class Renderer3D {
     for (const f of this.floats) f.el.remove();
     for (const e of this.emotes) e.el.remove();
     this.dropViews.clear(); this.hoverDrop = null; this.dropLabel.hidden = true;
+    this.flyDrops = [];
     this.floats = []; this.emotes = [];
     this.hover = null; this.target = null;
   }
@@ -249,6 +256,7 @@ export class Renderer3D {
       }
     }
     this.marker = new ClickMarker(world);
+    this.autoZone = new AutoZone(world);   // v0.14: วงเขตตีออโต้
     this.bursts = new Bursts(world);
     this.ring = new TargetRing(world);
     this.circles = new MagicCircles(world);
@@ -570,9 +578,95 @@ export class Renderer3D {
       beam = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.26, 3.2, 14, 1, true), new THREE.MeshBasicMaterial({ map: beamTexture(), color: it.tier >= 3 ? '#ffd36b' : '#8ac8ff', transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
       beam.position.y = 1.6; g.add(beam);
     }
-    const v = { g, sp, glow, sh, beam, t: 0, from: { x: (fromX ?? drop.x) * S, z: (fromY ?? drop.y) * S }, to: { x: drop.x * S, z: drop.y * S }, seed: Math.random() * 6 };
+    // v0.13: จิ้งจอกโคมไฟ → ของหายาก/การ์ด/กล่องมีลำแสงชี้ตำแหน่ง
+    let petBeam = false;
+    if (!beam && this.rareBeam && isRareDrop(it)) { beam = this.makeBeam(rar.color || '#ffe08a'); g.add(beam); petBeam = true; }
+    const v = { g, sp, glow, sh, beam, petBeam, t: 0, from: { x: (fromX ?? drop.x) * S, z: (fromY ?? drop.y) * S }, to: { x: drop.x * S, z: drop.y * S }, seed: Math.random() * 6 };
     this.dropViews.set(drop, v);
     this.dropHits = [...this.dropViews.values()].map((d) => d.sp);
+  }
+
+  makeBeam(color) {
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.22, 2.8, 12, 1, true), new THREE.MeshBasicMaterial({ map: beamTexture(), color, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+    beam.position.y = 1.4;
+    return beam;
+  }
+
+  // เปิด/ปิดลำแสงของหายาก (เมื่อเรียก/เก็บจิ้งจอกโคมไฟ)
+  setRareBeam(on) {
+    if (this.rareBeam === on) return;
+    this.rareBeam = on;
+    for (const [drop, v] of this.dropViews) {
+      const it = ITEMS[drop.id];
+      if (on && !v.beam && isRareDrop(it)) { v.beam = this.makeBeam((RARITY[it.rarity] || RARITY.rare).color); v.g.add(v.beam); v.petBeam = true; }
+      else if (!on && v.petBeam && v.beam) { v.g.remove(v.beam); v.beam.geometry.dispose(); v.beam.material.dispose(); v.beam = null; v.petBeam = false; }
+    }
+  }
+
+  // ของบนพื้นลอยเข้าหาเป้าหมาย (ปากสัตว์เลี้ยง/ตัวผู้เล่น) แล้วหายไป · to = ฟังก์ชันคืนตำแหน่งโลก THREE.Vector3
+  collectDrop(drop, to, dur = 0.35, onDone = null) {
+    const v = this.dropViews.get(drop);
+    if (!v) { if (onDone) onDone(); return; }
+    this.dropViews.delete(drop);
+    this.dropHits = [...this.dropViews.values()].map((d) => d.sp);
+    if (this.hoverDrop === drop) { this.hoverDrop = null; this.dropLabel.hidden = true; }
+    if (v.beam) v.beam.visible = false;
+    const from = new THREE.Vector3(v.g.position.x, v.sp.position.y, v.g.position.z);
+    this.flyDrops.push({ v, from, to, t: 0, dur, onDone });
+  }
+
+  updateFlyDrops(dt) {
+    if (!this.flyDrops.length) return;
+    for (const f of this.flyDrops) {
+      f.t += dt;
+      const k = Math.min(1, f.t / f.dur), e = k * k * (3 - 2 * k), to = f.to();
+      f.v.g.position.set(f.from.x + (to.x - f.from.x) * e, 0, f.from.z + (to.z - f.from.z) * e);
+      f.v.sp.position.y = f.from.y + (to.y - f.from.y) * e + Math.sin(k * Math.PI) * 0.6;
+      if (f.v.glow) f.v.glow.position.y = f.v.sp.position.y;
+      const sc = Math.max(0.05, 1 - Math.max(0, k - 0.55) * 2.2);
+      f.v.sp.scale.set(0.62 * sc, 0.62 * sc, 1);
+      f.v.sh.visible = k < 0.3;
+      if (k >= 1) {
+        f.done = true;
+        if (f.v.g.parent) f.v.g.parent.remove(f.v.g);
+        f.v.sp.material.dispose(); f.v.sh.geometry.dispose(); f.v.sh.material.dispose(); if (f.v.glow) f.v.glow.material.dispose();
+        if (f.v.beam) { f.v.beam.geometry.dispose(); f.v.beam.material.dispose(); }
+        if (f.onDone) f.onDone();
+      }
+    }
+    this.flyDrops = this.flyDrops.filter((f) => !f.done);
+  }
+
+  // เปลี่ยนป้ายชื่อเหนือหัว (ใบเปลี่ยนชื่อ)
+  setName(entity, name) { const c = this.characters.get(entity); if (c && c.label) c.label.textContent = name; }
+
+  /* ---------- สัตว์เลี้ยง (v0.13) ---------- */
+  // ent = { x, y, angle, moving, speedK } (พิกัดพิกเซลโลกเหมือนตัวละคร)
+  addPet(ent, petId, stars = 0) {
+    this.removePet(ent);
+    const view = new PetView(petId, { world: this.costumeWorld, stars });
+    view.root.traverse((o) => { if (o.isMesh && !o.material.transparent && !o.userData.outline) o.castShadow = true; });
+    view.root.position.set(ent.x * S, 0, ent.y * S);
+    view.root.rotation.y = ent.angle || 0;
+    this.scene.add(view.root);
+    if (this.ch) view.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
+    this.pets.set(ent, view);
+    return view;
+  }
+
+  removePet(ent) {
+    const v = this.pets.get(ent); if (!v) return;
+    v.dispose();
+    this.pets.delete(ent);
+  }
+
+  updatePets(dt) {
+    for (const [ent, v] of this.pets) {
+      v.root.position.set(ent.x * S, 0, ent.y * S);
+      v.root.rotation.y = lerpAngle(v.root.rotation.y, ent.angle || 0, damp(10, dt));
+      v.root.visible = !ent.hidden;
+      v.update(dt, { moving: !!ent.moving, speed: ent.speedK || 1 });
+    }
   }
 
   removeDrop(drop) {
@@ -703,6 +797,9 @@ export class Renderer3D {
 
   showMarker(x, y) { this.marker.show(x * S, y * S); }
   hideMarker() { this.marker.hide(); }
+  // v0.14: วงเขตตีออโต้ (x, y = พิกเซลโลก · r = ช่อง)
+  setAutoZone(x, y, r) { if (this.autoZone) this.autoZone.show(x * S, y * S, r); }
+  hideAutoZone() { if (this.autoZone) this.autoZone.hide(); }
 
   resize(w, h) {
     this.renderer.setSize(w, h, false);
@@ -721,6 +818,7 @@ export class Renderer3D {
     if (!this.ch) return;
     this.fx.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
     for (const c of this.characters.values()) if (c.costume) c.costume.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
+    for (const v of this.pets.values()) v.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
     const db = this.renderer.getDrawingBufferSize(new THREE.Vector2());
     this.post.setSize(db.x, db.y);
   }
@@ -763,6 +861,7 @@ export class Renderer3D {
     for (const p of this.portals) p.update(t);
     this.motes.update(t, this.rig.target.x, this.rig.target.z);
     this.marker.update(dt);
+    this.autoZone.update(dt);
     this.glows.forEach((g, i) => { const k = 0.3 + Math.sin(t * 7 + i * 3) * 0.03 + Math.sin(t * 13 + i) * 0.02; g.material.opacity = k; });
     this.flags.forEach((f, i) => { f.rotation.y = Math.sin(t * 2.4 + i) * 0.35; f.scale.x = 1 + Math.sin(t * 5 + i) * 0.06; });
     for (const f of this.fires) f.update(t);
@@ -807,6 +906,8 @@ export class Renderer3D {
     this.updateFloats(dt);
     this.updateEmotes(dt);
     this.updateDrops(dt, t);
+    this.updateFlyDrops(dt);
+    this.updatePets(simDt);
     // v0.9: สวมแฟชั่นระดับล้ำค่าขึ้นไป → ตัวผู้เล่นและอนุภาคแฟชั่นเข้ารอบแสงเรือง (เฉพาะโหมดกราฟิกที่เปิดแสงเรือง)
     const busy = this.fx.busy();
     const glowOn = !!glowC && this.post.enabled && this.post.bloom;
@@ -879,7 +980,7 @@ export class Renderer3D {
     if (c.bubble) {
       const b = entity.bubble;
       if (b) {
-        if (c.lastText !== b.text) { c.bubble.textContent = b.text; c.lastText = b.text; }
+        if (c.lastText !== b.text) { c.bubble.textContent = this.mobile && !c.npc && b.text.length > 56 ? b.text.slice(0, 54) + '…' : b.text; c.lastText = b.text; }   // v0.13: มือถือย่อข้อความยาวในบอลลูน
         c.bubble.hidden = false;
         c.bubble.style.opacity = Math.min(1, b.t * 2);
         c.bubble.style.transform = c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, c.head + 0.35, z) || p)[1]}px, 0) translate(-50%, -100%)`;

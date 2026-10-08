@@ -1,7 +1,10 @@
 // จุดเริ่มต้นของเกม — ตรวจว่าโหลด Three.js ได้ก่อน แล้วค่อยโหลดตัวเกม
 // v0.11: หน้าเข้าเกม (เลือก/สร้างตัวละคร หรือเล่นออฟไลน์) ก่อนเริ่มโลก
 // v0.12: ถ้าตั้งค่าเซิร์ฟเวอร์ Supabase ไว้ (js/net/server-config.js) → สมัคร/เข้าสู่ระบบด้วยอีเมล + รหัสผ่าน เล่นบนเบราว์เซอร์ไหนก็ได้
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './net/server-config.js';
+// v0.13: โหลดไฟล์ตั้งค่าแบบไม่บังคับ — ถ้าไม่มีไฟล์นี้ เกมยังเปิดได้ (โหมดออฟไลน์/บัญชี Claude)
+async function serverConfig() {
+  try { return await import('./net/server-config.js'); } catch (e) { return {}; }
+}
 
 const root = document.getElementById('game');
 const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -27,12 +30,17 @@ function loadScript(src, ms = 15000) {
 
 // เลือกระบบออนไลน์: เซิร์ฟเวอร์ของเกมเอง (Supabase) → บัญชี Claude (เปิดผ่าน claude.ai) → ออฟไลน์
 async function createOnline({ Online }) {
-  const configured = /^https:\/\/.+/.test(SUPABASE_URL) && SUPABASE_ANON_KEY.length > 20;
+  const { SUPABASE_URL, SUPABASE_ANON_KEY } = await serverConfig();
+  // รับได้ทั้ง Project URL และลิงก์ที่มี /rest/v1/ ต่อท้าย (ตัดเหลือแค่ https://xxxx.supabase.co)
+  let url = String(SUPABASE_URL || '').trim();
+  try { url = new URL(url).origin; } catch (e) { url = ''; }
+  const key = String(SUPABASE_ANON_KEY || '').trim();
+  const configured = /^https:\/\/.+/.test(url) && key.length > 20;
   if (configured && !window.__noServer) {
     if (window.supabase || await loadScript(SUPABASE_JS)) {
       try {
         const { SupabaseOnline } = await import('./net/SupabaseOnline.js');
-        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        const client = window.supabase.createClient(url, key, {
           auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
         });
         return new SupabaseOnline(client);

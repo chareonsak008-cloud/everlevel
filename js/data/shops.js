@@ -1,6 +1,7 @@
 // ร้านค้า · เงิน Zeny · คลังเก็บของ · เส้นทางวาร์ป
 // ปรับเศรษฐกิจของเกมได้จากไฟล์นี้
 import { ITEMS } from './items.js';
+import { CONSUMABLES } from './consumables.js';
 
 export const START_ZENY = 200;          // เงินเริ่มต้นของตัวละครใหม่
 export const MAX_ZENY = 999999999;
@@ -31,6 +32,9 @@ export const SHOPS = {
     items: ['knife', 'cutter', 'trainee_blade', 'oak_staff', 'hunter_bow', 'chapel_mace', 'cotton_shirt', 'leather_vest', 'bandana', 'wooden_shield', 'sandals', 'refine_w', 'refine_a', 'refine_guard'],
   },
 };
+
+// v0.13: ไอเทมใช้งานที่ขายในร้าน (กำหนด shop ไว้ใน data/consumables.js)
+for (const [id, c] of Object.entries(CONSUMABLES)) for (const sh of [].concat(c.shop || [])) if (SHOPS[sh] && !SHOPS[sh].items.includes(id)) SHOPS[sh].items.push(id);
 
 // เส้นทางวาร์ปของนักเวทย์แต่ละคน (arrive เป็นหน่วยช่อง)
 export const WARP_ROUTES = {

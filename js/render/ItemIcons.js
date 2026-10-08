@@ -1,6 +1,7 @@
 // ไอคอนไอเทม วาดด้วย Canvas (ใช้ทั้งในหน้าต่าง UI และของที่ตกบนพื้น)
 import { ITEMS } from '../data/items.js';
 import { shadeHex } from './Textures.js';
+import { UTIL_DRAW } from './UtilityIcons.js';   // v0.13: ไอคอนไอเทมใช้งานชุดใหม่
 
 const S = 64;
 const LINE = '#2a1d2c';
@@ -221,6 +222,8 @@ const DRAW = {
     if (tier >= 3) { star(56, 40, 4.5, '#ffe9a0'); star(10, 10, 3.5, '#ffffff'); }
   },
 };
+
+Object.assign(DRAW, UTIL_DRAW);
 
 export function iconCanvas(id, size = S) {
   if (typeof id === 'string' && id.includes('*')) id = id.split('*')[0];   // อุปกรณ์ตีบวก/ใส่การ์ดใช้ไอคอนเดียวกับของเดิม

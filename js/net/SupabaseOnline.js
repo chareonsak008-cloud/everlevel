@@ -38,6 +38,7 @@ export class SupabaseOnline extends Online {
     this.tabKey = Math.random().toString(36).slice(2, 10);
     this.lobby = null; this.mapCh = null; this.mapId = null;
     this.lobbyState = new Map();        // key → { n, j, lv, m, u }
+    this.shoutState = new Map();        // v0.13: key → { t, m } ข้อความโทรโข่งล่าสุด
     this.mapState = new Map();          // key → สถานะเต็มจากห้องแผนที่
     this.fastState = new Map();         // key → ตำแหน่ง/ท่าทางล่าสุด (broadcast)
     this.peerCache = new Map();         // key → Peer (เก็บออบเจ็กต์เดิมถ้าไม่เปลี่ยน)
@@ -142,6 +143,15 @@ export class SupabaseOnline extends Online {
 
   async releaseName() { /* ลบแถวตัวละคร = คืนชื่ออัตโนมัติ */ }
 
+  // v0.13: ใบเปลี่ยนชื่อ — เปลี่ยนชื่อในแถวตัวละคร (ชื่อซ้ำถูกกันด้วย unique index) · คืน null หรือข้อความผิดพลาด
+  async renameChar(name) {
+    if (!this.slot) return 'ยังไม่ได้เลือกตัวละคร';
+    const { error } = await this.sb.from('characters').update({ name: name.trim() }).eq('slot', this.slot);
+    if (!error) return null;
+    if (error.code === '23505') return 'ชื่อนี้มีผู้เล่นคนอื่นใช้แล้ว';
+    return 'เปลี่ยนชื่อไม่สำเร็จ: ' + (error.message || error.code);
+  }
+
   async deleteChar(slot) {
     const { error } = await this.sb.from('characters').delete().eq('slot', slot);
     if (error) throw error;
@@ -177,7 +187,12 @@ export class SupabaseOnline extends Online {
   connectRoom(onPeers) {
     if (!this.online) return false;
     this.peersHandler = onPeers;
-    const ch = this.lobby = this.sb.channel('everlevel-lobby', { config: { presence: { key: this.key } } });
+    const ch = this.lobby = this.sb.channel('everlevel-lobby', { config: { presence: { key: this.key }, broadcast: { self: false } } });
+    ch.on('broadcast', { event: 'sh' }, ({ payload }) => {
+      if (ch !== this.lobby || !payload || typeof payload.k !== 'string') return;
+      this.shoutState.set(payload.k, { t: payload.t, m: String(payload.m || '').slice(0, 80) });
+      this.emitPeers();
+    });
     ch.on('presence', { event: 'sync' }, () => {
       this.lobbyState = this.readPresence(ch);
       this.emitPeers();
@@ -264,7 +279,7 @@ export class SupabaseOnline extends Online {
     const mapChanged = patch.m !== undefined && patch.m !== this.mine.m;
     let slow = false, fast = false;
     for (const [k, v] of Object.entries(patch)) {
-      if (k === 'say') continue;
+      if (k === 'say' || k === 'sh') continue;
       this.mine[k] = v;
       if (FAST_KEYS.includes(k)) fast = true; else slow = true;
     }
@@ -273,6 +288,8 @@ export class SupabaseOnline extends Online {
     else if (Date.now() - this.lastTrack > RETRACK_MS) this.trackMap();
     if (fast) this.queueFast();
     if (patch.say && this.mapCh) this.mapCh.send({ type: 'broadcast', event: 'say', payload: { k: this.key, t: patch.say.t, m: patch.say.m } }).catch(() => {});
+    // v0.13: โทรโข่งประกาศ — ส่งผ่านห้องรวม ทุกแผนที่ได้ยิน
+    if (patch.sh && this.lobby) this.lobby.send({ type: 'broadcast', event: 'sh', payload: { k: this.key, t: patch.sh.t, m: patch.sh.m } }).catch(() => {});
   }
 
   queueFast() {
@@ -294,7 +311,8 @@ export class SupabaseOnline extends Online {
     const myU = (this.uid || '').slice(0, 8);
     for (const k of keys) {
       const P = { ...(this.lobbyState.get(k) || {}), ...(this.mapState.get(k) || {}), ...(this.fastState.get(k) || {}) };
-      if (!this.mapState.has(k)) { for (const f of ['x', 'y', 'lk', 'fw', 'say', ...FAST_KEYS]) delete P[f]; }
+      if (!this.mapState.has(k)) { for (const f of ['x', 'y', 'lk', 'fw', 'say', 'pt', 'ps', ...FAST_KEYS]) delete P[f]; }
+      if (this.shoutState.has(k)) P.sh = this.shoutState.get(k);
       const sameTab = k === this.key;
       const isMe = sameTab || (!!P.u && P.u === myU);
       const sig = JSON.stringify(P) + isMe;

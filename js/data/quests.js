@@ -5,6 +5,8 @@
 //        refine {n} ตีบวกสำเร็จ · socket {n} ใส่การ์ด · level {n}
 // give = ไอเทมที่ได้ทันทีตอนรับเควส · rewards = { exp: [base, job], zeny, items: [[id, จำนวน]] }
 
+import { QUEST_EXTRA_REWARDS } from './consumables.js';
+
 export const QUEST_KIND = {
   main: { name: 'เนื้อเรื่อง', color: '#ffd27a' },
   side: { name: 'เควสเสริม', color: '#9adcff' },
@@ -217,5 +219,11 @@ export const QUESTS = {
     goals: [{ type: 'collect', item: 'obsidian_shard', n: 5 }], rewards: { exp: [160000, 115000], zeny: 40000, items: [['refine_guard', 1]] },
   },
 };
+
+// v0.13: ของรางวัลเพิ่ม (ใบคูณ ไข่สัตว์เลี้ยง กระเป๋าขยาย ฯลฯ — ดู data/consumables.js)
+for (const [id, extra] of Object.entries(QUEST_EXTRA_REWARDS)) {
+  const q = QUESTS[id]; if (!q) continue;
+  q.rewards = { ...q.rewards, items: [...(q.rewards.items || []), ...extra] };
+}
 
 export const QUEST_IDS = Object.keys(QUESTS);

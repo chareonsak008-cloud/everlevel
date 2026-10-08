@@ -10,6 +10,15 @@ import { SKILLS, skillTrees } from '../data/skills.js';
 import { Inventory } from '../systems/Inventory.js';
 import { START_ZENY, MAX_ZENY } from '../data/shops.js';
 import { COSTUME_BY_ID } from '../data/costumes.js';
+import { CONSUMABLES } from '../data/consumables.js';
+import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js';
+import { normAuto } from '../systems/AutoHunt.js';
+
+// v0.13: บัฟจากไอเทม — คีย์ที่เป็นตัวคูณ/ความสามารถพิเศษ (ไม่ใช่ค่าสถานะ)
+const SPECIAL_BUFF_KEYS = new Set(['exp', 'jexp', 'drop', 'card', 'petRadius', 'petSpeedPct', 'dmgCutSnow', 'dmgCutLava', 'combatRegen']);
+const KEEP_ON_DEATH = new Set(['boost', 'pet']);   // หมวดที่ไม่หายตอนหมดสติ (ใบคูณ · ขนมสัตว์เลี้ยง)
+export const MAX_ITEM_BUFF = 3 * 3600;               // ต่อเวลาใบคูณได้สูงสุด 3 ชั่วโมง
+export const BAG_BASE = 60;
 
 // ช่องแฟชั่น (v0.9) — ชุดทับ ไม่เพิ่มค่าสถานะ
 export const FASHION_SLOTS = ['wings', 'outfit', 'head', 'face', 'back', 'weapon', 'aura', 'pet'];
@@ -61,6 +70,11 @@ export class Player extends Entity {
     // สกิล (v0.6)
     this.skills = { first_aid: 1 };   // id → เลเวล
     this.buffs = [];                  // { id, lv, left, total, bonus }
+    this.itemBuffs = {};              // v0.13: บัฟจากไอเทม group → { id, left }
+    this.pets = { owned: {}, active: null, filter: 'all' };   // v0.13: สัตว์เลี้ยง id → ดาว
+    this.bagUps = 0;                  // v0.13: ใช้กระเป๋าขยายไปแล้วกี่ใบ
+    this.visited = new Set(['asteria_town']);   // v0.13: แผนที่ที่เคยไป (ใบวาร์ปเลือกแผนที่)
+    this.auto = normAuto();           // v0.14: ตั้งค่าตีมอนออโต้ (แยกตามตัวละคร)
     this.cooldowns = {};              // id → เวลาเกมที่ใช้ได้อีกครั้ง
     this.cast = null;                 // กำลังร่าย { id, lv, target, t, total }
     this.pendingSkill = null;         // รอเดินเข้าระยะก่อนใช้สกิล
@@ -106,6 +120,10 @@ export class Player extends Entity {
       if (sk && sk.passive && lv > 0) add(sk.passive(lv, this));
     }
     for (const b of this.buffs) add(b.bonus);
+    for (const b of Object.values(this.itemBuffs || {})) {
+      const u = CONSUMABLES[b.id] && CONSUMABLES[b.id].use.buff;
+      if (u) for (const [k, v] of Object.entries(u)) if (!SPECIAL_BUFF_KEYS.has(k)) bonus[k] = (bonus[k] || 0) + v;
+    }
     return bonus;
   }
 
@@ -396,6 +414,81 @@ export class Player extends Entity {
     return gone;
   }
 
+  /* ---------- บัฟจากไอเทม (v0.13) ---------- */
+  // ผลรวม / ผลคูณของค่าพิเศษจากบัฟไอเทม เช่น exp, drop, petRadius
+  itemBuffSum(key) { let v = 0; for (const b of Object.values(this.itemBuffs)) { const u = CONSUMABLES[b.id] && CONSUMABLES[b.id].use.buff; if (u && u[key]) v += u[key]; } return v; }
+  itemBuffMul(key) { let m = 1; for (const b of Object.values(this.itemBuffs)) { const u = CONSUMABLES[b.id] && CONSUMABLES[b.id].use.buff; if (u && u[key]) m *= u[key]; } return m; }
+
+  // ใช้บัฟ: กลุ่มเดียวกัน → ตัวเดิมต่อเวลา / ตัวแรงกว่าแทนที่ / ตัวอ่อนกว่าใช้ไม่ได้ · คืน { kind } หรือ { error }
+  addItemBuff(id) {
+    const it = CONSUMABLES[id];
+    if (!it || !it.use.buff) return { error: 'ไอเทมนี้ไม่ใช่บัฟ' };
+    const g = it.group || id, cur = this.itemBuffs[g];
+    const power = (x) => { const v = Object.values(CONSUMABLES[x].use.buff)[0]; return typeof v === 'number' ? v : 0; };
+    let kind = 'new';
+    if (cur && CONSUMABLES[cur.id]) {
+      if (cur.id === id) {
+        if (cur.left >= MAX_ITEM_BUFF - 1) return { error: 'ต่อเวลาได้สูงสุด 3 ชั่วโมงแล้ว' };
+        cur.left = Math.min(MAX_ITEM_BUFF, cur.left + it.dur); kind = 'extend';
+      } else if (power(id) <= power(cur.id)) return { error: `มี${CONSUMABLES[cur.id].name}ที่แรงกว่าหรือเท่ากันทำงานอยู่` };
+      else { this.itemBuffs[g] = { id, left: it.dur }; kind = 'replace'; }
+    } else this.itemBuffs[g] = { id, left: it.dur };
+    this.afterEquipChange();
+    return { kind, prev: cur && cur.id, left: this.itemBuffs[g].left };
+  }
+
+  // ลดเวลาบัฟไอเทม คืนรายการ id ที่หมดเวลา
+  updateItemBuffs(dt) {
+    const gone = [];
+    for (const [g, b] of Object.entries(this.itemBuffs)) { b.left -= dt; if (b.left <= 0 || !CONSUMABLES[b.id]) { gone.push(b.id); delete this.itemBuffs[g]; } }
+    if (gone.length) this.afterEquipChange();
+    return gone;
+  }
+
+  // หมดสติ: ยาบัฟหาย (ใบคูณและขนมสัตว์เลี้ยงยังอยู่)
+  clearCombatBuffs() {
+    let n = 0;
+    for (const [g, b] of Object.entries(this.itemBuffs)) { const it = CONSUMABLES[b.id]; if (!it || !KEEP_ON_DEATH.has(it.cat)) { delete this.itemBuffs[g]; n++; } }
+    if (n) this.recalc();
+    return n;
+  }
+
+  // ขนาดกระเป๋า = 60 + กระเป๋าขยาย 10 ช่องต่อใบ + สัตว์เลี้ยงที่เรียกอยู่ (เต่าหีบสมบัติ +10)
+  // ของที่เกินขนาด (เช่น เก็บเต่ากลับ) ยังอยู่ครบ แค่ใส่ของชนิดใหม่เพิ่มไม่ได้จนกว่าจะมีช่องว่าง
+  updateBagCap() {
+    const a = this.pets.active && PETS[this.pets.active];
+    this.inventory.capacity = BAG_BASE + this.bagUps * 10 + ((a && a.mods.bag) || 0);
+  }
+
+  /* ---------- สัตว์เลี้ยง (v0.13) ---------- */
+  // ได้สัตว์เลี้ยงจากการฟัก: ตัวใหม่ / ซ้ำ → ดาว +1 / ครบ ★5 → Zeny
+  addPet(id) {
+    const P = PETS[id]; if (!P) return null;
+    const cur = this.pets.owned[id];
+    if (cur == null) { this.pets.owned[id] = 0; return { kind: 'new', stars: 0 }; }
+    if (cur < STAR_MAX) { this.pets.owned[id] = cur + 1; return { kind: 'star', stars: cur + 1 }; }
+    const z = PET_DUP_ZENY[P.tier]; this.addZeny(z);
+    return { kind: 'zeny', stars: cur, zeny: z };
+  }
+
+  // รีเซ็ตสกิล: คืนแต้มสกิลทั้งหมด (เก็บสกิลฟรี และทักษะพื้นฐานถ้าเปลี่ยนอาชีพแล้ว)
+  resetSkills() {
+    let n = 0; const keep = {};
+    for (const [id, lv] of Object.entries(this.skills)) {
+      const sk = SKILLS[id]; if (!sk) continue;
+      if (sk.free || (id === 'basic' && this.jobId !== 'novice')) { keep[id] = lv; continue; }
+      n += lv;
+    }
+    if (!n) return 0;
+    if (!keep.first_aid) keep.first_aid = 1;
+    this.skills = keep;
+    this.skillPoints += n;
+    this.buffs = [];
+    this.hotbar = this.hotbar.map((k) => (isSkillKey(k) && !this.skills[k.slice(6)] ? null : k));
+    this.afterEquipChange();
+    return n;
+  }
+
   /* ---------- เปลี่ยนอาชีพ ---------- */
 
   jobChangeStatus() {
@@ -448,6 +541,12 @@ export class Player extends Entity {
       fashion: { owned: [...this.fashion.owned], worn: { ...this.fashion.worn }, opened: this.fashion.opened, hidden: this.fashion.hidden },
       quests: JSON.parse(JSON.stringify(this.quests)),
       appearance: { ...this.appearance },
+      // v0.13
+      itemBuffs: Object.fromEntries(Object.entries(this.itemBuffs).map(([g, b]) => [g, { id: b.id, left: Math.max(1, Math.round(b.left)) }])),
+      pets: { owned: { ...this.pets.owned }, active: this.pets.active, filter: this.pets.filter },
+      bagUps: this.bagUps,
+      visited: [...this.visited],
+      auto: JSON.parse(JSON.stringify(this.auto)),   // v0.14
     };
   }
 
@@ -464,7 +563,23 @@ export class Player extends Entity {
     if (p.attr) for (const k of STAT_KEYS) this.attr[k] = Math.min(MAX_STAT, int(p.attr[k], 1, 1));
     this.statPoints = int(p.statPoints, p.attr ? 0 : START_STAT_POINTS);
     this.skillPoints = int(p.skillPoints, 0);
-    if (Array.isArray(p.inventory)) this.inventory.fromSave(p.inventory);
+    // v0.13: กระเป๋าขยาย (ตั้งขนาดก่อนโหลดของ) · บัฟไอเทม · สัตว์เลี้ยง
+    this.bagUps = Math.min(4, int(p.bagUps, 0));
+    this.visited = new Set(['asteria_town', ...(Array.isArray(p.visited) ? p.visited.filter((m) => typeof m === 'string' && m.length < 40).slice(0, 50) : [])]);
+    this.auto = normAuto(p.auto);     // v0.14: ตั้งค่าออโต้
+    this.itemBuffs = {};
+    if (p.itemBuffs && typeof p.itemBuffs === 'object') {
+      for (const [g, b] of Object.entries(p.itemBuffs)) {
+        const it = b && CONSUMABLES[b.id];
+        if (it && it.use.buff && (it.group || b.id) === g && Number.isFinite(b.left) && b.left > 0) this.itemBuffs[g] = { id: b.id, left: Math.min(MAX_ITEM_BUFF, b.left) };
+      }
+    }
+    const PT = p.pets && typeof p.pets === 'object' ? p.pets : {};
+    this.pets = { owned: {}, active: null, filter: ['all', 'skipCommon', 'rare'].includes(PT.filter) ? PT.filter : 'all' };
+    if (PT.owned && typeof PT.owned === 'object') for (const [id, st] of Object.entries(PT.owned)) if (PETS[id]) this.pets.owned[id] = Math.max(0, Math.min(STAR_MAX, Math.floor(st) || 0));
+    if (PT.active && this.pets.owned[PT.active] != null) this.pets.active = PT.active;
+    if (Array.isArray(p.inventory)) { this.inventory.capacity = 999; this.inventory.fromSave(p.inventory); }
+    this.updateBagCap();
     if (p.equip) for (const sl of EQUIP_SLOTS) this.equip[sl.id] = ITEMS[p.equip[sl.id]] ? p.equip[sl.id] : null;
     this.zeny = Math.min(MAX_ZENY, int(p.zeny, START_ZENY));
     if (Array.isArray(p.hotbar)) this.hotbar = Array.from({ length: 9 }, (_, i) => (validHotkey(p.hotbar[i]) ? p.hotbar[i] : null));

@@ -17,6 +17,7 @@ import { InventoryWindow } from '../ui/InventoryWindow.js';
 import { Hotbar } from '../ui/Hotbar.js';
 import { ITEMS, RARITY } from '../data/items.js';
 import { rollDrops } from '../systems/Loot.js';
+import { iconURL } from '../render/ItemIcons.js';
 import { Inventory } from '../systems/Inventory.js';
 import { NpcDialog } from '../ui/Dialog.js';
 import { ShopWindow } from '../ui/ShopWindow.js';
@@ -49,6 +50,17 @@ import { RemotePlayers } from '../net/RemotePlayers.js';
 import { OnlineWindow } from '../ui/OnlineWindow.js';
 import { ChatBox } from '../ui/ChatBox.js';
 import { MenuPanel } from '../ui/MenuPanel.js';
+// v0.13: สัตว์เลี้ยงช่วยเก็บของ · ไอเทมใช้งานชุดใหม่
+import { PetSystem } from '../systems/PetSystem.js';
+import { useConsumable, STORAGE_UP } from '../systems/ItemUse.js';
+import { CONSUMABLES, consumableDrops } from '../data/consumables.js';
+import { PETS, PET_RARITY, hatchEgg as rollHatch } from '../data/pets.js';
+import { PetWindow } from '../ui/PetWindow.js';
+import { HatchWindow } from '../ui/HatchWindow.js';
+import { pickOfTier, FASHION_TIERS } from '../data/fashionBoxes.js';
+// v0.14: ตีมอนออโต้
+import { AutoHunt } from '../systems/AutoHunt.js';
+import { AutoWindow } from '../ui/AutoWindow.js';
 
 // เสียงตอนใช้สกิล (เริ่ม) และตอนกระแทก (จังหวะกล้องสั่น)
 const SKILL_SFX = {
@@ -204,6 +216,28 @@ export class Game {
       if (b && !b.disabled && !b.closest('.hk') && !b.closest('.gacha')) this.sfx('click');
     });
     this.hud.onPlayer = (p) => this.menu.badges({ stat: p.statPoints, skill: p.skillPoints });
+    // v0.13: สัตว์เลี้ยง + บัฟไอเทม + คลังขยาย
+    this.hud.itemSrc = () => this.player.itemBuffs;
+    this.storageUps = 0;
+    this.pets = new PetSystem(this);
+    this.petWin = new PetWindow(root, this.player, {
+      summon: (id) => this.summonPet(id),
+      hatch: (egg) => this.hatchEgg(egg),
+      filter: (f) => { this.player.pets.filter = f; this.hud.log(`สัตว์เลี้ยงจะ${{ all: 'เก็บของทุกอย่าง', skipCommon: 'ข้ามของธรรมดา', rare: 'เก็บเฉพาะของหายากขึ้นไป' }[f]}`, 'info'); this.dirty = true; },
+      stats: (id) => this.pets.stats(id),
+      reviveLeft: () => this.pets.reviveLeft(),
+    });
+    this.hatchWin = new HatchWindow(root, {
+      again: (egg) => this.hatchEgg(egg),
+      summon: (id) => this.summonPet(id),
+      sound: (n) => this.sfx(n, { gap: 0 }),
+      closed: () => this.celebratePet(),
+    });
+    const bp = root.querySelector('#btnPet'); if (bp) bp.addEventListener('click', () => this.togglePets());
+    // v0.14: ตีมอนออโต้ (ปุ่ม AUTO ลอยบนจอ · H ตั้งค่า · Z เริ่ม/หยุด)
+    this.auto = new AutoHunt(this);
+    this.autoWin = new AutoWindow(root, this);
+    this.auto.onChange = () => this.autoWin.sync();
     this.applySettings();
 
     window.addEventListener('keydown', (e) => {
@@ -221,10 +255,13 @@ export class Game {
       if (e.code === 'KeyK' || (e.altKey && e.code === 'KeyS')) { e.preventDefault(); this.toggleSkills(); }
       if (e.code === 'KeyO' || (e.altKey && e.code === 'KeyO')) { e.preventDefault(); this.toggleWardrobe(); }
       if (e.code === 'KeyJ' || (e.altKey && e.code === 'KeyU')) { e.preventDefault(); this.toggleQuests(); }
+      if (e.code === 'KeyP') { e.preventDefault(); this.togglePets(); }
+      if (e.code === 'KeyH') { e.preventDefault(); this.autoWin.toggle(); }
+      if (e.code === 'KeyZ') { e.preventDefault(); this.auto.toggle(); }
       if (e.code === 'Escape') {
         if (this.dialog.open || this.shop.open || this.storWin.open || this.refineWin.open) { this.closeServices(); return; }
         if (this.setWin.open || this.onWin.open || this.menu.open) { this.setWin.toggle(false); this.onWin.toggle(false); this.menu.toggle(false); return; }
-        this.status.toggle(false); this.inv.toggle(false); this.skillWin.toggle(false); this.ward.toggle(false); this.questWin.toggle(false);
+        this.status.toggle(false); this.inv.toggle(false); this.skillWin.toggle(false); this.ward.toggle(false); this.questWin.toggle(false); this.petWin.toggle(false); this.autoWin.toggle(false);
         if (this.player.cast) this.cancelCast();
       }
     });
@@ -240,6 +277,7 @@ export class Game {
     const def = MAPS[id] || MAPS[START_MAP];
     const t0 = performance.now();
     if (this.remote) this.remote.clear();   // ผู้เล่นคนอื่นของแผนที่เก่า
+    if (this.pets) this.pets.clearRemote();
     this.map = new GameMap(def);
     this.gfx.buildWorld(this.map);
 
@@ -267,6 +305,10 @@ export class Game {
     for (const p of this.map.portals) p.inside = this.inRect(pl, p.rect);
 
     this.minimap = new Minimap(this.root.querySelector('#minimap'), this.map, this.npcs);
+    pl.visited.add(def.id || id);           // v0.13: ใบวาร์ปเลือกแผนที่จำแผนที่ที่เคยไป
+    this.friendSeek = null;
+    if (this.pets) this.pets.onMapLoaded();
+    if (this.auto) { this.auto.onMapLoaded(); this.autoWin.sync(); if (this.autoWin.open) this.autoWin.render(); }
     this.questEvents(this.questLog.onMap(def.id || id));
     this.hud.setMap(this.map);
     this.gfx.snapCamera(pl);
@@ -313,7 +355,7 @@ export class Game {
       data = null;
       this.player.name = opts.create.name;
       this.player.setAppearance(opts.create.appearance);
-      if (Array.isArray(opts.storage)) this.storage.fromSave(opts.storage);
+      if (Array.isArray(opts.storage)) this.loadStorage(opts.storage);
     }
     const p = data && data.player;
     let mapId = START_MAP, arrive = null;
@@ -322,7 +364,7 @@ export class Game {
       arrive = { x: p.x / TILE, y: p.y / TILE, angle: typeof p.angle === 'number' ? p.angle : undefined };
       this.player.fromSave(p);
       this.questLog.sanitize();
-      if (Array.isArray(data.storage)) this.storage.fromSave(data.storage);
+      if (Array.isArray(data.storage)) this.loadStorage(data.storage);
       if (data.camera) { this.gfx.rig.targetYaw = data.camera.yaw || 0; this.gfx.rig.targetDist = data.camera.dist || 13; }
     }
     this.gfx.refreshLook(this.player);
@@ -341,6 +383,7 @@ export class Game {
     else this.hud.log('คลิกพื้นเพื่อเดิน · คลิกมอนสเตอร์เพื่อโจมตี · Space โจมตีตัวที่ใกล้ที่สุด · Q/E หมุนกล้อง', 'info');
 
     this.started = true;
+    this.autoWin.sync();
     this.root.classList.toggle('online', this.mode === 'online');
     this.gfx.refreshLook(this.player);
     this.hud.setPlayer(this.player);
@@ -439,13 +482,13 @@ export class Game {
     const drop = actor ? null : this.gfx.pickDrop(p.x, p.y);
     this.holdMove = !actor && !drop;
     const pl = this.player;
-    if (actor && actor.isMonster) { pl.pendingSkill = null; return this.setTarget(actor); }
+    if (actor && actor.isMonster) { pl.pendingSkill = null; this.setTarget(actor); this.auto.manualTarget(actor); return; }
     if (pl.cast) this.cancelCast();
     pl.pendingSkill = null;
-    if (actor) return this.approachNpc(actor);
-    if (drop) return this.approachDrop(drop);
+    if (actor) { this.auto.manual(); return this.approachNpc(actor); }
+    if (drop) { this.auto.manual(); return this.approachDrop(drop); }
     const w = this.gfx.pickGround(p.x, p.y);
-    if (w) { this.clearTarget(); this.moveTo(w.x, w.y, true); }
+    if (w) { this.clearTarget(); this.moveTo(w.x, w.y, true); this.auto.manual(); }
   }
 
   /* ---------- การต่อสู้ ---------- */
@@ -554,7 +597,15 @@ export class Game {
     this.sfx('monsterDie');
     if (this.player.target === m) this.clearTarget();
     this.reward(m);
-    const items = rollDrops([...m.data.drops, ...boxDrops(m.data), ...cardDrops(m.type)]);   // v0.9 กล่องแฟชั่น · v0.10 การ์ด
+    // v0.13: ใบคูณดรอป/การ์ด + สัตว์เลี้ยง (อบิส/โนวา/เทียนหยุน) · ไอเทมใช้งานและไข่สัตว์เลี้ยงดรอปจากมอนทุกตัว
+    const pl = this.player, dm = pl.itemBuffMul('drop') * this.pets.dropMul(), cm = pl.itemBuffMul('card') * this.pets.cardMul();
+    const scale = (list, k) => (k === 1 ? list : list.map(([id, c]) => [id, c * k]));
+    const items = rollDrops([...scale(m.data.drops, dm), ...scale(boxDrops(m.data), dm), ...scale(cardDrops(m.type), cm), ...scale(consumableDrops(m.data), dm)]);   // v0.9 กล่องแฟชั่น · v0.10 การ์ด
+    if (this.pets.meteorChance() && Math.random() < this.pets.meteorChance() && m.data.drops.length) {
+      const extra = m.data.drops[Math.floor(Math.random() * m.data.drops.length)][0];
+      this.gfx.meteorFall(m.x, m.y);
+      this.schedule(0.55, () => { this.spawnDrop(extra, m.x, m.y); this.gfx.floatText({ x: m.x, y: m.y }, 'ดาวตก!', 'loot r-rare', { h: 1.6, life: 1.6, rise: 0.6, drift: false }); });
+    }
     this.questEvents(this.questLog.onKill(m.type));
     items.forEach((id, i) => this.schedule(0.2 + i * 0.12, () => this.spawnDrop(id, m.x, m.y)));
     if (m.summoned) this.schedule(1.0, () => { if (this.mobs) this.mobs.remove(m); this.gfx.removeActor(m); });
@@ -631,10 +682,11 @@ export class Game {
 
   useItem(id) {
     const pl = this.player, it = ITEMS[id];
-    if (!it || pl.dead) return;
+    if (!it || (pl.dead && !(it.use && it.use.revive))) return;
     if (it.type === 'equip') return this.equipItem(id);
     if (it.type === 'box') return this.openBox(id, 1);
     if (it.type !== 'usable') return;
+    if (it.use) return useConsumable(this, id);   // v0.13: ไอเทมใช้งานชุดใหม่
     if (pl.inventory.count(id) <= 0) { this.hud.log(`${it.name} หมดแล้ว`, 'sys'); return; }
     if (this.useCd > 0) return;
     const needHp = it.heal.hp && pl.hp < pl.maxHp, needSp = it.heal.sp && pl.sp < pl.maxSp;
@@ -691,7 +743,10 @@ export class Game {
     const results = [];
     let zeny = 0;
     for (let i = 0; i < n; i++) {
-      const { tier, item } = rollBox(boxId);
+      let { tier, item } = rollBox(boxId);
+      // v0.13: กิเลนเมฆาสวรรค์ — มีโอกาสได้ของระดับสูงขึ้น 1 ขั้น
+      const up = this.pets.boxUpChance(), ti = FASHION_TIERS.indexOf(tier);
+      if (up && ti < FASHION_TIERS.length - 1 && Math.random() < up) { const it2 = pickOfTier(FASHION_TIERS[ti + 1]); if (it2) { tier = FASHION_TIERS[ti + 1]; item = it2; this.hud.log(`✨ โชคลาภสวรรค์! กล่องอัปเป็นระดับ ${FASHION_RARITY[tier].name}`, 'f-' + tier); } }
       const isNew = pl.addFashion(item.id);
       const z = isNew ? 0 : DUP_ZENY[tier];
       zeny += z;
@@ -815,7 +870,10 @@ export class Game {
     this.hud.log(`🏆 เควส "${q.name}" สำเร็จ! รางวัล: ${rewardText(r).join(' · ')}`, 'quest-ok');
     this.gfx.bursts.spawn(pl.x / TILE, 1.2, pl.y / TILE, '#ffd36b', 30, 1.4, 2.6);
     if (r.zeny) pl.addZeny(r.zeny);
-    for (const [i, n] of r.items || []) pl.inventory.add(i, n);
+    for (const [i, n] of r.items || []) {
+      const got = pl.inventory.add(i, n);
+      if (got < n) { for (let k = 0; k < Math.min(10, n - got); k++) this.spawnDrop(i, pl.x, pl.y); this.hud.log(`กระเป๋าเต็ม — ${ITEMS[i].name} วางไว้ที่พื้นข้างตัว`, 'sys'); }
+    }
     if (r.exp && (r.exp[0] || r.exp[1])) this.applyExp(r.exp[0], r.exp[1]);
     npc.bubble = { text: 'ขอบใจมาก!', t: 2.5 };
     this.endService();
@@ -973,7 +1031,7 @@ export class Game {
     this.dirty = true;
   }
 
-  refreshItemsUI() { this.inv.render(); this.hotbar.render(); this.shop.sync(); this.storWin.render(); if (this.refineWin) this.refineWin.render(); if (this.questLog) this.refreshQuestUI(); }
+  refreshItemsUI() { this.inv.render(); this.hotbar.render(); this.shop.sync(); this.storWin.render(); if (this.refineWin) this.refineWin.render(); if (this.questLog) this.refreshQuestUI(); if (this.autoWin) this.autoWin.refresh(); }
 
   /* ---------- บริการ NPC: ร้านค้า · คลัง · วาร์ป (v0.5) ---------- */
 
@@ -1068,6 +1126,8 @@ export class Game {
       if (n > 0) { total += sellPrice(id) * n; sold.push([id, n]); }
     }
     if (!sold.length) return;
+    const sb = this.pets.mods.sell || 0;   // v0.13: มังกรออมสิน ขายได้ราคาเพิ่ม
+    if (sb) total = Math.floor(total * (1 + sb / 100));
     pl.addZeny(total);
     this.hud.log(`ขาย ${this.itemList(sold)} · ได้รับ ${fmtZ(total)}`, 'zeny');
     this.sfx('coin');
@@ -1143,6 +1203,7 @@ export class Game {
     this.status.render();
     this.skillWin.render();
     this.hotbar.render();
+    if (this.autoWin && this.autoWin.open) this.autoWin.render();
     this.dirty = true;
   }
 
@@ -1206,6 +1267,7 @@ export class Game {
 
   updateCast(dt) {
     const pl = this.player, cs = pl.cast;
+    if (cs.item) { cs.t += dt; if (cs.t >= cs.total) { pl.cast = null; cs.fn(); } return; }   // v0.13: ร่ายใบวาร์ป
     if (cs.target && cs.target.dead) { pl.cast = null; return; }
     cs.t += dt;
     if (cs.target) pl.faceToward(cs.target);
@@ -1215,7 +1277,7 @@ export class Game {
   cancelCast() {
     const pl = this.player;
     if (!pl.cast) return;
-    this.hud.log(`ยกเลิกการร่าย ${SKILLS[pl.cast.id].name}`, 'info');
+    this.hud.log(`ยกเลิกการร่าย ${pl.cast.item ? pl.cast.name : SKILLS[pl.cast.id].name}`, 'info');
     pl.cast = null;
   }
 
@@ -1510,6 +1572,8 @@ export class Game {
     this.hud.log(`ยินดีด้วย! คุณเปลี่ยนอาชีพเป็น ${J.name} (${J.thai}) แล้ว`, 'lv');
     for (const id of res.removed) this.hud.log(`ถอด ${ITEMS[id].name} เพราะ ${J.name} ใช้ไม่ได้ (เก็บไว้ในกระเป๋า)`, 'sys');
     if (res.gift) this.hud.log(`ได้รับ ${ITEMS[res.gift].name}${res.equippedGift ? ' และสวมใส่แล้ว' : ' (อยู่ในกระเป๋า)'}`, 'r-uncommon');
+    // v0.13: ของขวัญเปลี่ยนอาชีพ — ใบรีเซ็ตสถานะ/สกิลฟรีอย่างละ 1 ใบ
+    for (const g of ['stat_reset', 'skill_reset']) if (pl.inventory.add(g, 1) > 0) this.hud.log(`ได้รับ ${ITEMS[g].name} x1 (ของขวัญเปลี่ยนอาชีพ)`, 'r-epic');
     this.hud.log('กด K เพื่อดูสกิลใหม่ของอาชีพนี้', 'info');
     npc.bubble = { text: 'ขอให้โชคดีในเส้นทางใหม่!', t: 3 };
     this.hud.setPlayer(pl);
@@ -1524,8 +1588,9 @@ export class Game {
   // ได้รับ EXP จากการกำจัดมอนสเตอร์
   reward(m) {
     const pl = this.player;
-    const b = m.data.baseExp || 0, j = pl.jobNext === Infinity ? 0 : (m.data.jobExp || 0);
-    this.hud.log(`กำจัด ${m.name} · ได้รับ Base EXP ${b} · Job EXP ${j}`, 'exp');
+    const bm = pl.itemBuffMul('exp'), jm = pl.itemBuffMul('jexp');   // v0.13: ใบคูณ EXP / Job
+    const b = Math.round((m.data.baseExp || 0) * bm), j = pl.jobNext === Infinity ? 0 : Math.round((m.data.jobExp || 0) * jm);
+    this.hud.log(`กำจัด ${m.name} · ได้รับ Base EXP ${b}${bm > 1 ? ` (×${bm})` : ''} · Job EXP ${j}${jm > 1 && j ? ` (×${jm})` : ''}`, 'exp');
     this.gfx.floatText(pl, `+${b} EXP`, 'exp', { h: 2.1, life: 1.3, rise: 0.7 });
     this.applyExp(b, j);
   }
@@ -1574,6 +1639,10 @@ export class Game {
     if (pl.dead) return;
     const red = (pl.bonus && pl.bonus.dmgReduce) || 0;   // ม่านพลังเวทย์ลดดาเมจ
     if (red) amount = Math.max(1, Math.round(amount * (1 - red / 100)));
+    // v0.13: ยาต้านหนาว/ร้อน ลดดาเมจในแผนที่หิมะ/ภูเขาไฟ
+    const biome = this.map.id === 'frostveil' ? pl.itemBuffSum('dmgCutSnow') : this.map.id === 'ember_caldera' ? pl.itemBuffSum('dmgCutLava') : 0;
+    if (biome) amount = Math.max(1, Math.round(amount * (1 - biome / 100)));
+    if (pl.cast && pl.cast.item) { this.hud.log(`ถูกโจมตี! ยกเลิกการร่าย ${pl.cast.name}`, 'sys'); pl.cast = null; }
     pl.hp = Math.max(0, pl.hp - amount);
     pl.lastHitAt = this.time;
     this.sfx('hurt');
@@ -1583,7 +1652,7 @@ export class Game {
     this.hud.setPlayer(pl);
     this.dirty = true;
     // ยืนเฉย ๆ แล้วโดนตี → สู้กลับอัตโนมัติ
-    if (src && !src.dead && !pl.target && !pl.path.length && !pl.cast && !pl.pendingSkill) this.setTarget(src);
+    if (src && !src.dead && !pl.target && !pl.path.length && !pl.cast && !pl.pendingSkill && this.auto.allowFightBack(src)) this.setTarget(src);
     if (pl.hp <= 0) this.playerDown();
   }
 
@@ -1717,14 +1786,54 @@ export class Game {
     this.sfx('refineFail');
     this.clearTarget();
     if (this.mobs) this.mobs.release(pl);
+    if (pl.clearCombatBuffs()) this.hud.log('ยาบัฟหมดผลเมื่อหมดสติ (ใบคูณยังอยู่)', 'info');
+    this.hud.setPlayer(pl); this.hud.setBuffs(pl.buffs);
+    // v0.13: เอมเบอร์ชุบชีวิต · ขนนกคืนชีพ (มีเวลากดก่อนกลับเมือง)
+    if (this.pets.tryRevive()) {
+      this.hud.log(`🔥 ${this.pets.name} ใช้เปลวไฟคืนชีพ!`, 'f-mythic');
+      this.reviveAt = 0;
+      this.schedule(1.4, () => { if (pl.dead) this.reviveHere(0.3, 'เปลวไฟคืนชีพ'); });
+      return;
+    }
+    const feathers = pl.inventory.count('phoenix_feather');
+    this.hud.log(feathers ? `คุณหมดสติ... ใช้ขนนกคืนชีพเพื่อฟื้นตรงนี้ (มี ${feathers} ชิ้น) หรือรอ 8 วินาทีเพื่อฟื้นที่ Asteria Town` : 'คุณหมดสติ... จะฟื้นขึ้นที่ Asteria Town ใน 3 วินาที', 'sys');
+    this.reviveAt = this.time + (feathers ? 8 : 3);
+    if (feathers) this.showReviveButton(feathers);
+  }
+
+  // ปุ่มกลางจอตอนหมดสติ (มีขนนกคืนชีพ)
+  showReviveButton(n) {
+    this.hideReviveButton();
+    const b = this.reviveBtn = document.createElement('button');
+    b.type = 'button'; b.className = 'revive-btn';
+    b.innerHTML = `<img alt="" src="${iconURL('phoenix_feather')}"><span>ใช้ขนนกคืนชีพ<small>เหลือ ${n} ชิ้น · ฟื้นตรงนี้ HP 50%</small></span>`;
+    b.addEventListener('click', () => this.useItem('phoenix_feather'));
+    for (const ev of ['pointerdown', 'touchstart']) b.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
+    this.root.append(b);
+  }
+  hideReviveButton() { if (this.reviveBtn) { this.reviveBtn.remove(); this.reviveBtn = null; } }
+
+  // ฟื้นตรงจุดที่ล้ม (ขนนกคืนชีพ / เอมเบอร์)
+  reviveHere(frac, source) {
+    const pl = this.player;
+    if (!pl.dead) return;
+    this.reviveAt = 0;
+    this.hideReviveButton();
+    pl.dead = false;
+    pl.hp = Math.max(1, Math.round(pl.maxHp * frac)); pl.sp = Math.max(pl.sp, Math.round(pl.maxSp * frac));
+    this.gfx.healFx(pl, '#ffb040');
+    this.gfx.bursts.spawn(pl.x / TILE, 0.8, pl.y / TILE, '#ff8a3a', 34, 1.6, 2.6);
+    this.gfx.floatText(pl, 'คืนชีพ!', 'loot r-legend', { h: 2.3, life: 1.8, rise: 0.7, drift: false });
+    this.sfx('levelUp', { gap: 0 });
+    this.hud.log(`ฟื้นคืนชีพตรงจุดเดิมด้วย${source} (HP ${Math.round(frac * 100)}%)`, 'lv');
     this.hud.setPlayer(pl);
-    this.hud.log('คุณหมดสติ... จะฟื้นขึ้นที่ Asteria Town ใน 3 วินาที', 'sys');
-    this.reviveAt = this.time + 3;
+    this.dirty = true;
   }
 
   revive() {
     const pl = this.player;
     this.reviveAt = 0;
+    this.hideReviveButton();
     this.warp(START_MAP, null, () => {
       pl.dead = false; pl.hp = pl.maxHp; pl.sp = pl.maxSp;
       this.hud.setPlayer(pl);
@@ -1740,7 +1849,7 @@ export class Game {
     this.regenTimer += dt;
     if (this.regenTimer < 1) return;
     this.regenTimer = 0;
-    if (pl.dead || this.time - pl.lastHitAt < 5) return;
+    if (pl.dead || (this.time - pl.lastHitAt < 5 && !pl.itemBuffSum('combatRegen'))) return;
     let rate = 0.012;
     const def = this.map.def;
     if (def.safe) rate = 0.03;
@@ -1787,7 +1896,7 @@ export class Game {
         this.retargetTimer = 0.18;
         const w = this.gfx.pickGround(input.pointer.x, input.pointer.y);
         pl.pendingTalk = null;
-        if (w) this.moveTo(w.x, w.y, true);
+        if (w) { this.moveTo(w.x, w.y, true); this.auto.manual(); }
       }
     }
 
@@ -1812,8 +1921,10 @@ export class Game {
       pl.pendingPickup = null;
       if (pl.cast) this.cancelCast();
       pl.pendingSkill = null;
+      this.auto.manual();   // v0.14: เดินเองระหว่างออโต้ = ย้ายจุดตี
     }
 
+    this.auto.update(dt);   // v0.14: ตีมอนออโต้ + ยาอัตโนมัติ
     if (!pl.dead) this.updatePlayerCombat(dt);
     const ox = pl.x, oy = pl.y;
     if (rooted) pl.path = [];   // ติดราก: เดินไม่ได้ (แต่ยังโจมตี/ใช้สกิลได้)
@@ -1828,6 +1939,14 @@ export class Game {
       for (const bf of gone) this.hud.log(`${SKILLS[bf.id].name} หมดเวลา`, 'info');
       this.hud.setPlayer(pl); this.status.render();
     }
+    // v0.13: บัฟจากไอเทม (นับเวลาเฉพาะตอนเล่นอยู่) + สัตว์เลี้ยง + หาเพื่อนหลังวาร์ป
+    const goneI = pl.updateItemBuffs(dt);
+    if (goneI.length) {
+      for (const id of goneI) this.hud.log(`${ITEMS[id] ? ITEMS[id].name : id} หมดเวลา`, 'info');
+      this.hud.setPlayer(pl); this.status.render(); this.dirty = true;
+    }
+    this.pets.update(dt);
+    if (this.friendSeek) this.seekFriend();
     this.uiTimer -= dt;
     if (this.uiTimer <= 0) { this.uiTimer = 0.1; this.hotbar.tick(this.time); this.hud.setBuffs(pl.buffs); }
     // เก็บของเมื่อเดินไปถึง
@@ -1883,6 +2002,7 @@ export class Game {
     }
 
     if (pl.dead && this.reviveAt && this.time >= this.reviveAt) this.revive();
+    if (this.reviveBtn && !pl.dead) this.hideReviveButton();
     this.regen(dt);
     this.hud.setCoords(Math.floor(pl.x / TILE), Math.floor(pl.y / TILE));
 
@@ -1896,7 +2016,7 @@ export class Game {
     return {
       player: { ...this.player.toSave(), angle: +this.player.angle.toFixed(3), map: this.map.id },
       camera: { yaw: +this.gfx.rig.targetYaw.toFixed(3), dist: +this.gfx.rig.targetDist.toFixed(2) },
-      storage: this.storage.toSave(),   // คลังของบัญชี (ใช้ร่วมทุกตัวละคร)
+      storage: [...this.storage.toSave(), ...(this.storageUps ? [['_cap', this.storageUps]] : [])],   // คลังของบัญชี (ใช้ร่วมทุกตัวละคร) + v0.13 จำนวนครั้งที่ขยาย
     };
   }
 
@@ -1928,6 +2048,196 @@ export class Game {
       }
     }
     return ok;
+  }
+
+  /* ---------- v0.13: สัตว์เลี้ยง · ไอเทมใช้งาน ---------- */
+
+  // คลังบัญชี: แถว ['_cap', n] = ขยายคลังไปแล้ว n ครั้ง (ไม่ใช่ไอเทม)
+  loadStorage(list) {
+    const cap = list.find((e) => Array.isArray(e) && e[0] === '_cap');
+    this.storageUps = cap ? Math.max(0, Math.min(5, Math.floor(cap[1]) || 0)) : 0;
+    this.storage.capacity = STORAGE_CAPACITY + this.storageUps * STORAGE_UP;
+    this.storage.fromSave(list.filter((e) => !(Array.isArray(e) && e[0] === '_cap')));
+  }
+
+  togglePets(force) {
+    this.petWin.toggle(force);
+    if (this.petWin.open) { this.status.toggle(false); this.skillWin.toggle(false); this.ward.toggle(false); this.questWin.toggle(false); }
+  }
+
+  summonPet(id) {
+    const pl = this.player, before = pl.pets.active;
+    const err = this.pets.summon(id);
+    if (err) { this.hud.log(err, 'sys'); return; }
+    if (id) {
+      const d = PETS[id];
+      this.hud.log(`เรียก ${d.name} ออกมาแล้ว · ${d.skill.name}`, 'f-' + d.tier);
+      this.sfx('warp', { gap: 0 });
+      if (d.mods.bag) this.hud.log('กระเป๋า +10 ช่อง ระหว่างที่บ็อกซี่อยู่ด้วย', 'info');
+    } else if (before) this.hud.log(`เก็บ ${PETS[before].name} กลับแล้ว`, 'info');
+    this.refreshItemsUI();
+    this.petWin.render();
+    this.netTimer = 0;
+    this.dirty = true;
+  }
+
+  // ฟักไข่ 1 ใบ → สุ่มสัตว์เลี้ยง → หน้าต่างฟักไข่
+  hatchEgg(eggId) {
+    const pl = this.player, it = ITEMS[eggId];
+    if (!it || !it.use || !it.use.hatch || pl.inventory.count(eggId) <= 0) return;
+    if (pl.dead || this.hatchWin.busy) return;
+    pl.inventory.remove(eggId, 1);
+    const r = rollHatch(it.use.hatch);
+    const res = pl.addPet(r.id);
+    const P = PETS[r.id], R = PET_RARITY[r.tier];
+    this.hud.log(`🥚 ฟัก${it.name}: ได้ ${P.name} [${R.name}]${res.kind === 'new' ? ' — ตัวใหม่!' : res.kind === 'star' ? ` — ดาว +1 (★${res.stars})` : ` — ครบ ★5 รับ ${fmtZ(res.zeny)}`}`, 'f-' + r.tier);
+    if (pl.pets.active === r.id) this.pets.refreshStars();
+    this.petBest = !this.petBest || ['common', 'rare', 'epic', 'legend', 'mythic', 'celestial'].indexOf(r.tier) > ['common', 'rare', 'epic', 'legend', 'mythic', 'celestial'].indexOf(this.petBest.tier) ? { ...r } : this.petBest;
+    this.inv.toggle(false);
+    this.hatchWin.show(eggId, r, res, pl.inventory.count(eggId));
+    if (res.kind === 'new' && !pl.pets.active) this.hud.log('กด P (หรือเมนู → สัตว์เลี้ยง) แล้วกด "เรียกออกมา" ให้ช่วยเก็บของ', 'info');
+    this.hud.setPlayer(pl);
+    this.refreshItemsUI();
+    this.petWin.render();
+    this.saveNow(false);
+  }
+
+  // ปิดหน้าต่างฟักไข่: ได้ระดับ Mythical/Celestial → ฉลอง + ประกาศ
+  celebratePet() {
+    const b = this.petBest; this.petBest = null;
+    if (!b || !['mythic', 'celestial'].includes(b.tier)) return;
+    const pl = this.player, R = PET_RARITY[b.tier];
+    this.gfx.mvpFx(pl);
+    this.hud.levelBanner(`${R.name}!`, `ได้สัตว์เลี้ยง ${PETS[b.id].name}`);
+    this.hud.log(`📢 ${pl.name} ฟักได้สัตว์เลี้ยงระดับ ${R.name} — ${PETS[b.id].name}!`, 'f-' + b.tier);
+  }
+
+  // สัตว์เลี้ยงนำของมาส่ง: ใส่กระเป๋า (เต็ม → มังกรออมสินขายของ etc ให้ · ไม่งั้นวางไว้ที่พื้นข้างเจ้าของ)
+  petDeliver(list, petName, { silent = false, heal = 0, autoSell = false, sell = 0, quiet = false } = {}) {
+    const pl = this.player, got = [], sold = [];
+    let zeny = 0;
+    for (const id of list) {
+      const it = ITEMS[id]; if (!it) continue;
+      if (pl.inventory.add(id, 1) > 0) { got.push(id); continue; }
+      if (autoSell && it.type === 'etc') { const z = Math.floor(sellPrice(id) * (1 + sell / 100)); zeny += z; sold.push(id); continue; }
+      const d = this.spawnDrop(id, pl.x, pl.y); d.noPet = true;
+      if (this.time - this.pets.fullWarnAt > 8) { this.pets.fullWarnAt = this.time; this.hud.log(`กระเป๋าเต็ม! ${petName} วางของไว้ข้างตัวคุณ`, 'sys'); }
+    }
+    if (zeny) { pl.addZeny(zeny); this.hud.log(`${petName} ขาย ${sold.length} ชิ้นให้อัตโนมัติ (กระเป๋าเต็ม) · ได้รับ ${fmtZ(zeny)}`, 'zeny'); }
+    if (got.length) {
+      if (!silent) {
+        const best = got.reduce((a, b) => ((['common', 'uncommon', 'rare', 'epic', 'legend'].indexOf(ITEMS[b].rarity || 'common')) > (['common', 'uncommon', 'rare', 'epic', 'legend'].indexOf(ITEMS[a].rarity || 'common')) ? b : a), got[0]);
+        const r = ITEMS[best].rarity || 'common';
+        this.gfx.floatText(pl, got.length === 1 ? `+ ${ITEMS[got[0]].name}` : `+ ${ITEMS[best].name} และอีก ${got.length - 1} ชิ้น`, 'loot r-' + r, { h: 2.0, life: 1.4, rise: 0.6, drift: false });
+        if (!quiet || r !== 'common') this.hud.log(`🐾 ${petName} เก็บมาให้: ${this.countList(got)}`, 'r-' + r);
+        this.sfx(got.some((id) => ITEMS[id].type === 'card' || ITEMS[id].type === 'box') ? 'coin' : 'pickup');
+      }
+      if (heal && !pl.dead) {
+        const k = heal * got.length / 100;
+        pl.hp = Math.min(pl.maxHp, pl.hp + pl.maxHp * k); pl.sp = Math.min(pl.maxSp, pl.sp + pl.maxSp * k);
+        if (!silent) this.gfx.floatText(pl, `+${Math.round(heal * got.length)}% HP/SP`, 'heal', { h: 1.5, drift: false });
+        this.hud.setPlayer(pl);
+      }
+      this.refreshItemsUI();
+    }
+    this.dirty = true;
+  }
+
+  countList(ids) {
+    const m = new Map(); for (const id of ids) m.set(id, (m.get(id) || 0) + 1);
+    return [...m].map(([id, n]) => `${ITEMS[id].name}${n > 1 ? ` x${n}` : ''}`).join(', ');
+  }
+
+  petNotice(text) { this.hud.log(`🐾 ${text}`, 'f-celestial'); }
+
+  // ใบวาร์ปสุ่ม: ย้ายไปจุดเดินได้แบบสุ่มในแผนที่เดิม (ไม่โหลดแผนที่ใหม่)
+  randomTeleport() {
+    const pl = this.player, map = this.map;
+    for (let k = 0; k < 300; k++) {
+      const tx = 1 + Math.floor(Math.random() * (map.w - 2)), ty = 1 + Math.floor(Math.random() * (map.h - 2));
+      if (map.isSolidTile(tx, ty)) continue;
+      const x = tx * TILE + 8, y = ty * TILE + 8;
+      if (map.boxBlocked(...pl.box(x, y))) continue;
+      if (Math.hypot(x - pl.x, y - pl.y) < 8 * TILE) continue;
+      if (map.portals.some((p) => { const [x0, y0, x1, y1] = p.rect; return x > x0 - 24 && x < x1 + 24 && y > y0 - 24 && y < y1 + 24; })) continue;
+      if (this.npcs.some((n) => Math.hypot(n.x - x, n.y - y) < 40)) continue;
+      this.gfx.warpIn(pl, '#8fd8ff');
+      pl.x = x; pl.y = y; pl.path = []; pl.pendingPickup = null; pl.pendingTalk = null;
+      this.clearTarget(); this.closeServices();
+      if (this.mobs) this.mobs.release(pl);
+      for (const p of map.portals) p.inside = this.inRect(pl, p.rect);
+      this.gfx.snapCamera(pl);
+      this.gfx.warpIn(pl, '#8fd8ff');
+      this.sfx('warp');
+      if (this.pets.pet) { this.pets.pet.x = x - 16; this.pets.pet.y = y + 8; this.pets.pet.path = []; }
+      this.netTimer = 0; this.dirty = true;
+      return true;
+    }
+    return false;
+  }
+
+  // ใบตามหาเพื่อน: วาร์ปไปแผนที่ของเพื่อน แล้วไปโผล่ข้างตัวเมื่อเห็นกัน
+  warpToFriend(name, mapId) {
+    this.hud.log(`วาร์ปไปหา ${name}…`, 'sys');
+    if (mapId === this.map.id) { this.friendSeek = { name, until: this.time + 5 }; this.seekFriend(); return; }
+    this.warp(mapId, null, () => { this.friendSeek = { name, until: this.time + 6 }; });
+  }
+
+  seekFriend() {
+    const f = this.friendSeek;
+    if (this.time > f.until) { this.friendSeek = null; this.hud.log(`ไม่เห็น ${f.name} ในแผนที่นี้ (อาจเพิ่งย้ายแผนที่)`, 'sys'); return; }
+    for (const r of this.remote.list.values()) {
+      if (r.name !== f.name || r.dead) continue;
+      this.friendSeek = null;
+      const pl = this.player;
+      for (const [dx, dy] of [[20, 0], [-20, 0], [0, 20], [0, -20], [16, 16]]) {
+        const x = r.x + dx, y = r.y + dy;
+        if (!this.map.boxBlocked(...pl.box(x, y))) { pl.x = x; pl.y = y; break; }
+      }
+      pl.path = []; this.gfx.snapCamera(pl); this.gfx.warpIn(pl, '#ff9ad0'); this.sfx('warp');
+      this.hud.log(`มาถึงข้าง ${r.name} แล้ว!`, 'net');
+      this.netTimer = 0;
+      return;
+    }
+  }
+
+  // เรียกมอนสเตอร์ด้วยกิ่งไม้ (ไม่เกิดใหม่หลังตาย)
+  summonMonster(type, rangeTiles = 1.6) {
+    const pl = this.player;
+    let x = pl.x, y = pl.y;
+    for (let k = 0; k < 12; k++) {
+      const a = Math.random() * Math.PI * 2, nx = pl.x + Math.cos(a) * rangeTiles * TILE, ny = pl.y + Math.sin(a) * rangeTiles * TILE;
+      if (!this.map.isSolidTile(Math.floor(nx / TILE), Math.floor(ny / TILE))) { x = nx; y = ny; break; }
+    }
+    const m = this.mobs.spawnAt(type, x, y);
+    this.gfx.addMonster(m);
+    this.gfx.playRespawn(m);
+    this.gfx.bursts.spawn(x / TILE, 0.6, y / TILE, MONSTERS[type].mvp ? '#ff3a4a' : '#b48aff', 26, 1.2, 2.2);
+    return m;
+  }
+
+  // โทรโข่ง: ส่งข้อความถึงทุกคนทุกแผนที่
+  sendShout(text) {
+    const pl = this.player;
+    this.hud.log(`📢 ${text}`, 'shout', pl.name);
+    this.sfx('chat');
+    this.netShout = { t: Date.now(), m: text };
+    this.netTimer = 0;
+  }
+
+  readShouts(peers) {
+    this.shoutSeen = this.shoutSeen || new Map();
+    for (const p of peers || []) {
+      if (p.isMe) continue;
+      const P = p.presence || {}, sh = P.sh;
+      if (!sh || typeof sh !== 'object' || !Number.isFinite(sh.t)) continue;
+      if (this.shoutSeen.get(p.peer) === sh.t) continue;
+      this.shoutSeen.set(p.peer, sh.t);
+      if (Math.abs(Date.now() - sh.t) > 30000) continue;   // ข้อความเก่าตอนเพิ่งเข้าห้อง
+      const name = String(P.n || 'ผู้เล่น').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 16);
+      const text = String(sh.m || '').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 80);
+      if (text) { this.hud.log(`📢 ${text}`, 'shout', name); this.sfx('chat'); }
+    }
   }
 
   /* ---------- เสียง + ตั้งค่า (v0.11) ---------- */
@@ -1986,13 +2296,15 @@ export class Game {
     const map = {
       status: () => this.toggleStatus(true), inv: () => this.inv.toggle(true), skill: () => this.toggleSkills(true),
       ward: () => this.toggleWardrobe(true), quest: () => this.toggleQuests(true), online: () => this.toggleOnline(true),
-      settings: () => this.toggleSettings(true), save: () => this.saveNow(true),
+      settings: () => this.toggleSettings(true), save: () => this.saveNow(true), pet: () => this.togglePets(true),
+      auto: () => this.autoWin.toggle(true),
     };
     if (map[act]) map[act]();
   }
 
   // เปลี่ยนตัวละคร: บันทึกก่อนแล้วกลับไปหน้าเลือกตัวละคร
   async switchCharacter() {
+    this.auto.stop('', { silent: true });
     this.hud.log('กำลังบันทึกและกลับไปหน้าเลือกตัวละคร...', 'sys');
     await this.saveNow(false, true);
     if (this.cloud) await this.online.flush();
@@ -2001,6 +2313,7 @@ export class Game {
 
   // v0.12: ออกจากระบบ (เซิร์ฟเวอร์ของเกม) — บันทึกก่อนแล้วกลับหน้าเข้าเกม
   async logout() {
+    this.auto.stop('', { silent: true });
     this.hud.log('กำลังบันทึกและออกจากระบบ...', 'sys');
     await this.saveNow(false, true);
     if (this.cloud) await this.online.flush();
@@ -2060,6 +2373,7 @@ export class Game {
     this.setNet('connecting');
     const ok = this.online.connectRoom((ch) => {
       this.remote.sync(ch.peers);
+      this.readShouts(ch.peers);
       // ตัวละครเดียวกันเปิดอยู่อีกแท็บ → เซฟอาจทับกัน
       if (!this.toldDupTab && this.cloud && ch.peers.some((q) => q.isMe && !q.sameTab && q.presence && q.presence.n === this.player.name)) {
         this.toldDupTab = true;
@@ -2090,6 +2404,7 @@ export class Game {
       n: pl.name, j: pl.jobId, lv: pl.baseLevel, m: this.map.id,
       x: Math.round(pl.x), y: Math.round(pl.y), a: +pl.angle.toFixed(2), mv: !!pl.moving,
       h: +(pl.hp / pl.maxHp).toFixed(2), dead: !!pl.dead, at: this.atkSeq, ak: this.atkKind,
+      pt: pl.pets.active || '', ps: pl.pets.active ? pl.pets.owned[pl.pets.active] || 0 : 0,   // v0.13: สัตว์เลี้ยง
     };
     const patch = {};
     for (const [k, v] of Object.entries(P)) if (L[k] !== v) { patch[k] = v; L[k] = v; }
@@ -2097,6 +2412,7 @@ export class Game {
     if (L.lk !== lkS) { patch.lk = lk; L.lk = lkS; }
     if (L.fw !== fwS) { patch.fw = fw; L.fw = fwS; }
     if (this.netSay) { patch.say = this.netSay; this.netSay = null; }
+    if (this.netShout) { patch.sh = this.netShout; this.netShout = null; }
     if (Object.keys(patch).length) this.online.presence(patch);
     // อัปเดตจำนวนผู้เล่นบนแถบสถานะทุก ~2 วินาที
     this.netRefresh -= 0.12;

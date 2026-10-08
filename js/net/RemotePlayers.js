@@ -3,6 +3,7 @@
 import { COSTUME_BY_ID } from '../data/costumes.js';
 import { MAPS } from '../data/maps/index.js';
 import { JOBS } from '../data/progression.js';
+import { PETS } from '../data/pets.js';
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 const ENUMS = {
@@ -56,6 +57,8 @@ class RemotePlayer {
       const text = cleanText(P.say.m, 120);
       if (text && fresh) { this.bubble = { text, t: 5 }; this.newSay = text; }
     }
+    this.petId = typeof P.pt === 'string' && PETS[P.pt] ? P.pt : null;   // v0.13: สัตว์เลี้ยงของผู้เล่นคนนี้
+    this.petStars = clampNum(Math.floor(P.ps), 0, 5, 0);
     if (P.at !== this.atkSeq) { if (this.atkSeq !== undefined) this.attacked = P.ak === 'shoot' || P.ak === 'cast' ? P.ak : 'melee'; this.atkSeq = P.at; }
   }
 
@@ -107,9 +110,10 @@ export class RemotePlayers {
       if (r.attacked) { g.gfx.playAttack(r, r.attacked === 'melee' ? undefined : r.attacked); r.attacked = null; }
     }
     for (const [peer, r] of [...this.list]) if (!seen.has(peer)) { g.gfx.removeActor(r); this.list.delete(peer); if (this.visible) g.hud.log(`${r.name} ออกจากแผนที่`, 'net'); }
+    if (g.pets) g.pets.syncRemote([...this.list.values()]);
   }
 
-  clear() { for (const r of this.list.values()) this.game.gfx.removeActor(r); this.list.clear(); }
+  clear() { for (const r of this.list.values()) this.game.gfx.removeActor(r); this.list.clear(); if (this.game.pets) this.game.pets.clearRemote(); }
 
   update(dt) { for (const r of this.list.values()) r.update(dt); }
 

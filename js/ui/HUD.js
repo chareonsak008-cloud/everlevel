@@ -1,6 +1,8 @@
 // หน้าจอข้อมูล (DOM): สถานะตัวละคร, แชท, ชื่อแผนที่, FPS, บัฟ
 import { SKILLS } from '../data/skills.js';
 import { skillIconURL } from '../render/SkillIcons.js';
+import { ITEMS } from '../data/items.js';
+import { iconURL } from '../render/ItemIcons.js';
 export class HUD {
   constructor(root) {
     this.el = {
@@ -56,25 +58,30 @@ export class HUD {
     if (this.onPlayer) this.onPlayer(p);   // v0.11: ตัวเลขแต้มบนเมนู ☰
   }
 
-  // ไอคอนบัฟใต้กรอบตัวละคร พร้อมเวลาที่เหลือ
+  // ไอคอนบัฟใต้กรอบตัวละคร พร้อมเวลาที่เหลือ (สกิล + v0.13 บัฟจากไอเทม เช่น ใบคูณ EXP)
   setBuffs(buffs) {
     const box = this.el.buffs; if (!box) return;
-    const key = buffs.map((b) => b.id).join(',');
+    const items = this.itemSrc ? Object.values(this.itemSrc()) : [];
+    const list = [
+      ...buffs.map((b) => ({ key: 's:' + b.id, left: b.left, title: `${SKILLS[b.id].name} Lv.${b.lv}`, icon: () => skillIconURL(b.id), item: false })),
+      ...items.filter((b) => ITEMS[b.id]).map((b) => ({ key: 'i:' + b.id, left: b.left, title: `${ITEMS[b.id].name} · ${ITEMS[b.id].effect}`, icon: () => iconURL(b.id), item: true })),
+    ];
+    const key = list.map((b) => b.key).join(',');
     if (box.dataset.key !== key) {
       box.innerHTML = '';
-      for (const b of buffs) {
-        const d = document.createElement('div'); d.className = 'buff'; d.dataset.id = b.id;
-        d.title = `${SKILLS[b.id].name} Lv.${b.lv}`;
-        d.innerHTML = `<img alt="" src="${skillIconURL(b.id)}"><span></span>`;
+      for (const b of list) {
+        const d = document.createElement('div'); d.className = 'buff' + (b.item ? ' item' : ''); d.dataset.id = b.key;
+        d.title = b.title;
+        d.innerHTML = `<img alt="" src="${b.icon()}"><span></span>`;
         box.append(d);
       }
       box.dataset.key = key;
     }
-    buffs.forEach((b, i) => {
+    list.forEach((b, i) => {
       const d = box.children[i]; if (!d) return;
       const sec = Math.ceil(b.left);
-      d.lastChild.textContent = sec >= 60 ? `${Math.ceil(sec / 60)}m` : `${sec}s`;
-      d.classList.toggle('ending', b.left < 10);
+      d.lastChild.textContent = sec >= 3600 ? `${Math.floor(sec / 3600)}h${String(Math.floor((sec % 3600) / 60)).padStart(2, '0')}` : sec >= 60 ? `${Math.ceil(sec / 60)}m` : `${sec}s`;
+      d.classList.toggle('ending', b.left < (b.item ? 60 : 10));
     });
   }
 

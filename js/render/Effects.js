@@ -2,7 +2,7 @@
 import { THREE } from './three.js';
 import { waterTexture, glowTexture, beamTexture, magicCircleTexture } from './Textures.js';
 import { rng } from '../core/util.js';
-import { lin } from './Geo.js';
+import { lin, mergeGeometries } from './Geo.js';
 
 /* ---------- ผิวน้ำ: 2 ชั้นเลื่อนสวนทางกัน ดูเป็นคลื่นระยิบ ---------- */
 export class Water {
@@ -268,6 +268,44 @@ export class TargetRing {
     const s = 1 + Math.sin(t * 6) * 0.05; this.ticks.scale.set(s, 1, s);
   }
   hide() { this.group.visible = false; }
+}
+
+/* ---------- วงเขตตีออโต้ (v0.14): เส้นประวงกลมบนพื้น + จุดศูนย์กลาง ---------- */
+export class AutoZone {
+  constructor(parent) {
+    this.group = new THREE.Group(); this.group.visible = false; parent.add(this.group);
+    this.r = 0; this.t = 0;
+    this.mat = new THREE.MeshBasicMaterial({ color: '#3ec8ff', transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    this.fill = new THREE.Mesh(new THREE.CircleGeometry(1, 64), new THREE.MeshBasicMaterial({ color: '#3ec8ff', transparent: true, opacity: 0.06, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+    this.fill.rotation.x = -Math.PI / 2; this.fill.position.y = 0.018; this.group.add(this.fill);
+    this.dash = new THREE.Group(); this.group.add(this.dash);
+    const c = new THREE.Mesh(new THREE.RingGeometry(0.16, 0.26, 4), new THREE.MeshBasicMaterial({ color: '#ffe27a', transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }));
+    c.rotation.x = -Math.PI / 2; c.position.y = 0.03; this.center = c; this.group.add(c);
+  }
+
+  show(x, z, r) {
+    this.group.visible = true; this.group.position.set(x, 0, z);
+    if (r !== this.r) {
+      this.r = r;
+      for (const m of this.dash.children) m.geometry.dispose();
+      this.dash.clear();
+      const n = Math.max(24, Math.round(r * 5)), seg = (Math.PI * 2) / n, parts = [];
+      for (let i = 0; i < n; i++) parts.push(new THREE.RingGeometry(r - 0.08, r + 0.08, 3, 1, i * seg, seg * 0.55));
+      const ring = new THREE.Mesh(mergeGeometries(parts), this.mat);
+      for (const g of parts) g.dispose();
+      ring.rotation.x = -Math.PI / 2; ring.position.y = 0.03; this.dash.add(ring);
+      this.fill.scale.setScalar(r);
+    }
+  }
+  hide() { this.group.visible = false; }
+
+  update(dt) {
+    if (!this.group.visible) return;
+    this.t += dt;
+    this.dash.rotation.y = this.t * 0.12;
+    this.mat.opacity = 0.72 + Math.sin(this.t * 2.4) * 0.16;
+    this.center.rotation.z = this.t * 1.5;
+  }
 }
 
 /* ---------- กองไฟ: เปลวไฟอนุภาค + แสงวูบวาบ ---------- */

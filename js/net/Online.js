@@ -80,6 +80,14 @@ export class Online {
     }
   }
 
+  // v0.13: ใบเปลี่ยนชื่อ — จองชื่อใหม่แล้วคืนชื่อเก่า · คืน null หรือข้อความผิดพลาด
+  async renameChar(name, oldName) {
+    const err = await this.claimName(name, this.slot);
+    if (err) return err;
+    if (oldName) await this.releaseName(oldName);
+    return null;
+  }
+
   async releaseName(name) {
     try {
       const ref = this.db.doc('names/' + nameKey(name));
