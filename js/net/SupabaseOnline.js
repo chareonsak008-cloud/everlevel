@@ -175,6 +175,44 @@ export class SupabaseOnline extends Online {
     }
   }
 
+  /* ---------- v0.15: จดหมาย (ตาราง mails / mail_claims / admins จาก supabase/mail.sql) ---------- */
+  // คืน { mails, claims, admin } · โยน error ถ้าเซิร์ฟเวอร์ยังไม่มีตาราง
+  async fetchMail() {
+    const [m, c, a] = await Promise.all([
+      this.sb.from('mails').select('id,to_name,sender,title,body,items,zeny,picks,per,created_at,expires_at').order('created_at', { ascending: false }).limit(60),
+      this.sb.from('mail_claims').select('mail_id,cid').limit(1000),
+      this.sb.from('admins').select('user_id').limit(1),
+    ]);
+    if (m.error) throw m.error;
+    if (c.error) throw c.error;
+    return { mails: m.data || [], claims: c.data || [], admin: !a.error && Array.isArray(a.data) && a.data.length > 0 };
+  }
+
+  // บันทึกว่ารับแล้ว (คีย์หลักกันรับซ้ำ) · คืน null = สำเร็จ · 'claimed' = เคยรับแล้ว · หรือข้อความผิดพลาด
+  async claimMail(id, cid) {
+    const { error } = await this.sb.from('mail_claims').insert({ mail_id: id, cid });
+    if (!error) return null;
+    if (error.code === '23505') return 'claimed';
+    return error.message || error.code || 'ผิดพลาด';
+  }
+
+  // แอดมินส่งจดหมาย (สิทธิ์ตรวจที่ฐานข้อมูล: เฉพาะบัญชีในตาราง admins)
+  async sendMail(m) {
+    const { error } = await this.sb.from('mails').insert({
+      to_name: m.to || null, sender: m.sender || 'GM', title: m.title, body: m.body || '',
+      items: m.items || [], zeny: m.zeny || 0, picks: m.picks || [], per: m.per === 'char' ? 'char' : 'account',
+      expires_at: m.expires ? new Date(m.expires).toISOString() : null,
+    });
+    if (!error) return null;
+    if (error.code === '42501') return 'บัญชีนี้ไม่ใช่แอดมิน';
+    return error.message || error.code || 'ผิดพลาด';
+  }
+
+  async deleteMail(id) {
+    const { error } = await this.sb.from('mails').delete().eq('id', id);
+    return error ? error.message || error.code : null;
+  }
+
   async leaderboard(n = 20) {
     const { data, error } = await this.sb.rpc('leaderboard', { n });
     if (error || !Array.isArray(data)) return [];

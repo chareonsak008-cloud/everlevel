@@ -61,6 +61,9 @@ import { pickOfTier, FASHION_TIERS } from '../data/fashionBoxes.js';
 // v0.14: ตีมอนออโต้
 import { AutoHunt } from '../systems/AutoHunt.js';
 import { AutoWindow } from '../ui/AutoWindow.js';
+// v0.15: จดหมาย + ของขวัญต้อนรับ
+import { Mailbox } from '../systems/Mailbox.js';
+import { MailWindow } from '../ui/MailWindow.js';
 
 // เสียงตอนใช้สกิล (เริ่ม) และตอนกระแทก (จังหวะกล้องสั่น)
 const SKILL_SFX = {
@@ -215,7 +218,7 @@ export class Game {
       const b = e.target.closest && e.target.closest('button');
       if (b && !b.disabled && !b.closest('.hk') && !b.closest('.gacha')) this.sfx('click');
     });
-    this.hud.onPlayer = (p) => this.menu.badges({ stat: p.statPoints, skill: p.skillPoints });
+    this.hud.onPlayer = (p) => this.menu.badges({ stat: p.statPoints, skill: p.skillPoints, mail: this.mailbox ? this.mailbox.unread() : 0 });
     // v0.13: สัตว์เลี้ยง + บัฟไอเทม + คลังขยาย
     this.hud.itemSrc = () => this.player.itemBuffs;
     this.storageUps = 0;
@@ -238,6 +241,11 @@ export class Game {
     this.auto = new AutoHunt(this);
     this.autoWin = new AutoWindow(root, this);
     this.auto.onChange = () => this.autoWin.sync();
+    // v0.15: จดหมาย (M / ปุ่ม 📬)
+    this.mailbox = new Mailbox(this);
+    this.mailWin = new MailWindow(root, this);
+    this.mailbox.onChange = () => { this.mailWin.render(); this.updateMailBadge(); };
+    const bm = root.querySelector('#btnMail'); if (bm) bm.addEventListener('click', () => this.mailWin.toggle());
     this.applySettings();
 
     window.addEventListener('keydown', (e) => {
@@ -258,10 +266,11 @@ export class Game {
       if (e.code === 'KeyP') { e.preventDefault(); this.togglePets(); }
       if (e.code === 'KeyH') { e.preventDefault(); this.autoWin.toggle(); }
       if (e.code === 'KeyZ') { e.preventDefault(); this.auto.toggle(); }
+      if (e.code === 'KeyM') { e.preventDefault(); this.mailWin.toggle(); }
       if (e.code === 'Escape') {
         if (this.dialog.open || this.shop.open || this.storWin.open || this.refineWin.open) { this.closeServices(); return; }
         if (this.setWin.open || this.onWin.open || this.menu.open) { this.setWin.toggle(false); this.onWin.toggle(false); this.menu.toggle(false); return; }
-        this.status.toggle(false); this.inv.toggle(false); this.skillWin.toggle(false); this.ward.toggle(false); this.questWin.toggle(false); this.petWin.toggle(false); this.autoWin.toggle(false);
+        this.status.toggle(false); this.inv.toggle(false); this.skillWin.toggle(false); this.ward.toggle(false); this.questWin.toggle(false); this.petWin.toggle(false); this.autoWin.toggle(false); this.mailWin.toggle(false);
         if (this.player.cast) this.cancelCast();
       }
     });
@@ -384,6 +393,8 @@ export class Game {
 
     this.started = true;
     this.autoWin.sync();
+    // v0.15: จดหมาย — ตัวละครใหม่เปิดกล่องจดหมายให้เลือกของขวัญต้อนรับ
+    this.mailbox.refresh().then(() => { if (opts.create && !this.player.mail.welcome) setTimeout(() => this.mailWin.openMail('welcome'), 1200); });
     this.root.classList.toggle('online', this.mode === 'online');
     this.gfx.refreshLook(this.player);
     this.hud.setPlayer(this.player);
@@ -1925,6 +1936,7 @@ export class Game {
     }
 
     this.auto.update(dt);   // v0.14: ตีมอนออโต้ + ยาอัตโนมัติ
+    this.mailbox.update(dt);   // v0.15: เช็กจดหมายใหม่ทุก 3 นาที (ออนไลน์)
     if (!pl.dead) this.updatePlayerCombat(dt);
     const ox = pl.x, oy = pl.y;
     if (rooted) pl.path = [];   // ติดราก: เดินไม่ได้ (แต่ยังโจมตี/ใช้สกิลได้)
@@ -2292,12 +2304,19 @@ export class Game {
     if (this.onWin.open) { this.setWin.toggle(false); this.menu.toggle(false); }
   }
 
+  // v0.15: ตัวเลขจดหมายที่ยังไม่ได้รับ (ปุ่ม 📬 + เมนู ☰)
+  updateMailBadge() {
+    const n = this.mailbox.unread(), b = this.root.querySelector('#mailBadge');
+    if (b) { b.hidden = n <= 0; b.textContent = n; }
+    this.menu.badges({ stat: this.player.statPoints, skill: this.player.skillPoints, mail: n });
+  }
+
   menuAction(act) {
     const map = {
       status: () => this.toggleStatus(true), inv: () => this.inv.toggle(true), skill: () => this.toggleSkills(true),
       ward: () => this.toggleWardrobe(true), quest: () => this.toggleQuests(true), online: () => this.toggleOnline(true),
       settings: () => this.toggleSettings(true), save: () => this.saveNow(true), pet: () => this.togglePets(true),
-      auto: () => this.autoWin.toggle(true),
+      auto: () => this.autoWin.toggle(true), mail: () => this.mailWin.toggle(true),
     };
     if (map[act]) map[act]();
   }

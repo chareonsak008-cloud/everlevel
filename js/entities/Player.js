@@ -14,6 +14,9 @@ import { CONSUMABLES } from '../data/consumables.js';
 import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js';
 import { normAuto } from '../systems/AutoHunt.js';
 
+// v0.15: รหัสสุ่มประจำตัวละคร (ตัวละครใหม่ = รหัสใหม่ · รับจดหมาย "ทุกตัวละคร" ได้ตัวละ 1 ครั้ง)
+export const newCid = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 16);
+
 // v0.13: บัฟจากไอเทม — คีย์ที่เป็นตัวคูณ/ความสามารถพิเศษ (ไม่ใช่ค่าสถานะ)
 const SPECIAL_BUFF_KEYS = new Set(['exp', 'jexp', 'drop', 'card', 'petRadius', 'petSpeedPct', 'dmgCutSnow', 'dmgCutLava', 'combatRegen']);
 const KEEP_ON_DEATH = new Set(['boost', 'pet']);   // หมวดที่ไม่หายตอนหมดสติ (ใบคูณ · ขนมสัตว์เลี้ยง)
@@ -75,6 +78,8 @@ export class Player extends Entity {
     this.bagUps = 0;                  // v0.13: ใช้กระเป๋าขยายไปแล้วกี่ใบ
     this.visited = new Set(['asteria_town']);   // v0.13: แผนที่ที่เคยไป (ใบวาร์ปเลือกแผนที่)
     this.auto = normAuto();           // v0.14: ตั้งค่าตีมอนออโต้ (แยกตามตัวละคร)
+    this.cid = newCid();              // v0.15: รหัสตัวละคร (ใช้กันรับจดหมายซ้ำ)
+    this.mail = { welcome: false };   // v0.15: รับของขวัญต้อนรับแล้วหรือยัง
     this.cooldowns = {};              // id → เวลาเกมที่ใช้ได้อีกครั้ง
     this.cast = null;                 // กำลังร่าย { id, lv, target, t, total }
     this.pendingSkill = null;         // รอเดินเข้าระยะก่อนใช้สกิล
@@ -547,6 +552,7 @@ export class Player extends Entity {
       bagUps: this.bagUps,
       visited: [...this.visited],
       auto: JSON.parse(JSON.stringify(this.auto)),   // v0.14
+      cid: this.cid, mail: { welcome: !!this.mail.welcome },   // v0.15
     };
   }
 
@@ -567,6 +573,8 @@ export class Player extends Entity {
     this.bagUps = Math.min(4, int(p.bagUps, 0));
     this.visited = new Set(['asteria_town', ...(Array.isArray(p.visited) ? p.visited.filter((m) => typeof m === 'string' && m.length < 40).slice(0, 50) : [])]);
     this.auto = normAuto(p.auto);     // v0.14: ตั้งค่าออโต้
+    this.cid = typeof p.cid === 'string' && /^[a-z0-9]{8,24}$/.test(p.cid) ? p.cid : newCid();   // v0.15
+    this.mail = { welcome: !!(p.mail && p.mail.welcome) };
     this.itemBuffs = {};
     if (p.itemBuffs && typeof p.itemBuffs === 'object') {
       for (const [g, b] of Object.entries(p.itemBuffs)) {

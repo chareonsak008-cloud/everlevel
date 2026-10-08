@@ -1,7 +1,7 @@
 // เมนู ☰ (v0.11) — มือถือ: รวมปุ่มหน้าต่างทั้งหมดไว้ที่เดียว ปุ่มใหญ่ กดง่าย
 const ITEMS = [
   ['status', '📊', 'สถานะ'], ['inv', '🎒', 'กระเป๋า'], ['skill', '✨', 'สกิล'], ['ward', '👗', 'แฟชั่น'],
-  ['quest', '📜', 'เควส'], ['pet', '🐾', 'สัตว์เลี้ยง'], ['auto', '⚔️', 'ตีออโต้'], ['online', '👥', 'ออนไลน์'], ['settings', '⚙️', 'ตั้งค่า'], ['save', '💾', 'บันทึก'],
+  ['quest', '📜', 'เควส'], ['pet', '🐾', 'สัตว์เลี้ยง'], ['auto', '⚔️', 'ตีออโต้'], ['mail', '📬', 'จดหมาย'], ['online', '👥', 'ออนไลน์'], ['settings', '⚙️', 'ตั้งค่า'], ['save', '💾', 'บันทึก'],
 ];
 
 export class MenuPanel {
@@ -30,9 +30,9 @@ export class MenuPanel {
   }
 
   // ตัวเลขแต้มที่ยังไม่ได้ใช้ (บนปุ่มสถานะ/สกิล และจุดแจ้งเตือนบนปุ่ม ☰)
-  badges({ stat = 0, skill = 0 }) {
+  badges({ stat = 0, skill = 0, mail = 0 }) {
     const set = (act, n) => { const b = this.el.querySelector(`[data-act="${act}"] .badge`); if (b) { b.hidden = n <= 0; b.textContent = n; } };
-    set('status', stat); set('skill', skill);
-    this.btn.classList.toggle('dot', stat > 0 || skill > 0);
+    set('status', stat); set('skill', skill); set('mail', mail);
+    this.btn.classList.toggle('dot', stat > 0 || skill > 0 || mail > 0);
   }
 }
