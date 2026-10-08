@@ -811,7 +811,7 @@ const BACK = {
     bake(g);
   },
   starCape(rig, p, rt) {
-    const tex = starsTex(p.bg || '#1a1650', p.fg || '#ffe9a8').clone(); tex.needsUpdate = true; tex.repeat.set(3, 2);
+    const tex = starsTex(p.bg || '#1a1650', p.fg || '#ffe9a8').clone(); tex.needsUpdate = true; tex.isOwned = true; tex.repeat.set(3, 2);
     capeBase(rig, { ...p, color: '#ffffff', tex, lining: p.lining || '#3a2a7a' }, rt);
     const clasp = group(rig.torso, 0, 0.385, 0);
     mesh(torus(0.14, 0.03, 8, 18), T(p.trim || '#3a2a7a'), clasp, 0, 0, 0, { r: [Math.PI / 2, 0, 0] });
@@ -892,7 +892,7 @@ const BACK = {
     bake(g);
   },
   parasol(rig, p) {
-    const tex = patternTex('sakura', p.flower || '#ff8fb8', '#ffffff', p.color || '#ffe8f0').clone(); tex.needsUpdate = true; tex.repeat.set(3, 1);
+    const tex = patternTex('sakura', p.flower || '#ff8fb8', '#ffffff', p.color || '#ffe8f0').clone(); tex.needsUpdate = true; tex.isOwned = true; tex.repeat.set(3, 1);
     const g = group(rig.torso, 0, 0.26, -0.27, [-0.55, 0, 0.5]);
     mesh(new THREE.ConeGeometry(0.34, 0.13, 24, 1, true), TM('#ffffff', tex, { side: THREE.DoubleSide }), g, 0, 0.3, 0, { noOutline: true });
     // ซี่ร่มอยู่ใต้ผืนผ้า (จากยอดถึงขอบ) + ขอบระบายสีเข้ม
@@ -1018,7 +1018,7 @@ const WEAPON = {
   candySword(rig, p) {
     const h = swordHand(rig);
     const stripes = ctex('candy' + (p.color || '#e8334a'), 64, 64, (g, s) => { g.fillStyle = '#ffffff'; g.fillRect(0, 0, s, s); g.fillStyle = p.color || '#e8334a'; for (let i = -s; i < s * 2; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 8, 0); g.lineTo(i + 8 + s, s); g.lineTo(i + s, s); g.fill(); } }, { repeat: true });
-    const st = stripes.clone(); st.needsUpdate = true; st.repeat.set(2, 6);
+    const st = stripes.clone(); st.needsUpdate = true; st.isOwned = true; st.repeat.set(2, 6);
     mesh(cyl(0.036, 0.036, 0.52, 14).rotateX(Math.PI / 2), TM('#ffffff', st), h, 0, 0, 0.34);
     mesh(cone(0.036, 0.1, 14).rotateX(Math.PI / 2), TM('#ffffff', st), h, 0, 0, 0.65);
     const wrap = group(h, 0, 0, 0.07);
@@ -1318,7 +1318,7 @@ const PET = {
 
 /* ================= ชุด (เปลี่ยนสีตัว + ชิ้นส่วนเพิ่ม) ================= */
 function overlay(rig, tex, color, rep = [3, 2], glow = false) {
-  const t = tex.clone(); t.needsUpdate = true; t.repeat.set(rep[0], rep[1]);
+  const t = tex.clone(); t.needsUpdate = true; t.isOwned = true; t.repeat.set(rep[0], rep[1]);
   const extra = glow ? { emissive: new THREE.Color('#ffffff'), emissiveMap: t } : {};
   mesh(new THREE.CylinderGeometry(0.153, 0.218, 0.37, 20, 1, true), TM(color || '#ffffff', t, { transparent: true, alphaTest: 0.35, ...extra }), rig.torso, 0, 0.18, 0, { noOutline: true });
 }
@@ -1331,7 +1331,7 @@ function outfitParts(rig, p, rt, L) {
   if (P.pattern) overlay(rig, patternTex(P.pattern.kind, P.pattern.c1, P.pattern.c2), '#ffffff', P.pattern.rep, P.pattern.glow);
   if (P.skirt) {
     const s = P.skirt, len = s.len || 0.26, rb = s.flare || 0.28;
-    const mat = s.starfield ? (() => { const t = starfieldTex().clone(); t.needsUpdate = true; t.repeat.set(3, 1); return new THREE.MeshToonMaterial({ color: lin('#ffffff'), map: t, emissive: new THREE.Color('#ffffff'), emissiveMap: t, emissiveIntensity: s.glow ?? 0.8, gradientMap: gradientMap(), side: THREE.DoubleSide }); })() : s.pattern ? TM('#ffffff', (() => { const t = patternTex(s.pattern.kind, s.pattern.c1, s.pattern.c2, s.color).clone(); t.needsUpdate = true; t.repeat.set(4, 1); return t; })(), { side: THREE.DoubleSide }) : DS(s.color);
+    const mat = s.starfield ? (() => { const t = starfieldTex().clone(); t.needsUpdate = true; t.isOwned = true; t.repeat.set(3, 1); return new THREE.MeshToonMaterial({ color: lin('#ffffff'), map: t, emissive: new THREE.Color('#ffffff'), emissiveMap: t, emissiveIntensity: s.glow ?? 0.8, gradientMap: gradientMap(), side: THREE.DoubleSide }); })() : s.pattern ? TM('#ffffff', (() => { const t = patternTex(s.pattern.kind, s.pattern.c1, s.pattern.c2, s.color).clone(); t.needsUpdate = true; t.isOwned = true; t.repeat.set(4, 1); return t; })(), { side: THREE.DoubleSide }) : DS(s.color);
     mesh(new THREE.CylinderGeometry(0.212, rb, len, 22, 1, true), mat, add, 0, -len / 2 + 0.02, 0, { noOutline: true });
     if (s.trim) mesh(torus(rb, 0.016, 6, 26), T(s.trim), add, 0, -len + 0.02, 0, { r: [Math.PI / 2, 0, 0] });
     if (s.glowHem) mesh(torus(rb + 0.004, 0.009, 4, 32), G(s.glowHem, 1.9), add, 0, -len + 0.035, 0, { r: [Math.PI / 2, 0, 0], noOutline: true });
@@ -1573,7 +1573,7 @@ Object.assign(HEAD, {
   visor(rig, p, rt) {
     const c = p.color || '#4af8ff', c2 = p.color2 || '#ff4ad8', g = group(rig.head);
     const scan = ctex('visorscan', 64, 64, (gg, s) => { gg.fillStyle = 'rgba(255,255,255,0.4)'; gg.fillRect(0, 0, s, s); gg.fillStyle = 'rgba(255,255,255,1)'; for (let y = 2; y < s; y += 8) gg.fillRect(0, y, s, 2); }, { repeat: true });
-    const t = scan.clone(); t.needsUpdate = true; t.repeat.set(1, 1.5);
+    const t = scan.clone(); t.needsUpdate = true; t.isOwned = true; t.repeat.set(1, 1.5);
     // ชั้นล่างเป็นกระจกสีเข้ม ชั้นบนเป็นเส้นสแกนเรืองแสง
     mesh(new THREE.CylinderGeometry(0.29, 0.286, 0.1, 28, 1, true, -1.15, 2.3), new THREE.MeshBasicMaterial({ color: lin(p.glass || '#0e1830'), transparent: true, opacity: 0.88, side: THREE.DoubleSide }), g, 0, 0.2, 0, { keep: true, shadow: false }).renderOrder = 3;
     const vis = mesh(new THREE.CylinderGeometry(0.293, 0.289, 0.1, 28, 1, true, -1.15, 2.3), new THREE.MeshBasicMaterial({ color: lin(c), map: t, transparent: true, opacity: 0.8, side: THREE.FrontSide, blending: THREE.AdditiveBlending, depthWrite: false }), g, 0, 0.2, 0, { keep: true, shadow: false });
@@ -1681,7 +1681,7 @@ Object.assign(HEAD, {
   beanie(rig, p) {
     const c = p.color || '#d8433a', g = group(rig.head, 0, 0.22, -0.01, [-0.2, 0, 0]);
     const knit = ctex('knit', 64, 64, (gg, s) => { gg.fillStyle = '#fff'; gg.fillRect(0, 0, s, s); gg.strokeStyle = 'rgba(0,0,0,0.18)'; gg.lineWidth = 3; for (let x = 4; x < s; x += 8) { gg.beginPath(); gg.moveTo(x, 0); gg.lineTo(x, s); gg.stroke(); } }, { repeat: true });
-    const t = knit.clone(); t.needsUpdate = true; t.repeat.set(10, 2);
+    const t = knit.clone(); t.needsUpdate = true; t.isOwned = true; t.repeat.set(10, 2);
     mesh(new THREE.SphereGeometry(0.3, 26, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), TM(c, t), g, 0, 0, 0, { s: [1.02, 1.08, 1.04] });
     mesh(torus(0.302, 0.045, 8, 30), TM(p.cuff || shadeHex(c, -0.12), t), g, 0, 0.02, 0, { r: [Math.PI / 2, 0, 0] });
     if (p.stripe) mesh(torus(0.285, 0.02, 6, 28), T(p.stripe), g, 0, 0.12, 0, { r: [Math.PI / 2, 0, 0] });
@@ -1790,7 +1790,7 @@ Object.assign(BACK, {
   fan(rig, p, rt) {
     const g = group(rig.torso, 0, 0.14, -0.27, [0.18, 0, 0]);
     const R0 = 0.1, R1 = 0.5, A = 1.25;
-    const tex = patternTex(p.pattern || 'sakura', p.c1 || '#ff8fb8', p.c2 || '#ffffff', p.color || '#fff4e8').clone(); tex.needsUpdate = true; tex.repeat.set(2, 1);
+    const tex = patternTex(p.pattern || 'sakura', p.c1 || '#ff8fb8', p.c2 || '#ffffff', p.color || '#fff4e8').clone(); tex.needsUpdate = true; tex.isOwned = true; tex.repeat.set(2, 1);
     mesh(shapeGeo((sh) => { sh.absarc(0, 0, R1, Math.PI / 2 + A, Math.PI / 2 - A, true); sh.lineTo(Math.cos(Math.PI / 2 - A) * R0, Math.sin(Math.PI / 2 - A) * R0); sh.absarc(0, 0, R0, Math.PI / 2 - A, Math.PI / 2 + A, false); }), TM('#ffffff', tex, { side: THREE.DoubleSide }), g, 0, 0, 0, { keep: true });
     mesh(new THREE.TorusGeometry(R1, 0.012, 4, 30, 2 * A), T(p.edge || '#c8283a'), g, 0, 0, 0, { r: [0, 0, Math.PI / 2 - A] });
     const slat = T(p.slat || '#3a2418');
@@ -2434,7 +2434,7 @@ Object.assign(WEAPON, {
   // ดาบจักรพรรดิดารา: ใบคริสตัลมีห้วงดาวในตัว ขอบแสงรุ้ง ปีกทองคู่ใหญ่ วงรัศมีอักขระหลังโกร่ง เศษผลึกหมุนเกลียวรอบใบ
   astralBlade(rig, p, rt) {
     const h = swordHand(rig);
-    const sf = starfieldTex().clone(); sf.needsUpdate = true; sf.repeat.set(1.3, 5);
+    const sf = starfieldTex().clone(); sf.needsUpdate = true; sf.isOwned = true; sf.repeat.set(1.3, 5);
     const crystal = new THREE.MeshToonMaterial({ color: lin('#ffffff'), map: sf, emissive: new THREE.Color('#ffffff'), emissiveMap: sf, emissiveIntensity: 0.95, gradientMap: gradientMap() });
     blade(h, (sh) => { sh.moveTo(0, -0.05); sh.lineTo(0.56, -0.066); sh.lineTo(0.94, 0); sh.lineTo(0.56, 0.066); sh.lineTo(0, 0.05); }, crystal, { depth: 0.028, z0: 0.12 });
     mesh(box(0.034, 0.008, 0.74), G('#ffffff', 2.6), h, 0, 0, 0.48, { noOutline: true });
@@ -2560,7 +2560,7 @@ Object.assign(WEAPON, {
     for (const s of [-1, 1]) for (let k = 0; k < 4; k++) featherXY(st, s * 0.02, 1.03, 0.004 * k, s > 0 ? -0.5 - k * 0.32 : Math.PI + 0.5 + k * 0.32, 0.13 - k * 0.012, 0.032, k % 2 ? gold : T('#ffffff', { emissive: '#4a5a7a' }));
     mesh(sph(0.04, 12, 10), gold, st, 0, 1.06, 0, { s: [1, 0.8, 1] });
     bake(st);
-    const at = auroraBladeTex().clone(); at.needsUpdate = true; at.repeat.set(4, 2.3);
+    const at = auroraBladeTex().clone(); at.needsUpdate = true; at.isOwned = true; at.repeat.set(4, 2.3);
     const crystal = new THREE.MeshToonMaterial({ color: lin('#ffffff'), map: at, emissive: new THREE.Color('#ffffff'), emissiveMap: at, emissiveIntensity: 0.65, gradientMap: gradientMap() });
     const head = mesh(extrude((sh) => { sh.moveTo(0, 0); sh.quadraticCurveTo(0.09, 0.1, 0.06, 0.2); sh.lineTo(0, 0.44); sh.lineTo(-0.06, 0.2); sh.quadraticCurveTo(-0.09, 0.1, 0, 0); }, 0.03, 0.01), crystal, st, 0, 1.08, 0);
     mesh(box(0.008, 0.36, 0.036), G('#dffff4', 1.4), st, 0, 1.28, 0, { noOutline: true });
@@ -2715,7 +2715,7 @@ function wingSeraph6(rig, p, rt) {
 // ปีกห้วงจักรวาล: ปีกคริสตัลสามแฉกที่มีดาราจักรเลื่อนไหลอยู่ข้างใน ขอบแสงฟ้า ดาวระยิบบนปีก
 function wingGalaxy(rig, p, rt) {
   const size = p.size || 1.15;
-  const sf = starfieldTex().clone(); sf.needsUpdate = true; sf.repeat.set(1.4, 1.4);
+  const sf = starfieldTex().clone(); sf.needsUpdate = true; sf.isOwned = true; sf.repeat.set(1.4, 1.4);
   const mat = new THREE.MeshBasicMaterial({ map: sf, side: THREE.DoubleSide, transparent: true, opacity: 0.96 });
   const edge = G(p.edge || '#bff4ff', 1.8);
   const lobes = [
@@ -2938,7 +2938,7 @@ Object.assign(BACK, {
   // ผ้าคลุมเนบิวลา: ผ้าคลุมที่มีห้วงดาวเลื่อนไหลอยู่บนผืนผ้า ขอบทองเรือง ดาวร่วงจากชายผ้า
   nebulaCape(rig, p, rt) {
     const g = group(rig.torso, 0, 0.37, -0.03), len = p.len || 0.74;
-    const sf = starfieldTex().clone(); sf.needsUpdate = true; sf.repeat.set(2.5, 2);
+    const sf = starfieldTex().clone(); sf.needsUpdate = true; sf.isOwned = true; sf.repeat.set(2.5, 2);
     const outer = new THREE.MeshToonMaterial({ color: lin('#ffffff'), map: sf, emissive: new THREE.Color('#ffffff'), emissiveMap: sf, emissiveIntensity: 0.75, gradientMap: gradientMap() });
     mesh(new THREE.CylinderGeometry(0.17, 0.4, len, 24, 4, true, Math.PI - 1.25, 2.5), outer, g, 0, -len / 2, -0.02, { noOutline: true });
     mesh(new THREE.CylinderGeometry(0.165, 0.392, len * 0.99, 24, 4, true, Math.PI - 1.25, 2.5), toon(p.lining || '#2a1a5a', { side: THREE.BackSide }), g, 0, -len / 2, -0.02, { noOutline: true });
@@ -3000,7 +3000,7 @@ Object.assign(AURA, {
   },
   // ลำแสงสวรรค์: ลำแสงทองสาดลงมาจากฟ้า ขนนกแสงโปรยลง วงอักขระทองบนพื้น
   heavenLight(rig, p, rt) {
-    const vt = TX.vgrad().clone(); vt.needsUpdate = true; vt.repeat.set(2, 1);
+    const vt = TX.vgrad().clone(); vt.needsUpdate = true; vt.isOwned = true; vt.repeat.set(2, 1);
     const beam = mesh(new THREE.CylinderGeometry(0.62, 0.72, 4.2, 32, 1, true), unlit(p.color || '#ffd86a', { map: vt, opacity: 0.22, add: true }), rig.root, 0, 2.1, 0, { keep: true, shadow: false });
     const beam2 = mesh(new THREE.CylinderGeometry(0.38, 0.45, 4.2, 24, 1, true), unlit('#ffc84a', { map: vt, opacity: 0.16, add: true }), rig.root, 0, 2.1, 0, { keep: true, shadow: false });
     const ring = mesh(new THREE.PlaneGeometry(1.8, 1.8), unlit('#ffe08a', { map: TX.runeCircle('star'), opacity: 0.75, add: true }), rig.root, 0, 0.025, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false });
@@ -3051,7 +3051,7 @@ Object.assign(PET, {
   // วาฬดารา: วาฬน้อยหลังเป็นห้วงดาว ว่ายวนรอบตัวกลางอากาศ พ่นละอองดาว ทิ้งเส้นทางดาว
   starWhale(rig, p, rt) {
     const anchor = group(rig.root, 0, 1.75, 0), f = group(anchor);
-    const sf = starfieldTex().clone(); sf.needsUpdate = true; sf.repeat.set(2, 1);
+    const sf = starfieldTex().clone(); sf.needsUpdate = true; sf.isOwned = true; sf.repeat.set(2, 1);
     const top = new THREE.MeshToonMaterial({ color: lin('#ffffff'), map: sf, emissive: new THREE.Color('#ffffff'), emissiveMap: sf, emissiveIntensity: 0.8, gradientMap: gradientMap() });
     const body = group(f);
     mesh(sph(0.11, 20, 14), top, body, 0, 0, 0, { s: [0.85, 0.72, 1.8] });

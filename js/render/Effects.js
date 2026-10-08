@@ -98,6 +98,16 @@ export class FountainSpray {
   }
 }
 
+/* ---------- จุดแสง (v0.16) ----------
+   แทน PointLight จริงของกองไฟ/ปล่องลาวา/ประตูมิติ — Renderer3D เลือกจุดที่ใกล้กล้องที่สุด 2 จุดไปใส่ไฟจริง 2 ดวง
+   (จำนวนไฟคงที่ทุกแผนที่ → ไม่ต้องคอมไพล์เชดเดอร์ใหม่ และภูเขาไฟไม่ต้องคำนวณแสง 14 ดวงทุกพิกเซล) */
+export class LightSpot {
+  constructor(x, y, z, color, intensity, distance) {
+    this.position = new THREE.Vector3(x, y, z); this.color = new THREE.Color(color);
+    this.intensity = intensity; this.distance = distance; this.decay = 2;
+  }
+}
+
 /* ---------- ประตูมิติ ---------- */
 export class Portal {
   constructor(parent, x, z, locked = false) {
@@ -116,7 +126,7 @@ export class Portal {
     this.beam.position.y = 1.4;
     this.beam2 = add(new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 2.2, 32, 1, true), new THREE.MeshBasicMaterial({ map: bt, color: C.beam2, transparent: true, opacity: locked ? 0.07 : 0.14, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })));
     this.beam2.position.y = 1.1;
-    this.light = new THREE.PointLight(C.light, 1.2, 6, 2); this.light.position.y = 1; this.group.add(this.light);
+    this.light = new LightSpot(x, 1, z, C.light, 1.2, 6);
     // อนุภาคลอยขึ้นเป็นเกลียว
     this.n = 70; this.seed = new Float32Array(this.n); const r = rng(5);
     for (let i = 0; i < this.n; i++) this.seed[i] = r();
@@ -320,11 +330,11 @@ export class Campfire {
     geo.setAttribute('color', new THREE.BufferAttribute(this.col, 3));
     this.points = new THREE.Points(geo, new THREE.PointsMaterial({ map: glowTexture(), size: 0.28, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
     this.points.frustumCulled = false; parent.add(this.points);
-    this.light = new THREE.PointLight('#ff9a40', 1.4, 7, 2); this.light.position.set(x, 0.8, z); parent.add(this.light);
-    this.c0 = new THREE.Color('#ffe7a0'); this.c1 = new THREE.Color('#ff5a1a');
+    this.light = new LightSpot(x, 0.8, z, '#ff9a40', 1.4, 7);
+    this.c0 = new THREE.Color('#ffe7a0'); this.c1 = new THREE.Color('#ff5a1a'); this.tc = new THREE.Color();
   }
   update(t) {
-    const c = new THREE.Color();
+    const c = this.tc;
     for (let i = 0; i < this.n; i++) {
       const s = this.seed[i], k = (t * (0.9 + s * 0.6) + s) % 1;
       const a = s * 50;

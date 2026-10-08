@@ -41,7 +41,7 @@ export const WARP_ROUTES = {
   frost: [
     { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 31.5, y: 27.5, angle: 0 }, cost: 300 },
     { label: 'Whisperwood Forest · ทางเข้า', hint: 'ป่ากระซิบ', map: 'whisper_forest', arrive: { x: 7.5, y: 28.5, angle: Math.PI / 2 }, cost: 150 },
-    { label: 'Ember Caldera · ค่ายผู้กล้า', hint: 'ภูเขาไฟ · แนะนำ Lv.50+', map: 'ember_caldera', arrive: { x: 8.5, y: 31.5, angle: Math.PI / 2 }, cost: 800 },
+    { label: 'Ember Caldera · ค่ายผู้กล้า', hint: 'ภูเขาไฟ · แนะนำ Lv.40+', map: 'ember_caldera', arrive: { x: 8.5, y: 31.5, angle: Math.PI / 2 }, cost: 800 },
   ],
   ember: [
     { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 31.5, y: 27.5, angle: 0 }, cost: 600 },
@@ -50,16 +50,16 @@ export const WARP_ROUTES = {
   town: [
     { label: 'Beginner Field · ทางเข้าตะวันตก', hint: 'บล็อบเล็ต · แนะนำ Lv.1+', map: 'beginner_field', arrive: { x: 5.5, y: 27.5, angle: Math.PI / 2 }, cost: 10 },
     { label: 'Beginner Field · ทางแยกใต้', hint: 'แคปปลิง · แนะนำ Lv.3+', map: 'beginner_field', arrive: { x: 53.5, y: 32.5, angle: 0 }, cost: 40 },
-    { label: 'Beginner Field · ลานซากโบราณ', hint: 'สติงเล็ต (ดุร้าย) · แนะนำ Lv.5+', map: 'beginner_field', arrive: { x: 56.5, y: 13.5, angle: 0 }, cost: 60 },
-    { label: 'Whisperwood Forest · ทางเข้า', hint: 'ธอร์นแบ็ก วิสป์ บาร์กวูล์ฟ · แนะนำ Lv.8+', map: 'whisper_forest', arrive: { x: 7.5, y: 28.5, angle: Math.PI / 2 }, cost: 90 },
+    { label: 'Beginner Field · ลานซากโบราณ', hint: 'สติงเล็ต (ดุร้าย) · แนะนำ Lv.6+', map: 'beginner_field', arrive: { x: 56.5, y: 13.5, angle: 0 }, cost: 60 },
+    { label: 'Whisperwood Forest · ทางเข้า', hint: 'ธอร์นแบ็ก วิสป์ บาร์กวูล์ฟ · แนะนำ Lv.9+', map: 'whisper_forest', arrive: { x: 7.5, y: 28.5, angle: Math.PI / 2 }, cost: 90 },
     { label: 'Frostveil Peaks · ค่ายนักสำรวจ', hint: 'ยอดเขาหิมะ · แนะนำ Lv.20+', map: 'frostveil', arrive: { x: 42, y: 57.5, angle: Math.PI }, cost: 600 },
-    { label: 'Ember Caldera · ค่ายผู้กล้า', hint: 'ภูเขาไฟ · แนะนำ Lv.50+', map: 'ember_caldera', arrive: { x: 8.5, y: 31.5, angle: Math.PI / 2 }, cost: 1500 },
+    { label: 'Ember Caldera · ค่ายผู้กล้า', hint: 'ภูเขาไฟ · แนะนำ Lv.40+', map: 'ember_caldera', arrive: { x: 8.5, y: 31.5, angle: Math.PI / 2 }, cost: 1500 },
   ],
   ruins: [
     { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 31.5, y: 27.5, angle: 0 }, cost: 30 },
     { label: 'Beginner Field · ทางเข้าตะวันตก', hint: 'ข้างกองไฟของลีน่า', map: 'beginner_field', arrive: { x: 5.5, y: 27.5, angle: Math.PI / 2 }, cost: 10 },
     { label: 'Beginner Field · ทางแยกใต้', hint: 'แคปปลิง', map: 'beginner_field', arrive: { x: 53.5, y: 32.5, angle: 0 }, cost: 20 },
-    { label: 'Whisperwood Forest · ทางเข้า', hint: 'ป่าทางตะวันออก · แนะนำ Lv.8+', map: 'whisper_forest', arrive: { x: 7.5, y: 28.5, angle: Math.PI / 2 }, cost: 30 },
+    { label: 'Whisperwood Forest · ทางเข้า', hint: 'ป่าทางตะวันออก · แนะนำ Lv.9+', map: 'whisper_forest', arrive: { x: 7.5, y: 28.5, angle: Math.PI / 2 }, cost: 30 },
   ],
   forest: [
     { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 31.5, y: 27.5, angle: 0 }, cost: 40 },

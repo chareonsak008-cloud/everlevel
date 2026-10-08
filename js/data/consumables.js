@@ -163,13 +163,13 @@ export const CONSUMABLES = {
   },
   frost_tonic: {
     name: 'ยาต้านหนาว', en: 'Frostward Tonic', cat: 'recover', rarity: 'uncommon', icon: ['flask_tall', '#6ab8ff', 'snow'],
-    effect: 'ในแผนที่หิมะ: รับดาเมจจากมอนสเตอร์ลดลง 20%', use: { buff: { dmgCutSnow: 20 } }, group: 'biome', dur: 15 * MIN, price: 800, shop: 'frost',
+    effect: 'ในแผนที่หิมะ: รับดาเมจจากมอนสเตอร์ลดลง 20%', use: { buff: { dmgCutSnow: 20 } }, group: 'snow', dur: 15 * MIN, price: 800, shop: 'frost',
     from: [['shop', 'ร้านเสบียงของเฮลก้า · 800 z']],
     desc: 'ยาสีฟ้าอุ่นท้อง ทำให้ทนลมหนาวบนยอดเขาได้นานขึ้น',
   },
   flame_tonic: {
     name: 'ยาต้านร้อน', en: 'Flameward Tonic', cat: 'recover', rarity: 'uncommon', icon: ['flask_tall', '#ff7a2a', 'flame'],
-    effect: 'ในแผนที่ภูเขาไฟ: รับดาเมจจากมอนสเตอร์ลดลง 20%', use: { buff: { dmgCutLava: 20 } }, group: 'biome', dur: 15 * MIN, price: 800, shop: 'ember',
+    effect: 'ในแผนที่ภูเขาไฟ: รับดาเมจจากมอนสเตอร์ลดลง 20%', use: { buff: { dmgCutLava: 20 } }, group: 'lava', dur: 15 * MIN, price: 800, shop: 'ember',
     from: [['shop', 'ร้านเสบียงของโรซ่า · 800 z']],
     desc: 'ยาสีส้มเย็นเฉียบ ผิวไม่ไหม้แม้อยู่ใกล้ลาวา',
   },

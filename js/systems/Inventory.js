@@ -12,11 +12,13 @@ export class Inventory {
   count(id) { const s = this.stacks.find((x) => x.id === id); return s ? s.qty : 0; }
 
   // เพิ่มไอเทม คืนค่าจำนวนที่เพิ่มได้จริง (0 = กระเป๋าเต็ม)
-  add(id, qty = 1) {
-    if (!ITEMS[id] || qty <= 0) return 0;
+  // force = ใส่ได้แม้ช่องเต็ม (ใช้ตอนคืนของที่เพิ่งถอด/สลับ/ยกเลิก — กันของหาย) · v0.16
+  add(id, qty = 1, force = false) {
+    qty = Math.floor(qty);
+    if (!ITEMS[id] || !(qty > 0)) return 0;
     let s = this.stacks.find((x) => x.id === id);
     if (!s) {
-      if (this.stacks.length >= this.capacity) return 0;
+      if (!force && this.stacks.length >= this.capacity) return 0;
       s = { id, qty: 0 };
       this.stacks.push(s);
     }

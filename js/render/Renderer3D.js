@@ -26,6 +26,21 @@ const COSTUME_GLOW = 1.6;
 const S = 1 / TILE; // พิกัดโลก (px) → หน่วย 3 มิติ
 const isRareDrop = (it) => !!it && (it.type === 'card' || it.type === 'box' || ['rare', 'epic', 'legend'].includes(it.rarity));
 
+// v0.16: คืนหน่วยความจำ GPU ของเท็กซ์เจอร์ที่ชุดแฟชั่นโคลนไว้ใช้เฉพาะตัว (เท็กซ์เจอร์ที่ใช้ร่วมกันไม่ถูกลบ)
+// v0.16: เขียน DOM เฉพาะตอนค่าเปลี่ยน (ป้ายชื่อ/แถบเลือดขยับทุกเฟรม → ลดงาน layout บนมือถือ)
+const setT = (el, v) => { if (el._t !== v) { el.style.transform = v; el._t = v; } };
+const setH = (el, h) => { if (el.hidden !== h) el.hidden = h; };
+const setV = (el, on) => { const v = on ? 'visible' : 'hidden'; if (el._v !== v) { el.style.visibility = v; el._v = v; } };
+// ความละเอียดตามระดับคุณภาพ (มือถือเริ่ม 1.5 เท่า แทน 1.75)
+const RATIOS = { mobile: [1.5, 1.25, 1, 0.85], desktop: [2, 1.25, 1, 0.8] };
+
+function disposeOwned(root) {
+  root.traverse((o) => {
+    if (!o.material) return;
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]) for (const k of ['map', 'emissiveMap', 'alphaMap']) if (m && m[k] && m[k].isOwned) { m[k].dispose(); m[k] = null; }
+  });
+}
+
 export class Renderer3D {
   constructor(canvas, labelLayer) {
     this.canvas = canvas;
@@ -33,12 +48,14 @@ export class Renderer3D {
     this.mobile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.mobile ? 1.75 : 2));
+    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2));
     r.outputEncoding = THREE.sRGBEncoding;
     r.toneMapping = THREE.ACESFilmicToneMapping;
     r.toneMappingExposure = 0.92;
     r.shadowMap.enabled = true;
-    r.shadowMap.type = THREE.PCFSoftShadowMap;
+    r.shadowMap.type = this.mobile ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+    // v0.16: มือถืออัปเดตเงาเว้นเฟรม (ภาพแทบไม่ต่าง · งานเงาลดครึ่ง)
+    r.shadowMap.autoUpdate = !this.mobile; this.frameN = 0;
 
     this.scene = new THREE.Scene();
     this.scene.background = skyTexture();
@@ -78,7 +95,11 @@ export class Renderer3D {
 
     // v0.8: เอฟเฟกต์สกิลชุดใหม่ + โพสต์โปรเซส (เรืองแสง · คลื่นกระแทก · แสงวาบ)
     this.fx = new SkillFX(this.scene, { pool: this.mobile ? 0.6 : 1, lights: this.mobile ? 2 : 3 });
-    this.post = new PostFX(r, { msaa: 4, strength: 1.0 });
+    // v0.16: มือถือไม่ใช้ MSAA บนบัฟเฟอร์โพสต์ และใช้บัฟเฟอร์ 8 บิต sRGB (ไม่ต้องคอมไพล์เชดเดอร์ชุดที่สอง · ประหยัดแบนด์วิดท์)
+    this.post = new PostFX(r, { msaa: this.mobile ? 0 : 4, strength: 1.0, linear: !this.mobile });
+    // ไฟจริง 2 ดวงสำหรับกองไฟ/ปล่องลาวา/ประตูมิติที่ใกล้ที่สุด (แทนไฟดวงละจุด)
+    this.propLights = [0, 1].map(() => { const l = new THREE.PointLight('#ff9a40', 0, 7, 2); this.scene.add(l); return l; });
+    this.lightPickT = 0; this.lightPick = [];
     this.sky = { dark: 0, t: 0, dur: 0 };
     this.punchAmt = 0;
     this.baseLight = { hemi: this.hemi.intensity, sun: this.sun.intensity };
@@ -102,7 +123,7 @@ export class Renderer3D {
         if (o.isPoints || o.isSprite) o.material.dispose();
       });
       if (this.groundTex) this.groundTex.dispose();
-      if (this.water) for (const m of [this.water.base, this.water.l1, this.water.l2]) m.dispose();
+      if (this.water) for (const m of [this.water.base, this.water.l1, this.water.l2]) { if (m.map) m.map.dispose(); m.dispose(); }
       this.world = null;
     }
     for (const [entity, c] of [...this.characters]) {
@@ -269,20 +290,45 @@ export class Renderer3D {
     if (this.quality) this.setQuality(this.quality); // คงโหมดคุณภาพเดิมไว้
   }
 
-  instanced(parent, geo, mat, list, { cast = true, tint = null } = {}) {
+  // v0.16: แบ่งพืช/หินเป็นก้อนละ 20×20 ช่อง แต่ละก้อนมีขอบเขตของตัวเอง → กล้องและเงาตัดก้อนที่มองไม่เห็นทิ้ง
+  // (เดิมรวมทั้งแผนที่เป็นชิ้นเดียว ต้องวาดต้นไม้ทุกต้นทุกเฟรมทั้งรอบภาพและรอบเงา) · คืนรายการ InstancedMesh
+  instanced(parent, geo, mat, list, { cast = true, tint = null, chunk = 24 } = {}) {
     if (!list.length) return null;
-    const im = new THREE.InstancedMesh(geo, mat, list.length);
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3(), c = new THREE.Color();
+    if (!geo.boundingSphere) geo.computeBoundingSphere();
+    const gs = geo.boundingSphere, gr = gs.radius + gs.center.length();
+    const buckets = new Map();
     list.forEach((it, i) => {
-      e.set(0, it.rot || 0, 0); q.setFromEuler(e);
-      v.set(it.x, 0, it.z); sc.setScalar(it.s || 1);
-      m.compose(v, q, sc); im.setMatrixAt(i, m);
-      if (it.color) im.setColorAt(i, it.color);
-      else if (tint) im.setColorAt(i, tint(c, ((i * 7919) % 100) / 100));
+      const k = Math.floor(it.x / chunk) + ',' + Math.floor(it.z / chunk);
+      let b = buckets.get(k); if (!b) buckets.set(k, (b = []));
+      b.push(i);
     });
-    im.castShadow = cast; im.receiveShadow = true;
-    parent.add(im);
-    return im;
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3(), c = new THREE.Color();
+    const out = [];
+    for (const idx of buckets.values()) {
+      const g = new THREE.BufferGeometry();
+      for (const [name, attr] of Object.entries(geo.attributes)) g.setAttribute(name, attr);
+      if (geo.index) g.setIndex(geo.index);
+      let cx = 0, cz = 0;
+      for (const i of idx) { cx += list[i].x; cz += list[i].z; }
+      cx /= idx.length; cz /= idx.length;
+      let rad = 0;
+      for (const i of idx) rad = Math.max(rad, Math.hypot(list[i].x - cx, list[i].z - cz) + gr * (list[i].s || 1));
+      g.boundingSphere = new THREE.Sphere(new THREE.Vector3(cx, gs.center.y, cz), rad + 0.5);
+      const im = new THREE.InstancedMesh(g, mat, idx.length);
+      idx.forEach((i, j) => {
+        const it = list[i];
+        e.set(0, it.rot || 0, 0); q.setFromEuler(e);
+        v.set(it.x, 0, it.z); sc.setScalar(it.s || 1);
+        m.compose(v, q, sc); im.setMatrixAt(j, m);
+        if (it.color) im.setColorAt(j, it.color);
+        else if (tint) im.setColorAt(j, tint(c, ((i * 7919) % 100) / 100));
+      });
+      im.frustumCulled = true;
+      im.castShadow = cast; im.receiveShadow = true;
+      parent.add(im);
+      out.push(im);
+    }
+    return out;
   }
 
   // เพิ่มการโยกตามลมใน vertex shader (ไม่กิน CPU)
@@ -369,6 +415,7 @@ export class Renderer3D {
       castbar = document.createElement('div'); castbar.className = 'castbar'; castbar.innerHTML = '<span></span><b><i></i></b>'; castbar.hidden = true; this.labelLayer.append(castbar);
     }
     this.characters.set(entity, { view, costume, glow, label, bubble, hpbar, castbar, npc, kind: npc ? 'npc' : remote ? 'remote' : 'player', head: 1.38 * 1.3 * scale, lastText: '', lastHp: -1 });
+    this.actorQuality(this.characters.get(entity));
     view.update(0, entity);
   }
 
@@ -384,6 +431,7 @@ export class Renderer3D {
     const hpbar = document.createElement('div'); hpbar.className = 'hpbar' + (mob.data.mvp ? ' hpbar-mvp' : ''); hpbar.innerHTML = '<i></i>'; hpbar.hidden = true;
     this.labelLayer.append(label, hpbar);
     this.characters.set(mob, { view, label, hpbar, kind: 'mob', head: h, lastHp: -1 });
+    this.actorQuality(this.characters.get(mob));
     view.update(0, mob);
   }
 
@@ -395,6 +443,7 @@ export class Renderer3D {
       const i = this.hitboxes.indexOf(o); if (i >= 0) this.hitboxes.splice(i, 1);
     });
     if (c.view.dispose) c.view.dispose();
+    disposeOwned(c.view.root);
     if (c.costume) { c.costume.dispose(); c.costume = null; }
     for (const el of [c.label, c.bubble, c.hpbar, c.castbar]) if (el) el.remove();
     this.characters.delete(entity);
@@ -651,6 +700,7 @@ export class Renderer3D {
     this.scene.add(view.root);
     if (this.ch) view.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
     this.pets.set(ent, view);
+    this.actorQuality({ view, kind: 'pet' });
     return view;
   }
 
@@ -722,12 +772,14 @@ export class Renderer3D {
     this.scene.remove(old.root);
     if (c.hitbox) old.root.remove(c.hitbox);
     old.root.traverse((o) => { if (o.geometry && !o.userData.outline) o.geometry.dispose(); });
+    disposeOwned(old.root);
     if (c.costume) { c.costume.dispose(); c.costume = null; }
     const { view, costume, glow } = this.buildView(entity, c.kind === 'npc');
     view.root.rotation.y = entity.angle;
     this.scene.add(view.root);
     if (c.hitbox) view.root.add(c.hitbox);
     c.view = view; c.costume = costume; c.glow = glow;
+    this.actorQuality(c);
     view.update(0, entity);
   }
   setTarget(entity) { this.target = entity; if (!entity) this.ring.hide(); }
@@ -802,6 +854,8 @@ export class Renderer3D {
   hideAutoZone() { if (this.autoZone) this.autoZone.hide(); }
 
   resize(w, h) {
+    if (!(w > 0 && h > 0)) return;   // v0.16: แอปถูกย่อ/กำลังหมุนจอ (ขนาด 0) → ข้าม ไม่ให้กล้องเป็น NaN
+    this.renderer.setPixelRatio(this.ratioFor(this.quality || 0));   // DPR อาจเปลี่ยน (ซูมเบราว์เซอร์/ย้ายจอ)
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     // จอแนวตั้ง: ถอยกล้องออกให้เห็นกว้างพอ
@@ -824,11 +878,14 @@ export class Renderer3D {
   }
 
   /* ---------- ปรับคุณภาพอัตโนมัติ ให้ลื่นบนเครื่องสเปกต่ำ ---------- */
+  ratioFor(level) {
+    const dpr = window.devicePixelRatio || 1;
+    return Math.min(dpr, (this.mobile ? RATIOS.mobile : RATIOS.desktop)[level] ?? 1);
+  }
+
   setQuality(level) {
     this.quality = level;
-    const dpr = window.devicePixelRatio || 1;
-    const ratio = [Math.min(dpr, this.mobile ? 1.75 : 2), Math.min(dpr, 1.25), 1, 0.8][level];
-    this.renderer.setPixelRatio(ratio);
+    this.renderer.setPixelRatio(this.ratioFor(level));
     if (this.cw) this.renderer.setSize(this.cw, this.ch, false);
     // โหมดประหยัด: ปิดแสงเรือง (ระดับ 2) และปิดโพสต์โปรเซสทั้งหมด (ระดับ 3)
     this.post.bloom = level < 2 && this.bloomPref !== false;   // v0.11: ปิดแสงเรืองได้จากเมนูตั้งค่า
@@ -836,13 +893,47 @@ export class Renderer3D {
     this.syncFxSize();
     this.renderer.shadowMap.enabled = level < 3;
     this.sun.castShadow = level < 3;
-    if (level >= 2 && this.sun.shadow.mapSize.x > 1024) {
-      this.sun.shadow.mapSize.set(1024, 1024);
+    // v0.16: ขนาดแผนที่เงากลับมาเมื่อเลือกคุณภาพสูงอีกครั้ง
+    const want = level >= 2 || this.mobile ? 1024 : 2048;
+    if (this.sun.shadow.mapSize.x !== want) {
+      this.sun.shadow.mapSize.set(want, want);
       if (this.sun.shadow.map) { this.sun.shadow.map.dispose(); this.sun.shadow.map = null; }
       this.shadowExt = 0;
     }
-    if (this.grass) this.grass.visible = level < 3;
+    if (this.grass) for (const g of this.grass) g.visible = level < 3;
     if (this.motes) this.motes.points.visible = level < 2;
+    for (const c of this.characters.values()) this.actorQuality(c);
+    for (const v of this.pets.values()) this.actorQuality({ view: v, kind: 'pet' });
+  }
+
+  // v0.16: มือถือ — ตัวละครอื่น/มอน/สัตว์เลี้ยงใช้เงาวงกลม (ไม่ทอดเงาจริง) · ระดับ 1 ขึ้นไปซ่อนเส้นขอบของตัวที่ไม่ใช่ผู้เล่น
+  actorQuality(c) {
+    if (!c || !c.view || !c.view.root) return;
+    const mob = this.mobile, other = c.kind !== 'player';
+    const noOutline = other && ((mob && this.quality >= 1) || this.quality >= 3);
+    const noCast = other && (mob || this.quality >= 2);
+    c.view.root.traverse((o) => {
+      if (o.userData.outline) { o.visible = !noOutline; return; }
+      if (o.isMesh) { if (o.userData.cs === undefined) o.userData.cs = o.castShadow; o.castShadow = o.userData.cs && !noCast; }
+    });
+  }
+
+  // เลือกจุดแสงที่ใกล้กล้องที่สุด 2 จุดใส่ไฟจริง
+  updatePropLights(dt) {
+    const spots = [];
+    for (const f of this.fires) spots.push(f.light);
+    for (const p of this.portals) spots.push(p.light);
+    this.lightPickT -= dt;
+    if (this.lightPickT <= 0 || this.lightPick.some((s) => !spots.includes(s))) {
+      this.lightPickT = 0.3;
+      const c = this.rig.target;
+      this.lightPick = spots.filter((s) => s.position.distanceToSquared(c) < 26 * 26).sort((a, b) => a.position.distanceToSquared(c) - b.position.distanceToSquared(c)).slice(0, this.propLights.length);
+    }
+    this.propLights.forEach((l, i) => {
+      const s = this.lightPick[i];
+      if (!s) { l.intensity = 0; return; }
+      l.position.copy(s.position); l.color.copy(s.color); l.distance = s.distance; l.intensity = s.intensity;
+    });
   }
 
   /* ---------- วาดทุกเฟรม ---------- */
@@ -859,12 +950,14 @@ export class Renderer3D {
     this.water.update(t);
     for (const s of this.sprays) s.update(dt, t);
     for (const p of this.portals) p.update(t);
+    this.updatePropLights(dt);
+    if (this.mobile && this.renderer.shadowMap.enabled) this.renderer.shadowMap.needsUpdate = (this.frameN++ & 1) === 0;
     this.motes.update(t, this.rig.target.x, this.rig.target.z);
     this.marker.update(dt);
     this.autoZone.update(dt);
     this.glows.forEach((g, i) => { const k = 0.3 + Math.sin(t * 7 + i * 3) * 0.03 + Math.sin(t * 13 + i) * 0.02; g.material.opacity = k; });
     this.flags.forEach((f, i) => { f.rotation.y = Math.sin(t * 2.4 + i) * 0.35; f.scale.x = 1 + Math.sin(t * 5 + i) * 0.06; });
-    for (const f of this.fires) f.update(t);
+    for (const f of this.fires) { if (Math.abs(f.x - this.rig.target.x) < 26 && Math.abs(f.z - this.rig.target.z) < 26) f.update(t); else f.light.intensity = 1.3; }   // ไกลกล้อง: ไม่ต้องขยับอนุภาค
     for (const c of this.crystals) c.update(t);
     this.bursts.update(simDt);
     this.circles.update(simDt);
@@ -930,10 +1023,10 @@ export class Renderer3D {
       const p = show ? this.project(x, -0.05, z) : null;
       const labelOn = p && (this.hover === entity || this.target === entity);
       const barOn = p && (entity.hp < entity.maxHp || this.target === entity);
-      c.label.hidden = !labelOn; c.hpbar.hidden = !barOn;
-      if (labelOn) c.label.style.transform = `translate3d(${p[0]}px, ${p[1] + 14}px, 0) translate(-50%, 0)`;
+      setH(c.label, !labelOn); setH(c.hpbar, !barOn);
+      if (labelOn) setT(c.label, `translate3d(${p[0]}px, ${p[1] + 14}px, 0) translate(-50%, 0)`);
       if (barOn) {
-        c.hpbar.style.transform = `translate3d(${p[0]}px, ${p[1] + 6}px, 0) translate(-50%, 0)`;
+        setT(c.hpbar, `translate3d(${p[0]}px, ${p[1] + 6}px, 0) translate(-50%, 0)`);
         if (c.lastHp !== entity.hp) { c.hpbar.firstChild.style.width = `${Math.max(0, entity.hp / entity.maxHp) * 100}%`; c.lastHp = entity.hp; }
       }
       return;
@@ -948,14 +1041,14 @@ export class Renderer3D {
       el.hidden = !c.qm;
     }
     const p = this.project(x, c.npc ? c.head + 0.2 : -0.05, z);
-    c.label.style.visibility = p ? 'visible' : 'hidden';
-    if (c.hpbar) c.hpbar.style.visibility = p ? 'visible' : 'hidden';
-    if (!p) { if (c.bubble) c.bubble.hidden = true; return; }
+    setV(c.label, !!p);
+    if (c.hpbar) setV(c.hpbar, !!p);
+    if (!p) { if (c.bubble) setH(c.bubble, true); return; }
     const [sx, sy] = p;
-    if (c.npc) c.label.style.transform = `translate3d(${sx}px, ${sy}px, 0) translate(-50%, -100%)`;
+    if (c.npc) setT(c.label, `translate3d(${sx}px, ${sy}px, 0) translate(-50%, -100%)`);
     else {
-      c.label.style.transform = `translate3d(${sx}px, ${sy + 6}px, 0) translate(-50%, 0)`;
-      c.hpbar.style.transform = `translate3d(${sx}px, ${sy + (c.kind === 'remote' ? 37 : 26)}px, 0) translate(-50%, 0)`;
+      setT(c.label, `translate3d(${sx}px, ${sy + 6}px, 0) translate(-50%, 0)`);
+      setT(c.hpbar, `translate3d(${sx}px, ${sy + (c.kind === 'remote' ? 37 : 26)}px, 0) translate(-50%, 0)`);
       if (c.kind === 'player' && c.lastName !== entity.name) { c.label.textContent = entity.name; c.lastName = entity.name; }   // ชื่อตัวละครที่ตั้งตอนสร้าง
       if (c.kind === 'remote' && c.lastTitle !== entity.title) { const t = c.label.querySelector('.rt'); if (t) t.textContent = entity.title; c.lastTitle = entity.title; }
       // แถบร่ายสกิลเหนือหัว
@@ -967,7 +1060,7 @@ export class Renderer3D {
           if (c.castbar.hidden) { c.castbar.hidden = false; }
           if (c.castName !== cs.name) { c.castbar.firstChild.textContent = cs.name; c.castName = cs.name; }
           c.castbar.querySelector('i').style.width = `${Math.min(1, cs.t / cs.total) * 100}%`;
-          c.castbar.style.transform = `translate3d(${hp[0]}px, ${hp[1]}px, 0) translate(-50%, -100%)`;
+          setT(c.castbar, `translate3d(${hp[0]}px, ${hp[1]}px, 0) translate(-50%, -100%)`);
         }
       } else if (!c.castbar.hidden) { c.castbar.hidden = true; c.castName = ''; }
       if (c.lastHp !== entity.hp) {
@@ -981,9 +1074,9 @@ export class Renderer3D {
       const b = entity.bubble;
       if (b) {
         if (c.lastText !== b.text) { c.bubble.textContent = this.mobile && !c.npc && b.text.length > 56 ? b.text.slice(0, 54) + '…' : b.text; c.lastText = b.text; }   // v0.13: มือถือย่อข้อความยาวในบอลลูน
-        c.bubble.hidden = false;
-        c.bubble.style.opacity = Math.min(1, b.t * 2);
-        c.bubble.style.transform = c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, c.head + 0.35, z) || p)[1]}px, 0) translate(-50%, -100%)`;
+        setH(c.bubble, false);
+        const op = String(Math.min(1, Math.round(b.t * 20) / 10)); if (c.bubble._o !== op) { c.bubble.style.opacity = op; c.bubble._o = op; }
+        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, c.head + 0.35, z) || p)[1]}px, 0) translate(-50%, -100%)`);
       } else if (!c.bubble.hidden) { c.bubble.hidden = true; c.lastText = ''; }
     }
   }

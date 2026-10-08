@@ -835,6 +835,10 @@ export class PetView {
   dispose() {
     for (const p of this.ps.values()) { p.points.parent && p.points.parent.remove(p.points); p.points.geometry.dispose(); p.mat.dispose(); }
     this.ps.clear();
+    // v0.16: คืนหน่วยความจำ GPU ของโมเดล (เดิมค้างทุกครั้งที่เรียก/เก็บสัตว์เลี้ยงหรือเปลี่ยนแผนที่)
+    this.root.traverse((o) => { if (o.geometry && !o.isSprite) o.geometry.dispose(); });
+    if (this.shadow && this.shadow.material) this.shadow.material.dispose();
+    if (this.starFx && this.starFx.material) this.starFx.material.dispose();
     if (this.root.parent) this.root.parent.remove(this.root);
   }
 }

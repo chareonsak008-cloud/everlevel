@@ -49,6 +49,7 @@ export class QuestLog {
       const q = QUESTS[id];
       if (!q) { delete st.active[id]; continue; }
       const a = st.active[id];
+      if (!a || typeof a !== 'object') { delete st.active[id]; continue; }
       a.prog = q.goals.map((_, i) => Math.max(0, Math.floor((a.prog && a.prog[i]) || 0)));
     }
     for (const id of Object.keys(st.done)) if (!QUESTS[id]) delete st.done[id];
@@ -103,12 +104,20 @@ export class QuestLog {
     if (this.status(id) !== 'available') return { error: this.lockReason(id) || 'รับเควสนี้ไม่ได้' };
     if (q.give && !this.p.inventory.fits(q.give)) return { error: 'กระเป๋าเต็ม รับของจากเควสไม่ได้' };
     this.st.active[id] = { prog: q.goals.map((g) => (g.type === 'visit' && this.map === g.map ? 1 : 0)), at: Date.now() };
-    for (const [it, n] of q.give || []) this.p.inventory.add(it, n);
+    // v0.16: ของเริ่มต้นได้ครั้งเดียว — ยกเลิกแล้วคืนของครบถึงจะได้ใหม่ (กันรับ-ยกเลิกปั๊มของ)
+    const gave = this.st.gave || (this.st.gave = {});
+    if (!gave[id]) { for (const [it, n] of q.give || []) this.p.inventory.add(it, n); if (q.give && q.give.length) gave[id] = 1; }
     return { ok: true };
   }
 
   abandon(id) {
     if (!this.st.active[id]) return false;
+    const q = QUESTS[id], gave = this.st.gave || {};
+    if (q && gave[id]) {
+      let all = true;
+      for (const [it, n] of q.give || []) if (this.p.inventory.remove(it, n) < n) all = false;
+      if (all) delete gave[id];   // คืนครบ → รับเควสใหม่ได้ของอีก
+    }
     delete this.st.active[id];
     return true;
   }
@@ -122,7 +131,7 @@ export class QuestLog {
     // จำลองหักของก่อน แล้วค่อยตรวจว่ารางวัลใส่กระเป๋าได้
     for (const g of take) this.p.inventory.remove(g.item, g.n);
     if (!this.p.inventory.fits(items)) {
-      for (const g of take) this.p.inventory.add(g.item, g.n);
+      for (const g of take) this.p.inventory.add(g.item, g.n, true);   // คืนของที่หักไว้ (แม้กระเป๋าเกินช่อง)
       return { error: 'กระเป๋าเต็ม ทำช่องว่างก่อนรับรางวัลนะ' };
     }
     delete this.st.active[id];

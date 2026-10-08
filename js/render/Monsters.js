@@ -11,6 +11,7 @@ function add(parent, geo, mat, x = 0, y = 0, z = 0, cast = true) {
   parent.add(m); return m;
 }
 
+const WHITE_C = new THREE.Color(1, 1, 1);   // v0.16: ไม่สร้างสีใหม่ทุกเฟรมตอนกระพริบ
 const eyeMat = () => toon('#1c1424');
 const shineMat = () => toon('#ffffff', { emissive: '#ffffff', emissiveIntensity: 0.4 });
 
@@ -539,7 +540,7 @@ export class MonsterView {
     if (this.hurtT > 0 || this.flashing) {
       this.hurtT = Math.max(0, this.hurtT - dt);
       const k = this.hurtT / 0.22;
-      for (const m of this.flashMats) m.emissive.copy(m.userData.baseEmissive).lerp(new THREE.Color(1, 1, 1), k * 0.8);
+      for (const m of this.flashMats) m.emissive.copy(m.userData.baseEmissive).lerp(WHITE_C, k * 0.8);
       this.flashing = this.hurtT > 0;
     }
     const shake = this.hurtT > 0 ? Math.sin(t * 90) * 0.05 * (this.hurtT / 0.22) : 0;

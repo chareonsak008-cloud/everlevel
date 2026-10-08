@@ -156,8 +156,8 @@ function variant(key) {
 
 export const ITEMS = new Proxy(BASE, {
   get(t, k) {
-    if (typeof k === 'string' && !Object.prototype.hasOwnProperty.call(t, k) && k.includes('*')) return variant(k);
-    return t[k];
+    if (typeof k !== 'string' || Object.prototype.hasOwnProperty.call(t, k)) return t[k];
+    return k.includes('*') ? variant(k) : undefined;   // v0.16: ชื่ออย่าง 'constructor' ไม่ใช่ไอเทม
   },
 });
 

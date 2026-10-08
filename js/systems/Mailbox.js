@@ -103,7 +103,7 @@ export class Mailbox {
 
     // มอบของ
     const got = [];
-    for (const [iid, q] of m.items) { const n = pl.inventory.add(iid, q); if (n) got.push(`${ITEMS[iid].name} x${n}`); }
+    for (const [iid, q] of m.items) { const n = pl.inventory.add(iid, q, true); if (n) got.push(`${ITEMS[iid].name} x${n}`); }   // v0.16: รับแล้วต้องได้ครบ (ระหว่างรอเซิร์ฟเวอร์กระเป๋าอาจเต็ม)
     if (m.zeny) { pl.zeny = Math.min(MAX_ZENY, pl.zeny + m.zeny); got.push(`${m.zeny.toLocaleString('en-US')} Zeny`); }
     let setIds = null, petId = null;
     if (choice.set && m.picks.some((p) => p.kind === 'set')) {

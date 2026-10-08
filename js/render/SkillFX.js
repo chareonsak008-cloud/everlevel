@@ -52,8 +52,9 @@ export class Particles {
     });
     this.points = new THREE.Points(geo, this.mat);
     this.points.frustumCulled = false; this.points.renderOrder = 5;
+    this.points.visible = false;   // v0.16: ไม่มีอนุภาค = ไม่วาด
     parent.add(this.points);
-    this.tc = new THREE.Color(); this.tc2 = new THREE.Color();
+    this.tc = new THREE.Color(); this.tc2 = new THREE.Color(); this.tv = new THREE.Vector3();
   }
 
   // o: { pos(V|fn), count, spread, vel(fn), speed, up, gravity, drag, life, size, sizeEnd, color, colorEnd, alpha }
@@ -69,15 +70,18 @@ export class Particles {
       if (o.vel) v = o.vel(k, p);
       else {
         const th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * 2 - 1), s = range(o.speed ?? 1);
-        v = V(Math.sin(ph) * Math.cos(th) * s, Math.cos(ph) * s, Math.sin(ph) * Math.sin(th) * s);
+        v = this.tv.set(Math.sin(ph) * Math.cos(th) * s, Math.cos(ph) * s, Math.sin(ph) * Math.sin(th) * s);
       }
       this.vel[i * 3] = v.x; this.vel[i * 3 + 1] = v.y + range(o.up ?? 0); this.vel[i * 3 + 2] = v.z;
       this.age[i] = 0; this.life[i] = range(o.life ?? 0.6);
       const s0 = range(o.size ?? 0.2) * this.sizeBoost; this.s0[i] = s0; this.s1[i] = s0 * (o.sizeEnd ?? 0.3);
       this.tc.set(pick(o.color ?? '#ffffff')); this.tc2.set(o.colorEnd ? pick(o.colorEnd) : this.tc);
-      this.c0.set([this.tc.r, this.tc.g, this.tc.b], i * 3); this.c1.set([this.tc2.r, this.tc2.g, this.tc2.b], i * 3);
+      this.c0[i * 3] = this.tc.r; this.c0[i * 3 + 1] = this.tc.g; this.c0[i * 3 + 2] = this.tc.b;
+      this.c1[i * 3] = this.tc2.r; this.c1[i * 3 + 1] = this.tc2.g; this.c1[i * 3 + 2] = this.tc2.b;
       this.grav[i] = o.gravity ?? 0; this.drag[i] = o.drag ?? 0; this.a0[i] = o.alpha ?? 1;
+      this.size[i] = s0; this.alpha[i] = 0;
     }
+    this.points.visible = true;
   }
 
   update(dt) {
@@ -87,7 +91,7 @@ export class Particles {
       alive++;
       this.age[i] += dt;
       const k = this.age[i] / this.life[i];
-      if (k >= 1) { this.life[i] = 0; this.alpha[i] = 0; continue; }
+      if (k >= 1) { this.life[i] = 0; this.alpha[i] = 0; this.size[i] = 0; this.pos[i * 3 + 1] = -1e4; continue; }   // v0.16: อนุภาคที่ตายแล้วไม่กินพิกเซล
       const d = Math.max(0, 1 - this.drag[i] * dt);
       this.vel[i * 3] *= d; this.vel[i * 3 + 1] = this.vel[i * 3 + 1] * d + this.grav[i] * dt; this.vel[i * 3 + 2] *= d;
       this.pos[i * 3] += this.vel[i * 3] * dt; this.pos[i * 3 + 1] += this.vel[i * 3 + 1] * dt; this.pos[i * 3 + 2] += this.vel[i * 3 + 2] * dt;
@@ -101,6 +105,7 @@ export class Particles {
       g.position.needsUpdate = g.color.needsUpdate = g.size.needsUpdate = g.alpha.needsUpdate = true;
     }
     this.wasAlive = alive > 0;
+    this.points.visible = alive > 0;
   }
 }
 

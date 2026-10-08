@@ -9,7 +9,7 @@ const MAX_SHOCKS = 4;
 const easeOut = (k) => 1 - Math.pow(1 - k, 3);
 
 export class PostFX {
-  constructor(renderer, { msaa = 4, strength = 1.0 } = {}) {
+  constructor(renderer, { msaa = 4, strength = 1.0, linear = true } = {}) {
     this.r = renderer;
     this.enabled = true;
     this.bloom = true;      // ปิดได้บนเครื่องสเปกต่ำ (ยังมีคลื่นกระแทก/แสงวาบ)
@@ -17,7 +17,7 @@ export class PostFX {
     this.time = 0;
     const gl2 = renderer.capabilities.isWebGL2;
     // ถ้าเครื่องรองรับ เรนเดอร์ลงบัฟเฟอร์ half-float แบบ linear → การบวกแสงซ้อนกันนุ่มกว่า (ไม่ขาวโพลนเร็ว) สีอิ่มกว่า
-    this.linear = !!(gl2 && renderer.getContext().getExtension('EXT_color_buffer_float'));
+    this.linear = linear && !!(gl2 && renderer.getContext().getExtension('EXT_color_buffer_float'));   // v0.16: มือถือใช้ 8 บิต sRGB
     const P = {
       minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, stencilBuffer: false,
       encoding: this.linear ? THREE.LinearEncoding : THREE.sRGBEncoding, type: this.linear ? THREE.HalfFloatType : THREE.UnsignedByteType,

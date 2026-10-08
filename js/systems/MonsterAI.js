@@ -132,7 +132,12 @@ export class MonsterManager {
           m.repath -= dt;
           if (m.repath <= 0) { m.repath = 1; m.path = lineClear(map, m, m.home) ? [] : this.pathTo(m, m.home.x, m.home.y); }
           const d = this.steer(m, m.home.x, m.home.y, 1.2, dt);
-          if (d < 3 || m.stuck) { m.state = 'idle'; m.timer = 1 + Math.random() * 2; m.hp = m.maxHp; m.moving = false; m.stuck = false; }
+          if (d < 3 || m.stuck) {
+            if (d >= 3) { m.x = m.home.x; m.y = m.home.y; }   // v0.16: ติดสิ่งกีดขวางระหว่างทางกลับ → กลับถึงบ้านทันที (ไม่ยืนฟื้นเลือดกลางทาง)
+            m.state = 'idle'; m.timer = 1 + Math.random() * 2; m.hp = m.maxHp; m.moving = false; m.stuck = false;
+            // บอสกลับบ้าน = รีเซ็ตสถานะต่อสู้ (หายโกรธ · เรียกลูกน้องได้ใหม่)
+            if (m.data.boss) { m.enraged = false; m.attackDelay = 0; m.summonDone = 0; }
+          }
           break;
         }
       }

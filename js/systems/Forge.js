@@ -56,7 +56,7 @@ export function doRefine(player, ref, guard = false, rnd = Math.random) {
 // แทนที่ชิ้นอุปกรณ์ (newKey = null คืออุปกรณ์แตกหาย) แล้วอัปเดตปุ่มลัดที่ชี้ชิ้นเดิม
 export function replaceGear(player, ref, newKey) {
   if (ref.where === 'equip') player.equip[ref.slot] = newKey;
-  else { player.inventory.remove(ref.key, 1); if (newKey) player.inventory.add(newKey, 1); }
+  else { player.inventory.remove(ref.key, 1); if (newKey) player.inventory.add(newKey, 1, true); }   // v0.16: ชิ้นเดิมกลับเข้ากระเป๋าเสมอ
   const left = player.inventory.count(ref.key) + (Object.values(player.equip).includes(ref.key) ? 1 : 0);
   if (!left) player.hotbar = player.hotbar.map((k) => (k === ref.key ? newKey : k));
   player.afterEquipChange();

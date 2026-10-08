@@ -43,16 +43,20 @@ export function jobStatBonus(job, jobLevel) {
   return out;
 }
 
-// EXP ที่ต้องใช้เพื่อขึ้นเลเวลถัดไป (โค้งชันขึ้นเรื่อย ๆ แบบเกมเก็บเลเวล)
+// v0.16: สมดุลใหม่ — EXP ที่ต้องใช้ = (จำนวนตัวที่ควรตีต่อเลเวล) × (EXP ของมอนเลเวลเดียวกัน)
+// ตีมอนเลเวลพอ ๆ กัน: Lv.1–10 ราว 5–20 ตัว/เลเวล · Lv.30 ราว 75 · Lv.50 ราว 150 · Lv.80 ราว 315 (ไหลลื่น ไม่ตันเร็ว)
+export const MOB_EXP = (L) => Math.round(6 + 2.2 * Math.pow(L, 1.6));          // EXP มาตรฐานของมอนเลเวล L
+export const KILLS_PER_LEVEL = (L) => 4 + 1.5 * L + 0.03 * L * L;
 export function baseExpToNext(level) {
   if (level >= MAX_BASE_LEVEL) return Infinity;
-  return Math.round(12 * Math.pow(level, 1.9) + 6);
+  return Math.round(KILLS_PER_LEVEL(level) * MOB_EXP(level));
 }
 
+// Job EXP: มอนให้ Job EXP ราว 72% ของ Base · เด็กฝึกหัดถึง Job 10 พร้อม ๆ Base Lv.9–10 · อาชีพขั้น 1 ตาม Base อยู่ราว 85–90%
 export function jobExpToNext(level, job = 'novice') {
-  const max = (JOBS[job] || JOBS.novice).maxJobLevel;
-  if (level >= max) return Infinity;
-  return Math.round((10 * Math.pow(level, 1.75) + 4) * ((JOBS[job] || JOBS.novice).jobExp || 1));
+  const J = JOBS[job] || JOBS.novice;
+  if (level >= J.maxJobLevel) return Infinity;
+  return Math.round(KILLS_PER_LEVEL(level) * MOB_EXP(level) * (job === 'novice' ? 0.55 : 1.05));
 }
 
 // แต้มสเตตัสที่ได้เมื่อขึ้นถึงเลเวลนั้น

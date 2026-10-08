@@ -87,7 +87,7 @@ export class Player extends Entity {
     // แฟชั่น (v0.9): owned = ชิ้นที่สะสมได้ · worn = slot → id · opened = จำนวนกล่องที่เปิด
     this.fashion = { owned: new Set(), worn: {}, opened: 0, hidden: false };
     // เควส (v0.10): active = id → { prog: [จำนวนต่อเป้าหมาย] } · done = id → วันที่ส่ง (เควสรายวันรีเซ็ตทุกวัน)
-    this.quests = { active: {}, done: {} };
+    this.quests = { active: {}, done: {}, gave: {} };
     this.appearance = { hair: PLAYER_LOOK.hair, hairStyle: PLAYER_LOOK.hairStyle };   // v0.11: เลือกตอนสร้างตัวละคร
     this.baseLook = { ...PLAYER_LOOK };
     this.look = this.computeLook();
@@ -308,7 +308,7 @@ export class Player extends Entity {
     if (!canJobUse(it, this.jobId)) return `${this.job} สวมใส่ ${it.name} ไม่ได้`;
     const old = this.equip[it.slot];
     this.inventory.remove(id, 1);
-    if (old) this.inventory.add(old, 1);
+    if (old) this.inventory.add(old, 1, true);   // v0.16: สลับของ = ของเก่ากลับเข้ากระเป๋าเสมอ (ไม่หายแม้กระเป๋าเต็ม)
     this.equip[it.slot] = id;
     this.afterEquipChange();
     return null;
@@ -324,9 +324,11 @@ export class Player extends Entity {
     return null;
   }
 
-  afterEquipChange() {
+  // heal = เพิ่ม HP/SP ตามค่าสูงสุดที่เพิ่มขึ้น (เรียนสกิล/บัฟ) · v0.16: สวม/ถอดอุปกรณ์ไม่ฟื้นเลือด (กันสลับของเติมเลือด)
+  afterEquipChange(heal = false) {
     const oldMax = this.maxHp, oldSp = this.maxSp;
     this.recalc();
+    if (!heal) { this.hp = Math.min(this.hp, this.maxHp); this.sp = Math.min(this.sp, this.maxSp); this.look = this.computeLook(); return; }
     if (this.maxHp > oldMax) this.hp = Math.min(this.maxHp, this.hp + (this.maxHp - oldMax));
     if (this.maxSp > oldSp) this.sp = Math.min(this.maxSp, this.sp + (this.maxSp - oldSp));
     this.look = this.computeLook();
@@ -334,7 +336,7 @@ export class Player extends Entity {
 
   // เงิน Zeny
   addZeny(n) { this.zeny = Math.min(MAX_ZENY, this.zeny + Math.max(0, Math.floor(n))); }
-  spendZeny(n) { n = Math.floor(n); if (n < 0 || n > this.zeny) return false; this.zeny -= n; return true; }
+  spendZeny(n) { n = Math.floor(n); if (!(n >= 0) || n > this.zeny) return false; this.zeny -= n; return true; }
 
   setPath(points) { this.path = points; this.arrived = false; }
   stop() { this.path = []; this.pendingTalk = null; }
@@ -395,7 +397,7 @@ export class Player extends Entity {
     if (why) return why;
     this.skillPoints--;
     this.skills[id] = this.skillLv(id) + 1;
-    this.afterEquipChange();
+    this.afterEquipChange(true);
     return null;
   }
 
@@ -403,7 +405,7 @@ export class Player extends Entity {
   addBuff(id, lv, bonus, duration) {
     this.buffs = this.buffs.filter((b) => b.id !== id);
     this.buffs.push({ id, lv, bonus, left: duration, total: duration });
-    this.afterEquipChange();
+    this.afterEquipChange(true);
   }
 
   // ลดเวลาบัฟ คืนรายการบัฟที่หมดเวลา
@@ -438,7 +440,7 @@ export class Player extends Entity {
       } else if (power(id) <= power(cur.id)) return { error: `มี${CONSUMABLES[cur.id].name}ที่แรงกว่าหรือเท่ากันทำงานอยู่` };
       else { this.itemBuffs[g] = { id, left: it.dur }; kind = 'replace'; }
     } else this.itemBuffs[g] = { id, left: it.dur };
-    this.afterEquipChange();
+    this.afterEquipChange(true);
     return { kind, prev: cur && cur.id, left: this.itemBuffs[g].left };
   }
 
@@ -517,7 +519,7 @@ export class Player extends Entity {
     const removed = [];
     for (const sl of EQUIP_SLOTS) {
       const id = this.equip[sl.id];
-      if (id && !canJobUse(ITEMS[id], job)) { this.inventory.add(id, 1); this.equip[sl.id] = null; removed.push(id); }
+      if (id && !canJobUse(ITEMS[id], job)) { this.inventory.add(id, 1, true); this.equip[sl.id] = null; removed.push(id); }
     }
     // อาวุธประจำอาชีพ: ถ้ามือว่างจะสวมให้ทันที
     // อาวุธประจำอาชีพ: สวมให้ทันที (เว้นแต่ถืออาวุธชนิดเดียวกันที่แรงกว่าอยู่แล้ว)
@@ -526,8 +528,8 @@ export class Player extends Entity {
     if (gift) {
       const cur = this.equip.weapon && ITEMS[this.equip.weapon], g = ITEMS[gift];
       const keep = cur && cur.wtype === g.wtype && (cur.bonus.atk || 0) > (g.bonus.atk || 0);
-      if (keep) this.inventory.add(gift, 1);
-      else { if (cur) this.inventory.add(this.equip.weapon, 1); this.equip.weapon = gift; equippedGift = true; }
+      if (keep) this.inventory.add(gift, 1, true);
+      else { if (cur) this.inventory.add(this.equip.weapon, 1, true); this.equip.weapon = gift; equippedGift = true; }
     }
     this.afterEquipChange();
     this.hp = this.maxHp; this.sp = this.maxSp;
@@ -597,7 +599,7 @@ export class Player extends Entity {
     }
     // เควส (v0.10) — ตรวจความถูกต้องใน systems/Quests.js ตอนโหลด
     const Q = p.quests && typeof p.quests === 'object' ? p.quests : {};
-    this.quests = { active: Q.active && typeof Q.active === 'object' ? Q.active : {}, done: Q.done && typeof Q.done === 'object' ? Q.done : {} };
+    this.quests = { active: Q.active && typeof Q.active === 'object' ? Q.active : {}, done: Q.done && typeof Q.done === 'object' ? Q.done : {}, gave: Q.gave && typeof Q.gave === 'object' ? Q.gave : {} };
     // แฟชั่น (v0.9) — เซฟเก่าไม่มีข้อมูลนี้ → เริ่มว่าง
     const F = p.fashion && typeof p.fashion === 'object' ? p.fashion : {};
     this.fashion = { owned: new Set(Array.isArray(F.owned) ? F.owned.filter((id) => COSTUME_BY_ID[id]) : []), worn: {}, opened: int(F.opened, 0), hidden: !!F.hidden };

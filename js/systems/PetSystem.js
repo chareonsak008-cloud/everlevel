@@ -78,6 +78,9 @@ export class PetSystem {
 
   // เปลี่ยนแผนที่: ของบนพื้นหายหมด → ของที่ขนอยู่เข้ากระเป๋า แล้ววางสัตว์เลี้ยงข้างเจ้าของ
   onMapLoaded() {
+    // v0.16: ของที่ดูดค้างอยู่ตอนวาร์ป → ส่งให้เจ้าของทันที (เดิมค้างตลอดเพราะตารางเวลาถูกล้าง)
+    if (this.batch && this.batch.length) { const l = this.batch; this.batch = []; this.g.petDeliver(l, this.name || 'สัตว์เลี้ยง', { silent: true }); }
+    this.batchTimer = false;
     if (!this.active) return;
     if (!this.pet) { this.spawn(); return; }
     this.deliver(true);

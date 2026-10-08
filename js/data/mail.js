@@ -32,7 +32,9 @@ export function normMail(r) {
   for (const e of Array.isArray(r.items) ? r.items : []) {
     const [id, q] = Array.isArray(e) ? e : [e && e.id, e && e.qty];
     const qty = Math.max(1, Math.min(999, Math.floor(+q) || 1));
-    if (ITEMS[id] && items.length < MAIL_MAX_ITEMS) items.push([id, qty]);
+    const ex = items.find((x) => x[0] === id);
+    if (ex) ex[1] = Math.min(999, ex[1] + qty);   // v0.16: ไอเทมซ้ำรวมกัน
+    else if (ITEMS[id] && items.length < MAIL_MAX_ITEMS) items.push([id, qty]);
   }
   const picks = [];
   for (const p of Array.isArray(r.picks) ? r.picks : []) {

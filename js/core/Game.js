@@ -411,7 +411,8 @@ export class Game {
       this.update(simDt);
       this.updateNet(dt);
       this.gfx.render(dt, this.player, simDt);
-      this.minimap.draw(this.player, this.gfx.yaw, this.mobs ? this.mobs.list.filter((m) => m.data.mvp && !m.dead) : []);
+      // v0.16: แผนที่ย่อวาดใหม่ 10 ครั้ง/วินาที (เดิมทุกเฟรม)
+      if ((this.mmT = (this.mmT || 0) - real) <= 0) { this.mmT = 0.1; this.minimap.draw(this.player, this.gfx.yaw, this.mobs ? this.mobs.list.filter((m) => m.data.mvp && !m.dead) : []); }
       if (first) { first = false; this.root.classList.add('ready'); }
       this.fpsFrames++; this.fpsTime += real;
       if (this.fpsTime >= 0.5) {
@@ -426,16 +427,30 @@ export class Game {
   }
 
   // ถ้าเฟรมเรตต่ำต่อเนื่อง ลดความละเอียด/เงาลงทีละขั้น (ไม่ปรับกลับขึ้น เพื่อไม่ให้กระตุกไปมา)
+  // v0.16: ปรับคุณภาพอัตโนมัติทั้งลดและเพิ่ม
+  // · FPS < 50 ติดกัน 2 วินาที → ลด 1 ระดับ · ลื่น ≥ 58 FPS นาน 15 วินาที → ลองเพิ่มกลับ (ถ้าเพิ่มแล้วกระตุกอีก จะรอนานขึ้นเท่าตัว)
+  // · ลดระดับแล้ว FPS ไม่ขยับเลย = เครื่องล็อกเฟรมเรต (เช่นโหมดประหยัดแบต 30 FPS) → คืนระดับเดิม ไม่ลดภาพโดยเปล่าประโยชน์
   autoQuality(fps) {
-    if (this.settings.quality !== 'auto') return;   // ผู้เล่นเลือกคุณภาพเองในเมนูตั้งค่า
-    this.qTime = (this.qTime || 0) + 0.5;
-    if (this.qTime < 3 || this.warping) return;
-    this.lowCount = fps < 45 ? (this.lowCount || 0) + 1 : 0;
+    if (this.settings.quality !== 'auto') return;
+    const A = this.aq || (this.aq = { t: 0, low: 0, high: 0, need: 30, capped: false, check: null, upAt: -99 });
+    A.t += 0.5;
+    if (A.t < 3 || this.warping || document.hidden) return;
     const q = this.gfx.quality || 0;
-    if (this.lowCount >= 4 && q < 3) {
+    if (A.check != null) {
+      A.checkT += 0.5;
+      if (A.checkT >= 3) { if (fps < A.check * 1.08 && A.prevQ != null) { this.gfx.setQuality(A.prevQ); A.capped = true; } A.check = null; }
+      return;
+    }
+    A.low = fps < 50 ? A.low + 1 : 0;
+    A.high = fps >= 58 ? A.high + 1 : 0;
+    if (A.low >= 4 && q < 3 && !A.capped) {
+      if (A.t - A.upAt < 12) A.need = Math.min(480, A.need * 2);   // เพิ่งเพิ่มคุณภาพแล้วกระตุก → รอนานขึ้นก่อนลองอีก
+      A.prevQ = q; A.check = fps; A.checkT = 0; A.low = A.high = 0;
       this.gfx.setQuality(q + 1);
-      this.lowCount = 0; this.qTime = 1.5;
       if (q + 1 === 3) this.hud.log('ปรับกราฟิกเป็นโหมดประหยัดเพื่อให้เล่นลื่นขึ้น', 'sys');
+    } else if (A.high >= A.need && q > 0) {
+      A.high = A.low = 0; A.upAt = A.t;
+      this.gfx.setQuality(q - 1);
     }
   }
 
@@ -1468,7 +1483,8 @@ export class Game {
   // ฮิตหนึ่งครั้งจากเอฟเฟกต์ → คืน { stun, freeze } (วินาที) ให้เอฟเฟกต์เลือกแสดงดาว/ก้อนน้ำแข็ง
   skillHit(sk, lv, m, info, origin) {
     const pl = this.player;
-    if (!m || m.dead || pl.dead) return { stun: 0, freeze: 0 };
+    // v0.16: ระหว่างวาร์ป/มอนของแผนที่เก่า → ไม่ทำดาเมจ (เอฟเฟกต์ที่ค้างอยู่จะไม่ฆ่ามอนข้ามแผนที่)
+    if (!m || m.dead || pl.dead || this.warping || !this.mobs || !this.mobs.list.includes(m)) return { stun: 0, freeze: 0 };
     const magic = !!(sk.magic || info.magic);
     const mult = ((info.mult ?? 1) / (sk.ref || 1)) * (sval(sk.mult, lv, pl) || 1);
     const r = rollSkill(pl.stats, m.stats, { mult, magic, hitBonus: sval(sk.hitBonus, lv) || 0 });
@@ -1584,7 +1600,7 @@ export class Game {
     for (const id of res.removed) this.hud.log(`ถอด ${ITEMS[id].name} เพราะ ${J.name} ใช้ไม่ได้ (เก็บไว้ในกระเป๋า)`, 'sys');
     if (res.gift) this.hud.log(`ได้รับ ${ITEMS[res.gift].name}${res.equippedGift ? ' และสวมใส่แล้ว' : ' (อยู่ในกระเป๋า)'}`, 'r-uncommon');
     // v0.13: ของขวัญเปลี่ยนอาชีพ — ใบรีเซ็ตสถานะ/สกิลฟรีอย่างละ 1 ใบ
-    for (const g of ['stat_reset', 'skill_reset']) if (pl.inventory.add(g, 1) > 0) this.hud.log(`ได้รับ ${ITEMS[g].name} x1 (ของขวัญเปลี่ยนอาชีพ)`, 'r-epic');
+    for (const g of ['stat_reset', 'skill_reset']) if (pl.inventory.add(g, 1, true) > 0) this.hud.log(`ได้รับ ${ITEMS[g].name} x1 (ของขวัญเปลี่ยนอาชีพ)`, 'r-epic');
     this.hud.log('กด K เพื่อดูสกิลใหม่ของอาชีพนี้', 'info');
     npc.bubble = { text: 'ขอให้โชคดีในเส้นทางใหม่!', t: 3 };
     this.hud.setPlayer(pl);
@@ -1716,6 +1732,7 @@ export class Game {
       const pl = this.player;
       if (!pl.dead && Math.hypot(pl.x - m.x, pl.y - m.y) <= B.radius * TILE + 4) {
         const r = rollSkill(m.stats, pl.stats, { mult: B.mult, hitBonus: 60 });
+        if (r.miss) { this.gfx.floatText(pl, 'Miss', 'miss'); return; }   // v0.16: หลบได้ = ไม่โดนผลัก
         this.damagePlayer(r.amount, m, true);
         if (!pl.dead) this.knockPlayer(m, B.knock);
       }
@@ -1736,6 +1753,7 @@ export class Game {
       this.sfx(B.fx === 'meteor' ? 'explosion' : B.fx === 'icefall' ? 'iceBlast' : 'slam');
       if (!pl.dead && Math.hypot(pl.x - tx, pl.y - ty) <= B.radius * TILE + 4) {
         const r = rollSkill(m.stats, pl.stats, { mult: B.mult, hitBonus: 60 });
+        if (r.miss) { this.gfx.floatText(pl, 'Miss', 'miss'); return; }   // v0.16: หลบได้ = ไม่ติดราก/ไม่ไหม้
         this.damagePlayer(r.amount, m, true);
         if (!pl.dead) {
           if (B.effect === 'burn') {
@@ -1760,6 +1778,7 @@ export class Game {
       let x = m.x + Math.cos(a) * 2.2 * TILE, y = m.y + Math.sin(a) * 2.2 * TILE;
       if (this.map.isSolidTile(Math.floor(x / TILE), Math.floor(y / TILE))) { x = m.x; y = m.y; }
       const w = this.mobs.spawnAt(S.mob, x, y);
+      w.summoner = m;   // v0.16: ลูกน้องของบอสตัวนี้ (ปราบบอสแล้วลูกน้องหายเฉพาะของตัวนี้)
       this.gfx.addMonster(w);
       this.gfx.playRespawn(w);
       this.mobs.aggro(w, this.player);
@@ -1780,7 +1799,7 @@ export class Game {
       else { this.spawnDrop(reward, pl.x, pl.y); this.hud.log(`★ รางวัล MVP: ${ITEMS[reward].name} (กระเป๋าเต็ม จึงตกที่พื้น)`, 'r-epic'); }
     }
     // ลูกน้องที่เรียกมาหายไปพร้อมบอส
-    for (const s of this.mobs.list.filter((x) => x.summoned && !x.dead)) {
+    for (const s of this.mobs.list.filter((x) => x.summoner === m && !x.dead)) {
       this.mobs.kill(s, this.time); this.gfx.playDeath(s);
       this.schedule(1.0, () => { this.mobs.remove(s); this.gfx.removeActor(s); });
     }
@@ -1793,7 +1812,7 @@ export class Game {
     this.closeServices();
     pl.cast = null; pl.pendingSkill = null;
     pl.lockUntil = 0; pl.castPose = false; pl.lift = 0; this.heroAnims = [];
-    pl.dead = true; pl.hp = 0; pl.path = []; pl.moving = false;
+    pl.dead = true; pl.hp = 0; pl.path = []; pl.moving = false; pl.pendingPickup = null; pl.pendingTalk = null;
     this.sfx('refineFail');
     this.clearTarget();
     if (this.mobs) this.mobs.release(pl);
@@ -1884,7 +1903,7 @@ export class Game {
     if (cam.rotate) this.gfx.rotateCamera(cam.rotate);
     if (cam.zoom !== 1) { this.gfx.zoomCamera(cam.zoom); this.dirty = true; }
 
-    if (this.warping) { input.consumeTaps(); input.consumeAttack(); return; }
+    if (this.warping) { input.consumeTaps(); input.consumePresses(); input.consumeAttack(); return; }
 
     // ชี้เมาส์บนมอน → แสดงชื่อ + เปลี่ยนเคอร์เซอร์
     this.hoverTimer -= dt;
@@ -1897,7 +1916,9 @@ export class Game {
       this.canvas.style.cursor = h ? (h.isMonster ? 'crosshair' : 'help') : hd ? 'grab' : 'pointer';
     }
 
-    if (this.gacha.open) { input.consumeTaps(); input.consumeAttack(); }   // หน้าต่างเปิดกล่องบังจออยู่
+    if (this.gacha.open) { input.consumeTaps(); input.consumePresses(); input.consumeAttack(); }   // หน้าต่างเปิดกล่องบังจออยู่
+    // v0.16: นิ้วเริ่มแตะ → ตัดสินทันทีว่ากดค้างแล้วจะเดิน (พื้น) หรือไม่ (มอน/NPC/ของ)
+    for (const pr of input.consumePresses()) this.holdMove = !this.player.dead && !this.gfx.pickActor(pr.x, pr.y) && !this.gfx.pickDrop(pr.x, pr.y);
     for (const t of input.consumeTaps()) this.handleTap(t);
     if (input.consumeAttack()) this.targetNearest();
     if (input.pointer.down && this.holdMove && !pl.dead) {
@@ -1905,6 +1926,7 @@ export class Game {
       this.retargetTimer -= dt;
       if (input.pointer.held > 0.35 && this.retargetTimer <= 0) { // กดค้าง = เดินตามเคอร์เซอร์
         this.retargetTimer = 0.18;
+        input.pointer.walked = true;
         const w = this.gfx.pickGround(input.pointer.x, input.pointer.y);
         pl.pendingTalk = null;
         if (w) { this.moveTo(w.x, w.y, true); this.auto.manual(); }
@@ -2131,7 +2153,7 @@ export class Game {
     for (const id of list) {
       const it = ITEMS[id]; if (!it) continue;
       if (pl.inventory.add(id, 1) > 0) { got.push(id); continue; }
-      if (autoSell && it.type === 'etc') { const z = Math.floor(sellPrice(id) * (1 + sell / 100)); zeny += z; sold.push(id); continue; }
+      if (autoSell && it.type === 'etc' && !it.keep) { const z = Math.floor(sellPrice(id) * (1 + sell / 100)); zeny += z; sold.push(id); continue; }
       const d = this.spawnDrop(id, pl.x, pl.y); d.noPet = true;
       if (this.time - this.pets.fullWarnAt > 8) { this.pets.fullWarnAt = this.time; this.hud.log(`กระเป๋าเต็ม! ${petName} วางของไว้ข้างตัวคุณ`, 'sys'); }
     }
@@ -2174,7 +2196,7 @@ export class Game {
       if (map.portals.some((p) => { const [x0, y0, x1, y1] = p.rect; return x > x0 - 24 && x < x1 + 24 && y > y0 - 24 && y < y1 + 24; })) continue;
       if (this.npcs.some((n) => Math.hypot(n.x - x, n.y - y) < 40)) continue;
       this.gfx.warpIn(pl, '#8fd8ff');
-      pl.x = x; pl.y = y; pl.path = []; pl.pendingPickup = null; pl.pendingTalk = null;
+      pl.x = x; pl.y = y; pl.path = []; pl.pendingPickup = null; pl.pendingTalk = null; pl.pendingSkill = null;
       this.clearTarget(); this.closeServices();
       if (this.mobs) this.mobs.release(pl);
       for (const p of map.portals) p.inside = this.inRect(pl, p.rect);
@@ -2264,8 +2286,8 @@ export class Game {
     g.shakeScale = s.shake ? 1 : 0;
     if (!changed || changed === 'quality' || changed === 'bloom') {
       if (s.quality === 'auto') {
-        if (changed === 'quality') { this.lowCount = 0; this.qTime = 0; g.setQuality(0); }
-        else g.setQuality(g.quality || 0);
+        if (changed === 'quality') { this.aq = null; g.setQuality(this.gfx.mobile ? 1 : 0); }
+        else g.setQuality(g.quality != null ? g.quality : g.mobile ? 1 : 0);   // v0.16: มือถือเริ่มระดับ 1 (ลื่นก่อน) แล้วค่อยเพิ่มเองถ้าเครื่องไหว
       } else g.setQuality(+s.quality);
     }
     const r = this.root;
