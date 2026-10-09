@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS = {
   showHelp: true,       // แผงคำแนะนำปุ่ม (เดสก์ท็อป)
   showOthers: true,     // แสดงผู้เล่นคนอื่น (ออนไลน์)
   chatSound: true,
+  pixel: true,          // v0.17: ภาพแบบพิกเซลอาร์ตทั้งเกม (ตัวละคร มอน สัตว์เลี้ยง ฉาก สกิล) · ปิด = 3 มิติแบบเดิม
 };
 
 export function loadSettings() {

@@ -1,15 +1,22 @@
 // เท็กซ์เจอร์สำหรับเอฟเฟกต์สกิล (วาดด้วย Canvas สีขาว แล้วย้อมสีด้วยวัสดุ)
 import { THREE } from './three.js';
+import { PIXEL } from './PixelSprites.js';
+import { pixelizeCanvas, nearestTexture } from './PixelArt.js';
 
+// v0.17: โหมดพิกเซล → ย่อเป็นภาพพิกเซล (ขนาดตามตาราง) ความโปร่งเป็นขั้น ขอบคม
+const PXS = { dot: [32, 5], star4: [24, 3], ring: [48, 3], crescent: [48, 3], cross: [40, 3], feather: [24, 3], wing: [48, 3], hex: [64, 3], snow: [20, 3], puff: [20, 4], scorch: [64, 4], eye: [56, 3], swords: [56, 3], flame: [24, 4], wind: [56, 3], cracks: [128, 3], vgrad: [32, 5] };
 const cache = new Map();
 function make(key, size, draw, { repeat = false } = {}) {
-  if (cache.has(key)) return cache.get(key);
+  const px = PIXEL.on && (PXS[key] || key.startsWith('rune'));
+  const ck = (px ? 'px:' : '') + key;
+  if (cache.has(ck)) return cache.get(ck);
   const c = document.createElement('canvas'); c.width = c.height = size;
   const g = c.getContext('2d');
   draw(g, size);
-  const t = new THREE.CanvasTexture(c);
-  if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  cache.set(key, t);
+  let t;
+  if (px) { const [n, a] = PXS[key] || [128, 3]; t = nearestTexture(pixelizeCanvas(c, n, n, { alpha: a }), { repeat }); }
+  else { t = new THREE.CanvasTexture(c); if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping; }
+  cache.set(ck, t);
   return t;
 }
 const radial = (g, x, y, r, stops) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); for (const [o, c] of stops) gr.addColorStop(o, c); return gr; };

@@ -20,7 +20,10 @@ export function std(key, opts) {
 }
 
 // ปรับ UV ของ BoxGeometry ให้เท็กซ์เจอร์ไม่ยืด (1 รอบ = uvScale หน่วยโลก)
+// v0.17: โหมดพิกเซลบังคับ 1 รอบลาย = 1 หน่วยโลก (ความละเอียดลายเท่ากันทุกชิ้น)
+export const GEO = { pxUV: false };
 export function boxGeo(w, h, d, uvScale = 1) {
+  if (GEO.pxUV) uvScale = 1;
   const g = new THREE.BoxGeometry(w, h, d);
   const uv = g.attributes.uv;
   const dims = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]]; // +x -x +y -y +z -z

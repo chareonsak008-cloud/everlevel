@@ -6,10 +6,10 @@ import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js';
 import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js';
 import { batchStatic, mergeGeometries, std, lin } from './Geo.js';
 import {
-  BUILDERS, cityWalls, bridges, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
+  BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
 } from './Models.js';
-import { CharacterView } from './Characters.js';
+import { CharacterView, CHAR_HEAD } from './Characters.js';
 import { iconCanvas } from './ItemIcons.js';
 import { ITEMS, RARITY } from '../data/items.js';
 import { MonsterView } from './Monsters.js';
@@ -18,7 +18,12 @@ import { SkillFX } from './SkillFX.js';
 import { PostFX } from './PostFX.js';
 import { costumeLook, wearCostume } from './Costumes.js';
 import { TIER_RANK } from '../data/fashionBoxes.js';
-import { PetView } from './Pets.js';   // v0.13: สัตว์เลี้ยงช่วยเก็บของ
+import { PetView } from './Pets.js';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js';
+import { pixelGround, PixelWater } from './PixelGround.js';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js';
+import { gradientMap } from './Toon.js';
+const PX_BASE = (() => { const a = new THREE.Color('#dcefff'), b = new THREE.Color('#fff0d6'); return { r: a.r * 0.72 + b.r * 1.45 * 0.5, g: a.g * 0.72 + b.g * 1.45 * 0.5, b: a.b * 0.72 + b.b * 1.45 * 0.5 }; })();   // v0.17: สไปรต์พิกเซลอาร์ต   // v0.13: สัตว์เลี้ยงช่วยเก็บของ
 
 // ความแรงแสงเรืองของแฟชั่นระดับล้ำค่าขึ้นไป (ตอนไม่มีเอฟเฟกต์สกิล)
 const COSTUME_GLOW = 1.6;
@@ -79,6 +84,9 @@ export class Renderer3D {
 
     this.windTime = { value: 0 };
     this.characters = new Map();
+    // v0.17: สไปรต์พิกเซลอาร์ต (โมเดลจริงอยู่เลเยอร์ 1 ไม่วาดลงฉากหลัก แต่ยังทอดเงา)
+    this.px = new PixelSprites(r, this.scene, this.camera, { mobile: this.mobile });
+    this.sun.shadow.camera.layers.enable(PX_LAYER);
     this.hitboxes = [];
     this.raycaster = new THREE.Raycaster();
     this.groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -97,6 +105,8 @@ export class Renderer3D {
     this.fx = new SkillFX(this.scene, { pool: this.mobile ? 0.6 : 1, lights: this.mobile ? 2 : 3 });
     // v0.16: มือถือไม่ใช้ MSAA บนบัฟเฟอร์โพสต์ และใช้บัฟเฟอร์ 8 บิต sRGB (ไม่ต้องคอมไพล์เชดเดอร์ชุดที่สอง · ประหยัดแบนด์วิดท์)
     this.post = new PostFX(r, { msaa: this.mobile ? 0 : 4, strength: 1.0, linear: !this.mobile });
+    this.post.pxOn = this.px.enabled;   // v0.17: ฉากแบบพิกเซลตามโหมดเดียวกัน
+    document.body.classList.toggle('pxmode', this.px.enabled);
     // ไฟจริง 2 ดวงสำหรับกองไฟ/ปล่องลาวา/ประตูมิติที่ใกล้ที่สุด (แทนไฟดวงละจุด)
     this.propLights = [0, 1].map(() => { const l = new THREE.PointLight('#ff9a40', 0, 7, 2); this.scene.add(l); return l; });
     this.lightPickT = 0; this.lightPick = [];
@@ -122,7 +132,9 @@ export class Renderer3D {
         if (o.geometry) o.geometry.dispose();
         if (o.isPoints || o.isSprite) o.material.dispose();
       });
-      if (this.groundTex) this.groundTex.dispose();
+      if (this.groundTex) { this.groundTex.dispose(); this.groundTex = null; }
+      if (this.pground) { this.pground.dispose(); this.pground = null; }
+      this.groundGroup = null;
       if (this.water) for (const m of [this.water.base, this.water.l1, this.water.l2]) { if (m.map) m.map.dispose(); m.dispose(); }
       this.world = null;
     }
@@ -141,6 +153,7 @@ export class Renderer3D {
   buildWorld(map) {
     this.clearWorld();
     this.map = map;
+    setPixelModels(this.px.enabled);   // v0.17: สิ่งปลูกสร้างใช้วัสดุพิกเซล
     const scene = this.scene, r = rng(99);
     const theme = map.def.theme || {};
     scene.fog.color.set(theme.fog || '#d9e4e6');
@@ -162,19 +175,13 @@ export class Renderer3D {
     const world = this.world = new THREE.Group(); scene.add(world);
 
     // พื้น
-    this.groundTex = groundTexture(map);
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(map.w, map.h), new THREE.MeshStandardMaterial({ map: this.groundTex, roughness: 1 }));
-    ground.rotation.x = -Math.PI / 2; ground.position.set(map.w / 2, 0, map.h / 2); ground.receiveShadow = true;
-    world.add(ground);
-    const outer = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), std('outer' + (theme.outer || '#5c9a40'), { color: theme.outer || '#5c9a40', roughness: 1 }));
-    outer.rotation.x = -Math.PI / 2; outer.position.set(map.w / 2, -0.02, map.h / 2); outer.receiveShadow = true;
-    world.add(outer);
+    this.makeGround(map);
 
     const statics = new THREE.Group();
     statics.add(cityWalls(map, T.WALL));
     statics.add(bridges(map, T.BRIDGE, T.WATER));
 
-    this.water = new Water(theme.water || 'water');
+    this.water = this.px.enabled ? new PixelWater(theme.water || 'water') : new Water(theme.water || 'water');
     this.glows = []; this.flags = []; this.sprays = []; this.portals = []; this.fires = []; this.crystals = [];
     const trees = { round: [], pine: [] };
 
@@ -183,7 +190,7 @@ export class Renderer3D {
         trees[o.kind === 'tree' ? 'round' : 'pine'].push({ x: o.cx, z: o.cy, seed: o.def.seed || 1 });
         continue;
       }
-      const build = BUILDERS[o.kind]; if (!build) continue;
+      const build = (this.px.enabled && this.pxBuilders()[o.kind]) || BUILDERS[o.kind]; if (!build) continue;
       const m = build(o.def);
       m.position.set(o.cx, 0, o.cy);
       if (o.def.rot) m.rotation.y = o.def.rot;
@@ -220,7 +227,8 @@ export class Renderer3D {
     }
     if (waterQuads.length) this.water.add(world, mergeGeometries(waterQuads), 0.06, 4);
     const rockTint = theme.water === 'lava' ? (c) => c.setRGB(0.32, 0.26, 0.26) : theme.water === 'ice' ? (c) => c.setRGB(1.05, 1.1, 1.18) : null;
-    this.instanced(world, rockGeometry(3), std('rock', { vertexColors: true, roughness: 0.9 }), rockSpots.map((p) => ({ ...p, s: 0.8 + r() * 0.9, rot: r() * 6 })), { cast: true, tint: rockTint });
+    const PXW = this.px.enabled;   // v0.17: โหมดพิกเซลใช้ต้นไม้/หิน/หญ้าชุดใหม่
+    this.instanced(world, PXW ? rockPx(3) : rockGeometry(3), PXW ? vcToon() : std('rock', { vertexColors: true, roughness: 0.9 }), rockSpots.map((p) => ({ ...p, s: 0.8 + r() * 0.9, rot: r() * 6 })), { cast: true, tint: rockTint });
 
     // ต้นไม้ (รวมป่ารอบนอกแผนที่เพื่อความลึก)
     for (let i = 0; i < 170; i++) {
@@ -229,12 +237,17 @@ export class Renderer3D {
       const z = side === 2 ? -d : side === 3 ? map.h + d : t * (map.h + 16) - 8;
       (r() < 0.35 ? trees.pine : trees.round).push({ x, z, seed: i });
     }
-    const tm = treeMaterial(); this.addWind(tm, 0.035, 0.9, true);
+    const tm = PXW ? floraMaterial() : treeMaterial(); this.addWind(tm, 0.035, 0.9, true);
     // v0.11: ต้นไม้ตามธีม — สนหิมะ / ต้นไม้ไหม้เกรียม
     const TT = theme.trees;
-    const roundGeos = TT === 'snow' ? [snowTreeGeometry(11), snowTreeGeometry(23)] : TT === 'dead' ? [deadTreeGeometry(11), deadTreeGeometry(23), deadTreeGeometry(37)] : [roundTreeGeometry(11), roundTreeGeometry(23), roundTreeGeometry(37)];
-    const pineGeos = TT === 'snow' ? [snowPineGeometry(5), snowPineGeometry(9)] : TT === 'dead' ? [deadTreeGeometry(5), deadTreeGeometry(9)] : [pineGeometry(5), pineGeometry(9)];
-    const tint = TT ? (c, v) => c.setRGB(0.9 + v * 0.15, 0.9 + v * 0.15, 0.92 + v * 0.15) : (c, v) => c.setRGB(0.82 + v * 0.3, 0.86 + v * 0.22, 0.8 + v * 0.25);
+    const roundGeos = PXW
+      ? (TT === 'snow' ? [snowTreePx(11), snowTreePx(23), snowTreePx(37)] : TT === 'dead' ? [deadTreePx(11), deadTreePx(23), deadTreePx(37)] : [roundTreePx(11), roundTreePx(23), roundTreePx(37), roundTreePx(51)])
+      : (TT === 'snow' ? [snowTreeGeometry(11), snowTreeGeometry(23)] : TT === 'dead' ? [deadTreeGeometry(11), deadTreeGeometry(23), deadTreeGeometry(37)] : [roundTreeGeometry(11), roundTreeGeometry(23), roundTreeGeometry(37)]);
+    const pineGeos = PXW
+      ? (TT === 'snow' ? [snowPinePx(5), snowPinePx(9)] : TT === 'dead' ? [deadTreePx(5), deadTreePx(9)] : [pinePx(5), pinePx(9), pinePx(13)])
+      : (TT === 'snow' ? [snowPineGeometry(5), snowPineGeometry(9)] : TT === 'dead' ? [deadTreeGeometry(5), deadTreeGeometry(9)] : [pineGeometry(5), pineGeometry(9)]);
+    const tint = PXW ? (TT ? (c, v) => c.setRGB(0.94 + v * 0.1, 0.94 + v * 0.1, 0.95 + v * 0.1) : (c, v) => c.setRGB(0.9 + v * 0.18, 0.92 + v * 0.14, 0.88 + v * 0.16))
+      : TT ? (c, v) => c.setRGB(0.9 + v * 0.15, 0.9 + v * 0.15, 0.92 + v * 0.15) : (c, v) => c.setRGB(0.82 + v * 0.3, 0.86 + v * 0.22, 0.8 + v * 0.25);
     roundGeos.forEach((geo, gi) => {
       const list = trees.round.filter((t) => t.seed % roundGeos.length === gi);
       this.instanced(world, geo, tm, list.map((t) => ({ ...t, s: 0.95 + ((t.seed * 37) % 10) / 22, rot: t.seed * 1.7 })), { cast: true, tint });
@@ -245,7 +258,7 @@ export class Renderer3D {
     });
 
     // หญ้าเป็นกอ + ดอกไม้ 3 มิติ (โยกตามลม)
-    const gm = std('grassTuft', { vertexColors: true, roughness: 1, side: THREE.DoubleSide }); this.addWind(gm, 0.25, 0);
+    const gm = PXW ? new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: gradientMap(), side: THREE.DoubleSide }) : std('grassTuft', { vertexColors: true, roughness: 1, side: THREE.DoubleSide }); this.addWind(gm, 0.25, 0);
     const tufts = [], flowers = [];
     const fcols = (theme.flowers || ['#ffe36b', '#ff8fb8', '#ffffff', '#a9c8ff', '#ffb36b', '#d59bff']).map(lin);
     const tuftOn = theme.tufts !== false;
@@ -255,9 +268,9 @@ export class Renderer3D {
       if (t === T.FLOWERS) for (let k = 0; k < 6; k++) flowers.push({ x: x + r(), z: y + r(), s: 0.8 + r() * 0.5, rot: r() * 6, color: fcols[(r() * fcols.length) | 0] });
       if (t === T.FLOWERS && tuftOn && r() < 0.8) tufts.push({ x: x + r(), z: y + r(), s: 1, rot: r() * 6 });
     }
-    this.grass = this.instanced(world, grassTuftGeometry(), gm, tufts, { cast: false });
-    const fm = std('flowerMat', { vertexColors: true, roughness: 0.8 }); this.addWind(fm, 0.25, 0);
-    this.instanced(world, flowerGeometry(), fm, flowers, { cast: false });
+    this.grass = this.instanced(world, PXW ? grassTuftPx() : grassTuftGeometry(), gm, tufts, { cast: false });
+    const fm = PXW ? new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: gradientMap() }) : std('flowerMat', { vertexColors: true, roughness: 0.8 }); this.addWind(fm, 0.25, 0);
+    this.instanced(world, PXW ? flowerPx() : flowerGeometry(), fm, flowers, { cast: false });
 
     // รวม mesh นิ่งทั้งหมด → draw call น้อย ลื่นไหล
     world.add(batchStatic(statics));
@@ -288,6 +301,40 @@ export class Renderer3D {
     this.castCircle = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: magicCircleTexture(), color: '#8fd8ff', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
     this.castCircle.rotation.x = -Math.PI / 2; this.castCircle.visible = false; world.add(this.castCircle);
     if (this.quality) this.setQuality(this.quality); // คงโหมดคุณภาพเดิมไว้
+  }
+
+  // พื้นแผนที่: โหมดพิกเซล = ลายพิกเซลจากเชดเดอร์ (v0.17) · โหมด 3D = เท็กซ์เจอร์วาดเนียนแบบเดิม
+  makeGround(map) {
+    if (this.groundGroup) {
+      this.world.remove(this.groundGroup);
+      this.groundGroup.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+      if (this.groundTex) { this.groundTex.dispose(); this.groundTex = null; }
+      if (this.pground) { this.pground.dispose(); this.pground = null; }
+    }
+    const theme = map.def.theme || {}, gg = this.groundGroup = new THREE.Group();
+    if (this.px.enabled) {
+      this.pground = pixelGround(map);
+      const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), this.pground.material);
+      ground.rotation.x = -Math.PI / 2; ground.position.set(map.w / 2, 0, map.h / 2); ground.receiveShadow = true;
+      gg.add(ground);
+    } else {
+      this.groundTex = groundTexture(map);
+      const ground = new THREE.Mesh(new THREE.PlaneGeometry(map.w, map.h), new THREE.MeshStandardMaterial({ map: this.groundTex, roughness: 1 }));
+      ground.rotation.x = -Math.PI / 2; ground.position.set(map.w / 2, 0, map.h / 2); ground.receiveShadow = true;
+      gg.add(ground);
+      const outer = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), std('outer' + (theme.outer || '#5c9a40'), { color: theme.outer || '#5c9a40', roughness: 1 }));
+      outer.rotation.x = -Math.PI / 2; outer.position.set(map.w / 2, -0.02, map.h / 2); outer.receiveShadow = true;
+      gg.add(outer);
+    }
+    this.world.add(gg);
+  }
+
+  // v0.17: ตัวสร้างของในแผนที่แบบพิกเซล (ทับของเดิมเฉพาะชนิดที่ออกแบบใหม่)
+  pxBuilders() {
+    if (this._pxb) return this._pxb;
+    const one = (geo, mat) => { const g = new THREE.Group(); const m = new THREE.Mesh(geo, mat); m.castShadow = m.receiveShadow = true; m.userData.dynamic = true; g.add(m); return g; };
+    this._pxb = { bush: (d) => one(bushPx(d.seed || 3), vcToon()) };
+    return this._pxb;
   }
 
   // v0.16: แบ่งพืช/หินเป็นก้อนละ 20×20 ช่อง แต่ละก้อนมีขอบเขตของตัวเอง → กล้องและเงาตัดก้อนที่มองไม่เห็นทิ้ง
@@ -337,6 +384,7 @@ export class Renderer3D {
     if (!this.seeCam) { this.seeCam = { value: new THREE.Vector3() }; this.seeFocus = { value: new THREE.Vector3(0, -99, 0) }; }
     const cam = this.seeCam, focus = this.seeFocus;
     material.onBeforeCompile = (shader) => {
+      if (material.userData.obc) material.userData.obc(shader);   // v0.17: เชดเดอร์เสริมของวัสดุ (จุดใบไม้พิกเซล)
       shader.uniforms.uTime = time;
       let vs = 'uniform float uTime;\n' + shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
         #ifdef USE_INSTANCING
@@ -383,7 +431,7 @@ export class Renderer3D {
     let costume = null, glow = false;
     if (has) {
       costume = wearCostume(view, items, { world: this.costumeWorld, look });
-      if (this.ch) costume.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
+      if (this.ch) costume.setViewport(this.fxVH || this.ch * this.renderer.getPixelRatio(), this.camera.fov);
       glow = Object.values(items).some((it) => (TIER_RANK[it.rarity] || 0) >= 3);
     }
     return { view, costume, glow };
@@ -414,15 +462,91 @@ export class Renderer3D {
     if (!npc && !remote) {
       castbar = document.createElement('div'); castbar.className = 'castbar'; castbar.innerHTML = '<span></span><b><i></i></b>'; castbar.hidden = true; this.labelLayer.append(castbar);
     }
-    this.characters.set(entity, { view, costume, glow, label, bubble, hpbar, castbar, npc, kind: npc ? 'npc' : remote ? 'remote' : 'player', head: 1.38 * 1.3 * scale, lastText: '', lastHp: -1 });
+    this.characters.set(entity, { view, costume, glow, label, bubble, hpbar, castbar, npc, kind: npc ? 'npc' : remote ? 'remote' : 'player', head: CHAR_HEAD * 1.3 * scale, lastText: '', lastHp: -1 });
     this.actorQuality(this.characters.get(entity));
+    this.pxChar(entity, view);
     view.update(0, entity);
+  }
+
+  // v0.17: สีแสงของแผนที่ปัจจุบันเทียบกับเมือง (ป่ามืด/ภูเขาไฟแดง/ท้องฟ้ามืดตอนสกิลใหญ่) → คูณสีสไปรต์
+  pxTint() {
+    const h = this.hemi, s = this.sun, t = this.px.tint;
+    const ex = this.renderer.toneMappingExposure / 0.92;
+    for (const k of ['r', 'g', 'b']) {
+      const cur = h.color[k] * h.intensity + s.color[k] * s.intensity * 0.5;
+      const base = PX_BASE[k];
+      t[k] = Math.min(1.06, Math.max(0.5, 1 + (cur * ex / base - 1) * 0.65));
+    }
+  }
+
+  // v0.17: สลับโหมดภาพพิกเซล 2D ↔ โมเดล 3D (ตั้งค่า → กราฟิก)
+  setPixelMode(on) {
+    if (this.px.enabled === on) return;
+    this.px.enabled = on; PIXEL.on = on;
+    if (!on) for (const k of [...this.px.list.keys()]) this.px.detach(k);
+    for (const [entity, c] of this.characters) {
+      if (on) { if (c.kind === 'mob') this.px.attach(entity, c.view, 'mob'); else this.pxChar(entity, c.view); }
+      this.actorQuality(c);
+    }
+    for (const v of this.pets.values()) { if (on) this.px.attach(v, v, 'pet'); this.actorQuality({ view: v, kind: 'pet' }); }
+    this.pxK = 0; this.post.pxOn = on;
+    document.body.classList.toggle('pxmode', on);
+    if (on) this.pxSnapZoom(); else this.syncFxSize();
+    if (this.world && this.map) this.makeGround(this.map);
+  }
+
+  /* ---------- v0.17: ฉากแบบพิกเซล ---------- */
+  // ระยะกล้องที่ทำให้ 1 พิกเซลภาพ = PX หน่วยโลกพอดี (ตรงกับสไปรต์ตัวละคร) โดยขยายภาพเป็นจำนวนเต็มเท่า
+  pxZoomSteps() {
+    const H = this.post.size.y, t = Math.tan((this.camera.fov * Math.PI) / 360), ds = this.distScale || 1, out = [];
+    for (let k = 1; k <= 24; k++) { const d = ((H / k) * PX) / (2 * t) / ds; if (d >= 6.5 && d <= 25) out.push(d); }
+    return out;
+  }
+  pxSnapZoom() {
+    const steps = this.pxZoomSteps(); if (!steps.length) return;
+    const want = this.wantDist || this.rig.targetDist;
+    this.rig.targetDist = steps.reduce((a, b) => (Math.abs(Math.log(b / want)) < Math.abs(Math.log(a / want)) ? b : a));
+  }
+  // ทุกเฟรม: เลือกตัวคูณขยาย k · เลื่อนกล้องให้ตรงตารางพิกเซล (กันภาพสั่นตอนเดิน) แล้วชดเชยเศษพิกเซลตอนขยายภาพ
+  pxFrame() {
+    const H = this.post.size.y; if (!H) return null;
+    const cam = this.camera, t = Math.tan((cam.fov * Math.PI) / 360);
+    const D = cam.position.distanceTo(this.rig.target);
+    const k = Math.max(1, Math.round((H * PX) / (2 * D * t)));
+    const wpp = (2 * D * t) / (H / k);
+    if (k !== this.pxK) { this.pxK = k; this.syncFxSize(); }
+    cam.updateMatrixWorld();
+    const R = (this.pxR = this.pxR || new THREE.Vector3()).setFromMatrixColumn(cam.matrixWorld, 0);
+    const U = (this.pxU = this.pxU || new THREE.Vector3()).setFromMatrixColumn(cam.matrixWorld, 1);
+    const cr = cam.position.dot(R) / wpp, cu = cam.position.dot(U) / wpp;
+    const fr = cr - Math.round(cr), fu = cu - Math.round(cu);
+    cam.position.addScaledVector(R, -fr * wpp).addScaledVector(U, -fu * wpp);
+    cam.updateMatrixWorld();
+    this.pxPoints(k);
+    return { k, wpp, ox: fr, oy: fu };
+  }
+  // จุดอนุภาคแบบ PointsMaterial (ไฟ น้ำพุ ฝุ่นละออง) คิดขนาดจากความสูงจอ → ย่อตาม k ตอนวาดภาพความละเอียดต่ำ
+  pxPoints(k) {
+    if (!this.pointsList || (this.frameN2 = (this.frameN2 || 0) + 1) % 90 === 0 || this.pointsK !== k) {
+      const list = []; this.scene.traverse((o) => { if (o.isPoints && o.material && o.material.isPointsMaterial) list.push(o.material); });
+      this.pointsList = list; this.pointsK = -1;
+    }
+    for (const m of this.pointsList) { if (m.userData.size0 === undefined) m.userData.size0 = m.size; m.size = m.userData.size0 / k; }
+    this.pointsK = k;
+  }
+
+  // v0.17: ผูกโมเดลตัวละครกับสไปรต์พิกเซล (ตา = จุดบนหัว)
+  pxChar(entity, view) {
+    if (!this.px.enabled) return;
+    const eye = (entity.look && entity.look.eye) || '#3a2440';
+    this.px.attach(entity, view, 'char', { eyes: PixelSprites.eyeMarkers(view), eyeColor: eye, face: view.face });
   }
 
   addMonster(mob) {
     const view = new MonsterView(mob);
     view.root.rotation.y = mob.angle;
     this.scene.add(view.root);
+    if (this.px.enabled) this.px.attach(mob, view, 'mob');
     const h = mob.data.height;
     const rad = mob.data.radius || 0.55;
     const hb = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, h + 0.4, 8), new THREE.MeshBasicMaterial({ visible: false }));
@@ -437,6 +561,7 @@ export class Renderer3D {
 
   removeActor(entity) {
     const c = this.characters.get(entity); if (!c) return;
+    this.px.detach(entity);
     this.scene.remove(c.view.root);
     c.view.root.traverse((o) => {
       if (o.geometry) o.geometry.dispose();
@@ -698,14 +823,16 @@ export class Renderer3D {
     view.root.position.set(ent.x * S, 0, ent.y * S);
     view.root.rotation.y = ent.angle || 0;
     this.scene.add(view.root);
-    if (this.ch) view.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
+    if (this.ch) view.setViewport(this.fxVH || this.ch * this.renderer.getPixelRatio(), this.camera.fov);
     this.pets.set(ent, view);
     this.actorQuality({ view, kind: 'pet' });
+    if (this.px.enabled) this.px.attach(view, view, 'pet');
     return view;
   }
 
   removePet(ent) {
     const v = this.pets.get(ent); if (!v) return;
+    this.px.detach(v);
     v.dispose();
     this.pets.delete(ent);
   }
@@ -780,6 +907,7 @@ export class Renderer3D {
     if (c.hitbox) view.root.add(c.hitbox);
     c.view = view; c.costume = costume; c.glow = glow;
     this.actorQuality(c);
+    this.pxChar(entity, view);
     view.update(0, entity);
   }
   setTarget(entity) { this.target = entity; if (!entity) this.ring.hide(); }
@@ -792,13 +920,17 @@ export class Renderer3D {
   }
 
   rotateCamera(delta) { this.rig.targetYaw += delta; }
-  zoomCamera(factor) { this.rig.targetDist = clamp(this.rig.targetDist * factor, 7, 24); }
+  zoomCamera(factor) {
+    this.wantDist = clamp((this.wantDist || this.rig.targetDist) * factor, 7, 24);
+    if (this.px && this.px.enabled) this.pxSnapZoom(); else this.rig.targetDist = this.wantDist;
+  }
 
   updateCamera(dt, focus) {
     const g = this.rig;
     if (focus) g.target.lerp(this.tmp.set(focus.x * S, 0.55, focus.y * S), damp(7, dt));
     g.yaw = dt ? lerpAngle(g.yaw, g.targetYaw, damp(9, dt)) : g.yaw;
     g.dist = dt ? lerp(g.dist, g.targetDist, damp(9, dt)) : g.dist;
+    if (Math.abs(g.dist - g.targetDist) < 0.01) g.dist = g.targetDist;   // v0.17: ให้ถึงระยะพิกเซลพอดี
     const cp = Math.cos(g.pitch), sp = Math.sin(g.pitch), d = g.dist * (this.distScale || 1) * (1 - 0.07 * this.punchAmt);
     this.punchAmt *= Math.max(0, 1 - dt * 9);   // กล้องพุ่งเข้าเล็กน้อยตอนกระแทกแรง แล้วถอยกลับ
     this.camera.position.set(g.target.x + Math.sin(g.yaw) * cp * d, g.target.y + sp * d, g.target.z + Math.cos(g.yaw) * cp * d);
@@ -865,16 +997,20 @@ export class Renderer3D {
     this.camera.updateProjectionMatrix();
     this.cw = w; this.ch = h;
     this.syncFxSize();
+    if (this.px && this.px.enabled) { this.pxK = 0; this.pxSnapZoom(); }
   }
 
   // ขนาดอนุภาคและบัฟเฟอร์โพสต์โปรเซสต้องตามความละเอียดจริงของจอ
   syncFxSize() {
     if (!this.ch) return;
-    this.fx.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
-    for (const c of this.characters.values()) if (c.costume) c.costume.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
-    for (const v of this.pets.values()) v.setViewport(this.ch * this.renderer.getPixelRatio(), this.camera.fov);
     const db = this.renderer.getDrawingBufferSize(new THREE.Vector2());
     this.post.setSize(db.x, db.y);
+    // v0.17: โหมดพิกเซล วาดฉากที่ความละเอียด 1/k → ขนาดอนุภาคคิดจากความสูงภาพพิกเซล
+    const vh = this.px && this.px.enabled && this.pxK ? db.y / this.pxK : this.ch * this.renderer.getPixelRatio();
+    this.fx.setViewport(vh, this.camera.fov);
+    for (const c of this.characters.values()) if (c.costume) c.costume.setViewport(vh, this.camera.fov);
+    for (const v of this.pets.values()) v.setViewport(vh, this.camera.fov);
+    this.fxVH = vh;
   }
 
   /* ---------- ปรับคุณภาพอัตโนมัติ ให้ลื่นบนเครื่องสเปกต่ำ ---------- */
@@ -913,7 +1049,7 @@ export class Renderer3D {
     const noOutline = other && ((mob && this.quality >= 1) || this.quality >= 3);
     const noCast = other && (mob || this.quality >= 2);
     c.view.root.traverse((o) => {
-      if (o.userData.outline) { o.visible = !noOutline; return; }
+      if (o.userData.outline) { o.visible = !noOutline && !(this.px && this.px.enabled); return; }   // v0.17: โหมดพิกเซลวาดเส้นขอบเอง
       if (o.isMesh) { if (o.userData.cs === undefined) o.userData.cs = o.castShadow; o.castShadow = o.userData.cs && !noCast; }
     });
   }
@@ -942,6 +1078,8 @@ export class Renderer3D {
     this.time += dt; const t = this.time;
     this.windTime.value = t;
     this.updateCamera(dt, focus);
+    const pxi = this.px.enabled ? this.pxFrame() : null;   // v0.17: ฉากพิกเซล (เลื่อนกล้องตรงตาราง ก่อนวางสไปรต์)
+    this.px.snap = pxi;
     if (this.seeCam) {
       this.seeCam.value.copy(this.camera.position);
       if (focus) this.seeFocus.value.set(focus.x * S, 1.0, focus.y * S);
@@ -1001,13 +1139,17 @@ export class Renderer3D {
     this.updateDrops(dt, t);
     this.updateFlyDrops(dt);
     this.updatePets(simDt);
+    this.scene.updateMatrixWorld();
+    this.pxTint();
+    this.px.update(dt);                       // v0.17: วาดสไปรต์พิกเซลของทุกตัวที่ถึงรอบ
     // v0.9: สวมแฟชั่นระดับล้ำค่าขึ้นไป → ตัวผู้เล่นและอนุภาคแฟชั่นเข้ารอบแสงเรือง (เฉพาะโหมดกราฟิกที่เปิดแสงเรือง)
     const busy = this.fx.busy();
     const glowOn = !!glowC && this.post.enabled && this.post.bloom;
     const goal = glowOn && !busy ? Math.max(this.baseGlow, COSTUME_GLOW) : this.baseGlow;
     this.post.strength += (goal - this.post.strength) * Math.min(1, dt * 4);
     const roots = glowOn ? [this.fx.root, this.costumeWorld, glowC.view.root] : this.fx.root;
-    this.post.render(this.scene, this.camera, roots, (k) => { this.fx.setPixelScale(k); if (glowOn) glowC.costume.pixelScale(k); }, busy || glowOn);
+    const gk = pxi ? pxi.k : 1;   // รอบแสงเรืองวาดที่ครึ่งจอ ส่วนอนุภาคตั้งขนาดไว้สำหรับภาพพิกเซล → คูณกลับ
+    this.post.render(this.scene, this.camera, roots, (k) => { const kk = k === 1 ? 1 : k * gk; this.fx.setPixelScale(kk); if (glowOn) glowC.costume.pixelScale(kk); }, busy || glowOn, pxi);
   }
 
   project(x, y, z) {

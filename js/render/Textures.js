@@ -2,6 +2,10 @@
 import { THREE } from './three.js';
 import { rng } from '../core/util.js';
 import { T } from '../data/tileTypes.js';
+import { PIXEL } from './PixelSprites.js';
+import { pixelizeCanvas, nearestTexture } from './PixelArt.js';
+// v0.17: เท็กซ์เจอร์แสง/เงา/วงเวทย์เวอร์ชันพิกเซล
+const pxTex = (c, n, a, o) => nearestTexture(pixelizeCanvas(c, n, n, { alpha: a }), o);
 
 const PPT = 32; // พิกเซลต่อ 1 ช่อง บนพื้นผิวแผนที่
 
@@ -395,22 +399,22 @@ export function skyTexture() {
 }
 
 export function glowTexture() {
-  return cached('glow', () => {
+  return cached(PIXEL.on ? 'pxglow' : 'glow', () => {
     const [c, g] = canvas(64, 64);
     const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
     grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.35, 'rgba(255,255,255,0.45)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
     g.fillStyle = grd; g.fillRect(0, 0, 64, 64);
-    return toTexture(c, { repeat: false, srgb: false });
+    return PIXEL.on ? pxTex(c, 32, 5) : toTexture(c, { repeat: false, srgb: false });
   });
 }
 
 export function blobShadowTexture() {
-  return cached('blob', () => {
+  return cached(PIXEL.on ? 'pxblob' : 'blob', () => {
     const [c, g] = canvas(64, 64);
     const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
     grd.addColorStop(0, 'rgba(0,0,0,0.55)'); grd.addColorStop(0.6, 'rgba(0,0,0,0.25)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = grd; g.fillRect(0, 0, 64, 64);
-    return toTexture(c, { repeat: false, srgb: false });
+    return PIXEL.on ? pxTex(c, 24, 3) : toTexture(c, { repeat: false, srgb: false });
   });
 }
 
@@ -434,7 +438,7 @@ export function beamTexture() {
 
 // วงเวทย์: วงแหวนซ้อน + อักขระรูน + ดาวหกแฉก (สีขาว ย้อมสีด้วยวัสดุ)
 export function magicCircleTexture() {
-  return cached('magic', () => {
+  return cached(PIXEL.on ? 'pxmagic' : 'magic', () => {
     const N = 512, C = N / 2;
     const [c, g] = canvas(N, N); const r = rng(21);
     g.strokeStyle = '#fff'; g.fillStyle = '#fff'; g.lineCap = 'round';
@@ -464,7 +468,7 @@ export function magicCircleTexture() {
     const gr = g.createRadialGradient(C, C, 0, C, C, 240);
     gr.addColorStop(0, 'rgba(255,255,255,0.35)'); gr.addColorStop(0.7, 'rgba(255,255,255,0.08)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
     g.fillStyle = gr; g.fillRect(0, 0, N, N);
-    return toTexture(c, { repeat: false, srgb: false });
+    return PIXEL.on ? pxTex(c, 128, 3) : toTexture(c, { repeat: false, srgb: false });
   });
 }
 

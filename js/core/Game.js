@@ -2296,6 +2296,9 @@ export class Game {
     r.classList.toggle('no-help', !s.showHelp);
     r.style.setProperty('--ui', String(s.uiScale));
     if (!changed || changed === 'showOthers') { this.remote.visible = s.showOthers; if (this.started) this.syncRemote(); }
+    if (!changed || changed === 'pixel') g.setPixelMode(s.pixel !== false);   // v0.17
+    // สลับโหมดระหว่างเล่น → สร้างฉากใหม่ทั้งแผนที่ (ต้นไม้ พื้น สิ่งปลูกสร้าง เอฟเฟกต์) ที่ตำแหน่งเดิม
+    if (changed === 'pixel' && this.started && this.map && this.player) { const pl = this.player; this.loadMap(this.map.def.id, { x: pl.x / TILE, y: pl.y / TILE, angle: pl.angle }); }
   }
 
   changeSetting(key, value) {

@@ -75,10 +75,11 @@ export class PostFX {
         strength: { value: strength }, aspect: { value: 1 }, ca: { value: 0 },
         flashC: { value: new THREE.Color() }, flashA: { value: 0 },
         lines: { value: 0 }, time: { value: 0 }, shocks: { value: this.shockU },
+        pxMap: { value: new THREE.Vector4(1, 1, 0, 0) },   // v0.17: ภาพพิกเซล (ย่อ/เลื่อนพิกัดก่อนอ่านภาพฉาก)
       },
       fragmentShader: `uniform sampler2D tScene; uniform sampler2D tBloom; uniform sampler2D tGlow;
         uniform float strength; uniform float aspect; uniform float ca; uniform vec3 flashC; uniform float flashA;
-        uniform float lines; uniform float time; uniform vec4 shocks[${MAX_SHOCKS}];
+        uniform float lines; uniform float time; uniform vec4 shocks[${MAX_SHOCKS}]; uniform vec4 pxMap;
         varying vec2 vUv;
         float hash(float n) { return fract(sin(n) * 43758.5453); }
         void main() {
@@ -94,11 +95,12 @@ export class PostFX {
             ringLight += ring;
           }
           vec2 c = uv - 0.5;
+          vec2 su = (uv - 0.5) * pxMap.xy + 0.5 + pxMap.zw;
           vec3 col;
           if (ca > 0.002) {
-            vec2 off = c * ca * 0.014;
-            col = vec3(texture2D(tScene, uv + off).r, texture2D(tScene, uv).g, texture2D(tScene, uv - off).b);
-          } else col = texture2D(tScene, uv).rgb;
+            vec2 off = c * ca * 0.014 * pxMap.xy;
+            col = vec3(texture2D(tScene, su + off).r, texture2D(tScene, su).g, texture2D(tScene, su - off).b);
+          } else col = texture2D(tScene, su).rgb;
           // เรืองแสง: เพิ่มความอิ่มสีให้ฮาโลเป็นสีของเอฟเฟกต์ ไม่ขาวโพลน
           vec3 glow = texture2D(tBloom, uv).rgb * 0.15 + texture2D(tGlow, uv).rgb * 0.03;
           glow = max(mix(vec3(dot(glow, vec3(0.299, 0.587, 0.114))), glow, 1.45), 0.0);
@@ -128,6 +130,50 @@ export class PostFX {
           // ไหล่นุ่มช่วงสว่างจัด: ส่วนที่เกิน 0.8 ค่อย ๆ อิ่มตัว (สีส้ม/ทองยังเป็นสี ไม่ตัดเป็นขาว)
           vec3 over2 = max(col - 0.8, 0.0);
           col = min(col, 0.8) + 0.2 * (1.0 - exp(-over2 / 0.2));
+#endif
+          gl_FragColor = vec4(col, 1.0);
+        }`,
+    });
+
+    // v0.17: ฉากแบบพิกเซล — เรนเดอร์ความละเอียดต่ำ แล้ววาดเส้นขอบจากความลึก + ลดสีแบบดิทเธอร์ ก่อนขยายแบบ nearest
+    this.pxOn = false;
+    const PN = { ...P, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter };
+    this.pxRT = new THREE.WebGLRenderTarget(4, 4, PN);
+    this.pxRT.depthTexture = new THREE.DepthTexture(4, 4); this.pxRT.depthTexture.type = THREE.UnsignedIntType;
+    this.pxOut = new THREE.WebGLRenderTarget(4, 4, { ...PN, depthBuffer: false });
+    this.matPx = new THREE.ShaderMaterial({
+      ...common,
+      defines: { LINEAR: this.linear ? 1 : 0 },
+      uniforms: { tCol: { value: null }, tDep: { value: null }, texel: { value: new THREE.Vector2() }, cn: { value: 0.5 }, cf: { value: 220 }, ink: { value: new THREE.Color('#3a2a4a') } },
+      fragmentShader: `uniform sampler2D tCol; uniform sampler2D tDep; uniform vec2 texel; uniform float cn; uniform float cf; uniform vec3 ink;
+        varying vec2 vUv;
+        float lz(float d) { float z = d * 2.0 - 1.0; return 2.0 * cn * cf / (cf + cn - z * (cf - cn)); }
+        float dz(vec2 o) { float d = texture2D(tDep, vUv + o * texel).x; return d >= 0.99999 ? 1e4 : lz(d); }
+        float bayer(vec2 p) { p = mod(p, 4.0);
+          float a = mod(p.x, 2.0), b = mod(p.y, 2.0), c = floor(p.x / 2.0), d = floor(p.y / 2.0);
+          return (4.0 * (2.0 * a * (1.0 - b) + 3.0 * a * b + 1.0 * (1.0 - a) * b) + (2.0 * c * (1.0 - d) + 3.0 * c * d + 1.0 * (1.0 - c) * d)) / 16.0; }
+        vec3 toS(vec3 c) { return mix(1.055 * pow(max(c, 0.0), vec3(1.0 / 2.4)) - 0.055, c * 12.92, step(c, vec3(0.0031308))); }
+        vec3 toL(vec3 c) { return mix(pow((c + 0.055) / 1.055, vec3(2.4)), c / 12.92, step(c, vec3(0.04045))); }
+        void main() {
+          vec4 src = texture2D(tCol, vUv);
+          vec3 col = src.rgb;
+#if LINEAR
+          col = toS(col);
+#endif
+          float d0 = texture2D(tDep, vUv).x;
+          if (d0 < 0.99999) {
+            float z0 = lz(d0);
+            float zl = dz(vec2(-1.0, 0.0)), zr = dz(vec2(1.0, 0.0)), zu = dz(vec2(0.0, 1.0)), zd = dz(vec2(0.0, -1.0));
+            float th = max(0.22, z0 * 0.03);
+            // เส้นขอบนอก: เพื่อนบ้านอยู่ไกลกว่ามาก → พิกเซลนี้คือขอบของวัตถุด้านหน้า
+            float outer = step(th, max(max(zl, zr), max(zu, zd)) - z0);
+            // รอยพับ/มุมตึก: ความลึกหักมุมกะทันหัน
+            float crease = step(z0 * 0.018 + 0.05, abs(zl + zr - 2.0 * z0)) + step(z0 * 0.018 + 0.05, abs(zu + zd - 2.0 * z0));
+            if (outer > 0.5) col = mix(col * vec3(0.42, 0.4, 0.5), ink, 0.25);
+            else if (crease > 0.5) col *= 0.78;
+          }
+#if LINEAR
+          col = toL(col);
 #endif
           gl_FragColor = vec4(col, 1.0);
         }`,
@@ -178,20 +224,46 @@ export class PostFX {
   pass(mat, target) { this.quad.material = mat; this.r.setRenderTarget(target); this.r.render(this.quadScene, this.quadCam); }
 
   // active = มีเอฟเฟกต์กำลังเล่นอยู่ไหม — ถ้าไม่มีอะไรเลยจะวาดตรงลงจอ (ประหยัดแบตบนมือถือ)
-  render(scene, camera, glowRoot = null, setPixelScale = null, active = true) {
+  // v0.17: ขนาดภาพพิกเซล — k = จำนวนพิกเซลจอต่อ 1 พิกเซลภาพ (จำนวนเต็ม) · คืน { w, h, sx, sy }
+  pixelLayout(k) {
+    const W = this.size.x, H = this.size.y;
+    const w = Math.ceil(W / k) + 2, h = Math.ceil(H / k) + 2;   // เผื่อขอบ 1 พิกเซลรอบด้านสำหรับเลื่อนเศษพิกเซล
+    if (this.pxRT.width !== w || this.pxRT.height !== h) { this.pxRT.setSize(w, h); this.pxOut.setSize(w, h); }
+    return { w, h, sx: (W / k) / w, sy: (H / k) / h };
+  }
+
+  render(scene, camera, glowRoot = null, setPixelScale = null, active = true, px = null) {
     const r = this.r;
     const busy = active || this.shocks.length > 0 || this.flashA > 0.003 || this.ca > 0.003 || this.linesT < this.linesDur;
     if (busy) this.idleT = 0; else this.idleT = (this.idleT || 0) + 1;
-    if (!this.enabled || this.idleT > 30) { r.setRenderTarget(null); r.render(scene, camera); return; }
-    r.setRenderTarget(this.sceneRT);
-    r.render(scene, camera);
-
     const C = this.matComp.uniforms;
-    if (this.bloom) this.renderGlow(camera, glowRoot, setPixelScale);
-    C.strength.value = this.bloom ? this.strength : 0;
+    if (px) {
+      // ภาพพิกเซล: ขยายมุมกล้องให้ครอบขอบเผื่อ → เรนเดอร์ความละเอียดต่ำ → เส้นขอบ/ดิทเธอร์ → ตัดกลางภาพมาขยาย
+      const L = this.pixelLayout(px.k);
+      const fov = camera.fov, asp = camera.aspect;
+      camera.fov = (2 * Math.atan(Math.tan((fov * Math.PI) / 360) / L.sy) * 180) / Math.PI;
+      camera.aspect = asp * (L.sy / L.sx); camera.updateProjectionMatrix();
+      r.setRenderTarget(this.pxRT); r.render(scene, camera);
+      camera.fov = fov; camera.aspect = asp; camera.updateProjectionMatrix();
+      const U = this.matPx.uniforms;
+      U.tCol.value = this.pxRT.texture; U.tDep.value = this.pxRT.depthTexture; U.texel.value.set(1 / L.w, 1 / L.h);
+      U.cn.value = camera.near; U.cf.value = camera.far;
+      this.pass(this.matPx, this.pxOut);
+      C.pxMap.value.set(L.sx, L.sy, (px.ox || 0) / L.w, (px.oy || 0) / L.h);
+      C.tScene.value = this.pxOut.texture;
+    } else {
+      C.pxMap.value.set(1, 1, 0, 0);
+      if (!this.enabled || this.idleT > 30) { r.setRenderTarget(null); r.render(scene, camera); return; }
+      r.setRenderTarget(this.sceneRT);
+      r.render(scene, camera);
+      C.tScene.value = this.sceneRT.texture;
+    }
+    const glowOn = this.bloom && this.enabled && (!px || this.idleT <= 30);
+    if (glowOn) this.renderGlow(camera, glowRoot, setPixelScale);
+    C.strength.value = glowOn ? this.strength : 0;
 
     // รวมภาพ + เอฟเฟกต์บนจอ
-    C.tScene.value = this.sceneRT.texture; C.tBloom.value = this.up[0].texture; C.tGlow.value = this.glowRT.texture;
+    C.tBloom.value = this.up[0].texture; C.tGlow.value = this.glowRT.texture;
     C.ca.value = this.ca; C.time.value = this.time;
     C.flashA.value = this.flashA; C.flashC.value.copy(this.flashC);
     let la = 0;

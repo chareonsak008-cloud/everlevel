@@ -7,6 +7,7 @@ import { toon, toonOwn, bake, gradientMap } from './Toon.js';
 import { shadeHex } from './Textures.js';
 import * as TX from './FxTextures.js';
 import { Particles } from './SkillFX.js';
+import { COSTUME_PETS } from './CostumePets.js';   // v0.17: ผู้ติดตามแฟชั่นแบบใหม่ (หน้าเป็นโมเดล เห็นชัดในสไปรต์พิกเซล)
 
 /* ================= ตัวช่วยพื้นฐาน ================= */
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -446,7 +447,7 @@ function wingClock(rig, p, rt) {
 export const WING_BUILDERS = { feather: wingFeather, membrane: wingMembrane, shape: wingShape, shard: wingShard, clock: wingClock };
 
 /* ================= หมวก / เครื่องประดับหัว (พิกัดของหัว: ศูนย์กลางหัว y=0.2 รัศมี 0.26) ================= */
-const metal = (c, glow = 0) => T(c, { emissive: shadeHex(c, -0.75), emissiveIntensity: 1 + glow });
+const metal = (c, glow = 0) => { const m = T(c, { emissive: shadeHex(c, -0.75), emissiveIntensity: 1 + glow }); m.userData.pxMetal = true; return m; };   // v0.17: สไปรต์พิกเซลลงเงาแบบโลหะมันวาว
 const gem = (c, i = 1.1) => G(c, i);
 function flower(parent, x, y, z, color, r = 0.04, center = '#ffd34d', rot = [0, 0, 0]) {
   const f = group(parent, x, y, z, rot);
@@ -3085,6 +3086,8 @@ Object.assign(PET, {
     rt.on(({ t, dt }) => { wings.forEach(({ pv, s }, i) => { pv.rotation.y = s * (0.2 + Math.sin(t * 14 + i) * 0.5); }); halo.rotation.y = t * 1.2; if (Math.random() < dt * 8) rt.ps('star').emit({ pos: rt.worldPos(g).add(V(rand(-0.06, 0.06), rand(-0.06, 0.06), -0.05)), count: 1, vel: () => V(0, rand(-0.15, -0.05), 0), life: [0.5, 0.9], size: [0.05, 0.09], color: ['#ffffff', '#ffe08a'] }); });
   },
 });
+
+Object.assign(PET, COSTUME_PETS);
 
 /* ================= API ================= */
 export const SLOT_INFO = {

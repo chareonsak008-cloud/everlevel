@@ -1,6 +1,8 @@
 // ไอคอนสกิล วาดด้วย Canvas: เหรียญสีประจำสกิล + สัญลักษณ์สีขาวตัดเส้นเข้ม
 import { SKILLS } from '../data/skills.js';
 import { shadeHex } from './Textures.js';
+import { PIXEL } from './PixelSprites.js';
+import { pixelizeCanvas } from './PixelArt.js';
 
 const S = 64;
 const LINE = '#1c1222';
@@ -185,32 +187,78 @@ const DRAW = {
   },
 };
 
+/* ---------- v0.17: ไอคอนแบบภาพพิกเซล 32×32 (ขยาย 2 เท่าแบบ nearest) ---------- */
+const hexRGB = (h) => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+function pixelBadge(color) {
+  const N = 32, c = document.createElement('canvas'); c.width = c.height = N;
+  const g = c.getContext('2d'), img = g.createImageData(N, N), d = img.data;
+  const col = (k) => hexRGB(shadeHex(color, k));
+  const ink = hexRGB(shadeHex(color, -0.78)), hi = col(0.45), lt = col(0.14), mid = col(0), dk = col(-0.2), sh = col(-0.42);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const ex = Math.min(x, N - 1 - x), ey = Math.min(y, N - 1 - y);
+    if (ex + ey < 2) continue;                               // มุมตัด
+    let c0;
+    if (ex === 0 || ey === 0 || ex + ey === 2) c0 = ink;
+    else if (y === 1 || x === 1 || (ex + ey === 3 && (x < N / 2 || y < N / 2))) c0 = hi;
+    else if (y === N - 2 || x === N - 2) c0 = sh;
+    else { const band = y < 11 ? lt : y < 21 ? mid : dk; c0 = band; if ((y === 11 || y === 21) && (x + y) % 2) c0 = y === 11 ? lt : mid; }
+    const i = (y * N + x) * 4; d[i] = c0[0]; d[i + 1] = c0[1]; d[i + 2] = c0[2]; d[i + 3] = 255;
+  }
+  const put = (x, y, c0) => { const i = (y * N + x) * 4; d[i] = c0[0]; d[i + 1] = c0[1]; d[i + 2] = c0[2]; d[i + 3] = 255; };
+  put(4, 4, [255, 255, 255]); put(5, 4, hi); put(4, 5, hi);  // ประกายมุมซ้ายบน
+  g.putImageData(img, 0, 0);
+  return c;
+}
+function pixelIcon(kind, color) {
+  const src = document.createElement('canvas'); src.width = src.height = S;
+  (DRAW[kind] || DRAW.star)(src.getContext('2d'));
+  const gl = pixelizeCanvas(src, 32, 32, { alpha: 1 });
+  const b = pixelBadge(color), g = b.getContext('2d');
+  // เงาตกกระทบ 1 พิกเซล แล้ววางสัญลักษณ์ทับ
+  const shd = document.createElement('canvas'); shd.width = shd.height = 32;
+  const sg = shd.getContext('2d'); sg.drawImage(gl, 0, 0); sg.globalCompositeOperation = 'source-in'; sg.fillStyle = 'rgba(20,10,30,0.55)'; sg.fillRect(0, 0, 32, 32);
+  g.drawImage(shd, 1, 1); g.drawImage(gl, 0, 0);
+  const out = document.createElement('canvas'); out.width = out.height = S;
+  const og = out.getContext('2d'); og.imageSmoothingEnabled = false; og.drawImage(b, 0, 0, S, S);
+  return out;
+}
+
 export function skillIconCanvas(id) {
-  if (cache.has(id)) return cache.get(id);
+  const key = (PIXEL.on ? 'px:' : '') + id;
+  if (cache.has(key)) return cache.get(key);
   const sk = SKILLS[id];
-  const c = document.createElement('canvas'); c.width = S; c.height = S;
-  const g = c.getContext('2d');
   const [kind, color] = (sk && sk.icon) || ['star', '#888888'];
-  badge(g, color);
-  (DRAW[kind] || DRAW.star)(g);
-  cache.set(id, c);
+  let c;
+  if (PIXEL.on) c = pixelIcon(kind, color);
+  else {
+    c = document.createElement('canvas'); c.width = S; c.height = S;
+    const g = c.getContext('2d');
+    badge(g, color);
+    (DRAW[kind] || DRAW.star)(g);
+  }
+  cache.set(key, c);
   return c;
 }
 
 const urlCache = new Map();
 export function skillIconURL(id) {
-  if (!urlCache.has(id)) urlCache.set(id, skillIconCanvas(id).toDataURL());
-  return urlCache.get(id);
+  const key = (PIXEL.on ? 'px:' : '') + id;
+  if (!urlCache.has(key)) urlCache.set(key, skillIconCanvas(id).toDataURL());
+  return urlCache.get(key);
 }
 
 // ไอคอนจากสเปก [ชนิด, สี] โดยตรง (ใช้ในหน้าพรีวิวสกิลที่ยังไม่ลงเกม)
 export function iconFromSpec(key, kind, color) {
-  const k = 'spec:' + key;
+  const k = (PIXEL.on ? 'px:' : '') + 'spec:' + key;
   if (urlCache.has(k)) return urlCache.get(k);
-  const c = document.createElement('canvas'); c.width = S; c.height = S;
-  const g = c.getContext('2d');
-  badge(g, color);
-  (DRAW[kind] || DRAW.star)(g);
+  let c;
+  if (PIXEL.on) c = pixelIcon(kind, color);
+  else {
+    c = document.createElement('canvas'); c.width = S; c.height = S;
+    const g = c.getContext('2d');
+    badge(g, color);
+    (DRAW[kind] || DRAW.star)(g);
+  }
   urlCache.set(k, c.toDataURL());
   return urlCache.get(k);
 }

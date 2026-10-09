@@ -1,12 +1,46 @@
 // โมเดล 3 มิติของสิ่งปลูกสร้างและของตกแต่ง (สร้างจากรูปทรงพื้นฐาน)
 // หน่วย: 1 = 1 ช่องแผนที่ | ด้านหน้าของโมเดลหันไปทาง +z (ทิศใต้)
 import { THREE } from './three.js';
-import { std, box, cyl, sphere, mesh, boxGeo, mergeGeometries, paint } from './Geo.js';
+import { std, box, cyl, sphere, mesh, boxGeo, mergeGeometries, paint, lin, GEO } from './Geo.js';
+import { gradientMap } from './Toon.js';
+import * as PT from './PixelTextures.js';
 import { stoneTexture, plasterTexture, shingleTexture, woodTexture, crateTexture, stripeTexture, signTexture, glowTexture, shadeHex } from './Textures.js';
 import { rng } from '../core/util.js';
 
 /* ---------- วัสดุ ---------- */
-const M = {
+// v0.17: โหมดพิกเซล → วัสดุ toon (แสงเป็นขั้น) + ลายพิกเซล 48 จุด/หน่วย
+let PXON = false;
+export function setPixelModels(on) { PXON = on; GEO.pxUV = on; }
+const tcache = new Map();
+const tm = (key, o = {}) => {
+  if (!tcache.has(key)) {
+    const q = { gradientMap: gradientMap(), ...o };
+    if (typeof q.color === 'string') q.color = lin(q.color);
+    if (typeof q.emissive === 'string') q.emissive = lin(q.emissive);
+    tcache.set(key, new THREE.MeshToonMaterial(q));
+  }
+  return tcache.get(key);
+};
+const PM = {
+  stone: () => tm('stone', { map: PT.stonePx('#a29ca4') }),
+  stoneLight: () => tm('stoneLight', { map: PT.stonePx('#d2cbbd') }),
+  wallStone: () => tm('wallStone', { map: PT.stonePx('#9c97a3') }),
+  beam: () => tm('beam', { map: PT.woodPx('#5e3f27') }),
+  wood: () => tm('wood', { map: PT.woodPx('#9b6b3e') }),
+  woodLight: () => tm('woodLight', { map: PT.woodPx('#b98a58', false) }),
+  door: () => tm('door', { map: PT.woodPx('#8a5530') }),
+  metal: () => tm('metal', { color: '#4a4b58' }),
+  gold: () => { const m = tm('gold', { color: '#f0c850', emissive: '#5a3a00', emissiveIntensity: 0.4 }); m.userData.pxMetal = true; return m; },
+  glass: () => tm('glass', { color: '#a6d4ea', emissive: '#ffcf7a', emissiveIntensity: 0.3 }),
+  lantern: () => tm('lantern', { color: '#ffe2a0', emissive: '#ffbf55', emissiveIntensity: 1.6 }),
+  plaster: (c) => tm('plaster' + c, { map: PT.plasterPx(c) }),
+  roof: (c) => tm('roof' + c, { map: PT.shinglePx(c) }),
+  color: (c) => tm('c' + c, { color: c }),
+  crate: () => tm('crate', { map: PT.cratePx() }),
+  plank: () => tm('plank', { map: PT.boardPx('#b98a58') }),
+  stripe: (c) => tm('stripe' + c, { map: PT.stripePx(c), side: THREE.DoubleSide }),
+};
+const M0 = {
   stone: () => std('stone', { map: stoneTexture('#a29ca4'), roughness: 0.92 }),
   stoneLight: () => std('stoneLight', { map: stoneTexture('#d2cbbd'), roughness: 0.85 }),
   wallStone: () => std('wallStone', { map: stoneTexture('#9c97a3'), roughness: 0.95 }),
@@ -24,6 +58,9 @@ const M = {
   crate: () => std('crate', { map: crateTexture(), roughness: 0.8 }),
   stripe: (c) => std('stripe' + c, { map: stripeTexture(c), roughness: 0.9, side: THREE.DoubleSide }),
 };
+const M = new Proxy({}, { get: (_, k) => (PXON ? PM : M0)[k] });
+// วัสดุทั่วไป: โหมดพิกเซลแปลงเป็น toon (ตัดค่าความเงา/โลหะทิ้ง)
+const S = (key, o) => { if (!PXON) return std(key, o); const { roughness, metalness, ...q } = o; return tm('s' + key, q); };
 
 /* ---------- บ้าน ---------- */
 export function house(o) {
@@ -109,9 +146,10 @@ export function tower(o) {
     m.rotation.y = -a;
   }
   const cone = mesh(new THREE.ConeGeometry(1.22, 1.5, 20), M.roof(o.roof || '#b5473a'), 0, h + 1.05, 0, g);
+  if (PXON) scaleCylUV(cone.geometry, 7, 2);   // v0.17: กระเบื้องหลังคากรวยไม่ยืด
   cyl(g, 0.025, 0.025, 0.9, 6, M.metal(), 0, h + 2.1, 0);
   const flag = mesh(new THREE.PlaneGeometry(0.55, 0.32), M.color(o.roof || '#b5473a', 0.7), 0.29, h + 2.38, 0, g);
-  flag.material = std('flag' + (o.roof || ''), { color: o.roof || '#b5473a', side: THREE.DoubleSide });
+  flag.material = S('flag' + (o.roof || ''), { color: o.roof || '#b5473a', side: THREE.DoubleSide });
   flag.userData.dynamic = true; flag.userData.flag = true;
   // ช่องหน้าต่าง
   for (const a of [0.5, 2.6, 4.2]) {
@@ -185,7 +223,7 @@ export function stall(o) {
 export function well() {
   const g = new THREE.Group();
   const ring = mesh(new THREE.CylinderGeometry(0.55, 0.6, 0.62, 20, 1, true), M.stone(), 0, 0.31, 0, g);
-  ring.material = std('stoneDouble', { map: stoneTexture('#a29ca4'), roughness: 0.92, side: THREE.DoubleSide });
+  ring.material = PXON ? tm('stoneDouble', { map: PT.stonePx('#a29ca4'), side: THREE.DoubleSide }) : std('stoneDouble', { map: stoneTexture('#a29ca4'), roughness: 0.92, side: THREE.DoubleSide });
   scaleCylUV(ring.geometry, 3.5, 0.6);
   const rim = mesh(new THREE.TorusGeometry(0.56, 0.08, 8, 24), M.stoneLight(), 0, 0.63, 0, g); rim.rotation.x = Math.PI / 2;
   const water = mesh(new THREE.CircleGeometry(0.52, 20), M.color('#1d3f52', 0.2), 0, 0.42, 0, g); water.rotation.x = -Math.PI / 2;
@@ -223,7 +261,7 @@ export function sign(o) {
   const g = new THREE.Group();
   cyl(g, 0.05, 0.06, 1.4, 8, M.wood(), 0, 0.7, 0);
   const tex = signTexture(o.text || 'Beginner Field ➜');
-  const mat = std('sign' + (o.text || ''), { map: tex, roughness: 0.8 });
+  const mat = S('sign' + (o.text || ''), { map: tex, roughness: 0.8 });
   const board = box(g, 1.0, 0.38, 0.06, [M.wood(), M.wood(), M.wood(), M.wood(), mat, mat], 0, 1.12, 0.06);
   board.rotation.y = -0.25;
   board.userData.dynamic = true; // วัสดุหลายชนิด ไม่รวมกับชิ้นอื่น
@@ -346,7 +384,7 @@ export function boulder(o) {
     const size = (w > 1 ? 0.55 : 0.42) * (0.8 + r() * 0.4) * (i === 0 ? 1.15 : 0.8);
     const geo = jitter(new THREE.DodecahedronGeometry(size, 1), size * 0.22, (o.seed || 1) * 10 + i);
     geo.scale(1, 0.72, 1);
-    const m = mesh(paint(geo, (c, x, y) => c.set('#8d877e').lerp(new THREE.Color('#c4beb2'), Math.max(0, Math.min(1, y / size + 0.3)))), std('boulder', { vertexColors: true, roughness: 0.95 }),
+    const m = mesh(paint(geo, (c, x, y) => c.set('#8d877e').lerp(new THREE.Color('#c4beb2'), Math.max(0, Math.min(1, y / size + 0.3)))), S('boulder', { vertexColors: true, roughness: 0.95 }),
       (i === 0 ? 0 : (r() - 0.5) * w * 0.6), size * 0.5, (i === 0 ? 0 : (r() - 0.5) * w * 0.5), g);
     m.rotation.y = r() * 6;
     m.userData.dynamic = true; // vertex color: ไม่รวมกับ batch
@@ -462,7 +500,7 @@ export function bridges(map, bridgeType, waterType) {
     for (let i = 0; i < n; i++) {
       const u = i / (n - 1), px = -len / 2 + u * len;
       const arch = 0.08 + Math.sin(u * Math.PI) * 0.22;
-      const plank = box(b, 0.23, 0.07, wid - 0.15, M.woodLight(), px, arch, 0, 0.6);
+      const plank = box(b, 0.23, 0.07, wid - 0.15, PXON ? M.plank() : M.woodLight(), px, arch, 0, 0.6);
       plank.rotation.z = Math.cos(u * Math.PI) * -0.28;
     }
     for (const s of [-1, 1]) {
@@ -516,7 +554,7 @@ export function bigshroom(o) {
   const h = 0.6 + r() * 0.7, rad = 0.38 + r() * 0.22, c = o.color || '#4ac8ff';
   const stem = mesh(new THREE.CylinderGeometry(0.1, 0.15, h, 10), M.color('#efe2c8', 0.9), 0, h / 2, 0, g);
   stem.rotation.z = (r() - 0.5) * 0.15;
-  const cap = mesh(new THREE.SphereGeometry(rad, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), std('shroom' + c, { color: c, emissive: c, emissiveIntensity: 0.55, roughness: 0.5 }), 0, h - 0.02, 0, g);
+  const cap = mesh(new THREE.SphereGeometry(rad, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), S('shroom' + c, { color: c, emissive: c, emissiveIntensity: 0.55, roughness: 0.5 }), 0, h - 0.02, 0, g);
   cap.scale.y = 0.6;
   const under = mesh(new THREE.CircleGeometry(rad, 18), M.color('#e8d6b0', 0.9), 0, h - 0.02, 0, g); under.rotation.x = Math.PI / 2;
   for (let i = 0; i < 5; i++) {
@@ -569,7 +607,7 @@ export function deadTreeGeometry(seed) {
 /* ---------- v0.11: ของตกแต่งยอดเขาหิมะ ---------- */
 export function icecrystal(o) {
   const g = new THREE.Group(); const r = rng(o.seed || 1), c = o.color || '#7fe0ff';
-  const mat = std('ice' + c, { color: '#dff6ff', emissive: c, emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.88 });
+  const mat = S('ice' + c, { color: '#dff6ff', emissive: c, emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.88 });
   const n = 4 + ((r() * 3) | 0);
   for (let i = 0; i < n; i++) {
     const h = 0.5 + r() * (i === 0 ? 1.1 : 0.6), w = 0.1 + r() * 0.08;
@@ -597,7 +635,7 @@ export function snowman(o) {
 
 export function tent(o) {
   const g = new THREE.Group(); const c = o.color || '#c8643a';
-  const cloth = std('tent' + c, { color: c, roughness: 0.9, side: THREE.DoubleSide });
+  const cloth = PXON ? tm('tent' + c, { map: PT.plasterPx(c), side: THREE.DoubleSide }) : S('tent' + c, { color: c, roughness: 0.9, side: THREE.DoubleSide });
   const roof = mesh(new THREE.CylinderGeometry(0.02, 1.1, 1.3, 4, 1, true), cloth, 0, 0.65, 0, g); roof.rotation.y = Math.PI / 4;
   mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.6, 6), M.beam(), 0, 0.8, 0, g);
   box(g, 0.5, 0.75, 0.02, M.color('#2a1e18', 1), 0, 0.37, 0.79);
@@ -610,8 +648,8 @@ export function tent(o) {
 /* ---------- v0.11: ของตกแต่งภูเขาไฟ ---------- */
 export function obsidian(o) {
   const g = new THREE.Group(); const r = rng(o.seed || 1);
-  const rock = std('obsidian', { color: '#241c28', roughness: 0.3, metalness: 0.3 });
-  const vein = std('lavaVein', { color: '#ff6a1a', emissive: '#ff4a0a', emissiveIntensity: 1.4, roughness: 0.6 });
+  const rock = S('obsidian', { color: '#241c28', roughness: 0.3, metalness: 0.3 });
+  const vein = S('lavaVein', { color: '#ff6a1a', emissive: '#ff4a0a', emissiveIntensity: 1.4, roughness: 0.6 });
   const n = 3 + ((r() * 3) | 0);
   for (let i = 0; i < n; i++) {
     const h = 0.6 + r() * (i === 0 ? 1.6 : 0.8), w = 0.16 + r() * 0.12;
@@ -625,25 +663,44 @@ export function obsidian(o) {
 
 export function vent(o) {
   const g = new THREE.Group(); const r = rng(o.seed || 1);
-  const rock = std('ventRock', { color: '#3a2e2c', roughness: 0.95 });
+  const rock = S('ventRock', { color: '#3a2e2c', roughness: 0.95 });
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * Math.PI * 2, s = 0.18 + r() * 0.1;
     const m = mesh(new THREE.DodecahedronGeometry(s, 0), rock, Math.cos(a) * 0.36, s * 0.6, Math.sin(a) * 0.36, g); m.rotation.set(r() * 3, r() * 3, 0);
   }
-  mesh(new THREE.CircleGeometry(0.3, 16), std('ventCore', { color: '#ffb03a', emissive: '#ff6a0a', emissiveIntensity: 1.8 }), 0, 0.05, 0, g).rotation.x = -Math.PI / 2;
+  mesh(new THREE.CircleGeometry(0.3, 16), S('ventCore', { color: '#ffb03a', emissive: '#ff6a0a', emissiveIntensity: 1.8 }), 0, 0.05, 0, g).rotation.x = -Math.PI / 2;
   g.userData.glow = { y: 0.5, color: '#ff7a2a' };
   return g;
 }
 
 export function bones(o) {
   const g = new THREE.Group(); const r = rng(o.seed || 1);
-  const bone = M.color('#e8dcc4', 0.8);
-  // กะโหลกมังกรครึ่งจมดิน + ซี่โครง
-  const skull = mesh(new THREE.SphereGeometry(0.42, 14, 10), bone, 0, 0.18, 0, g); skull.scale.set(1, 0.7, 1.4);
-  for (const sx of [-1, 1]) { const h = mesh(new THREE.ConeGeometry(0.08, 0.6, 7), bone, sx * 0.25, 0.5, -0.25, g); h.rotation.set(-0.7, 0, sx * -0.4); }
-  for (const sx of [-1, 1]) sphere(g, 0.08, M.color('#2a1a14', 1), sx * 0.16, 0.28, 0.38, 8, 6);
-  for (let i = 0; i < 4; i++) { const rib = mesh(new THREE.TorusGeometry(0.4, 0.04, 6, 12, Math.PI), bone, 0, 0, -0.9 - i * 0.32, g); rib.rotation.y = Math.PI / 2; rib.scale.set(1, 1 - i * 0.1, 1); }
-  for (const ch of g.children) ch.position.z += 0.62;   // จัดให้อยู่กลางพื้นที่ 2×3 ช่อง
+  const bone = M.color('#e8dcc4', 0.8), boneD = M.color('#b8a888', 0.8), hole = M.color('#2a1a14', 1);
+  // v0.17: กะโหลกมังกรครึ่งจมดิน (หัวยาว ปากมีเขี้ยว เบ้าตาลึก เขาโค้ง) + ซี่โครงโค้งเป็นแถว + กระดูกกระจาย
+  const sk = new THREE.Group(); sk.position.set(0, 0.12, 0.95); sk.rotation.set(0.12, 0.25, 0); g.add(sk);
+  mesh(new THREE.SphereGeometry(0.34, 14, 10), bone, 0, 0.16, -0.05, sk).scale.set(1.05, 0.8, 1.1);
+  mesh(new THREE.BoxGeometry(0.34, 0.2, 0.62), bone, 0, 0.08, 0.38, sk);                       // ปาก
+  mesh(new THREE.BoxGeometry(0.3, 0.08, 0.5), boneD, 0, -0.06, 0.34, sk);                     // ขากรรไกรล่าง
+  for (const sx of [-1, 1]) {
+    mesh(new THREE.SphereGeometry(0.09, 8, 6), hole, sx * 0.15, 0.24, 0.16, sk).scale.set(1, 0.8, 0.6);   // เบ้าตา
+    mesh(new THREE.SphereGeometry(0.035, 6, 4), hole, sx * 0.08, 0.14, 0.68, sk);                          // รูจมูก
+    const h = mesh(new THREE.ConeGeometry(0.07, 0.62, 7), bone, sx * 0.22, 0.42, -0.25, sk); h.rotation.set(-1.0, 0, sx * -0.45);
+    for (let k = 0; k < 4; k++) { const t = mesh(new THREE.ConeGeometry(0.025, 0.09, 4), bone, sx * 0.15, 0.0, 0.2 + k * 0.12, sk); t.rotation.x = Math.PI; }   // เขี้ยว
+  }
+  // กระดูกสันหลัง + ซี่โครง
+  for (let i = 0; i < 6; i++) {
+    const z = 0.3 - i * 0.3, sc = 1 - Math.abs(i - 1.5) * 0.12;
+    mesh(new THREE.SphereGeometry(0.07, 8, 6), boneD, 0, 0.12 + Math.sin(i * 0.6) * 0.03, z, g).scale.set(1, 0.8, 1.3);
+    if (i > 0 && i < 6) for (const sx of [-1, 1]) {
+      const rib = mesh(new THREE.TorusGeometry(0.46 * sc, 0.06, 5, 10, Math.PI * 0.62), bone, sx * 0.02, 0.06, z, g);
+      rib.rotation.set(0, Math.PI / 2, sx > 0 ? -0.2 : Math.PI + 0.2);
+    }
+  }
+  for (let i = 0; i < 4; i++) {   // กระดูกชิ้นเล็กกระจาย
+    const b = new THREE.Group(); b.position.set((r() - 0.5) * 1.6, 0.04, (r() - 0.5) * 2.4); b.rotation.y = r() * 3; g.add(b);
+    mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 6), bone, 0, 0, 0, b).rotation.z = Math.PI / 2;
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) mesh(new THREE.SphereGeometry(0.035, 6, 4), bone, sx * 0.2, 0, sz * 0.03, b);
+  }
   return g;
 }
 

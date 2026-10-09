@@ -2,6 +2,7 @@
 // สร้าง WebGL renderer แยกเฉพาะตอนเปิดหน้าต่างครั้งแรก
 import { THREE } from './three.js';
 import { PetView } from './Pets.js';
+import { PixelSprites, PIXEL } from './PixelSprites.js';   // v0.17: รูปย่อแบบพิกเซล
 
 let R = null, scene = null, cam = null;
 const cache = new Map();
@@ -24,11 +25,17 @@ function init() {
 
 // v0.14: ถ่ายรูปโมเดลใด ๆ (ใช้ร่วมกับรูปมอนสเตอร์ในหน้าต่างออโต้) · build(scene) คืน { bounds: Sphere, dispose(), fill? }
 export function snapThumb(key, size, build) {
+  if (PIXEL.on) key = 'px:' + key;
   if (cache.has(key)) return cache.get(key);
   if (!init()) return '';
   let made = null;
   try { made = build(scene); } catch (e) { console.warn('สร้างรูปย่อไม่สำเร็จ', key, e); }
   if (!made) return '';
+  if (PIXEL.on && made.root) {                       // v0.17: ภาพพิกเซลแบบเดียวกับในเกม
+    let url = '';
+    try { const sp = PixelSprites.snap(R, made.root, { n: Math.round(size / 3), kind: made.kind || 'mob', angle: -Math.PI / 4 }); if (sp) url = PixelSprites.compose(sp, size).toDataURL('image/png'); } catch (e) { console.warn('รูปย่อพิกเซล', key, e); }
+    if (url) { made.dispose(); cache.set(key, url); return url; }
+  }
   R.setSize(size, size, false);
   const bs = made.bounds;
   const d = (bs.radius / Math.sin((cam.fov * Math.PI) / 360)) * (made.fill || 1.0);
@@ -47,6 +54,6 @@ export function petThumb(id, size = 160) {
     const p = new PetView(id, { world: sc });
     p.t = 0.6; p.update(0.016);
     sc.add(p.root);
-    return { bounds: p.bounds(), dispose: () => p.dispose() };
+    return { bounds: p.bounds(), root: p.root, kind: 'pet', dispose: () => p.dispose() };
   });
 }

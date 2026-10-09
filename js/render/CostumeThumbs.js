@@ -5,6 +5,7 @@ import { CharacterView } from './Characters.js';
 import { PLAYER_LOOK, JOB_LOOK } from '../entities/Player.js';
 import { costumeLook, wearCostume, makeRig, buildOnRig, CostumeRuntime } from './Costumes.js';
 import { COSTUME_BY_ID } from '../data/costumes.js';
+import { PixelSprites, PIXEL } from './PixelSprites.js';   // v0.17: ไอคอนแฟชั่นแบบพิกเซล
 
 let R = null, tScene = null, tCam = null, BG = null;
 const cache = new Map();
@@ -55,14 +56,14 @@ function render(it, size) {
   R.setSize(size, size, false);
   const holder = new THREE.Group(); tScene.add(holder);
   const rt = new CostumeRuntime(tScene); rt.setViewport(slot === 'aura' ? size * 2 : size, tCam.fov);
-  let box;
+  let box, pxView = null;
   try {
     if (slot === 'outfit' || slot === 'set') {
       const items = slot === 'set'
         ? Object.fromEntries(it.items.map((id) => COSTUME_BY_ID[id]).filter((c) => c && c.slot !== 'aura' && c.slot !== 'pet').map((c) => [c.slot, c]))
         : { outfit: it };
       const look = costumeLook({ ...PLAYER_LOOK, ...JOB_LOOK.novice, weapon: 'none' }, items);
-      const v = new CharacterView(look); holder.add(v.root);
+      const v = new CharacterView(look); holder.add(v.root); pxView = v;
       wearCostume(v, items, { world: holder, look, rt });
       v.update(0, { x: 0, y: 0, angle: 0, moving: false });
       box = new THREE.Box3().setFromObject(v.root);
@@ -76,6 +77,13 @@ function render(it, size) {
       if (slot === 'aura' || box.isEmpty()) box = new THREE.Box3(new THREE.Vector3(-0.7, 0.2, -0.7), new THREE.Vector3(0.7, 1.9, 0.7));
       else if (it.wtype === 'staff') box.min.y = box.max.y - (box.max.y - box.min.y) * 0.45;   // คทายาว: เล็งหัวคทา
     }
+    // v0.17: โหมดพิกเซล — ถ่ายเป็นสไปรต์แล้วขยายแบบคม ๆ บนพื้นหลังเดิม
+    if (PIXEL.on && slot !== 'aura') {
+      const ang = slot === 'wings' || slot === 'back' ? Math.PI * 0.75 : slot === 'weapon' ? -Math.PI / 2 : -Math.PI / 4;
+      const target = pxView ? pxView.root : holder;
+      const sp = PixelSprites.snap(R, target, { n: Math.round(size / (slot === 'outfit' || slot === 'set' ? 2 : 3)), angle: ang, kind: pxView ? 'char' : 'mob', eyesOf: pxView, eyeColor: PLAYER_LOOK.eye || '#3a2440', face: pxView ? pxView.face : null, fill: slot === 'outfit' || slot === 'set' ? 0.92 : 0.84 });
+      if (sp) { const bg = (BG[it.rarity] || BG.base).image; return PixelSprites.compose(sp, size, bg).toDataURL(); }
+    }
     tScene.background = BG[it.rarity] || BG.base;
     frameTo(box, it.wtype === 'staff' ? [0.35, 0.15, 1] : VIEW_DIR[slot] || [0.4, 0.2, 1], slot === 'aura' ? 0.95 : slot === 'outfit' || slot === 'set' || slot === 'wings' ? 1.05 : 1.2);
     R.render(tScene, tCam);
@@ -87,7 +95,7 @@ function render(it, size) {
 
 // ได้ภาพทันที (ใช้ตอนเปิดกล่อง) — คืน '' ถ้าเรนเดอร์ไม่ได้
 export function thumbNow(it, size = 128) {
-  const k = it.id + '@' + size;
+  const k = (PIXEL.on ? 'px:' : '') + it.id + '@' + size;
   if (cache.has(k)) return cache.get(k);
   let url = '';
   if (init()) { try { url = render(it, size); } catch (e) { console.warn('ไอคอนแฟชั่น', it.id, e); } }
@@ -95,12 +103,12 @@ export function thumbNow(it, size = 128) {
   return url;
 }
 
-export const hasThumb = (it, size = 128) => cache.has(it.id + '@' + size);
+export const hasThumb = (it, size = 128) => cache.has((PIXEL.on ? 'px:' : '') + it.id + '@' + size);
 
 // ทยอยเรนเดอร์ทีละชิ้น ไม่ให้เกมกระตุก · img ที่ถูกถอดออกจากหน้าแล้วจะถูกข้าม
 let queue = [], busy = false;
 export function requestThumb(it, img, size = 128) {
-  const k = it.id + '@' + size;
+  const k = (PIXEL.on ? 'px:' : '') + it.id + '@' + size;
   if (cache.has(k)) { img.src = cache.get(k); return; }
   queue.push({ it, img, size });
   if (!busy) { busy = true; setTimeout(pump, 0); }

@@ -16,6 +16,6 @@ export function monsterThumb(type, size = 112) {
     v.root.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(v.body);
     const bounds = box.getBoundingSphere(new THREE.Sphere());
-    return { bounds, fill: 0.92, dispose: () => { scene.remove(v.root); v.dispose(); } };
+    return { bounds, fill: 0.92, root: v.root, kind: 'mob', dispose: () => { scene.remove(v.root); v.dispose(); } };
   });
 }
