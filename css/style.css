@@ -1473,6 +1473,10 @@ body.touch .chat-wrap { left: 12px; right: auto; width: min(62%, 300px); bottom:
 body.touch #chatWrap .chat { max-height: 42px; font-size: 11px; line-height: 1.6; padding: 3px 34px 3px 8px; background: rgba(20, 14, 28, 0.42); border-color: transparent; box-shadow: none; transition: opacity 0.6s; -webkit-mask-image: linear-gradient(transparent, #000 8px); mask-image: linear-gradient(transparent, #000 8px); }
 body.touch #chatWrap .chat > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.touch #chatWrap.open .chat > div { white-space: normal; }
+/* v0.17.1: แก้ข้อความแชตเพี้ยนบนมือถือ — บรรทัดแชต (overflow: hidden) ในกล่องแบบ flex ถูกบีบจนสูงไม่กี่พิกเซล
+   (เห็นเป็นเศษตัวอักษรเรียงเป็นแถว) → ห้ามบีบบรรทัด · กล่องที่ขยายแล้วเรียงแบบปกติให้เลื่อนขึ้นอ่านย้อนหลังได้ครบ */
+.chat > div { flex-shrink: 0; }
+body.touch #chatWrap.open .chat { display: block; overscroll-behavior: contain; }
 body.touch .chat-wrap:not(.open):not(.fresh) .chat { opacity: 0.45; }
 body.touch .chat-toggle { width: 30px; height: 30px; right: 2px; bottom: 3px; font-size: 15px; }
 body.touch .chat-wrap.open { left: 10px; right: 10px; width: auto; bottom: auto; top: var(--chatTop, calc(150px + env(safe-area-inset-top, 0px))); z-index: 8; }
