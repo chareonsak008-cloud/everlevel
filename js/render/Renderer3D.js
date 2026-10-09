@@ -38,6 +38,15 @@ const setH = (el, h) => { if (el.hidden !== h) el.hidden = h; };
 const setV = (el, on) => { const v = on ? 'visible' : 'hidden'; if (el._v !== v) { el.style.visibility = v; el._v = v; } };
 // ความละเอียดตามระดับคุณภาพ (มือถือเริ่ม 1.5 เท่า แทน 1.75)
 const RATIOS = { mobile: [1.5, 1.25, 1, 0.85], desktop: [2, 1.25, 1, 0.8] };
+// v0.17.1: กล้องมองจากด้านบนแบบเกม RO (โหมดพิกเซล) — ก้ม 60° · มุมมองแคบ 15° (ภาพแทบไม่ลึก ตึกไม่เอียง) · ซูมออกได้ไกลขึ้น
+// ระยะกล้อง (dist) เก็บเป็น "ระยะเทียบกล้องเดิม" (fov 32°) แล้วคูณ distScale ตอนวางกล้องจริง → กรอบภาพเท่าเดิมทุก fov
+// ปรับมุมก้มเองได้ (คลิกขวาลากขึ้นลง / สองนิ้วลากขึ้นลง / PageUp PageDown)
+const D2R = Math.PI / 180;
+const CAM = {
+  d3: { pitch: 0.8, pmin: 0.8, pmax: 0.8, fov: 32, fovP: 52, min: 7, max: 24, def: 13 },
+  px: { pitch: 60 * D2R, pmin: 45 * D2R, pmax: 75 * D2R, fov: 15, fovP: 24, min: 6.5, max: 40, def: 17 },
+};
+const SPRITE_PITCH = 20 * D2R;   // มุมที่ "ช่างวาด" มองสไปรต์ (ดู PixelSprites.js)
 
 function disposeOwned(root) {
   root.traverse((o) => {
@@ -67,7 +76,8 @@ export class Renderer3D {
     this.scene.fog = new THREE.Fog('#d9e4e6', 34, 80);
 
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.5, 220);
-    this.rig = { target: new THREE.Vector3(), yaw: 0, targetYaw: 0, dist: 13, targetDist: 13, pitch: 0.8 };
+    this.rig = { target: new THREE.Vector3(), yaw: 0, targetYaw: 0, dist: 13, targetDist: 13, pitch: 0.8, targetPitch: 0.8 };
+    this.vs = 1;   // v0.17.1: ตัวคูณความสูงของจุดบนตัว (มือ/อก/หัว) ให้ตรงกับภาพสไปรต์เมื่อกล้องก้มชันกว่ามุมวาดสไปรต์
 
     // แสง: ฟ้า + แดดบ่ายอุ่น ๆ ที่ทอดเงา
     this.hemi = new THREE.HemisphereLight('#dcefff', '#6d7f48', 0.72);
@@ -106,6 +116,7 @@ export class Renderer3D {
     // v0.16: มือถือไม่ใช้ MSAA บนบัฟเฟอร์โพสต์ และใช้บัฟเฟอร์ 8 บิต sRGB (ไม่ต้องคอมไพล์เชดเดอร์ชุดที่สอง · ประหยัดแบนด์วิดท์)
     this.post = new PostFX(r, { msaa: this.mobile ? 0 : 4, strength: 1.0, linear: !this.mobile });
     this.post.pxOn = this.px.enabled;   // v0.17: ฉากแบบพิกเซลตามโหมดเดียวกัน
+    this.camMode(true);                 // v0.17.1: กล้องตามโหมด
     document.body.classList.toggle('pxmode', this.px.enabled);
     // ไฟจริง 2 ดวงสำหรับกองไฟ/ปล่องลาวา/ประตูมิติที่ใกล้ที่สุด (แทนไฟดวงละจุด)
     this.propLights = [0, 1].map(() => { const l = new THREE.PointLight('#ff9a40', 0, 7, 2); this.scene.add(l); return l; });
@@ -160,6 +171,7 @@ export class Renderer3D {
     // แสงตามธีมแผนที่ (ป่าทึบจะมืดและหมอกใกล้กว่า)
     const L = theme.light || {};
     scene.fog.near = theme.fogNear || 34; scene.fog.far = theme.fogFar || 80;
+    this.fogBase = { near: scene.fog.near, far: scene.fog.far };   // v0.17.1: กล้องแบบ RO อยู่ไกลกว่า → หมอกนับจากจุดที่มอง (ดู updateCamera)
     this.hemi.intensity = L.hemi ?? 0.72;
     this.hemi.color.set(L.sky || '#dcefff'); this.hemi.groundColor.set(L.ground || '#6d7f48');
     this.sun.intensity = L.sun ?? 1.45; this.sun.color.set(L.sunColor || '#fff0d6');
@@ -490,6 +502,7 @@ export class Renderer3D {
     }
     for (const v of this.pets.values()) { if (on) this.px.attach(v, v, 'pet'); this.actorQuality({ view: v, kind: 'pet' }); }
     this.pxK = 0; this.post.pxOn = on;
+    this.camMode(true);   // v0.17.1: พิกเซล = กล้องแบบ RO · 3 มิติ = กล้องเดิม
     document.body.classList.toggle('pxmode', on);
     if (on) this.pxSnapZoom(); else this.syncFxSize();
     if (this.world && this.map) this.makeGround(this.map);
@@ -498,8 +511,8 @@ export class Renderer3D {
   /* ---------- v0.17: ฉากแบบพิกเซล ---------- */
   // ระยะกล้องที่ทำให้ 1 พิกเซลภาพ = PX หน่วยโลกพอดี (ตรงกับสไปรต์ตัวละคร) โดยขยายภาพเป็นจำนวนเต็มเท่า
   pxZoomSteps() {
-    const H = this.post.size.y, t = Math.tan((this.camera.fov * Math.PI) / 360), ds = this.distScale || 1, out = [];
-    for (let k = 1; k <= 24; k++) { const d = ((H / k) * PX) / (2 * t) / ds; if (d >= 6.5 && d <= 25) out.push(d); }
+    const H = this.post.size.y, t = Math.tan((this.camera.fov * Math.PI) / 360), ds = this.distScale || 1, out = [], C = this.camCfg();
+    for (let k = 1; k <= 32; k++) { const d = ((H / k) * PX) / (2 * t) / ds; if (d >= C.min && d <= C.max) out.push(d); }
     return out;
   }
   pxSnapZoom() {
@@ -523,7 +536,7 @@ export class Renderer3D {
     cam.position.addScaledVector(R, -fr * wpp).addScaledVector(U, -fu * wpp);
     cam.updateMatrixWorld();
     this.pxPoints(k);
-    return { k, wpp, ox: fr, oy: fu };
+    return { k, wpp, ox: fr, oy: fu, zo: D - 13 * (this.distScale0 || 1) };   // zo: v0.17.1 เกณฑ์เส้นขอบเทียบกล้องเดิม
   }
   // จุดอนุภาคแบบ PointsMaterial (ไฟ น้ำพุ ฝุ่นละออง) คิดขนาดจากความสูงจอ → ย่อตาม k ตอนวาดภาพความละเอียดต่ำ
   pxPoints(k) {
@@ -635,12 +648,12 @@ export class Renderer3D {
   /* ---------- เอฟเฟกต์สกิล (v0.6) ---------- */
   aimHeight(entity) {
     const c = this.characters.get(entity);
-    return c && c.kind === 'mob' ? entity.data.height * 0.6 : 0.95;
+    return (c && c.kind === 'mob' ? entity.data.height * 0.6 : 0.95) * this.vs;
   }
   // ยิงกระสุนจาก entity ไปหา target ใช้เวลา dur วินาที
   projectile(from, to, { kind = 'orb', color = '#ff7a2a', dur = 0.4, size, arc = 0 } = {}) {
     this.projectiles.spawn({
-      from: [from.x * S, from.isMonster ? this.aimHeight(from) : 1.05, from.y * S],
+      from: [from.x * S, from.isMonster ? this.aimHeight(from) : 1.05 * this.vs, from.y * S],
       to: [to.x * S, this.aimHeight(to), to.y * S], kind, color, dur, size, arc,
     });
   }
@@ -682,7 +695,7 @@ export class Renderer3D {
   playHurt(entity) {
     const c = this.characters.get(entity); if (!c) return;
     c.view.hurt();
-    const h = c.kind === 'mob' ? entity.data.height * 0.6 : 0.9;
+    const h = (c.kind === 'mob' ? entity.data.height * 0.6 : 0.9) * this.vs;
     this.bursts.spawn(entity.x * S, h, entity.y * S, c.kind === 'mob' ? '#fff0a0' : '#ff7a6a', 10, 2.4, 1.2);
   }
   playDeath(mob) {
@@ -915,13 +928,31 @@ export class Renderer3D {
   /* ---------- กล้อง ---------- */
   snapCamera(entity) {
     this.rig.target.set(entity.x * S, 0.55, entity.y * S);
-    this.rig.yaw = this.rig.targetYaw; this.rig.dist = this.rig.targetDist;
+    this.rig.yaw = this.rig.targetYaw; this.rig.dist = this.rig.targetDist; this.rig.pitch = this.rig.targetPitch;
     this.updateCamera(0);
   }
 
   rotateCamera(delta) { this.rig.targetYaw += delta; }
+  // v0.17.1: ปรับมุมก้ม (โหมดพิกเซลเท่านั้น)
+  tiltCamera(delta) { const C = this.camCfg(); this.rig.targetPitch = clamp(this.rig.targetPitch + delta, C.pmin, C.pmax); }
+  camCfg() { return this.px && this.px.enabled ? CAM.px : CAM.d3; }
+  // ตั้งกล้องตามโหมด · reset = กลับมุม/ระยะเริ่มต้นของโหมดนั้น
+  camMode(reset = true) {
+    const C = this.camCfg(), g = this.rig;
+    if (reset) { g.pitch = g.targetPitch = C.pitch; this.wantDist = C.def; g.dist = g.targetDist = C.def; }
+    if (this.cw) this.applyFov();
+  }
+  applyFov() {
+    const portrait = this.cw < this.ch, C = this.camCfg();
+    const base = portrait ? 52 : 32, fov = portrait ? C.fovP : C.fov;
+    this.camera.fov = fov;
+    this.distScale0 = portrait ? 1.25 : 1;   // จอแนวตั้ง: ถอยกล้องออกให้เห็นกว้างพอ
+    this.distScale = this.distScale0 * Math.tan((base * D2R) / 2) / Math.tan((fov * D2R) / 2);
+    this.camera.updateProjectionMatrix();
+  }
   zoomCamera(factor) {
-    this.wantDist = clamp((this.wantDist || this.rig.targetDist) * factor, 7, 24);
+    const C = this.camCfg();
+    this.wantDist = clamp((this.wantDist || this.rig.targetDist) * factor, C.min, C.max);
     if (this.px && this.px.enabled) this.pxSnapZoom(); else this.rig.targetDist = this.wantDist;
   }
 
@@ -931,10 +962,13 @@ export class Renderer3D {
     g.yaw = dt ? lerpAngle(g.yaw, g.targetYaw, damp(9, dt)) : g.yaw;
     g.dist = dt ? lerp(g.dist, g.targetDist, damp(9, dt)) : g.dist;
     if (Math.abs(g.dist - g.targetDist) < 0.01) g.dist = g.targetDist;   // v0.17: ให้ถึงระยะพิกเซลพอดี
+    g.pitch = dt ? lerp(g.pitch, g.targetPitch, damp(9, dt)) : g.pitch;
+    if (Math.abs(g.pitch - g.targetPitch) < 0.0005) g.pitch = g.targetPitch;
     const cp = Math.cos(g.pitch), sp = Math.sin(g.pitch), d = g.dist * (this.distScale || 1) * (1 - 0.07 * this.punchAmt);
     this.punchAmt *= Math.max(0, 1 - dt * 9);   // กล้องพุ่งเข้าเล็กน้อยตอนกระแทกแรง แล้วถอยกลับ
     this.camera.position.set(g.target.x + Math.sin(g.yaw) * cp * d, g.target.y + sp * d, g.target.z + Math.cos(g.yaw) * cp * d);
     this.camera.lookAt(g.target);
+    this.camExtras(d);
     // กล้องสั่น (บอสทุบพื้น)
     if (this.shakeAmp > 0.001) {
       const a = this.shakeAmp;
@@ -951,6 +985,24 @@ export class Renderer3D {
     const sx = Math.round(g.target.x / texel) * texel, sz = Math.round(g.target.z / texel) * texel;
     this.sun.target.position.set(sx, 0, sz);
     this.sun.position.set(sx + this.sunOffset.x, this.sunOffset.y, sz + this.sunOffset.z);
+  }
+
+  // v0.17.1: ค่าที่ขึ้นกับมุม/ระยะกล้อง
+  // · vs: สไปรต์วาดจากมุมก้ม 20° แต่ฉากมองจากมุมก้มชันกว่า → จุดบนตัว (มือ อก หัว) ต้องยกสูงขึ้น vs เท่าจึงตรงกับภาพบนจอ
+  //   ใช้กับกระสุน/จุดโดนสกิล ป้ายชื่อ ตัวเลขดาเมจ และกล่องคลิกตัวละคร
+  // · หมอก: นับจากจุดที่กล้องมอง (กล้องแบบ RO อยู่ไกลกว่าเดิมมาก)
+  camExtras(d) {
+    const px = this.px && this.px.enabled;
+    const vs = px ? clamp(Math.cos(SPRITE_PITCH) / Math.cos(this.rig.pitch), 1, 2.6) : 1;
+    this.vs = vs; if (this.fx) this.fx.vs = vs;
+    if (this.costumeWorld) this.costumeWorld.scale.y = vs;   // อนุภาคจากชุดแฟชั่น/สัตว์เลี้ยง (ปล่อยจากตำแหน่งชิ้นส่วนโมเดล 3 มิติ) ให้ตรงสไปรต์
+    if (this.hitboxes) for (const hb of this.hitboxes) {
+      if (hb.userData.y0 === undefined) hb.userData.y0 = hb.position.y;
+      if (hb.scale.y !== vs) { hb.scale.y = vs; hb.position.y = hb.userData.y0 * vs; hb.updateMatrixWorld(); }
+    }
+    const f = this.scene.fog, fb = this.fogBase || { near: 34, far: 80 };
+    if (px) { const off = d - 13 * (this.distScale0 || 1); f.near = fb.near + off; f.far = fb.far + off; }
+    else { f.near = fb.near; f.far = fb.far; }
   }
 
   get yaw() { return this.rig.yaw; }
@@ -990,12 +1042,8 @@ export class Renderer3D {
     this.renderer.setPixelRatio(this.ratioFor(this.quality || 0));   // DPR อาจเปลี่ยน (ซูมเบราว์เซอร์/ย้ายจอ)
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    // จอแนวตั้ง: ถอยกล้องออกให้เห็นกว้างพอ
-    const portrait = w < h;
-    this.camera.fov = portrait ? 52 : 32;
-    this.distScale = portrait ? 1.25 : 1;
-    this.camera.updateProjectionMatrix();
     this.cw = w; this.ch = h;
+    this.applyFov();   // v0.17.1: fov/ระยะตามโหมดกล้องและแนวจอ
     this.syncFxSize();
     if (this.px && this.px.enabled) { this.pxK = 0; this.pxSnapZoom(); }
   }
@@ -1182,7 +1230,7 @@ export class Renderer3D {
       el.textContent = c.qm === 'd' ? '!' : c.qm || '';
       el.hidden = !c.qm;
     }
-    const p = this.project(x, c.npc ? c.head + 0.2 : -0.05, z);
+    const p = this.project(x, c.npc ? (c.head + 0.2) * this.vs : -0.05, z);
     setV(c.label, !!p);
     if (c.hpbar) setV(c.hpbar, !!p);
     if (!p) { if (c.bubble) setH(c.bubble, true); return; }
@@ -1197,7 +1245,7 @@ export class Renderer3D {
       const cs = entity.cast;
       if (!c.castbar) { /* ผู้เล่นคนอื่น: ไม่มีแถบร่าย */ }
       else if (cs && cs.total > 0 && !entity.dead) {
-        const hp = this.project(x, c.head + 0.55, z);
+        const hp = this.project(x, (c.head + 0.55) * this.vs, z);
         if (hp) {
           if (c.castbar.hidden) { c.castbar.hidden = false; }
           if (c.castName !== cs.name) { c.castbar.firstChild.textContent = cs.name; c.castName = cs.name; }
@@ -1218,7 +1266,7 @@ export class Renderer3D {
         if (c.lastText !== b.text) { c.bubble.textContent = this.mobile && !c.npc && b.text.length > 56 ? b.text.slice(0, 54) + '…' : b.text; c.lastText = b.text; }   // v0.13: มือถือย่อข้อความยาวในบอลลูน
         setH(c.bubble, false);
         const op = String(Math.min(1, Math.round(b.t * 20) / 10)); if (c.bubble._o !== op) { c.bubble.style.opacity = op; c.bubble._o = op; }
-        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, c.head + 0.35, z) || p)[1]}px, 0) translate(-50%, -100%)`);
+        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, (c.head + 0.35) * this.vs, z) || p)[1]}px, 0) translate(-50%, -100%)`);
       } else if (!c.bubble.hidden) { c.bubble.hidden = true; c.lastText = ''; }
     }
   }
@@ -1229,7 +1277,7 @@ export class Renderer3D {
       e.t += dt;
       const c = this.characters.get(e.entity);
       if (e.t > 1.4 || !c || e.entity.dead) { e.el.remove(); this.emotes.splice(i, 1); continue; }
-      const p = this.project(e.entity.x * S, (c.head || 1.4) + 0.55, e.entity.y * S);
+      const p = this.project(e.entity.x * S, ((c.head || 1.4) + 0.55) * this.vs, e.entity.y * S);
       if (!p) { e.el.style.visibility = 'hidden'; continue; }
       e.el.style.visibility = 'visible';
       const pop = e.t < 0.15 ? 0.4 + e.t * 4.5 : 1 + Math.sin(e.t * 12) * 0.04 * Math.max(0, 1 - e.t);
@@ -1243,7 +1291,7 @@ export class Renderer3D {
       const f = this.floats[i];
       f.t += dt;
       if (f.t > f.life) { f.el.remove(); this.floats.splice(i, 1); continue; }
-      const p = this.project(f.x, f.h, f.z);
+      const p = this.project(f.x, f.h * this.vs, f.z);
       if (!p) { f.el.style.visibility = 'hidden'; continue; }
       f.el.style.visibility = 'visible';
       const k = f.t / f.life;

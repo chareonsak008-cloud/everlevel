@@ -56,7 +56,6 @@ export class SettingsWindow {
       seg.append(b);
     }
     gfx.append(qrow);
-    toggle(gfx, 'pixel', 'ภาพแบบพิกเซลอาร์ต', 'ตัวละคร ฉาก ต้นไม้ สิ่งปลูกสร้าง และสกิล · ปิด = 3 มิติแบบเดิม');
     toggle(gfx, 'bloom', 'แสงเรือง (Bloom)', 'ปิดเพื่อให้เครื่องเย็นและลื่นขึ้น');
     toggle(gfx, 'shake', 'กล้องสั่นตอนโจมตีแรง');
     toggle(gfx, 'dmgNumbers', 'แสดงตัวเลขดาเมจ');

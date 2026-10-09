@@ -16,6 +16,7 @@ export class Input {
     this.joy = { x: 0, y: 0, active: false };
     this.rotate = 0;      // เรเดียนที่สะสมไว้ รอให้เกมนำไปใช้
     this.zoom = 1;        // ตัวคูณระยะกล้อง
+    this.tilt = 0;        // v0.17.1: ปรับมุมก้มกล้อง (เรเดียน · บวก = ก้มชันขึ้น)
     this.touches = new Map();
     this.gesture = null;
     this.hover = null;        // ตำแหน่งเมาส์ (ไม่กด) สำหรับไฮไลต์มอนสเตอร์
@@ -29,6 +30,8 @@ export class Input {
       if (e.code === 'KeyE' && !e.repeat) this.rotate += Math.PI / 4;
       if (e.code === 'Equal' || e.code === 'NumpadAdd') this.zoom *= 0.9;
       if (e.code === 'Minus' || e.code === 'NumpadSubtract') this.zoom *= 1.1;
+      if (e.code === 'PageUp') { this.tilt += 0.09; e.preventDefault(); }
+      if (e.code === 'PageDown') { this.tilt -= 0.09; e.preventDefault(); }
       if ((e.code === 'Space' || e.code === 'KeyF') && !e.repeat) { this.attackKey = true; e.preventDefault(); }
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
@@ -52,7 +55,7 @@ export class Input {
         }
         if (this.touches.size > 2) return;
       }
-      if (e.button === 2 || (e.button === 0 && e.altKey)) { this.dragRotate = { x: p.x, id: e.pointerId }; return; }
+      if (e.button === 2 || (e.button === 0 && e.altKey)) { this.dragRotate = { x: p.x, y: p.y, id: e.pointerId }; return; }
       if (e.button > 0) return;
       this.pointer = { down: true, x: p.x, y: p.y, sx: p.x, sy: p.y, id: e.pointerId, held: 0, touch: e.pointerType === 'touch', t0: performance.now(), walked: false };
       // เมาส์: เดินทันที | นิ้ว: รอยกนิ้วก่อน (กันชนกับท่าซูม/หมุนสองนิ้ว) แต่แจ้งจุดเริ่มแตะให้เกมรู้ทันที
@@ -69,12 +72,14 @@ export class Input {
           let da = g.angle - this.gesture.angle;
           if (da > Math.PI) da -= Math.PI * 2; if (da < -Math.PI) da += Math.PI * 2;
           this.rotate -= da;
+          this.tilt += (g.my - this.gesture.my) * 0.004;   // v0.17.1: สองนิ้วลากขึ้นลง = ปรับมุมก้ม
           this.gesture = g;
           return;
         }
       }
       if (this.dragRotate && e.pointerId === this.dragRotate.id) {
-        this.rotate -= (p.x - this.dragRotate.x) * 0.008; this.dragRotate.x = p.x; return;
+        this.rotate -= (p.x - this.dragRotate.x) * 0.008; this.dragRotate.x = p.x;
+        this.tilt += (p.y - this.dragRotate.y) * 0.005; this.dragRotate.y = p.y; return;   // v0.17.1: ลากขึ้นลง = ปรับมุมก้ม
       }
       if (this.pointer.down && e.pointerId === this.pointer.id) { this.pointer.x = p.x; this.pointer.y = p.y; }
     });
@@ -99,7 +104,7 @@ export class Input {
 
   measure() {
     const [a, b] = [...this.touches.values()];
-    return { dist: Math.hypot(b.x - a.x, b.y - a.y), angle: Math.atan2(b.y - a.y, b.x - a.x) };
+    return { dist: Math.hypot(b.x - a.x, b.y - a.y), angle: Math.atan2(b.y - a.y, b.x - a.x), my: (a.y + b.y) / 2 };
   }
 
   setupJoystick(el) {
@@ -144,5 +149,5 @@ export class Input {
   consumeTaps() { const t = this.taps; this.taps = []; return t; }
   consumePresses() { const t = this.presses; this.presses = []; return t; }
   consumeAttack() { const a = this.attackKey; this.attackKey = false; return a; }
-  consumeCamera() { const r = { rotate: this.rotate, zoom: this.zoom }; this.rotate = 0; this.zoom = 1; return r; }
+  consumeCamera() { const r = { rotate: this.rotate, zoom: this.zoom, tilt: this.tilt }; this.rotate = 0; this.zoom = 1; this.tilt = 0; return r; }
 }

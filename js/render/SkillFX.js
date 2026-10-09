@@ -129,6 +129,7 @@ export class SkillFX {
   constructor(scene, { lights = 4, pool = 1 } = {}) {
     const P = (n) => Math.round(n * pool);
     this.root = new THREE.Group(); scene.add(this.root);
+    this.vs = 1;   // v0.17.1: ตัวคูณความสูงจุดบนตัว (มือ/จุดโดน) ให้ตรงสไปรต์พิกเซลเมื่อกล้องก้มชัน — ตั้งจาก Renderer3D
     this.time = 0;
     this.gain = 1;
     this.timeline = [];
@@ -398,7 +399,7 @@ export class SkillFX {
     const g = this.add(new THREE.Group());
     g.position.copy(t.pos);
     const mat = new THREE.MeshStandardMaterial({ color: '#bfeeff', emissive: '#3a8ad0', emissiveIntensity: 0.35, roughness: 0.1, metalness: 0.1, transparent: true, opacity: 0.55, flatShading: true });
-    const h = t.height || 1;
+    const h = (t.height || 1) * this.vs;
     for (let i = 0; i < 7; i++) {
       const c = new THREE.Mesh(this.geo.crystal, mat);
       const a = (i / 7) * Math.PI * 2;
@@ -420,7 +421,7 @@ export class SkillFX {
   // ดาวหมุนเหนือหัว (มึน)
   stunStars(t, dur = 1.6) {
     const ss = [0, 1, 2].map(() => this.add(new THREE.Sprite(this.spriteMat(TX.star4(), '#ffe08a'))));
-    const top = (t.height || 1) + 0.35;
+    const top = ((t.height || 1) + 0.35) * this.vs;
     this.anim(dur, (k, dt, tt) => {
       ss.forEach((s, i) => { const a = tt * 6 + (i / 3) * Math.PI * 2; s.position.set(t.pos.x + Math.cos(a) * 0.35, top + Math.sin(tt * 8 + i) * 0.05, t.pos.z + Math.sin(a) * 0.35); s.scale.setScalar(0.35); s.material.opacity = k > 0.8 ? (1 - k) / 0.2 : 1; });
     }, () => ss.forEach((s) => this.remove(s)));
@@ -558,8 +559,8 @@ export class SkillFX {
   }
 
   /* ================= ตัวช่วยตำแหน่ง ================= */
-  hitPos(t) { return V(t.pos.x, (t.height || 1) * 0.6, t.pos.z); }
-  hand(c) { return c.caster.pos.clone().add(V(0, 1.05, 0)).addScaledVector(c.caster.facing, 0.35); }
+  hitPos(t) { return V(t.pos.x, (t.height || 1) * 0.6 * this.vs, t.pos.z); }
+  hand(c) { return c.caster.pos.clone().add(V(0, 1.05 * this.vs, 0)).addScaledVector(c.caster.facing, 0.35); }
   inRadius(c, center, r) { return c.targets.map((t, i) => [t, i]).filter(([t]) => Math.hypot(t.pos.x - center.x, t.pos.z - center.z) <= r); }
   center(c) {
     if (c.center) return c.center.clone();
@@ -757,7 +758,7 @@ export class SkillFX {
   }
 
   fx_iron_will(c) {
-    const p = c.caster.pos, mid = V(p.x, 0.95, p.z);
+    const p = c.caster.pos, mid = V(p.x, 0.95 * this.vs, p.z);
     c.anim('cast');
     this.disc(p, TX.runeCircle('hex'), '#8ac8ff', 2.8, 2.0, { spin: 1.2 });
     const mat = new THREE.MeshStandardMaterial({ color: '#c8d8f0', emissive: '#3a6ab0', emissiveIntensity: 0.8, metalness: 0.8, roughness: 0.25, flatShading: true });
@@ -766,7 +767,7 @@ export class SkillFX {
       m.userData.a = (i / 16) * Math.PI * 2; m.userData.y = rand(0.2, 1.9); return m;
     });
     this.anim(0.7, (k, dt, tt) => {
-      shards.forEach((m) => { const a = m.userData.a + tt * 7, r = 1.9 * (1 - easeIn(k)) + 0.25; m.position.set(p.x + Math.cos(a) * r, m.userData.y + (0.95 - m.userData.y) * easeIn(k), p.z + Math.sin(a) * r); m.rotation.y += dt * 9; });
+      shards.forEach((m) => { const a = m.userData.a + tt * 7, r = 1.9 * (1 - easeIn(k)) + 0.25; m.position.set(p.x + Math.cos(a) * r, m.userData.y + (0.95 * this.vs - m.userData.y) * easeIn(k), p.z + Math.sin(a) * r); m.rotation.y += dt * 9; });
       this.fx.emit({ pos: () => V(p.x + rand(-1.6, 1.6), rand(0.2, 1.8), p.z + rand(-1.6, 1.6)), count: 2, vel: (j, q) => mid.clone().sub(q).multiplyScalar(2.5), life: 0.35, size: [0.06, 0.12], color: '#cfe6ff' });
     }, () => { shards.forEach((m) => this.remove(m)); });
     this.after(0.7, () => {
@@ -970,7 +971,7 @@ export class SkillFX {
     this.disc(cen, TX.runeCircle('star'), '#ffe680', 6.2, 4.0, { spin: 0.8, opacity: 0.85 });
     this.disc(c.caster.pos, TX.runeCircle('star'), '#ffe680', 2.5, 1.0, { spin: 2.2 });
     // ไฟฟ้าสถิตรอบตัวผู้ร่าย
-    this.anim(0.8, () => { if (Math.random() < 0.3) { const a = Math.random() * 6.28, h = c.caster.pos.clone().add(V(0, 1.2, 0)); this.lightning(h, h.clone().add(V(Math.cos(a) * 0.9, rand(-0.6, 0.8), Math.sin(a) * 0.9)), '#ffe680', 0.12, { branches: 0, width: 0.03 }); } });
+    this.anim(0.8, () => { if (Math.random() < 0.3) { const a = Math.random() * 6.28, h = c.caster.pos.clone().add(V(0, 1.2 * this.vs, 0)); this.lightning(h, h.clone().add(V(Math.cos(a) * 0.9, rand(-0.6, 0.8), Math.sin(a) * 0.9)), '#ffe680', 0.12, { branches: 0, width: 0.03 }); } });
     // เมฆพายุ
     const clouds = Array.from({ length: 14 }, () => {
       const s = this.add(new THREE.Sprite(this.spriteMat(TX.puff(), '#3a3a4a', 0, THREE.NormalBlending)));
@@ -1052,7 +1053,7 @@ export class SkillFX {
   }
 
   fx_arcane_shield(c) {
-    const p = c.caster.pos, mid = V(p.x, 0.95, p.z);
+    const p = c.caster.pos, mid = V(p.x, 0.95 * this.vs, p.z);
     c.anim('cast');
     this.disc(p, TX.runeCircle('hex'), '#b48cff', 3.2, 1.9, { spin: 1.4 });
     this.disc(p, TX.runeCircle('star'), '#8ad8ff', 2.0, 0.9, { spin: -2.2, rise: 2.2, opacity: 0.85 });
@@ -1363,7 +1364,7 @@ export class SkillFX {
   fx_holy_smite(c) {
     const t = c.targets[c.main], gp = V(t.pos.x, 0, t.pos.z), tp = this.hitPos(t);
     c.anim('cast');
-    this.sigil(V(gp.x, (t.height || 1) + 1.7, gp.z), TX.crossGlow(), '#fff3c8', 1.7, 0.55, { rise: 0 });
+    this.sigil(V(gp.x, ((t.height || 1) + 1.7) * this.vs, gp.z), TX.crossGlow(), '#fff3c8', 1.7, 0.55, { rise: 0 });
     this.disc(gp, TX.runeCircle('cross'), '#ffe8a0', 2.8, 1.3, { spin: 1.2 });
     this.anim(0.38, () => this.stars.emit({ pos: () => V(gp.x + rand(-1, 1), rand(1.5, 3), gp.z + rand(-1, 1)), count: 1, vel: (k, q) => V(gp.x - q.x, -2, gp.z - q.z), life: 0.35, size: [0.15, 0.25], color: '#fff3c8' }));
     this.after(0.38, () => {

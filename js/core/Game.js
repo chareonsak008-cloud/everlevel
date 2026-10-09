@@ -374,7 +374,11 @@ export class Game {
       this.player.fromSave(p);
       this.questLog.sanitize();
       if (Array.isArray(data.storage)) this.loadStorage(data.storage);
-      if (data.camera) { this.gfx.rig.targetYaw = data.camera.yaw || 0; this.gfx.rig.targetDist = data.camera.dist || 13; }
+      if (data.camera) {
+        this.gfx.rig.targetYaw = data.camera.yaw || 0;
+        // v0.17.1: เซฟเก่า (ก่อนกล้องแบบ RO) ใช้ระยะเริ่มต้นใหม่ · เซฟใหม่ใช้ระยะที่ผู้เล่นซูมไว้ (ปัดให้ตรงขั้นพิกเซล)
+        if (data.camera.v === 2 && data.camera.dist > 0) { this.gfx.wantDist = data.camera.dist; this.gfx.zoomCamera(1); }
+      }
     }
     this.gfx.refreshLook(this.player);
     this.loadMap(mapId, arrive);
@@ -1901,6 +1905,7 @@ export class Game {
 
     const cam = input.consumeCamera();
     if (cam.rotate) this.gfx.rotateCamera(cam.rotate);
+    if (cam.tilt) { this.gfx.tiltCamera(cam.tilt); this.dirty = true; }   // v0.17.1
     if (cam.zoom !== 1) { this.gfx.zoomCamera(cam.zoom); this.dirty = true; }
 
     if (this.warping) { input.consumeTaps(); input.consumePresses(); input.consumeAttack(); return; }
@@ -2049,7 +2054,7 @@ export class Game {
   saveState() {
     return {
       player: { ...this.player.toSave(), angle: +this.player.angle.toFixed(3), map: this.map.id },
-      camera: { yaw: +this.gfx.rig.targetYaw.toFixed(3), dist: +this.gfx.rig.targetDist.toFixed(2) },
+      camera: { yaw: +this.gfx.rig.targetYaw.toFixed(3), dist: +this.gfx.rig.targetDist.toFixed(2), v: 2 },   // v: 2 = ระยะกล้องแบบ RO (v0.17.1)
       storage: [...this.storage.toSave(), ...(this.storageUps ? [['_cap', this.storageUps]] : [])],   // คลังของบัญชี (ใช้ร่วมทุกตัวละคร) + v0.13 จำนวนครั้งที่ขยาย
     };
   }
@@ -2296,9 +2301,7 @@ export class Game {
     r.classList.toggle('no-help', !s.showHelp);
     r.style.setProperty('--ui', String(s.uiScale));
     if (!changed || changed === 'showOthers') { this.remote.visible = s.showOthers; if (this.started) this.syncRemote(); }
-    if (!changed || changed === 'pixel') g.setPixelMode(s.pixel !== false);   // v0.17
-    // สลับโหมดระหว่างเล่น → สร้างฉากใหม่ทั้งแผนที่ (ต้นไม้ พื้น สิ่งปลูกสร้าง เอฟเฟกต์) ที่ตำแหน่งเดิม
-    if (changed === 'pixel' && this.started && this.map && this.player) { const pl = this.player; this.loadMap(this.map.def.id, { x: pl.x / TILE, y: pl.y / TILE, angle: pl.angle }); }
+    if (!changed) g.setPixelMode(true);   // v0.17.1: ภาพพิกเซลอาร์ตเสมอ (เอาตัวเลือกกลับเป็น 3 มิติออกจากตั้งค่าแล้ว)
   }
 
   changeSetting(key, value) {

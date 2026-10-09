@@ -1,8 +1,9 @@
-// หน้าจอเข้าเกม (v0.11): เข้าสู่ระบบด้วยบัญชี Claude → เลือก/สร้างตัวละคร (สูงสุด 3 ตัว) · หรือเล่นแบบออฟไลน์
+// หน้าจอเข้าเกม (v0.11): เข้าสู่ระบบ → เลือก/สร้างตัวละคร (สูงสุด 3 ตัว)
+// v0.17.1: เอาโหมดออฟไลน์ออก — ต่อเซิร์ฟเวอร์ไม่ได้ = แจ้งเตือน + ปุ่มลองใหม่ (ไม่มีทางเลือกเล่นออฟไลน์)
 import { MAX_CHARS, validName } from '../net/Online.js';
 import { MAPS } from '../data/maps/index.js';
 import { JOBS } from '../data/progression.js';
-import { VERSION } from '../config.js';
+import { VERSION, ALLOW_OFFLINE } from '../config.js';
 
 const HAIR = ['#e8a838', '#5e3f27', '#2a2430', '#c4467c', '#b8c8ff', '#e8e2d0', '#d8433a', '#4a8a5a'];
 const STYLES = [['spiky', 'ผมชี้'], ['short', 'ผมสั้น'], ['ponytail', 'หางม้า']];
@@ -33,19 +34,34 @@ export class TitleScreen {
       this.resolve = (v) => { this.el.classList.add('out'); setTimeout(() => this.el.remove(), 600); resolve(v); };
       this.connecting();
       this.online.onRecovery = () => this.newPassword();   // กดลิงก์ตั้งรหัสผ่านใหม่จากอีเมล
-      this.online.init().then((ok) => {
+      // เชื่อมต่อนานเกิน 20 วินาที → แจ้งว่าต่อไม่ได้ (เดิมกดเล่นออฟไลน์ได้ ตอนนี้ไม่มีแล้ว)
+      const late = new Promise((r) => setTimeout(() => r('late'), 20000));
+      Promise.race([this.online.init(), late]).then((ok) => {
+        if (ok === 'late') return this.unavailable('เชื่อมต่อนานเกินไป (อินเทอร์เน็ตช้า หรือเซิร์ฟเวอร์ไม่ตอบ)');
         if (ok && this.online.recovery) return this.newPassword();
         if (ok) return this.select();
         if (this.online.needsLogin) return this.login();
-        return this.offline(this.online.serverDown ? 'เชื่อมต่อเซิร์ฟเวอร์เกมไม่ได้ (ตรวจอินเทอร์เน็ต หรือเซิร์ฟเวอร์อาจปิดปรับปรุง)' : '');
-      });
+        return this.unavailable(this.online.serverDown ? 'เชื่อมต่อเซิร์ฟเวอร์เกมไม่ได้ (ตรวจอินเทอร์เน็ต หรือเซิร์ฟเวอร์อาจปิดปรับปรุง)' : this.online.kind === 'supabase' ? (this.online.reason || 'เชื่อมต่อเซิร์ฟเวอร์เกมไม่ได้') : `ยังไม่ได้ตั้งค่าเซิร์ฟเวอร์เกม (js/net/server-config.js)${this.online.reason ? ' · ' + this.online.reason : ''}`);
+      }, () => this.unavailable('เชื่อมต่อเซิร์ฟเวอร์เกมไม่ได้'));
     });
   }
 
   connecting() {
     const sv = this.online.kind === 'supabase';
-    this.panel.innerHTML = `<div class="tt-wait"><i class="spin"></i><b>กำลังเชื่อมต่อ...</b><small>${sv ? 'กำลังตรวจสอบการเข้าสู่ระบบ' : 'กำลังตรวจสอบบัญชีของคุณ'}</small></div><div class="tt-actions"><button type="button" class="ghost" data-a="off">เล่นแบบออฟไลน์</button></div>`;
-    this.panel.querySelector('[data-a=off]').addEventListener('click', () => this.offline());
+    this.panel.innerHTML = `<div class="tt-wait"><i class="spin"></i><b>กำลังเชื่อมต่อ...</b><small>${sv ? 'กำลังตรวจสอบการเข้าสู่ระบบ' : 'กำลังตรวจสอบบัญชีของคุณ'}</small></div>${ALLOW_OFFLINE ? '<div class="tt-actions"><button type="button" class="ghost" data-a="off">เล่นแบบออฟไลน์ (ทดสอบ)</button></div>' : ''}`;
+    const off = this.panel.querySelector('[data-a=off]');
+    if (off) off.addEventListener('click', () => this.offline());
+  }
+
+  // v0.17.1: ต่อเซิร์ฟเวอร์ไม่ได้ → แจ้ง + ลองใหม่ (เกมเล่นออนไลน์เท่านั้น)
+  unavailable(reason = '') {
+    if (ALLOW_OFFLINE) return this.offline(reason);
+    this.panel.innerHTML = `
+      <div class="tt-acc"><div><b>เชื่อมต่อไม่ได้</b><small></small></div><span class="tt-dot">ออฟไลน์</span></div>
+      <p class="tt-note">Everlevel เล่นได้แบบออนไลน์เท่านั้น — ตรวจการเชื่อมต่ออินเทอร์เน็ตแล้วกดลองใหม่ ถ้ายังไม่ได้ เซิร์ฟเวอร์อาจปิดปรับปรุงชั่วคราว</p>
+      <div class="tt-actions"><button type="button" class="primary" data-a="retry">ลองใหม่</button></div>`;
+    this.panel.querySelector('.tt-acc small').textContent = reason || 'ไม่ได้เชื่อมต่อเซิร์ฟเวอร์';
+    this.panel.querySelector('[data-a=retry]').addEventListener('click', () => location.reload());
   }
 
   /* ---------- v0.12: สมัครสมาชิก / เข้าสู่ระบบด้วยอีเมล + รหัสผ่าน (เซิร์ฟเวอร์ Supabase) ---------- */
@@ -92,7 +108,7 @@ export class TitleScreen {
       links: [
         { label: 'สมัครสมาชิก', fn: () => this.register() },
         { label: 'ลืมรหัสผ่าน', fn: () => this.forgot() },
-        { label: 'เล่นออฟไลน์', fn: () => this.offline() },
+        ...(ALLOW_OFFLINE ? [{ label: 'เล่นออฟไลน์ (ทดสอบ)', fn: () => this.offline() }] : []),
       ],
     });
   }
@@ -166,7 +182,7 @@ export class TitleScreen {
     this.forceOffline = false;
     this.panel.innerHTML = '<div class="tt-wait"><i class="spin"></i><b>กำลังโหลดตัวละคร...</b></div>';
     let acc;
-    try { acc = await this.online.account(); } catch (e) { return this.offline('โหลดข้อมูลบัญชีไม่สำเร็จ — เล่นแบบออฟไลน์ได้'); }
+    try { acc = await this.online.account(); } catch (e) { return this.unavailable('โหลดข้อมูลบัญชีไม่สำเร็จ'); }
     this.acc = acc;
     const me = this.online.me || {};
     const ro = this.online.canWrite === false;
@@ -176,7 +192,7 @@ export class TitleScreen {
       ${msg ? `<p class="tt-warn">${esc(msg)}</p>` : ''}
       <h2 class="tt-h">เลือกตัวละคร</h2>
       <div class="tt-slots"></div>
-      <div class="tt-actions">${ro && this.online.room ? '<button type="button" class="primary" data-a="netlocal">เล่นกับเพื่อน (เซฟในเครื่องนี้)</button>' : ''}<button type="button" class="ghost" data-a="off">เล่นแบบออฟไลน์ (เซฟในเครื่อง)</button></div>`;
+      <div class="tt-actions">${ro && this.online.room ? '<button type="button" class="primary" data-a="netlocal">เล่นกับเพื่อน (เซฟในเครื่องนี้)</button>' : ''}${ALLOW_OFFLINE ? '<button type="button" class="ghost" data-a="off">เล่นแบบออฟไลน์ (ทดสอบ)</button>' : ''}</div>`;
     const lo = this.panel.querySelector('[data-a=logout]');
     if (lo) lo.addEventListener('click', () => this.logout());
     const nl = this.panel.querySelector('[data-a=netlocal]');
@@ -205,7 +221,8 @@ export class TitleScreen {
       if (ro) card.querySelectorAll('button').forEach((b) => { if (b.dataset.a !== 'play') b.disabled = true; });
       box.append(card);
     }
-    this.panel.querySelector('[data-a=off]').addEventListener('click', () => this.offline());
+    const off = this.panel.querySelector('[data-a=off]');
+    if (off) off.addEventListener('click', () => this.offline());
   }
 
   async play(slot) {

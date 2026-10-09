@@ -1,7 +1,8 @@
 // ระบบตีมอนออโต้ (v0.14)
 // · ตีเฉพาะมอนที่ติ๊กไว้ ในวงรอบจุดที่กดเริ่ม (ตั้งระยะได้) · ติ๊ก "ตีตัวที่โจมตีเราก่อน" ได้
 // · ใช้ยาเพิ่ม HP / SP อัตโนมัติตามเปอร์เซ็นต์ที่ตั้ง · ใช้สกิลที่ติ๊กไว้ (โจมตี / รอบตัว / บัฟ / รักษา)
-// · เดินเก็บของ · ยาเลือดหมดหรือกระเป๋าเต็ม → ใช้ใบกลับเมืองแล้วหยุด
+// · ยาเลือดหมดหรือกระเป๋าเต็ม → ใช้ใบกลับเมืองแล้วหยุด
+// · v0.17.1: เอาการเดินเก็บของอัตโนมัติออกแล้ว (เก็บเองด้วยการแตะของ หรือใช้สัตว์เลี้ยงช่วยเก็บ)
 // · เดินเองระหว่างออโต้ = ย้ายจุดตีไปที่ที่หยุดเดิน · แตะมอนเอง = ตีตัวนั้นก่อน
 import { TILE } from '../config.js';
 import { MONSTERS } from '../data/monsters.js';
@@ -13,7 +14,7 @@ export const AUTO_DEFAULT = {
   hpOn: true, hpPct: 50, hpItem: 'auto',
   spOn: true, spPct: 30, spItem: 'auto',
   potAlways: false,                         // ใช้ยาอัตโนมัติแม้ไม่ได้เปิดออโต้
-  range: 10, retaliate: true, loot: true, goHome: true,
+  range: 10, retaliate: true, goHome: true,
   pick: {},                                 // { ชนิดมอน: true/false } (ไม่ระบุ = ตี ยกเว้น MVP)
   skills: [],                               // สกิลที่ติ๊กให้ใช้
 };
@@ -29,7 +30,7 @@ export function normAuto(a) {
   const o = { ...AUTO_DEFAULT, pick: {}, skills: [] };
   if (!a || typeof a !== 'object') return o;
   const pct = (v, d) => (Number.isFinite(v) ? Math.max(5, Math.min(95, Math.round(v))) : d);
-  for (const k of ['hpOn', 'spOn', 'potAlways', 'retaliate', 'loot', 'goHome']) if (typeof a[k] === 'boolean') o[k] = a[k];
+  for (const k of ['hpOn', 'spOn', 'potAlways', 'retaliate', 'goHome']) if (typeof a[k] === 'boolean') o[k] = a[k];
   o.hpPct = pct(a.hpPct, o.hpPct); o.spPct = pct(a.spPct, o.spPct);
   o.hpItem = HP_POTS.includes(a.hpItem) ? a.hpItem : 'auto';
   o.spItem = SP_POTS.includes(a.spItem) ? a.spItem : 'auto';
@@ -73,7 +74,6 @@ export class AutoHunt {
     this.pauseUntil = 0; this.moved = false;
     this.leaving = null;          // { reason } กำลังกลับเมือง
     this.track = null;            // ตรวจว่าตีเป้าหมายไม่เข้า (ติดสิ่งกีดขวาง)
-    this.lootTry = null;
     this.warned = {};
     this.status = '';
     this.onChange = null;         // UI อัปเดตสถานะ
@@ -97,7 +97,7 @@ export class AutoHunt {
     if (err) { g.hud.log(err, 'sys'); this.setStatus(''); if (this.onChange) this.onChange(); return false; }
     this.on = true;
     this.anchor = { x: pl.x, y: pl.y };
-    this.ban.clear(); this.forced = null; this.leaving = null; this.track = null; this.lootTry = null; this.warned = {};
+    this.ban.clear(); this.forced = null; this.leaving = null; this.track = null; this.warned = {};
     this.pauseUntil = 0; this.moved = false; this.think = 0;
     g.gfx.setAutoZone(this.anchor.x, this.anchor.y, this.cfg.range);
     const c = this.cfg, n = Object.keys(MONSTERS).filter((t) => this.pickOk(t)).length;
@@ -113,7 +113,7 @@ export class AutoHunt {
   stop(reason = '', { silent = false } = {}) {
     if (!this.on) return;
     const g = this.g, pl = g.player;
-    this.on = false; this.leaving = null; this.forced = null; this.track = null; this.lootTry = null;
+    this.on = false; this.leaving = null; this.forced = null; this.track = null;
     g.gfx.hideAutoZone();
     if (pl.target && !pl.dead) g.clearTarget();
     if (!silent) g.hud.log(`■ หยุดตีมอนออโต้${reason ? ` (${reason})` : ''}`, 'info');
@@ -209,17 +209,8 @@ export class AutoHunt {
     }
     if (t) { this.fight(t); return; }
 
-    // เก็บของ
+    // ผู้เล่นแตะเก็บของเอง → รอให้เก็บเสร็จก่อน (v0.17.1: ออโต้ไม่เดินเก็บของเองแล้ว)
     if (pl.pendingPickup) { this.setStatus('เก็บของ'); return; }
-    if (this.lootTry) {
-      const d = this.lootTry;
-      if (g.drops.includes(d)) this.ban.set('d' + d.uid, g.time + 15);   // ไปไม่ถึง/เก็บไม่ได้ → ข้ามไปก่อน
-      this.lootTry = null;
-    }
-    if (c.loot) {
-      const d = this.nearestDrop();
-      if (d) { g.approachDrop(d); this.lootTry = d; this.setStatus(`เก็บ ${ITEMS[d.id].name}`); return; }
-    }
 
     // หาเป้าใหม่
     t = this.nearest((m) => this.allows(m) && this.inZone(m), (m) => (m.target === pl ? -4 * TILE : 0));
@@ -238,17 +229,6 @@ export class AutoHunt {
       if (m.dead || this.banned(m) || !filter(m)) continue;
       const s = Math.hypot(m.x - pl.x, m.y - pl.y) + bias(m);
       if (s < bs) { bs = s; best = m; }
-    }
-    return best;
-  }
-
-  nearestDrop() {
-    const g = this.g, pl = g.player;
-    let best = null, bd = Infinity;
-    for (const d of g.drops) {
-      if (this.banned('d' + d.uid) || !this.inZone(d, 2 * TILE) || !pl.inventory.canAdd(d.id)) continue;
-      const dd = Math.hypot(d.x - pl.x, d.y - pl.y);
-      if (dd < bd) { bd = dd; best = d; }
     }
     return best;
   }

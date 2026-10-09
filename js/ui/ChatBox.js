@@ -34,6 +34,8 @@ export class ChatBox {
     // v0.13: มือถือ — ข้อความใหม่แสดงชัด แล้วจางลงหลัง 6 วินาที (ไม่บังจอ)
     this.fadeTimer = 0;
     new MutationObserver(() => {
+      // v0.17.1: กล่องที่ขยายอยู่ + อ่านอยู่ล่างสุด → เลื่อนตามข้อความใหม่ (ถ้าเลื่อนขึ้นไปอ่านย้อนหลังอยู่จะไม่กระโดด)
+      if (this.expanded && this.box.scrollHeight - this.box.scrollTop - this.box.clientHeight < 60) this.box.scrollTop = this.box.scrollHeight;
       this.wrap.classList.add('fresh');
       clearTimeout(this.fadeTimer);
       this.fadeTimer = setTimeout(() => this.wrap.classList.remove('fresh'), 6000);

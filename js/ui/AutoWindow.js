@@ -1,5 +1,5 @@
 // หน้าต่างตีมอนออโต้ (v0.14 · ปุ่ม H) + ปุ่ม AUTO ลอยบนจอ (กดเริ่ม/หยุดได้ทันที)
-// ตั้งค่า: ยาเพิ่ม HP/SP อัตโนมัติ · ระยะการตี · ติ๊กมอนที่จะตี (มีรูปมอน) · ตีตัวที่โจมตีเราก่อน · เก็บของ · สกิลที่ใช้
+// ตั้งค่า: ยาเพิ่ม HP/SP อัตโนมัติ · ระยะการตี · ติ๊กมอนที่จะตี (มีรูปมอน) · ตีตัวที่โจมตีเราก่อน · สกิลที่ใช้ (v0.17.1: เอาเก็บของอัตโนมัติออก)
 import { MONSTERS } from '../data/monsters.js';
 import { ITEMS } from '../data/items.js';
 import { SKILLS, skillSp } from '../data/skills.js';
@@ -51,7 +51,6 @@ export class AutoWindow {
       </section>
       <section class="aw-sec"><h3>การต่อสู้</h3>
         <label class="aw-chk"><input type="checkbox" data-k="retaliate"><span>ตีมอนสเตอร์ที่โจมตีเราก่อน<small>สู้กลับทันที แม้ไม่ได้ติ๊กมอนตัวนั้นไว้ · ไม่ติ๊ก = สนใจเฉพาะมอนที่เลือก</small></span></label>
-        <label class="aw-chk"><input type="checkbox" data-k="loot"><span>เดินเก็บของที่ดรอป</span></label>
         <label class="aw-chk"><input type="checkbox" data-k="goHome"><span>ยาเลือดหมด / กระเป๋าเต็ม → ใช้ใบกลับเมืองแล้วหยุด<small class="aw-scroll"></small></span></label>
       </section>
       <section class="aw-sec"><div class="aw-h"><h3>มอนสเตอร์ที่จะตี</h3><span class="aw-allbtns"><button type="button" data-all="1">เลือกทั้งหมด</button><button type="button" data-all="0">ไม่เลือก</button></span></div>

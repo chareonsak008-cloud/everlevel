@@ -144,8 +144,8 @@ export class PostFX {
     this.matPx = new THREE.ShaderMaterial({
       ...common,
       defines: { LINEAR: this.linear ? 1 : 0 },
-      uniforms: { tCol: { value: null }, tDep: { value: null }, texel: { value: new THREE.Vector2() }, cn: { value: 0.5 }, cf: { value: 220 }, ink: { value: new THREE.Color('#3a2a4a') } },
-      fragmentShader: `uniform sampler2D tCol; uniform sampler2D tDep; uniform vec2 texel; uniform float cn; uniform float cf; uniform vec3 ink;
+      uniforms: { tCol: { value: null }, tDep: { value: null }, texel: { value: new THREE.Vector2() }, cn: { value: 0.5 }, cf: { value: 220 }, zo: { value: 0 }, ink: { value: new THREE.Color('#3a2a4a') } },
+      fragmentShader: `uniform sampler2D tCol; uniform sampler2D tDep; uniform vec2 texel; uniform float cn; uniform float cf; uniform float zo; uniform vec3 ink;
         varying vec2 vUv;
         float lz(float d) { float z = d * 2.0 - 1.0; return 2.0 * cn * cf / (cf + cn - z * (cf - cn)); }
         float dz(vec2 o) { float d = texture2D(tDep, vUv + o * texel).x; return d >= 0.99999 ? 1e4 : lz(d); }
@@ -164,11 +164,14 @@ export class PostFX {
           if (d0 < 0.99999) {
             float z0 = lz(d0);
             float zl = dz(vec2(-1.0, 0.0)), zr = dz(vec2(1.0, 0.0)), zu = dz(vec2(0.0, 1.0)), zd = dz(vec2(0.0, -1.0));
-            float th = max(0.22, z0 * 0.03);
+            // v0.17.1: เกณฑ์นับจากระยะเทียบกล้องเดิม (กล้องแบบ RO อยู่ไกลกว่า แต่ขนาดพิกเซลที่จุดมองเท่าเดิม)
+            float zq = max(z0 - zo, 4.0);
+            float th = max(0.22, zq * 0.03);
             // เส้นขอบนอก: เพื่อนบ้านอยู่ไกลกว่ามาก → พิกเซลนี้คือขอบของวัตถุด้านหน้า
             float outer = step(th, max(max(zl, zr), max(zu, zd)) - z0);
             // รอยพับ/มุมตึก: ความลึกหักมุมกะทันหัน
-            float crease = step(z0 * 0.018 + 0.05, abs(zl + zr - 2.0 * z0)) + step(z0 * 0.018 + 0.05, abs(zu + zd - 2.0 * z0));
+            float tc = zq * 0.018 + 0.05;
+            float crease = step(tc, abs(zl + zr - 2.0 * z0)) + step(tc, abs(zu + zd - 2.0 * z0));
             if (outer > 0.5) col = mix(col * vec3(0.42, 0.4, 0.5), ink, 0.25);
             else if (crease > 0.5) col *= 0.78;
           }
@@ -247,7 +250,7 @@ export class PostFX {
       camera.fov = fov; camera.aspect = asp; camera.updateProjectionMatrix();
       const U = this.matPx.uniforms;
       U.tCol.value = this.pxRT.texture; U.tDep.value = this.pxRT.depthTexture; U.texel.value.set(1 / L.w, 1 / L.h);
-      U.cn.value = camera.near; U.cf.value = camera.far;
+      U.cn.value = camera.near; U.cf.value = camera.far; U.zo.value = px.zo || 0;
       this.pass(this.matPx, this.pxOut);
       C.pxMap.value.set(L.sx, L.sy, (px.ox || 0) / L.w, (px.oy || 0) / L.h);
       C.tScene.value = this.pxOut.texture;
