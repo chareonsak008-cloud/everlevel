@@ -2422,13 +2422,30 @@ export class Game {
       }
       if (this.onWin.open) this.onWin.render();
       this.setNet(this.netStatus.dataset.s === 'error' ? 'error' : 'online');
-    });
+    }, { onSay: (m) => this.onNetSay(m), onShout: (m) => this.onNetShout(m) });
     if (!ok) this.hud.log('เชื่อมต่อห้องผู้เล่นไม่ได้ — ยังเล่นและเซฟออนไลน์ได้ แต่จะไม่เห็นผู้เล่นคนอื่น', 'sys');
     else this.hud.log('เชื่อมต่อออนไลน์แล้ว · ผู้เล่นในแผนที่เดียวกันจะเห็นกันและคุยแชตได้ (กด Enter เพื่อพิมพ์)', 'net');
     this.netTimer = 0;
   }
 
   syncRemote() { if (this.mode === 'online') this.remote.sync(this.online.peers()); }
+
+  // v0.16.1: แชต/โทรโข่งที่มาถึงโดยตรง (ไม่ต้องรอรายชื่อผู้เล่นซิงก์ก่อน — ข้อความไม่หายอีก)
+  onNetSay({ peer, name, text }) {
+    if (!this.remote.visible) return;
+    const who = String(name || 'นักผจญภัย').slice(0, 16), msg = String(text || '').slice(0, 120);
+    if (!msg) return;
+    this.hud.log(msg, 'pc', who);
+    if (this.settings.chatSound) this.sfx('chat');
+    this.remote.say(peer, msg);
+  }
+
+  onNetShout({ name, text }) {
+    const who = String(name || 'ผู้เล่น').slice(0, 16), msg = String(text || '').slice(0, 80);
+    if (!msg) return;
+    this.hud.log(`📢 ${msg}`, 'shout', who);
+    this.sfx('chat');
+  }
 
   // ส่งสถานะตัวเอง (ตำแหน่ง ท่าทาง หน้าตา ข้อความแชต) ให้ผู้เล่นคนอื่น ~8 ครั้งต่อวินาที เฉพาะช่องที่เปลี่ยน
   updateNet(dt) {
@@ -2446,6 +2463,7 @@ export class Game {
       x: Math.round(pl.x), y: Math.round(pl.y), a: +pl.angle.toFixed(2), mv: !!pl.moving,
       h: +(pl.hp / pl.maxHp).toFixed(2), dead: !!pl.dead, at: this.atkSeq, ak: this.atkKind,
       pt: pl.pets.active || '', ps: pl.pets.active ? pl.pets.owned[pl.pets.active] || 0 : 0,   // v0.13: สัตว์เลี้ยง
+      sp: Math.round(pl.speed),                                                                // v0.16.1: ความเร็วเดิน (ไว้บอกคนอื่นให้เดินต่อเองระหว่างแพ็กเก็ต)
     };
     const patch = {};
     for (const [k, v] of Object.entries(P)) if (L[k] !== v) { patch[k] = v; L[k] = v; }
@@ -2457,7 +2475,17 @@ export class Game {
     if (Object.keys(patch).length) this.online.presence(patch);
     // อัปเดตจำนวนผู้เล่นบนแถบสถานะทุก ~2 วินาที
     this.netRefresh -= 0.12;
-    if (this.netRefresh <= 0) { this.netRefresh = 2; const s = this.netStatus.dataset.s; if (s !== 'saving') this.setNet(this.online.connected() ? (s === 'error' ? 'error' : 'online') : 'connecting'); }
+    if (this.netRefresh <= 0) {
+      this.netRefresh = 2;
+      const s = this.netStatus.dataset.s, up = this.online.connected();
+      if (s !== 'saving') this.setNet(up ? (s === 'error' ? 'error' : 'online') : 'connecting');
+      // v0.16.1: หลุดนานเกิน 12 วินาทีบอกผู้เล่น (ระบบเชื่อมใหม่เอง) · กลับมาแล้วบอกอีกครั้ง
+      if (up) { if (this.netWarned) this.hud.log('เชื่อมต่อกับผู้เล่นอื่นกลับมาแล้ว', 'net'); this.netLostAt = 0; this.netWarned = false; }
+      else {
+        if (!this.netLostAt) this.netLostAt = this.time;
+        if (!this.netWarned && this.time - this.netLostAt > 12) { this.netWarned = true; this.hud.log('การเชื่อมต่อกับผู้เล่นอื่นหลุด — กำลังเชื่อมต่อใหม่อัตโนมัติ…', 'sys'); }
+      }
+    }
   }
 
   sendChat(text) {

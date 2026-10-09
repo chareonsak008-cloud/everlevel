@@ -29,14 +29,18 @@ class RemotePlayer {
     this.angle = 0; this.moving = false; this.speedFactor = 0; this.dead = false; this.lift = 0; this.cast = null;
     this.hp = 100; this.maxHp = 100;
     this.bubble = null;
+    // v0.16.1: ผู้ส่งบอกตำแหน่ง + ความเร็ว + เวลา (s) เป็นระยะ — ระหว่างแพ็กเก็ตเดินต่อเองด้วยความเร็วนั้น แล้วค่อย ๆ ปรับเข้าหาตำแหน่งจริง
+    this.clock = 0; this.anchor = null; this.off = undefined; this.timed = false; this.movingFor = 0;
     this.apply(peer.presence, true);
   }
 
   apply(P, first = false) {
     const map = MAPS[P.m];
-    const x = clampNum(P.x, 0, map ? map.width * 16 : 9999), y = clampNum(P.y, 0, map ? map.height * 16 : 9999);
+    this.maxX = map ? map.width * 16 : 9999; this.maxY = map ? map.height * 16 : 9999;
+    const x = clampNum(P.x, 0, this.maxX), y = clampNum(P.y, 0, this.maxY);
     if (first) { this.x = x; this.y = y; }
     this.tx = x; this.ty = y;
+    if (Number.isFinite(P.s)) this.pushSample(P.s, x, y, P.vx, P.vy, P.tp, P.e); else this.timed = false;
     this.angle = clampNum(P.a, -10, 10, 0);
     this.mv = !!P.mv;
     this.dead = !!P.dead;
@@ -68,13 +72,43 @@ class RemotePlayer {
     return out;
   }
 
+  // จุดอ้างอิงล่าสุดจากผู้ส่ง (s = เวลาของผู้ส่ง มิลลิวินาที) — เวลาเครื่องเราเทียบด้วย offset ที่เล็กที่สุดที่เคยเห็น (= แพ็กเก็ตที่มาเร็วสุด)
+  pushSample(s, x, y, vx, vy, tp, e) {
+    this.timed = true;
+    const A = this.anchor;
+    if (A && s <= A.s) return;                              // ซ้ำ / มาช้ากว่าที่เคยได้
+    if (Number.isFinite(tp)) { if (this.tp !== undefined && tp !== this.tp) { this.x = x; this.y = y; } this.tp = tp; }   // ผู้ส่งวาร์ปในแมพ: ย้ายตามทันที
+    const off = this.clock * 1000 - s;
+    this.off = this.off === undefined ? off : Math.min(off, this.off + 1);
+    this.anchor = { s, x, y, vx: Number.isFinite(vx) ? vx : 0, vy: Number.isFinite(vy) ? vy : 0, cap: Math.min(3500, Math.max(1500, (Number.isFinite(e) ? e : 1500) + 500)) };   // เดินต่อได้นานสุดเท่าที่ผู้ส่งสัญญา (+0.5 วินาที) · วิ่งเลยสูงสุด ~280 px
+  }
+
   update(dt) {
-    const dx = this.tx - this.x, dy = this.ty - this.y, d = Math.hypot(dx, dy);
-    if (d > 160) { this.x = this.tx; this.y = this.ty; }                   // วาร์ป/เกิดใหม่: กระโดดไปเลย
-    else { const k = Math.min(1, dt * 9); this.x += dx * k; this.y += dy * k; }
-    this.moving = this.mv || d > 2;
-    this.speedFactor = this.moving ? Math.min(1, 0.4 + d / 20) : 0;
+    this.clock += dt;
     if (this.bubble) { this.bubble.t -= dt; if (this.bubble.t <= 0) this.bubble = null; }
+    const A = this.anchor;
+    if (!this.timed || !A) {                                // ผู้ส่งแบบเก่า (ไม่มีเวลา): เดินตามเป้าแบบเดิม
+      const dx = this.tx - this.x, dy = this.ty - this.y, d = Math.hypot(dx, dy);
+      if (d > 160) { this.x = this.tx; this.y = this.ty; }
+      else { const k = Math.min(1, dt * 9); this.x += dx * k; this.y += dy * k; }
+      this.moving = this.mv || d > 2;
+      this.speedFactor = this.moving ? Math.min(1, 0.4 + d / 20) : 0;
+      return;
+    }
+    // ตำแหน่งที่ควรเป็น = จุดอ้างอิง + ความเร็ว × เวลาที่ผ่านไป (เดินต่อได้ไม่เกินที่ผู้ส่งสัญญา กันวิ่งเลยถ้าแพ็กเก็ต "หยุด" หาย)
+    const ext = Math.min(Math.max(0, this.clock * 1000 - this.off - A.s), A.cap) / 1000;
+    const px = Math.min(this.maxX, Math.max(0, A.x + A.vx * ext)), py = Math.min(this.maxY, Math.max(0, A.y + A.vy * ext));   // ไม่เดินต่อออกนอกแผนที่
+    const ox = this.x, oy = this.y;
+    const ex = px - ox, ey = py - oy, d = Math.hypot(ex, ey);
+    if (d > 400) { this.x = px; this.y = py; }              // ห่างผิดปกติ: กระโดดไปเลย
+    else if (d > 0) {                                       // ค่อย ๆ ปรับเข้าหา (จำกัดความเร็วไม่เกิน 300 px/วินาที) ไม่กระตุกเวลาแพ็กเก็ตใหม่แก้ตำแหน่ง
+      const st = Math.min(d * (1 - Math.exp(-dt / 0.18)), 300 * dt);
+      this.x += ex / d * st; this.y += ey / d * st;
+    }
+    const sp = dt > 0 ? Math.hypot(this.x - ox, this.y - oy) / dt : 0;
+    this.movingFor = sp > 5 ? 0.15 : this.movingFor - dt;
+    this.moving = this.movingFor > 0;
+    this.speedFactor = this.moving ? Math.min(1, 0.4 + sp / 120) : 0;
   }
 }
 
@@ -112,6 +146,9 @@ export class RemotePlayers {
     for (const [peer, r] of [...this.list]) if (!seen.has(peer)) { g.gfx.removeActor(r); this.list.delete(peer); if (this.visible) g.hud.log(`${r.name} ออกจากแผนที่`, 'net'); }
     if (g.pets) g.pets.syncRemote([...this.list.values()]);
   }
+
+  // แชตที่มาถึงโดยตรง (v0.16.1): แสดงบอลลูนเหนือหัวถ้าเห็นตัวผู้พูดอยู่
+  say(peer, text) { const r = this.list.get(peer); if (r) r.bubble = { text: String(text).slice(0, 120), t: 5 }; }
 
   clear() { for (const r of this.list.values()) this.game.gfx.removeActor(r); this.list.clear(); if (this.game.pets) this.game.pets.clearRemote(); }
 
