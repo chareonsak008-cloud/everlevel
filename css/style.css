@@ -1716,3 +1716,6 @@ body.touch .dmg { filter: drop-shadow(0 2px 0 rgba(10, 4, 16, 0.85)); }
   body.touch .qtrack { left: 136px; right: auto; top: auto; bottom: calc(104px + env(safe-area-inset-bottom, 0px)); width: 150px; }
   body.touch .qt-list { max-height: 90px; }
 }
+
+/* v0.17: โหมดภาพพิกเซล — ขยายไอคอน/รูปย่อแบบคมไม่เบลอ */
+body.pxmode img[src^="data:"], body.pxmode .slot img { image-rendering: pixelated; }
