@@ -1,0 +1,43 @@
+{
+  "version": "0.20.0",
+  "mapChecks": [
+    {
+      "map": "ancient_ruins",
+      "reachableTiles": 4214,
+      "spawned": 39,
+      "portals": 2
+    },
+    {
+      "map": "haunted_forest",
+      "reachableTiles": 4759,
+      "spawned": 41,
+      "portals": 1
+    },
+    {
+      "map": "ember_caldera",
+      "reachableTiles": 4585,
+      "spawned": 37,
+      "portals": 2
+    }
+  ],
+  "normalMonsters": 11,
+  "newMVPs": 2,
+  "newEquipment": 53,
+  "newMaterials": 4,
+  "newCards": 13,
+  "checks": [
+    "All drop/item/model/card/reward references; seven card and weapon grades",
+    "Portal round trips, NPC access, all spawn zones connected; AI spawn and movement",
+    "Thirty monster models: movement, attack, boss windup, hurt, death, respawn",
+    "Four jobs use new equipment; refine/socket keys and legacy saves still resolve; five-MVP album",
+    "Legacy weapon rates ×2.5; 200,000 deterministic loot rolls verify white–red drops",
+    "110 JavaScript syntax checks and local imports/resources",
+    "Actual Game kill/EXP99/loot/collection/MVP reward chain with graphics/UI stubbed",
+    "30 exact-model monster portraits, 30 card icons, seven frames"
+  ],
+  "dropSimulation": {
+    "kills": 200000,
+    "redWeaponDrops": 990
+  },
+  "verificationLimit": "No browser/WebGL, device FPS or live Supabase multiplayer verification."
+}

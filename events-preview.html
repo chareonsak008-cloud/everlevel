@@ -3,13 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Everlevel</title>
+<title>Everlevel · ทดลองเนื้อหา Lv.60–99</title>
 <meta name="description" content="Everlevel — เกม MMORPG แฟนตาซีบนเบราว์เซอร์ เล่นกับเพื่อนได้">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Cinzel:wght@600;700&family=Lilita+One&display=swap">
 <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/events.css">
+<style>
+#contentPreview{position:fixed;z-index:25;left:50%;top:14px;transform:translateX(-50%);width:min(355px,calc(100vw - 24px));font:13px Kanit,sans-serif;color:#eee6d6;background:#201e2deb;border:1px solid #bea87588;border-radius:14px;padding:10px 12px;box-shadow:0 6px 24px #0005}
+#contentPreview summary{font-weight:600;color:#ffdc9e;cursor:pointer}#contentPreview p{margin:7px 0}#contentPreview .jobs,#contentPreview .zones,#contentPreview .actions{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}#contentPreview button{font:inherit;padding:6px 9px;background:#383647;color:#eee6d6;border:1px solid #6a625d;border-radius:8px;cursor:pointer}#contentPreview button.active{border-color:#ffd580;color:#ffdc9e}#contentPreview a{color:#9ddbcf;display:block;margin-top:7px}#contentPreview .state,#contentPreview .note{font-size:11px;color:#c0b9c7}#contentPreview details{max-height:45vh;overflow:auto}
+@media(max-width:700px){#contentPreview{top:auto;bottom:calc(100px + env(safe-area-inset-bottom));left:12px;transform:none;width:245px;font-size:12px}#contentPreview details{max-height:45vh}}
+</style><link rel="stylesheet" href="css/events.css">
 </head>
 <body>
 <!--GAME-START-->
@@ -247,7 +251,10 @@
   </div>
 </div>
 <script src="vendor/three.min.js"></script>
+<script>window.__contentPreview=true;window.__noServer=true;window.__autostart={mode:'offline',save:{player:{name:'นักสำรวจทดลอง',job:'swordsman',baseLevel:70,jobLevel:60,map:'ancient_ruins',x:88,y:472}},create:null};</script>
 <script type="module" src="js/main.js"></script>
+<script type="module" src="js/ui/ContentPreview.js"></script>
 <!--GAME-END-->
+<script type="module" src="js/ui/EventsPreview.js"></script>
 </body>
 </html>
