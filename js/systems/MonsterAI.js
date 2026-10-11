@@ -73,6 +73,15 @@ export class MonsterManager {
         }
         continue;
       }
+      // Shared world boss remains in its arena. Server owns HP; no leash healing.
+      if (m.worldRun) {
+        m.moving=false;m.path=[];m.attackCd-=dt;
+        if(player&&!player.dead&&Math.hypot(player.x-m.x,player.y-m.y)<m.data.aggroRange){
+          m.target=player;m.face(player.x-m.x,player.y-m.y);
+          if(Math.hypot(player.x-m.x,player.y-m.y)<=m.data.attackRange&&m.attackCd<=0){m.attackCd=m.data.attackDelay;hooks.onAttack(m,player);}
+        } else m.target=null;
+        continue;
+      }
       // สถานะผิดปกติจากสกิล: แช่แข็ง / มึน → ขยับไม่ได้
       m.frozen = m.frozenUntil > time; m.stunned = m.stunUntil > time;
       if (m.frozen || m.stunned) { m.moving = false; m.path = []; continue; }
@@ -128,13 +137,13 @@ export class MonsterManager {
         }
 
         case 'return': {
-          m.hp = Math.min(m.maxHp, m.hp + m.maxHp * 0.25 * dt);
+          if (!m.worldRun) m.hp = Math.min(m.maxHp, m.hp + m.maxHp * 0.25 * dt);
           m.repath -= dt;
           if (m.repath <= 0) { m.repath = 1; m.path = lineClear(map, m, m.home) ? [] : this.pathTo(m, m.home.x, m.home.y); }
           const d = this.steer(m, m.home.x, m.home.y, 1.2, dt);
           if (d < 3 || m.stuck) {
             if (d >= 3) { m.x = m.home.x; m.y = m.home.y; }   // v0.16: ติดสิ่งกีดขวางระหว่างทางกลับ → กลับถึงบ้านทันที (ไม่ยืนฟื้นเลือดกลางทาง)
-            m.state = 'idle'; m.timer = 1 + Math.random() * 2; m.hp = m.maxHp; m.moving = false; m.stuck = false;
+            m.state = 'idle'; m.timer = 1 + Math.random() * 2; if (!m.worldRun) m.hp = m.maxHp; m.moving = false; m.stuck = false;
             // บอสกลับบ้าน = รีเซ็ตสถานะต่อสู้ (หายโกรธ · เรียกลูกน้องได้ใหม่)
             if (m.data.boss) { m.enraged = false; m.attackDelay = 0; m.summonDone = 0; }
           }

@@ -1,6 +1,7 @@
 // กล่องจดหมาย (v0.15)
 // · ของขวัญต้อนรับ: ทุกตัวละครได้ 1 ฉบับ (เลือกชุดแฟชั่น 1 เซ็ต + สัตว์เลี้ยง 1 ตัว + ของใช้เริ่มต้น) — ใช้ได้ทุกโหมด
 // · จดหมายจากแอดมิน (เซิร์ฟเวอร์ Supabase): ส่งถึงทุกคนหรือระบุชื่อตัวละคร · รับได้บัญชีละครั้งหรือตัวละครละครั้ง
+// · v0.18: จดหมายจากระบบเกม (รางวัลเช็กอินรายวัน) เก็บในเซฟตัวละคร player.mail.box — sys: true
 import { ITEMS } from '../data/items.js';
 import { PETS } from '../data/pets.js';
 import { MAX_ZENY } from '../data/shops.js';
@@ -25,18 +26,34 @@ export class Mailbox {
 
   key(m) { return `${m.id}:${m.per === 'char' ? this.g.player.cid : 'acct'}`; }
 
-  isClaimed(m) { return m.local ? !!this.g.player.mail.welcome : this.claimed.has(this.key(m)); }
+  isClaimed(m) {
+    if (m.sys) { const b = this.g.player.mail.box.find((x) => x.id === m.id); return !b || !!b.got; }
+    return m.local ? !!this.g.player.mail.welcome : this.claimed.has(this.key(m));
+  }
+
+  // v0.18: จดหมายจากระบบเกม → รูปแบบเดียวกับจดหมายอื่น
+  sysMails() {
+    const pl = this.g.player, cache = this.sysCache || (this.sysCache = new WeakMap());
+    return pl.mail.box.map((b) => {
+      let m = cache.get(b);
+      if (!m) { m = normMail({ ...b, local: true, per: 'char' }); m.sys = true; m.at = b.at; cache.set(b, m); }
+      return m;
+    });
+  }
 
   // รายการจดหมายของตัวละครนี้ (ใหม่สุดก่อน · ของขวัญต้อนรับอยู่บนสุดจนกว่าจะรับ)
   list() {
     const pl = this.g.player, now = Date.now(), name = pl.name.trim().toLowerCase();
     const out = [], welcome = this.welcome || (this.welcome = normMail(WELCOME_MAIL));
     if (!pl.mail.welcome) out.push(welcome);
+    const sys = this.sysMails();
+    for (const m of sys) if (!this.isClaimed(m)) out.push(m);
     for (const m of this.server) {
       if (m.to && m.to.trim().toLowerCase() !== name) continue;
       if (m.expires && m.expires < now && !this.isClaimed(m)) continue;
       out.push(m);
     }
+    for (const m of sys) if (this.isClaimed(m)) out.push(m);
     if (pl.mail.welcome) out.push(welcome);   // รับแล้ว: เก็บไว้ท้ายรายการ
     return out;
   }
@@ -99,7 +116,8 @@ export class Mailbox {
       if (err === 'claimed') { this.claimed.add(this.key(m)); this.changed(); return { ok: false, msg: 'รับของในจดหมายนี้ไปแล้ว (อาจรับจากตัวละครอื่นในบัญชี)' }; }
       if (err) return { ok: false, msg: 'รับของไม่สำเร็จ: ' + err };
       this.claimed.add(this.key(m));
-    } else pl.mail.welcome = true;
+    } else if (m.sys) { const b = pl.mail.box.find((x) => x.id === m.id); if (b) b.got = true; }
+    else pl.mail.welcome = true;
 
     // มอบของ
     const got = [];
@@ -120,8 +138,8 @@ export class Mailbox {
     g.hud.log(`📬 รับของจาก "${m.title}": ${got.join(' · ') || 'อ่านแล้ว'}`, 'lv');
     if (hasGift(m)) { g.sfx('levelUp', { gap: 0 }); g.gfx.floatText(pl, 'ได้รับของขวัญ!', 'loot r-epic', { h: 2.2, life: 1.8, rise: 0.7, drift: false }); }
     // ของขวัญต้อนรับ: ยังไม่มีชุด/สัตว์เลี้ยง → สวมให้และเรียกออกมาเลย
-    if (m.local && setIds && !Object.keys(pl.fashion.worn).length) g.wearFashionSet(setIds);
-    if (m.local && petId && !pl.pets.active) g.summonPet(petId);
+    if (m.local && !m.sys && setIds && !Object.keys(pl.fashion.worn).length) g.wearFashionSet(setIds);
+    if (m.local && !m.sys && petId && !pl.pets.active) g.summonPet(petId);
     g.refreshItemsUI(); g.hud.setPlayer(pl); g.status.render(); g.ward.render(); g.petWin.render();
     g.dirty = true;
     g.saveNow(false, true);   // บันทึกทันที กันรับซ้ำ

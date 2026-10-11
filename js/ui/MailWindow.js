@@ -87,7 +87,7 @@ export class MailWindow {
       b.className = 'ml-item' + (got ? ' got' : ' new') + (String(m.id) === String(this.sel) ? ' sel' : '');
       b.innerHTML = `<span class="ml-ico" aria-hidden="true">${hasGift(m) ? '🎁' : '✉️'}</span><span class="ml-txt"><b></b><small></small></span>${got ? '<i class="ml-tag">รับแล้ว</i>' : '<i class="ml-tag on">ใหม่</i>'}`;
       b.querySelector('b').textContent = m.title;
-      b.querySelector('small').textContent = [m.sender, m.local ? 'ของขวัญต้อนรับ' : fmtDate(m.at), m.expires && !got ? leftText(m.expires) : ''].filter(Boolean).join(' · ');
+      b.querySelector('small').textContent = [m.sender, m.local && !m.sys ? 'ของขวัญต้อนรับ' : fmtDate(m.at), m.expires && !got ? leftText(m.expires) : ''].filter(Boolean).join(' · ');
       b.addEventListener('click', () => { this.sel = m.id; this.showDetail = true; this.render(); if (!hasGift(m)) box.markRead(m.id); });
       ul.append(b);
     }
@@ -108,7 +108,7 @@ export class MailWindow {
       <div class="ml-foot"><p class="ml-msg" aria-live="polite"></p><div class="ml-acts"></div></div>`;
     d.querySelector('.ml-back').addEventListener('click', () => { this.showDetail = false; this.render(); });
     d.querySelector('.ml-title').textContent = m.title;
-    d.querySelector('.ml-meta').textContent = [`จาก ${m.sender}`, m.local ? '' : fmtDate(m.at), m.expires ? leftText(m.expires) : '', m.local || !hasGift(m) ? '' : m.per === 'char' ? 'รับได้ตัวละครละครั้ง' : 'รับได้บัญชีละครั้ง'].filter(Boolean).join(' · ');
+    d.querySelector('.ml-meta').textContent = [`จาก ${m.sender}`, m.local && !m.sys ? '' : fmtDate(m.at), m.expires ? leftText(m.expires) : '', m.local || !hasGift(m) ? '' : m.per === 'char' ? 'รับได้ตัวละครละครั้ง' : 'รับได้บัญชีละครั้ง'].filter(Boolean).join(' · ');
     d.querySelector('.ml-text').textContent = m.body;
 
     // ของแนบ

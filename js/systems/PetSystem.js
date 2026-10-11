@@ -6,7 +6,7 @@ import { ITEMS } from '../data/items.js';
 import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js';
 import { THREE } from '../render/three.js';
 
-const RANK = { common: 0, uncommon: 1, rare: 2, epic: 3, legend: 4 };
+const RANK = { common: 0, uncommon: 1, rare: 2, epic: 3, legend: 4, mythic: 5, celestial: 6 };
 export const PET_FILTERS = [
   ['all', 'เก็บทุกอย่าง'],
   ['skipCommon', 'ข้ามของธรรมดา'],

@@ -20,7 +20,7 @@ export class TitleScreen {
         <h1 class="tt-logo">Everlevel</h1>
         <p class="tt-sub">MMORPG แฟนตาซี — ผจญภัยไปกับเพื่อน ๆ</p>
         <div class="tt-panel" aria-live="polite"></div>
-        <p class="tt-foot">v${VERSION} · เสียงจะเริ่มเล่นเมื่อแตะหน้าจอครั้งแรก</p>
+        <p class="tt-foot">v${VERSION} · เสียงจะเริ่มเล่นเมื่อแตะหน้าจอครั้งแรก · <a href="equipment.html" target="_blank" rel="noopener">ลองอุปกรณ์ใหม่</a> · <a href="content.html" target="_blank" rel="noopener">ดูเนื้อหา Lv.60–99</a></p>
       </div>`;
     root.append(el);
     this.panel = el.querySelector('.tt-panel');

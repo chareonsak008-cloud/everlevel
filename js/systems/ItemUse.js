@@ -181,10 +181,10 @@ export function useConsumable(g, id) {
     if (!g.mobs) { g.hud.log('ใช้ในเมืองไม่ได้ ต้องออกไปที่ทุ่งหรือดันเจี้ยนก่อน', 'sys'); return; }
     let type;
     if (u.summon === 'mvp') {
-      const all = Object.keys(MONSTERS).filter((k) => MONSTERS[k].mvp);
+      const all = Object.keys(MONSTERS).filter((k) => MONSTERS[k].mvp && !MONSTERS[k].worldBoss);
       type = all[Math.floor(Math.random() * all.length)];
     } else {
-      const here = [...new Set((g.map.def.spawns || []).map((s) => s.mob))].filter((k) => MONSTERS[k] && !MONSTERS[k].mvp);
+      const here = [...new Set((g.map.def.spawns || []).map((s) => s.mob))].filter((k) => MONSTERS[k] && !MONSTERS[k].mvp && !MONSTERS[k].worldBoss);
       if (!here.length) { g.hud.log('แผนที่นี้เรียกมอนสเตอร์ไม่ได้', 'sys'); return; }
       type = here[Math.floor(Math.random() * here.length)];
     }

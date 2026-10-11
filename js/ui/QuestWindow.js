@@ -2,7 +2,7 @@
 import { QUESTS, QUEST_KIND } from '../data/quests.js';
 import { npcWhere, rewardText } from '../systems/Quests.js';
 
-const TABS = [['active', 'กำลังทำ'], ['available', 'รับได้'], ['daily', 'รายวัน'], ['done', 'สำเร็จแล้ว']];
+const TABS = [['active', 'กำลังทำ'], ['available', 'รับได้'], ['daily', 'รายวัน'], ['weekly', 'รายสัปดาห์'], ['done', 'สำเร็จแล้ว']];
 
 export class QuestWindow {
   constructor(root, player, log, actions) {
@@ -38,9 +38,10 @@ export class QuestWindow {
 
   ids(tab) {
     const L = this.log, all = Object.keys(QUESTS);
-    const order = (a, b) => ['main', 'side', 'daily'].indexOf(QUESTS[a].kind) - ['main', 'side', 'daily'].indexOf(QUESTS[b].kind);
+    const order = (a, b) => ['main', 'side', 'daily', 'weekly'].indexOf(QUESTS[a].kind) - ['main', 'side', 'daily', 'weekly'].indexOf(QUESTS[b].kind);
     if (tab === 'active') return L.activeIds().sort((a, b) => (L.status(b) === 'ready') - (L.status(a) === 'ready') || order(a, b));
     if (tab === 'available') return all.filter((id) => QUESTS[id].kind !== 'daily' && L.status(id) === 'available').sort(order);
+    if (tab === 'weekly') return all.filter((id) => QUESTS[id].kind === 'weekly');
     if (tab === 'daily') return all.filter((id) => QUESTS[id].kind === 'daily');
     return all.filter((id) => QUESTS[id].kind !== 'daily' && L.status(id) === 'done');
   }
@@ -54,7 +55,7 @@ export class QuestWindow {
     const el = document.createElement('article');
     el.className = `q-card k-${q.kind} s-${st}`;
     el.style.setProperty('--kc', K.color);
-    const where = st === 'ready' ? `ส่งเควสที่ ${npcWhere(q.turnIn)}` : st === 'active' ? (q.turnIn !== q.giver ? `ส่งที่ ${npcWhere(q.turnIn)}` : `ส่งที่ ${npcWhere(q.turnIn)}`) : st === 'locked' ? L.lockReason(id) : st === 'done' ? (q.kind === 'daily' ? 'ทำแล้ววันนี้ · กลับมาใหม่พรุ่งนี้' : 'สำเร็จแล้ว') : `รับได้ที่ ${npcWhere(q.giver)}`;
+    const where = st === 'ready' ? `ส่งเควสที่ ${npcWhere(q.turnIn)}` : st === 'active' ? (q.turnIn !== q.giver ? `ส่งที่ ${npcWhere(q.turnIn)}` : `ส่งที่ ${npcWhere(q.turnIn)}`) : st === 'locked' ? L.lockReason(id) : st === 'done' ? (q.kind === 'weekly' ? 'ทำแล้วสัปดาห์นี้ · รีเซ็ตจันทร์ 00:00 น. เวลาไทย' : q.kind === 'daily' ? 'ทำแล้ววันนี้ · กลับมาใหม่พรุ่งนี้' : 'สำเร็จแล้ว') : `รับได้ที่ ${npcWhere(q.giver)}`;
     el.innerHTML = `
       <header><span class="q-kind">${K.name}</span><b></b>${st === 'ready' ? '<span class="q-ready">ส่งได้!</span>' : st === 'done' ? '<span class="q-done">✔</span>' : ''}</header>
       <p class="q-where">${where}</p>

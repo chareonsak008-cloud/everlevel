@@ -3,6 +3,7 @@
 // v0.12: ถ้าตั้งค่าเซิร์ฟเวอร์ Supabase ไว้ (js/net/server-config.js) → สมัคร/เข้าสู่ระบบด้วยอีเมล + รหัสผ่าน เล่นบนเบราว์เซอร์ไหนก็ได้
 // v0.13: โหลดไฟล์ตั้งค่าแบบไม่บังคับ — ถ้าไม่มีไฟล์นี้ เกมยังเปิดได้ (โหมดออฟไลน์/บัญชี Claude)
 async function serverConfig() {
+  if(window.__contentPreview)return {};
   try { return await import('./net/server-config.js'); } catch (e) { return {}; }
 }
 
@@ -56,8 +57,9 @@ async function createOnline({ Online }) {
 if (!window.THREE) {
   fatal('โหลดกราฟิก 3 มิติ (Three.js) ไม่สำเร็จ — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้า');
 } else {
-  Promise.all([import('./core/Game.js'), import('./net/Online.js'), import('./audio/AudioEngine.js'), import('./ui/TitleScreen.js'), import('./core/Save.js')])
-    .then(async ([{ Game }, OnlineMod, { AudioEngine }, { TitleScreen }, { SaveManager }]) => {
+  Promise.all([import('./core/Game.js'), import('./net/Online.js'), import('./audio/AudioEngine.js'), import('./ui/TitleScreen.js'), import('./core/Save.js'), import('./render/CardPortraits.js'), import('./render/EquipmentPortraits.js')])
+    .then(async ([{ Game }, OnlineMod, { AudioEngine }, { TitleScreen }, { SaveManager }, Portraits, Equipment]) => {
+      await Promise.all([Portraits.preloadMonsterPortraits(), Equipment.preloadEquipmentPortraits()]);
       const online = await createOnline(OnlineMod);
       const audio = new AudioEngine();
       const game = new Game(root, { online, audio });

@@ -1,5 +1,5 @@
 // การตั้งค่าเกม (v0.11) — เก็บในเครื่องนี้ (แต่ละอุปกรณ์ตั้งค่าแยกกัน)
-const KEY = 'asteria.settings';
+const KEY = typeof window !== 'undefined' && window.__contentPreview ? 'everlevel.content-preview.settings.v020' : 'asteria.settings';
 
 export const DEFAULT_SETTINGS = {
   quality: 'auto',      // auto | 0 สูงสุด | 1 สูง | 2 กลาง | 3 ประหยัด
