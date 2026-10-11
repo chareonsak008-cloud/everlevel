@@ -68,3 +68,12 @@ export const WARP_ROUTES = {
     { label: 'Beginner Field · ทางเข้าตะวันตก', hint: 'ข้างกองไฟของลีน่า', map: 'beginner_field', arrive: { x: 5.5, y: 27.5, angle: Math.PI / 2 }, cost: 20 },
   ],
 };
+
+// v0.20: high-level waypoints, visible from town and both new camps.
+const ancientRoute={label:'Ancient Ruins · ค่ายนักสำรวจ',hint:'Lv.60–75',map:'ancient_ruins',arrive:{x:5.5,y:29.5,angle:Math.PI/2},cost:2200};
+const hauntedRoute={label:'Haunted Forest · ค่ายจันทร์',hint:'Lv.75–90 / เขตลึก 90–99',map:'haunted_forest',arrive:{x:5.5,y:31.5,angle:Math.PI/2},cost:3200};
+WARP_ROUTES.town.push(ancientRoute,hauntedRoute);
+WARP_ROUTES.ember.push(ancientRoute,hauntedRoute);
+WARP_ROUTES.ancient=[WARP_ROUTES.ember[0],WARP_ROUTES.town.find(r=>r.map==='ember_caldera'),hauntedRoute];
+WARP_ROUTES.haunted=[WARP_ROUTES.ember[0],ancientRoute];
+SHOPS.endgame={...SHOPS.ember,name:'เสบียงดินแดนระดับสูง'};

@@ -95,7 +95,7 @@ export const EMBER_CALDERA = {
       'แมกม่าสไลม์ใจเย็น แต่เอมเบอร์อิมป์กับซาลาแมนเดอร์จะพุ่งเข้าหาทันที',
       'ออบซิเดียนโกเลมทางใต้แข็งแกร่งที่สุดในภูเขาไฟนี้ อย่าประมาท',
       'อิกนารอกหลับอยู่ในปากปล่องทางตะวันออก เมื่อเห็นวงสีส้มบนพื้น นั่นคืออุกกาบาตเพลิง! หลบให้ทัน',
-      'เลเวลสูงสุดของนักผจญภัยคือ 99 ทั้ง Base และ Job — ที่นี่แหละที่จะพาเจ้าไปถึง',
+      'เลเวลสูงสุดของนักผจญภัยคือ 99 ทั้ง Base และ Job — ไปซากโบราณทางตะวันออก แล้วต่อไปป่าวิญญาณเพื่อเก็บจนถึง 99',
     ] },
     { id: 'roza', name: 'โรซ่า', title: 'ร้านเสบียงภูเขาไฟ', x: 11, y: 33, dir: 'down', look: ROZA,
       service: { type: 'shop', shop: 'ember' },
@@ -117,3 +117,7 @@ export const EMBER_CALDERA = {
 
   restSpots: [{ x: 8.5, y: 28.5, r: 3 }],
 };
+
+// v0.20: clear the eastern exit and connect the high-level route.
+EMBER_CALDERA.objects = EMBER_CALDERA.objects.filter(o => !(o.x >= 78 && o.y >= 39 && o.y <= 43));
+EMBER_CALDERA.portals.push({ x:82,y:40,w:2,h:3,to:'ancient_ruins',arrive:{x:5.5,y:29.5,angle:Math.PI/2},label:'Ancient Ruins · Lv.60–75' });

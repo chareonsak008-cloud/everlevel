@@ -2,6 +2,7 @@
 // โมเดลนี้ใช้ถ่ายเป็นสไปรต์พิกเซล (render/PixelSprites.js) และใช้แสดงแบบ 3 มิติได้ด้วยเมื่อปิดโหมดพิกเซล
 // โครงกระดูกเข้ากันได้กับชุดแฟชั่นเดิม: root › body › torso (สะโพก) › head / arms[0..1] · body › legs[0..1]
 //   arms/legs = จุดหมุนไหล่/สะโพก (ยืดแกน y ให้ชิ้นแฟชั่นเดิมไปอยู่ตำแหน่งข้อมือ/แข้งใหม่พอดี) · hands = จุดถืออาวุธ (ไม่ยืด)
+import { mountEquipment } from './EquipmentModels.js';
 import { THREE } from './three.js';
 import { blobShadowTexture, shadeHex } from './Textures.js';
 import { toon, bake, addOutline, faceMaterial } from './Toon.js';
@@ -64,6 +65,8 @@ export class CharacterView {
   constructor(look = {}) {
     const L = { hair: '#5e3f27', skin: '#f6d6b8', eye: '#3a2440', tunic: '#4a7ac8', pants: '#4b3b2f', boot: '#2e2420', belt: '#7a5230', ...look };
     this.L = L;
+    const equipment = L.equipment || {};
+    if (equipment.head) L.hideJobHat = true;
     this.root = new THREE.Group();
     this.body = new THREE.Group();          // ส่วนที่เด้งตอนเดิน
     this.root.add(this.body);
@@ -343,7 +346,7 @@ export class CharacterView {
     }
 
     // ผ้าคลุมหลังยาว (ปลิวตามการเดิน) — อัศวินมีผ้าคลุมแดงเป็นค่าเริ่มต้น
-    const capeColor = L.cape !== undefined ? L.cape : gear === 'swordsman' ? '#8a2630' : null;
+    const capeColor = equipment.garment ? null : L.cape !== undefined ? L.cape : gear === 'swordsman' ? '#8a2630' : null;
     if (capeColor) {
       this.cape = new THREE.Group(); this.cape.position.set(0, 0.38, -0.06); T.add(this.cape);
       const cm = toon(capeColor, { side: THREE.DoubleSide });
@@ -355,7 +358,7 @@ export class CharacterView {
     }
 
     /* ---------- อาวุธ (มือขวา = hands[0]) ---------- */
-    if (L.weapon === 'knife') {
+    if (!equipment.weapon && L.weapon === 'knife') {
       const h = inHand(0);
       const st = toon('#e4e8ee', { emissive: '#1a1e24' }); st.userData.pxMetal = true;
       part(new THREE.BoxGeometry(0.022, 0.065, 0.27), st, h, 0, 0, 0.17);
@@ -364,7 +367,7 @@ export class CharacterView {
       const grip = part(cyl(0.019, 0.019, 0.1, 8), toon('#5e3f27'), h, 0, 0, -0.03); grip.rotation.x = Math.PI / 2;
       bake(h);
     }
-    if (L.weapon === 'sword') {
+    if (!equipment.weapon && L.weapon === 'sword') {
       // ดาบยาวสองคม การ์ดทอง
       const h = inHand(0, 0, 0, 0, 0.55, 0, 0);
       const st = toon('#e6eaf2', { emissive: '#1a2030' }); st.userData.pxMetal = true;
@@ -378,7 +381,7 @@ export class CharacterView {
       part(sph(0.032, 10, 8), gold, h, 0, 0, -0.095);
       bake(h);
     }
-    if (L.weapon === 'staff') {
+    if (!equipment.weapon && L.weapon === 'staff') {
       const s = inHand(0, -0.015, 0.0, 0.02, -0.05, 0, 0.25);
       part(cyl(0.019, 0.023, 1.4, 7), toon('#7a5232'), s, 0, 0.36, 0);
       part(new THREE.TorusGeometry(0.065, 0.015, 6, 14), gold, s, 0, 1.08, 0);
@@ -387,7 +390,7 @@ export class CharacterView {
       for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2; const pr = part(new THREE.ConeGeometry(0.014, 0.12, 4), gold, s, Math.cos(a) * 0.05, 1.12, Math.sin(a) * 0.05); pr.rotation.set(Math.sin(a) * 0.4, 0, -Math.cos(a) * 0.4); }
       bake(s);
     }
-    if (L.weapon === 'mace') {
+    if (!equipment.weapon && L.weapon === 'mace') {
       const h = inHand(0, 0, 0, 0, 0.55, 0, 0);
       const grip = part(cyl(0.02, 0.022, 0.44, 8), toon('#5e3f27'), h, 0, 0, 0.14); grip.rotation.x = Math.PI / 2;
       part(sph(0.078, 12, 10), gold, h, 0, 0, 0.4);
@@ -395,7 +398,7 @@ export class CharacterView {
       part(sph(0.028, 8, 6), gold, h, 0, 0, -0.09);
       bake(h);
     }
-    if (L.weapon === 'bow') {
+    if (!equipment.weapon && L.weapon === 'bow') {
       const r = 0.42, half = 1.05;
       const bw = inHand(1, 0.02, 0.0, 0.04, 0, -Math.PI / 2, 0);
       const arc = part(new THREE.TorusGeometry(r, 0.021, 6, 22, half * 2), toon(L.bowColor || '#9b6b3e'), bw, -r, 0, 0); arc.rotation.z = -half;
@@ -408,7 +411,7 @@ export class CharacterView {
     }
 
     /* ---------- อุปกรณ์ที่มองเห็นได้ ---------- */
-    if (L.shield) {
+    if (!equipment.shield && L.shield) {
       const sh = new THREE.Group(); sh.position.set(0.07, -0.25, 0.03); sh.rotation.set(0, Math.PI / 2 - 0.25, 0); armL.add(sh);
       const disc = part(cyl(0.18, 0.18, 0.035, 22), toon(L.shield), sh); disc.rotation.x = Math.PI / 2;
       part(new THREE.TorusGeometry(0.18, 0.018, 6, 22), steel, sh);
@@ -416,12 +419,12 @@ export class CharacterView {
       for (const a of [0, Math.PI / 2]) { const b = part(new THREE.BoxGeometry(0.34, 0.03, 0.01), toon('#6a4428'), sh, 0, 0, 0.02); b.rotation.z = a; }
       bake(sh);
     }
-    if (L.headgear === 'bandana') {
+    if (!equipment.head && L.headgear === 'bandana') {
       const c = toon(L.headColor || '#d8433a');
       const band = part(new THREE.TorusGeometry(0.276, 0.04, 8, 28), c, H, 0, 0.3, -0.01); band.rotation.x = Math.PI / 2 - 0.25; band.scale.set(1, 1, 0.9);
       part(sph(0.05, 10, 8), c, H, 0, 0.27, -0.29);
       for (const sx of [-1, 1]) { const t = part(new THREE.BoxGeometry(0.06, 0.2, 0.025), c, H, sx * 0.05, 0.17, -0.31); t.rotation.set(0.4, 0, sx * 0.4); }
-    } else if (L.headgear === 'crown') {
+    } else if (!equipment.head && L.headgear === 'crown') {
       const wood = toon(L.headColor || '#6a4a2a'), leaf = toon('#7ae05a', { emissive: '#2a6a1a', emissiveIntensity: 0.6 });
       const ring = part(new THREE.TorusGeometry(0.275, 0.03, 6, 26), wood, H, 0, 0.33, -0.01); ring.rotation.x = Math.PI / 2 - 0.2;
       for (let i = 0; i < 5; i++) {
@@ -430,13 +433,14 @@ export class CharacterView {
         tw.rotation.set(Math.cos(a) * 0.35, 0, -Math.sin(a) * 0.35);
         const lf = part(sph(0.045, 8, 6), leaf, H, Math.sin(a) * 0.29, 0.5 + Math.cos(a) * 0.05, Math.cos(a) * 0.29 - 0.01); lf.scale.set(1, 0.6, 1.4);
       }
-    } else if (L.headgear === 'flower') {
+    } else if (!equipment.head && L.headgear === 'flower') {
       const fl = new THREE.Group(); fl.position.set(-0.22, 0.36, 0.08); fl.rotation.set(0.2, 0.6, 0.3); H.add(fl);
       for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; const pt = part(sph(0.045, 10, 8), toon(L.headColor || '#ff8fb8'), fl, Math.cos(a) * 0.05, Math.sin(a) * 0.05, 0); pt.scale.z = 0.45; }
       part(sph(0.03, 8, 6), toon('#ffd34d'), fl, 0, 0, 0.015);
       bake(fl);
     }
 
+    mountEquipment(this, equipment);
     bake(T);
     for (const g of this.armInner) bake(g);
     for (const g of this.legInner) bake(g);

@@ -7,7 +7,7 @@ import { Online, MAX_CHARS } from './Online.js';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
-const SLOW_KEYS = ['n', 'j', 'lv', 'm', 'u', 'lk', 'fw', 'pt', 'ps']; // ข้อมูลเต็มของตัวละคร (ส่งตอนเข้าห้อง/เปลี่ยน/ทุกครั้งที่เต้นหัวใจ)
+const SLOW_KEYS = ['n', 'j', 'lv', 'm', 'u', 'lk', 'fw', 'pt', 'ps', 'tt'];   // v0.18: tt = ฉายา (รหัสความสำเร็จ) // ข้อมูลเต็มของตัวละคร (ส่งตอนเข้าห้อง/เปลี่ยน/ทุกครั้งที่เต้นหัวใจ)
 const FAST_KEYS = ['x', 'y', 'a', 'mv', 'h', 'dead', 'at', 'ak'];     // ตำแหน่ง/ท่าทาง (ส่งเมื่อเปลี่ยน)
 const PEER_TTL = 20000;     // ไม่ได้ยินจากผู้เล่นเกินนี้ (มิลลิวินาที) = ถือว่าออกจากแมพไปแล้ว
 const WATCHDOG_MS = 7000;   // ช่องที่ไม่พร้อมเกินนี้ → สร้างใหม่
@@ -26,7 +26,7 @@ function pickState(p, full) {
   set('vx', clampN(p.vx, -400, 400)); set('vy', clampN(p.vy, -400, 400)); set('tp', clampN(p.tp, 0, 65535)); set('e', clampN(p.e, 0, 20000));   // ความเร็ว (px/วินาที) — ฝั่งรับเดินต่อเองระหว่างแพ็กเก็ต
   if (full) {
     set('n', cutS(p.n, 16)); set('j', cutS(p.j, 16)); set('lv', clampN(p.lv, 1, 999)); set('m', cutS(p.m, 40)); set('u', cutS(p.u, 8));
-    set('pt', cutS(p.pt, 24)); set('ps', clampN(p.ps, 0, 9));
+    set('pt', cutS(p.pt, 24)); set('ps', clampN(p.ps, 0, 9)); set('tt', cutS(p.tt, 24));
     if (p.lk && typeof p.lk === 'object' && !Array.isArray(p.lk) && JSON.stringify(p.lk).length < 1200) o.lk = p.lk;
     if (Array.isArray(p.fw)) o.fw = p.fw.filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40));
   }
@@ -238,6 +238,15 @@ export class SupabaseOnline extends Online {
     const { error } = await this.sb.from('mails').delete().eq('id', id);
     return error ? error.message || error.code : null;
   }
+
+  async eventRPC(name, args = {}) {
+    const {data,error} = await this.sb.rpc(name,args);
+    if(error) throw new Error(error.code==='42501'?'บัญชีนี้ไม่มีสิทธิ์ GM':`ระบบอีเวนต์: ${error.message} (ตรวจว่ารัน supabase/events.sql แล้ว)`);
+    return data;
+  }
+  eventSnapshot(){return this.eventRPC('event_snapshot',{p_slot:this.slot||1});}
+  setEventRate(kind,rate,minutes){return this.eventRPC('gm_event_rate',{p_kind:kind,p_rate:rate,p_minutes:minutes});}
+  hitWorldBoss(id,damage,slot){return this.eventRPC('world_boss_hit',{p_id:id,p_damage:damage,p_slot:slot});}
 
   async leaderboard(n = 20) {
     const { data, error } = await this.sb.rpc('leaderboard', { n });

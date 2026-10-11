@@ -1,3 +1,5 @@
+import { equipmentPortrait } from './EquipmentPortraits.js';
+import { drawMonsterCard, onPortraitReady } from './CardPortraits.js';
 // ไอคอนไอเทม วาดด้วย Canvas (ใช้ทั้งในหน้าต่าง UI และของที่ตกบนพื้น)
 import { ITEMS } from '../data/items.js';
 import { shadeHex } from './Textures.js';
@@ -178,19 +180,8 @@ const DRAW = {
     path(g, (g) => { g.moveTo(32, 30); g.quadraticCurveTo(36, 46, 30, 58); }, '#3a7a2a', 3.5);
     shine(g, 26, 18, 3, 2);
   },
-  // การ์ดมอนสเตอร์ (v0.10): กรอบทอง หน้าต่างภาพสีประจำมอนสเตอร์
-  card(g, c) {
-    const rr = (g, x, y, w, h, r) => { g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
-    g.save(); g.translate(32, 32); g.rotate(-0.12); g.translate(-32, -32);
-    path(g, (g) => rr(g, 13, 6, 38, 52, 5), grad(g, 0, 6, 0, 58, '#fff4d0', '#e0b860'));
-    path(g, (g) => rr(g, 17, 10, 30, 30, 3), grad(g, 0, 10, 0, 40, shadeHex(c, 0.35), shadeHex(c, -0.3)), 2);
-    // ภาพมอนสเตอร์ย่อ (ก้อนกลมมีตา)
-    g.fillStyle = shadeHex(c, 0.55); g.beginPath(); g.ellipse(32, 30, 9, 7.5, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = LINE; g.beginPath(); g.arc(29, 29, 1.6, 0, 7); g.arc(35, 29, 1.6, 0, 7); g.fill();
-    g.fillStyle = 'rgba(255,255,255,0.75)'; g.beginPath(); g.ellipse(27, 16, 5, 2, -0.4, 0, Math.PI * 2); g.fill();
-    g.fillStyle = 'rgba(90,60,20,0.55)'; for (const y of [45, 50]) g.fillRect(20, y, y === 45 ? 24 : 16, 2.2);
-    g.restore();
-  },
+  // v0.20: exact monster portrait, graded frame.
+  card(g,c,mob,rarity){drawMonsterCard(g,mob,rarity);},
   // ผลึกตีบวก (v0.10)
   crystal(g, c) {
     path(g, (g) => { g.moveTo(32, 6); g.lineTo(48, 22); g.lineTo(42, 54); g.lineTo(22, 54); g.lineTo(16, 22); g.closePath(); }, grad(g, 16, 6, 48, 54, shadeHex(c, 0.45), shadeHex(c, -0.3)));
@@ -234,7 +225,10 @@ export function iconCanvas(id, size = S) {
   const g = c.getContext('2d');
   if (size !== S) g.scale(size / S, size / S);
   const [kind, color, color2] = (it && it.icon) || ['blob', '#cccccc'];
-  (DRAW[kind] || DRAW.blob)(g, color, color2, it && it.tier);
+  const portrait=it?.type==='equip' && equipmentPortrait(id);
+  if(portrait){g.imageSmoothingEnabled=false;g.drawImage(portrait,0,0,S,S);}
+  else if(kind==='card') DRAW.card(g,color,it?.monster,it?.rarity);
+  else (DRAW[kind] || DRAW.blob)(g, color, color2, it && it.tier);
   cache.set(key, c);
   return c;
 }
@@ -246,3 +240,5 @@ export function iconURL(id, size = S) {
   if (!urlCache.has(key)) urlCache.set(key, iconCanvas(id, size).toDataURL());
   return urlCache.get(key);
 }
+
+onPortraitReady(() => { cache.clear(); urlCache.clear(); });

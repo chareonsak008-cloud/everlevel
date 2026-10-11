@@ -1,0 +1,16 @@
+import { borderTrees, scatterTrees } from './helpers.js';
+const W=80,H=64,lanes=[[0,30,80,4],[16,7,4,50],[38,8,4,49],[60,8,4,49],[16,10,49,4],[16,50,55,4]],camp=[2,25,11,15],arena=[64,40,12,18];
+const look={hair:'#a59ab4',skin:'#e5c4b4',eye:'#684a89',tunic:'#676581',pants:'#353746',boot:'#282635',hairStyle:'long',accessory:'wizard',hatColor:'#45405d',orbColor:'#c2a8ff',weapon:'staff'};
+export const HAUNTED_FOREST={
+ id:'haunted_forest',name:'Haunted Forest',subtitle:'ป่าวิญญาณ · Lv.75–90 · เขตลึก Lv.90–99 · MVP น็อคธาร์',levelRange:[75,90],eliteRange:[90,99],width:W,height:H,fill:'GRASS',spawn:{x:5.5,y:31.5},music:'haunted',
+ theme:{fog:'#3d405c',fogNear:25,fogFar:70,outer:'#191d2b',light:{hemi:.85,sky:'#b5b9eb',ground:'#35314b',sun:1.05,sunColor:'#c4d5fa',exposure:1.07},grass:{base:'#465c58',blobs:['#3c514d','#536662','#4c5b67'],blades:['#739387','#4a7169','#77989c'],litter:['#b8a7ce','#72d5bc','#667a88']},dirt:{base:'#746b82',blobs:['#82758e','#625e77','#898298'],pebble:'#bbb4c8',cracks:'#4c455a'},trees:'dead',tufts:true,flowers:['#bb9bdf','#b4e0d4','#7db8d1'],motes:'#c2b4ff',moteCount:85,moteSize:.06,fx:{gain:.75,glow:.8,flash:.75},mini:{grass:'#465c58',dirt:'#8b7b9d',water:'#586ca2',flowers:'#bf9fdf',bridge:'#a894b4'}},
+ regions:[...lanes.map(rect=>({tile:'DIRT',rect})),{tile:'DIRT',rect:camp},{tile:'DIRT',rect:arena},{tile:'WATER',rect:[25,19,7,7]},{tile:'WATER',rect:[46,38,8,6]},{tile:'FLOWERS',rect:[23,43,4,3]},{tile:'FLOWERS',rect:[65,20,4,3]}],
+ objects:[{kind:'tent',x:3,y:26,color:'#686582'},{kind:'campfire',x:8,y:36},{kind:'warpstone',x:4,y:37,color:'#c4a9ff'},{kind:'sign',x:12,y:28,text:'Haunted Forest · Lv.75–90'},{kind:'sign',x:59,y:28,text:'⚠ เขตคราส Lv.94–98 / MVP Lv.99'},
+ ...[[22,15],[34,7],[43,20],[58,42],[65,45],[73,45],[73,54]].map(([x,y],i)=>({kind:'pillar',x,y,seed:900+i})),{kind:'bones',x:26,y:37},{kind:'bones',x:68,y:9},{kind:'bigshroom',x:34,y:45,color:'#bb93df'},{kind:'bigshroom',x:47,y:16,color:'#89d2c4'},
+ ...scatterTrees(W,H,68,[...lanes,camp,arena,[24,18,9,9],[45,37,10,8],[25,36,5,5]],77431,3,.15),
+ ...borderTrees(W,H,2,[{x0:0,x1:2,y0:29,y1:35}],55319,.55)],
+ npcs:[{id:'selene',name:'เซลีน',title:'ผู้นำทางจันทร์',x:8,y:28,dir:'down',look,service:{type:'warp',routes:'haunted'},greet:'เขตนอกเหมาะกับเลเวล 75–90 ส่วนเขตตะวันออกมีมอนปกติ Lv.94–98 ให้ล่าจนถึง 99',lines:['น็อคธาร์อยู่สุสานตะวันออกเฉียงใต้ · วงโจมตีสีแดงต้องหลบ','อาวุธทองและแดงหาได้จากมอนในเขตลึกด้วย ไม่ต้องรอ MVP อย่างเดียว']},{id:'forest_supply',name:'โนอา',title:'เสบียงป่าวิญญาณ',x:7,y:34,dir:'down',look:{...look,tunic:'#937898',accessory:'clerk'},service:{type:'shop',shop:'endgame'},greet:'เติมยาให้พร้อมก่อนเข้าป่าลึกนะ'}],
+ portals:[{x:0,y:30,w:2,h:4,to:'ancient_ruins',arrive:{x:71.5,y:29.5,angle:-Math.PI/2},label:'Ancient Ruins · Lv.60–75'}],
+ spawns:[{mob:'haunt_spider',count:7,areas:[[5,43,15,14],[5,6,10,17]]},{mob:'hollow_wolf',count:7,areas:[[21,5,15,10],[21,45,15,13]]},{mob:'mourning_shade',count:7,areas:[[34,16,20,12]]},{mob:'cursed_stag',count:7,areas:[[42,45,16,14],[43,6,15,9]]},{mob:'eclipse_reaper',count:6,areas:[[64,15,11,13]]},{mob:'bloodmoon_knight',count:6,areas:[[63,34,12,5],[62,56,13,5]]},{mob:'nocthar',count:1,areas:[[67,47,3,3]]}],
+ restSpots:[{x:7.5,y:35.5,r:3}]
+};

@@ -1,4 +1,5 @@
 // ผู้เล่น: เดินด้วยคีย์บอร์ด / จอย / คลิกตามเส้นทาง + เลเวล EXP และค่าสถานะ
+import { equipmentDesign } from '../data/equipmentDesigns.js';
 import { Entity } from './Entity.js';
 import { PLAYER_SPEED, TILE } from '../config.js';
 import {
@@ -13,6 +14,9 @@ import { COSTUME_BY_ID } from '../data/costumes.js';
 import { CONSUMABLES } from '../data/consumables.js';
 import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js';
 import { normAuto } from '../systems/AutoHunt.js';
+import { normCol } from '../systems/Collection.js';
+import { ACH_BY_ID } from '../data/collection.js';
+import { normMail } from '../data/mail.js';
 
 // v0.15: รหัสสุ่มประจำตัวละคร (ตัวละครใหม่ = รหัสใหม่ · รับจดหมาย "ทุกตัวละคร" ได้ตัวละ 1 ครั้ง)
 export const newCid = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 16);
@@ -79,7 +83,9 @@ export class Player extends Entity {
     this.visited = new Set(['asteria_town']);   // v0.13: แผนที่ที่เคยไป (ใบวาร์ปเลือกแผนที่)
     this.auto = normAuto();           // v0.14: ตั้งค่าตีมอนออโต้ (แยกตามตัวละคร)
     this.cid = newCid();              // v0.15: รหัสตัวละคร (ใช้กันรับจดหมายซ้ำ)
-    this.mail = { welcome: false };   // v0.15: รับของขวัญต้อนรับแล้วหรือยัง
+    this.mail = { welcome: false, box: [] };   // v0.15: รับของขวัญต้อนรับแล้วหรือยัง · v0.18: box = จดหมายจากระบบเกม (เช็กอิน)
+    this.col = normCol();             // v0.18: สมุดมอนสเตอร์ · ความสำเร็จ/ฉายา · อัลบั้มการ์ด · เช็กอิน
+    this.colBonus = {};               // v0.18: โบนัสถาวรจากระบบสะสม (คำนวณโดย systems/Collection.js)
     this.cooldowns = {};              // id → เวลาเกมที่ใช้ได้อีกครั้ง
     this.cast = null;                 // กำลังร่าย { id, lv, target, t, total }
     this.pendingSkill = null;         // รอเดินเข้าระยะก่อนใช้สกิล
@@ -103,6 +109,10 @@ export class Player extends Entity {
 
   get job() { return (JOBS[this.jobId] || JOBS.novice).name; }
 
+  // v0.18: ฉายาที่ใส่อยู่ (แสดงเหนือหัว)
+  get honor() { const a = this.col && this.col.title && ACH_BY_ID[this.col.title]; return a ? a.title : ''; }
+  get honorTier() { const a = this.col && this.col.title && ACH_BY_ID[this.col.title]; return a ? a.tier : ''; }
+
   get jobDef() { return JOBS[this.jobId] || JOBS.novice; }
 
   // รวมโบนัสจากอุปกรณ์ที่สวมใส่
@@ -125,6 +135,7 @@ export class Player extends Entity {
       if (sk && sk.passive && lv > 0) add(sk.passive(lv, this));
     }
     for (const b of this.buffs) add(b.bonus);
+    add(this.colBonus);   // v0.18: ระบบสะสม
     for (const b of Object.values(this.itemBuffs || {})) {
       const u = CONSUMABLES[b.id] && CONSUMABLES[b.id].use.buff;
       if (u) for (const [k, v] of Object.entries(u)) if (!SPECIAL_BUFF_KEYS.has(k)) bonus[k] = (bonus[k] || 0) + v;
@@ -140,10 +151,11 @@ export class Player extends Entity {
 
   // หน้าตาตัวละครเปลี่ยนตามอาชีพ + อุปกรณ์ (อาวุธ โล่ หมวก ชุด ผ้าคลุม)
   computeLook() {
-    const L = { ...this.baseLook, ...(JOB_LOOK[this.jobId] || {}), weapon: 'none' };
+    const L = { ...this.baseLook, ...(JOB_LOOK[this.jobId] || {}), weapon: 'none', equipment: {} };
     for (const sl of EQUIP_SLOTS) {
       const it = this.equip[sl.id] && ITEMS[this.equip[sl.id]];
       if (it && it.visual) Object.assign(L, it.visual);
+      if (it?.type === 'equip') L.equipment[sl.id] = equipmentDesign(this.equip[sl.id], it);
     }
     return L;
   }
@@ -554,7 +566,8 @@ export class Player extends Entity {
       bagUps: this.bagUps,
       visited: [...this.visited],
       auto: JSON.parse(JSON.stringify(this.auto)),   // v0.14
-      cid: this.cid, mail: { welcome: !!this.mail.welcome },   // v0.15
+      cid: this.cid, mail: { welcome: !!this.mail.welcome, box: this.mail.box.map((m) => ({ ...m })) },   // v0.15 · v0.18 จดหมายระบบ
+      col: JSON.parse(JSON.stringify(this.col)),   // v0.18
     };
   }
 
@@ -576,7 +589,14 @@ export class Player extends Entity {
     this.visited = new Set(['asteria_town', ...(Array.isArray(p.visited) ? p.visited.filter((m) => typeof m === 'string' && m.length < 40).slice(0, 50) : [])]);
     this.auto = normAuto(p.auto);     // v0.14: ตั้งค่าออโต้
     this.cid = typeof p.cid === 'string' && /^[a-z0-9]{8,24}$/.test(p.cid) ? p.cid : newCid();   // v0.15
-    this.mail = { welcome: !!(p.mail && p.mail.welcome) };
+    this.mail = { welcome: !!(p.mail && p.mail.welcome), box: [] };
+    // v0.18: จดหมายจากระบบเกม (ตรวจของ/จำนวนเหมือนจดหมายเซิร์ฟเวอร์)
+    if (p.mail && Array.isArray(p.mail.box)) for (const m of p.mail.box.slice(0, 20)) {
+      if (!m || typeof m.id !== 'string' || !/^[a-z0-9-]{1,40}$/.test(m.id) || this.mail.box.some((x) => x.id === m.id)) continue;
+      const n = normMail({ ...m, local: true });
+      if (n) this.mail.box.push({ id: m.id, sender: n.sender, title: n.title, body: n.body, items: n.items, zeny: n.zeny, at: Number.isFinite(m.at) ? m.at : 0, got: !!m.got });
+    }
+    this.col = normCol(p.col);   // v0.18
     this.itemBuffs = {};
     if (p.itemBuffs && typeof p.itemBuffs === 'object') {
       for (const [g, b] of Object.entries(p.itemBuffs)) {
@@ -599,7 +619,7 @@ export class Player extends Entity {
     }
     // เควส (v0.10) — ตรวจความถูกต้องใน systems/Quests.js ตอนโหลด
     const Q = p.quests && typeof p.quests === 'object' ? p.quests : {};
-    this.quests = { active: Q.active && typeof Q.active === 'object' ? Q.active : {}, done: Q.done && typeof Q.done === 'object' ? Q.done : {}, gave: Q.gave && typeof Q.gave === 'object' ? Q.gave : {} };
+    this.quests = { worldRuns: Q.worldRuns && typeof Q.worldRuns === 'object' ? Q.worldRuns : {}, active: Q.active && typeof Q.active === 'object' ? Q.active : {}, done: Q.done && typeof Q.done === 'object' ? Q.done : {}, gave: Q.gave && typeof Q.gave === 'object' ? Q.gave : {} };
     // แฟชั่น (v0.9) — เซฟเก่าไม่มีข้อมูลนี้ → เริ่มว่าง
     const F = p.fashion && typeof p.fashion === 'object' ? p.fashion : {};
     this.fashion = { owned: new Set(Array.isArray(F.owned) ? F.owned.filter((id) => COSTUME_BY_ID[id]) : []), worn: {}, opened: int(F.opened, 0), hidden: !!F.hidden };

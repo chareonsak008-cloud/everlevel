@@ -3,7 +3,9 @@
 
 const C = (mob, name, on, color, bonus, drop, desc, rarity = 'rare') => ({ mob, name, on, color, bonus, drop, desc, rarity });
 
+import { ENDGAME_CARDS } from './endgameCards.js';
 export const CARDS = {
+  ...ENDGAME_CARDS,
   card_bloblet: C('bloblet', 'การ์ดบล็อบเล็ต', 'shoes', '#6fd8c8', { agi: 1, flee: 5 }, 0.002, 'บล็อบเล็ตเด้งดึ๋งไม่หยุด ทำให้ฝีเท้าเบาและหลบหลีกเก่งขึ้น'),
   card_capling: C('capling', 'การ์ดแคปปลิง', 'head', '#4a8fd8', { int: 1, maxSp: 15 }, 0.0015, 'สปอร์เรืองแสงของแคปปลิงทำให้จิตใจปลอดโปร่ง'),
   card_stinglet: C('stinglet', 'การ์ดสติงเล็ต', 'weapon', '#f2b632', { crit: 0.05, hit: 3 }, 0.0012, 'เหล็กไนแหลมคมเล็งจุดอ่อนได้แม่นยำ'),
@@ -25,12 +27,17 @@ export const CARDS = {
   card_ignarok: C('ignarok', 'การ์ดอิกนารอก', 'weapon', '#ff4a1a', { atk: 45, str: 5, atkPct: 8 }, 0.01, 'การ์ด MVP! พลังทำลายล้างของมังกรเพลิง', 'epic'),
 };
 
+// v0.20: grade existing cards by region; preserve IDs and stat bonuses.
+for (const id of ['card_bloblet','card_capling']) CARDS[id].rarity = 'common';
+for (const id of ['card_stinglet','card_thornback','card_wisp']) CARDS[id].rarity = 'uncommon';
+CARDS.card_ignarok.rarity = 'mythic';
+
 const SLOT_THAI = { weapon: 'อาวุธ', head: 'หมวก', body: 'ชุด', shield: 'โล่', garment: 'ผ้าคลุม', shoes: 'รองเท้า', accessory: 'เครื่องประดับ' };
 export const cardSlotName = (on) => SLOT_THAI[on] || on;
 
 // ไอเทมการ์ด (รวมเข้า ITEMS ใน data/items.js)
 export const CARD_ITEMS = Object.fromEntries(Object.entries(CARDS).map(([id, c]) => [id, {
-  name: c.name, type: 'card', icon: ['card', c.color], price: c.rarity === 'epic' ? 20000 : 4000, rarity: c.rarity,
+  name: c.name, type: 'card', monster: c.mob, icon: ['card', c.color], price: c.rarity === 'epic' ? 20000 : 4000, rarity: c.rarity,
   on: c.on, bonus: c.bonus, desc: `${c.desc} · ใส่ได้กับ${SLOT_THAI[c.on]}ที่มีช่องการ์ดว่าง`,
 }]));
 

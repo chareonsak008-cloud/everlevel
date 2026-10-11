@@ -27,7 +27,7 @@ export const failResult = (target, guarded) => (target <= SAFE_LIMIT ? 'none' : 
 export function refineBonus(it, n) {
   if (!n || !it) return {};
   if (it.slot === 'weapon') {
-    const per = { epic: 7, rare: 5 }[it.rarity] || 3;
+    const per = { celestial: 13, mythic: 11, legend: 9, epic: 7, rare: 5 }[it.rarity] || 3;
     const v = per * n + per * Math.max(0, n - 7);
     return it.wtype === 'staff' ? { atk: v, matk: v } : { atk: v };
   }

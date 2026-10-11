@@ -5,15 +5,18 @@
 //        refine {n} ตีบวกสำเร็จ · socket {n} ใส่การ์ด · level {n}
 // give = ไอเทมที่ได้ทันทีตอนรับเควส · rewards = { exp: [base, job], zeny, items: [[id, จำนวน]] }
 
+import { WEEKLY_QUESTS } from './events.js';
 import { QUEST_EXTRA_REWARDS } from './consumables.js';
 
 export const QUEST_KIND = {
   main: { name: 'เนื้อเรื่อง', color: '#ffd27a' },
   side: { name: 'เควสเสริม', color: '#9adcff' },
+  weekly: { name: 'รายสัปดาห์', color: '#d7b5ff' },
   daily: { name: 'รายวัน', color: '#9affb8' },
 };
 
 export const QUESTS = {
+  ...WEEKLY_QUESTS,
   /* ---------- เนื้อเรื่องบทที่ 1: นักผจญภัยแห่ง Asteria ---------- */
   m1_first_steps: {
     kind: 'main', name: 'ก้าวแรกของนักผจญภัย', giver: 'mira', turnIn: 'mira', minLevel: 1,

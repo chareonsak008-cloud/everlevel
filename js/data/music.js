@@ -58,3 +58,7 @@ export const SONGS = {
     drums: {},
   },
 };
+
+// Two newly arranged variations share the supported synth instruments.
+SONGS.ruins={...SONGS.forest,bpm:92,root:57,chords:[0,5,3,4,0,3,5,4],melody:['0 - 4 - 6 - 4 -','3 - 5 - 7 - . .','5 - 4 2 0 - . .','4 - - - 2 - 0 -']};
+SONGS.haunted={...SONGS.snow,bpm:76,root:53,chords:[0,6,3,4,0,5,6,4],melody:['0 . 4 . 7 - 6 -','6 - 4 . 2 . . .','3 . 5 . 8 - 5 -','4 - 2 - 0 - . .']};

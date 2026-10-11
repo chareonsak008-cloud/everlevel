@@ -1,4 +1,6 @@
 // ตัวควบคุมหลักของเกม: ลูป, แผนที่/วาร์ป, การเดิน, การต่อสู้ → ส่งต่อให้ Renderer3D วาด
+import { EventService } from '../systems/EventService.js';
+import { EventWindow } from '../ui/EventWindow.js';
 import { TILE, AUTOSAVE_SECONDS, SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js';
 import { GameMap } from '../world/GameMap.js';
 import { MAPS, START_MAP } from '../data/maps/index.js';
@@ -64,6 +66,8 @@ import { AutoWindow } from '../ui/AutoWindow.js';
 // v0.15: จดหมาย + ของขวัญต้อนรับ
 import { Mailbox } from '../systems/Mailbox.js';
 import { MailWindow } from '../ui/MailWindow.js';
+import { Collection } from '../systems/Collection.js';          // v0.18: ระบบสะสม
+import { CollectionWindow } from '../ui/CollectionWindow.js';
 
 // เสียงตอนใช้สกิล (เริ่ม) และตอนกระแทก (จังหวะกล้องสั่น)
 const SKILL_SFX = {
@@ -90,6 +94,7 @@ export class Game {
     this.input = new Input(this.canvas, root.querySelector('#joystick'));
     this.gfx = new Renderer3D(this.canvas, root.querySelector('#labels'));
     this.saver = new SaveManager();
+    if(window.__contentPreview) this.saver.adapter={load:async()=>null,save:async()=>true};
     // นับจังหวะโจมตีของผู้เล่น ส่งให้ผู้เล่นคนอื่นเห็นท่าฟัน/ยิง/ร่าย (v0.11)
     this.atkSeq = 0; this.atkKind = 'melee';
     const playAttack = this.gfx.playAttack.bind(this.gfx);
@@ -244,8 +249,14 @@ export class Game {
     // v0.15: จดหมาย (M / ปุ่ม 📬)
     this.mailbox = new Mailbox(this);
     this.mailWin = new MailWindow(root, this);
+    this.collection = new Collection(this);          // v0.18: สมุดมอน · ความสำเร็จ/ฉายา · อัลบั้มการ์ด · เช็กอิน
+    this.colWin = new CollectionWindow(root, this);
+    const bb = root.querySelector('#btnBook'); if (bb) bb.addEventListener('click', () => this.toggleCollection());
     this.mailbox.onChange = () => { this.mailWin.render(); this.updateMailBadge(); };
     const bm = root.querySelector('#btnMail'); if (bm) bm.addEventListener('click', () => this.mailWin.toggle());
+    this.events = new EventService(this);
+    this.eventWin = new EventWindow(root, this);
+    this.questLog.now = () => this.events.online && !this.events.fresh ? null : this.events.now();
     this.applySettings();
 
     window.addEventListener('keydown', (e) => {
@@ -267,10 +278,11 @@ export class Game {
       if (e.code === 'KeyH') { e.preventDefault(); this.autoWin.toggle(); }
       if (e.code === 'KeyZ') { e.preventDefault(); this.auto.toggle(); }
       if (e.code === 'KeyM') { e.preventDefault(); this.mailWin.toggle(); }
+      if (e.code === 'KeyB') { e.preventDefault(); this.toggleCollection(); }   // v0.18
       if (e.code === 'Escape') {
         if (this.dialog.open || this.shop.open || this.storWin.open || this.refineWin.open) { this.closeServices(); return; }
         if (this.setWin.open || this.onWin.open || this.menu.open) { this.setWin.toggle(false); this.onWin.toggle(false); this.menu.toggle(false); return; }
-        this.status.toggle(false); this.inv.toggle(false); this.skillWin.toggle(false); this.ward.toggle(false); this.questWin.toggle(false); this.petWin.toggle(false); this.autoWin.toggle(false); this.mailWin.toggle(false);
+        this.status.toggle(false); this.inv.toggle(false); this.skillWin.toggle(false); this.ward.toggle(false); this.questWin.toggle(false); this.petWin.toggle(false); this.autoWin.toggle(false); this.mailWin.toggle(false); this.colWin.toggle(false); this.eventWin?.toggle(false);
         if (this.player.cast) this.cancelCast();
       }
     });
@@ -352,6 +364,9 @@ export class Game {
     this.mode = opts.mode === 'online' && this.online && this.online.online ? 'online' : 'offline';
     this.cloud = this.mode === 'online' && !opts.localOnly && !!opts.slot;   // false = ออนไลน์ (เห็นเพื่อน) แต่เซฟในเครื่อง
     this.slot = opts.slot || 0;
+    if(this.mode==='online' && this.online.eventSnapshot){
+      try {const s=await this.online.eventSnapshot();this.events.serverAt=Date.parse(s.server_time);this.events.receivedAt=performance.now();this.events.state=s;}catch(e){this.events.error=e.message;}
+    }
     if (this.cloud) this.backup = new SaveManager(undefined, `${SAVE_KEY}.cloud${this.slot}`);   // สำรองในเครื่อง เผื่อเน็ตหลุด
     let data = opts.save || null;
     if (this.cloud && data && this.backup) {
@@ -397,6 +412,7 @@ export class Game {
 
     this.started = true;
     this.autoWin.sync();
+    this.collection.start();   // v0.18: ปลดล็อกความสำเร็จที่ทำครบแล้ว · บันทึกการ์ดที่มี · เช็กอินวันนี้
     // v0.15: จดหมาย — ตัวละครใหม่เปิดกล่องจดหมายให้เลือกของขวัญต้อนรับ
     this.mailbox.refresh().then(() => { if (opts.create && !this.player.mail.welcome) setTimeout(() => this.mailWin.openMail('welcome'), 1200); });
     this.root.classList.toggle('online', this.mode === 'online');
@@ -602,6 +618,7 @@ export class Game {
 
   damageMonster(m, r, { magic = false } = {}) {
     if (m.dead) return;
+    if (m.worldRun && !r.miss) { this.events.hit(m, r, magic); return; }
     if (r.miss) { this.gfx.floatText(m, 'Miss', 'miss'); this.sfx('miss'); return; }
     m.hp -= r.amount;
     this.sfx(r.crit ? 'crit' : 'hit');
@@ -628,8 +645,8 @@ export class Game {
     if (this.player.target === m) this.clearTarget();
     this.reward(m);
     // v0.13: ใบคูณดรอป/การ์ด + สัตว์เลี้ยง (อบิส/โนวา/เทียนหยุน) · ไอเทมใช้งานและไข่สัตว์เลี้ยงดรอปจากมอนทุกตัว
-    const pl = this.player, dm = pl.itemBuffMul('drop') * this.pets.dropMul(), cm = pl.itemBuffMul('card') * this.pets.cardMul();
-    const scale = (list, k) => (k === 1 ? list : list.map(([id, c]) => [id, c * k]));
+    const pl = this.player, dm = pl.itemBuffMul('drop') * this.pets.dropMul() * (this.events?.rate('drop') || 1), cm = pl.itemBuffMul('card') * this.pets.cardMul() * (this.events?.rate('drop') || 1);
+    const scale = (list, k) => (k === 1 ? list : list.map(([id, c]) => [id, Math.min(1,c * k)]));
     const items = rollDrops([...scale(m.data.drops, dm), ...scale(boxDrops(m.data), dm), ...scale(cardDrops(m.type), cm), ...scale(consumableDrops(m.data), dm)]);   // v0.9 กล่องแฟชั่น · v0.10 การ์ด
     if (this.pets.meteorChance() && Math.random() < this.pets.meteorChance() && m.data.drops.length) {
       const extra = m.data.drops[Math.floor(Math.random() * m.data.drops.length)][0];
@@ -637,6 +654,7 @@ export class Game {
       this.schedule(0.55, () => { this.spawnDrop(extra, m.x, m.y); this.gfx.floatText({ x: m.x, y: m.y }, 'ดาวตก!', 'loot r-rare', { h: 1.6, life: 1.6, rise: 0.6, drift: false }); });
     }
     this.questEvents(this.questLog.onKill(m.type));
+    this.collection.onKill(m.type);   // v0.18: สมุดมอนสเตอร์ · ความสำเร็จ
     items.forEach((id, i) => this.schedule(0.2 + i * 0.12, () => this.spawnDrop(id, m.x, m.y)));
     if (m.summoned) this.schedule(1.0, () => { if (this.mobs) this.mobs.remove(m); this.gfx.removeActor(m); });
     if (m.data.mvp) this.mvpKill(m);
@@ -895,6 +913,7 @@ export class Game {
     const res = this.questLog.turnIn(id);
     if (res.error) { this.hud.log(res.error, 'sys'); this.endService(); return; }
     const r = res.rewards;
+    this.collection.onQuest();   // v0.18
     this.hud.levelBanner('เควสสำเร็จ!', q.name);
     this.sfx('questDone');
     this.hud.log(`🏆 เควส "${q.name}" สำเร็จ! รางวัล: ${rewardText(r).join(' · ')}`, 'quest-ok');
@@ -1619,7 +1638,7 @@ export class Game {
   // ได้รับ EXP จากการกำจัดมอนสเตอร์
   reward(m) {
     const pl = this.player;
-    const bm = pl.itemBuffMul('exp'), jm = pl.itemBuffMul('jexp');   // v0.13: ใบคูณ EXP / Job
+    const bm = pl.itemBuffMul('exp') * (this.events?.rate('exp') || 1), jm = pl.itemBuffMul('jexp') * (this.events?.rate('exp') || 1);   // v0.13: ใบคูณ EXP / Job
     const b = Math.round((m.data.baseExp || 0) * bm), j = pl.jobNext === Infinity ? 0 : Math.round((m.data.jobExp || 0) * jm);
     this.hud.log(`กำจัด ${m.name} · ได้รับ Base EXP ${b}${bm > 1 ? ` (×${bm})` : ''} · Job EXP ${j}${jm > 1 && j ? ` (×${jm})` : ''}`, 'exp');
     this.gfx.floatText(pl, `+${b} EXP`, 'exp', { h: 2.1, life: 1.3, rise: 0.7 });
@@ -1901,6 +1920,7 @@ export class Game {
 
   update(dt) {
     this.time += dt;
+    this.events?.update(dt);
     const pl = this.player, input = this.input;
 
     const cam = input.consumeCamera();
@@ -1964,6 +1984,7 @@ export class Game {
 
     this.auto.update(dt);   // v0.14: ตีมอนออโต้ + ยาอัตโนมัติ
     this.mailbox.update(dt);   // v0.15: เช็กจดหมายใหม่ทุก 3 นาที (ออนไลน์)
+    this.collection.update(dt); this.colWin.update(dt);   // v0.18
     if (!pl.dead) this.updatePlayerCombat(dt);
     const ox = pl.x, oy = pl.y;
     if (rooted) pl.path = [];   // ติดราก: เดินไม่ได้ (แต่ยังโจมตี/ใช้สกิลได้)
@@ -2339,12 +2360,19 @@ export class Game {
     this.menu.badges({ stat: this.player.statPoints, skill: this.player.skillPoints, mail: n });
   }
 
+  // v0.18: สมุดสะสม (ปิดหน้าต่างใหญ่บานอื่นที่ทับกัน)
+  toggleCollection(force) {
+    this.colWin.toggle(force);
+    if (this.colWin.open) { this.mailWin.toggle(false); this.autoWin.toggle(false); this.petWin.toggle(false); this.questWin.toggle(false); this.ward.toggle(false); this.skillWin.toggle(false); }
+  }
+
   menuAction(act) {
     const map = {
+      events: () => this.eventWin.toggle(),
       status: () => this.toggleStatus(true), inv: () => this.inv.toggle(true), skill: () => this.toggleSkills(true),
       ward: () => this.toggleWardrobe(true), quest: () => this.toggleQuests(true), online: () => this.toggleOnline(true),
       settings: () => this.toggleSettings(true), save: () => this.saveNow(true), pet: () => this.togglePets(true),
-      auto: () => this.autoWin.toggle(true), mail: () => this.mailWin.toggle(true),
+      auto: () => this.autoWin.toggle(true), mail: () => this.mailWin.toggle(true), book: () => this.toggleCollection(true),
     };
     if (map[act]) map[act]();
   }
@@ -2469,6 +2497,7 @@ export class Game {
       x: Math.round(pl.x), y: Math.round(pl.y), a: +pl.angle.toFixed(2), mv: !!pl.moving,
       h: +(pl.hp / pl.maxHp).toFixed(2), dead: !!pl.dead, at: this.atkSeq, ak: this.atkKind,
       pt: pl.pets.active || '', ps: pl.pets.active ? pl.pets.owned[pl.pets.active] || 0 : 0,   // v0.13: สัตว์เลี้ยง
+      tt: pl.col.title || '',                                                                  // v0.18: ฉายา
       sp: Math.round(pl.speed),                                                                // v0.16.1: ความเร็วเดิน (ไว้บอกคนอื่นให้เดินต่อเองระหว่างแพ็กเก็ต)
     };
     const patch = {};

@@ -6,6 +6,7 @@
 // v0.9: type box = กล่องแฟชั่นสุ่ม (ข้อมูลอยู่ใน data/fashionBoxes.js)
 // v0.10: slots = ช่องการ์ด · type card = การ์ดมอนสเตอร์ (data/cards.js) · วัสดุตีบวก (data/refine.js)
 //        อุปกรณ์ที่ตีบวก/ใส่การ์ดแล้วใช้ "คีย์" แทน id เช่น 'iron_blade*7*card_barkwolf' (ดู itemKey ด้านล่าง)
+import { ENDGAME_ITEMS } from './endgameItems.js';
 import { BOX_ITEMS } from './fashionBoxes.js';
 import { CARD_ITEMS, CARDS } from './cards.js';
 import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js';
@@ -26,7 +27,9 @@ export const RARITY = {
   uncommon: { name: 'ดี', color: '#8fe08a' },
   rare: { name: 'หายาก', color: '#7fc4ff' },
   epic: { name: 'ล้ำค่า', color: '#d49bff' },
-  legend: { name: 'ตำนาน', color: '#ffb347' },   // v0.13
+  legend: { name: 'ตำนาน · ส้ม', color: '#ffb347' },
+  mythic: { name: 'เทพนิยาย · ทอง', color: '#ffd85e' },
+  celestial: { name: 'จันทร์โลหิต · แดง', color: '#ff5266' },   // v0.13
 };
 
 const BASE = {
@@ -114,6 +117,7 @@ const BASE = {
   dragon_heart: { name: 'หัวใจมังกรเพลิง', type: 'equip', slots: 1, slot: 'accessory', icon: ['brooch', '#ff5a2a'], bonus: { str: 5, int: 5, dex: 3, maxHpPct: 10, atk: 20, matk: 20 }, reqLevel: 80, price: 200000, rarity: 'epic', desc: 'หัวใจของอิกนารอกที่ยังเต้นอยู่ เปี่ยมด้วยพลังมังกร' },
 
   /* ---------- กล่องแฟชั่นสุ่ม (v0.9) ---------- */
+  ...ENDGAME_ITEMS,
   ...BOX_ITEMS,
 
   /* ---------- การ์ด + วัสดุตีบวก (v0.10) ---------- */

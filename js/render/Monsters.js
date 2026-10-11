@@ -128,6 +128,8 @@ export class MonsterView {
     blob.rotation.x = -PI / 2; blob.position.y = 0.014; blob.renderOrder = 1;
     this.shadow = blob; this.root.add(blob);
     blob.scale.setScalar((mob.data.radius || 0.45) * 2.2);
+    // Every flyer needs a finite baseline before animFly updates its shadow.
+    if (!Number.isFinite(this.P.shadow0)) this.P.shadow0 = blob.scale.x;
     // เส้นขอบการ์ตูน (โหมด 3 มิติ)
     const solid = [];
     this.body.traverse((o) => { if (o.isMesh && o.castShadow && !o.material.transparent) solid.push(o); });
@@ -923,3 +925,62 @@ const DEFS = {
 };
 
 export { DEFS as MONSTER_DEFS };
+
+/* ---------- v0.20: original creatures of ruins and the haunted forest ---------- */
+function relicScarab(v,d){
+ const shell=v.own(d.color),edge=v.own('#485b48'),gold=v.own('#d4b265'),core=grp(v.body,0,.25);core.scale.setScalar(d.modelScale||1);
+ add(core,sph(.48,14,10).scale(1,.65,1.2),shell,0,.24,-.1);
+ add(core,cyl(.025,.025,.58,6).rotateX(PI/2),gold,0,.56,-.1);
+ const head=grp(core,0,.2,.48);add(head,sph(.23,12,8).scale(1,.8,1),edge);eyes(head,.05,.21,.045,.10,{color:'#bdebb3',glow:true});
+ const legs=[];
+ for(const side of [-1,1])for(let j=0;j<3;j++){const l=grp(core,side*.33,0,(j-1)*.27);add(l,tube([[0,0,0],[side*.25,.06,.03],[side*.39,-.21,.12]],[.045,.035,.02],6,8),edge);legs.push(l);}
+ for(const side of [-1,1])add(head,tube([[side*.12,.10,.1],[side*.24,.18,.28],[side*.17,.2,.42]],[.028,.025,.015],6,8),gold);
+ return {core,head,legs};
+}
+DEFS.scarab={build:relicScarab,anim(v,P,{t,moving,ph,atk}){P.legs.forEach((l,i)=>l.rotation.y=moving?Math.sin(ph+i*PI)*.4:0);P.core.position.y=.25+(moving?Math.abs(Math.sin(ph))*.04:0);P.head.rotation.x=-atk*.4;P.core.position.z=atk*.18;}};
+function relicGuardian(v,d){
+ const stone=v.own(d.color),dark=v.own(shadeHex(d.color,-.35)),rune=v.own('#8cf4d5',{emissive:'#8cf4d5',emissiveIntensity:.5}),gold=v.own('#d5c084');
+ const base=grp(v.body);base.scale.setScalar(d.modelScale||1);
+ const torso=grp(base,0,1.15),head=grp(torso,0,.68,.01),arms=[],legs=[];
+ add(torso,ridges(lathe([[.30,-.40],[.46,-.20],[.48,.28],[.33,.42]],12),8,.018),stone);
+ add(torso,cyl(.11,.11,.04,6).rotateX(PI/2),rune,0,.15,.47);
+ add(head,new THREE.BoxGeometry(.56,.38,.44),dark,0,.10,0);
+ add(head,new THREE.BoxGeometry(.60,.13,.46),stone,0,.25,0);
+ eyes(head,.14,.238,.045,.14,{color:'#9bffe1',glow:true});
+ for(const side of [-1,1]){
+  const leg=grp(base,side*.22,.65);add(leg,cyl(.14,.18,.54,8),dark,0,-.25);add(leg,new THREE.BoxGeometry(.30,.15,.40),stone,0,-.52,.08);legs.push(leg);
+  const arm=grp(torso,side*.55,.26);add(arm,sph(.22,10,8),gold);add(arm,cyl(.13,.18,.70,8),stone,0,-.38);add(arm,new THREE.BoxGeometry(.31,.24,.30),dark,0,-.79);arms.push(arm);
+ }
+ if(d.mvp){for(const side of [-1,1])add(head,spike(V(side*.22,.3,0),V(side*.1,1,0),.55,.08),gold);add(torso,new THREE.BoxGeometry(.16,.65,.05),gold,0,0,.46);}
+ return{base,torso,head,arms,legs,y0:1.15};
+}
+DEFS.sentinel={build:relicGuardian,anim(v,P,a){animBrute(v,P,a,{stride:.45,armSwing:.4});}};
+function shadowBeast(v,d){
+ const wolf=d.model==='hollowwolf',skin=v.own(d.color),belly=v.own(shadeHex(d.color,.2)),claw=v.own('#e1d4b8');
+ const torso=grp(v.body,0,.68),head=grp(torso,0,.12,.62);add(torso,sph(.53,14,10).scale(.68,.63,1.25),skin);
+ add(head,sph(.28,12,10).scale(.88,.80,1.1),skin);add(head,sph(.20,10,8).scale(.72,.55,1.25),belly,0,-.08,.26);
+ eyes(head,.10,.26,.045,.12,{color:wolf?'#e596c2':'#ffcf7b',glow:true});
+ const jaw=grp(head,0,-.17,.20);add(jaw,new THREE.BoxGeometry(.24,.08,.26),belly);
+ const legs=[],knees=[];
+ for(const side of [-1,1])for(const z of [-.4,.4]){const l=grp(torso,side*.28,-.16,z),k=grp(l,0,-.25);add(l,cyl(.09,.10,.30,8),skin,0,-.12);add(k,cyl(.06,.08,.26,8),belly,0,-.11);add(k,sph(.11,8,6).scale(1,.7,1.4),claw,0,-.23,.08);legs.push(l);knees.push(k);}
+ const tail=grp(torso,0,-.07,-.61);add(tail,tube([[0,0,0],[.12,.1,-.35],[.2,.2,-.7]],[.14,.09,.015],8,14),skin);
+ if(wolf){for(const side of [-1,1])add(head,spike(V(side*.16,.17,0),V(side*.22,1,0),.3,.13),skin);add(torso,mergeGeometries(fur(V(0,.08,.45),.29,.3,.25,24,.16,.06,{seed:29})),skin);}
+ else{for(let j=0;j<6;j++)add(torso,spike(V(0,.28,-.43+j*.17),V(0,1,-.2),.18,.06),claw);}
+ return{torso,head,jaw,legs,knees,tail,y0:.68};
+}
+DEFS.basilisk={build:shadowBeast,anim(v,P,a){animQuad(v,P,a);}};
+DEFS.hollowwolf=DEFS.basilisk;
+DEFS.spider={build(v,d){const mat=v.own(d.color),dark=v.own('#35283f'),eye=v.own('#efb0df',{emissive:'#ef7aa8',emissiveIntensity:.45}),core=grp(v.body,0,.43);add(core,sph(.4,12,8).scale(1,.8,1.2),mat,0,0,-.18);add(core,sph(.23,12,8),dark,0,0,.31);eyes(core,.04,.54,.037,.08,{color:'#e8a0ca',glow:true});const legs=[];for(const side of [-1,1])for(let i=0;i<4;i++){const z=-.4+i*.22,l=grp(core,side*.2,0,z);add(l,tube([[0,0,0],[side*.43,.17,(i-1.5)*.14],[side*.66,-.38,(i-1.5)*.19]],[.046,.03,.02],6,9),mat);legs.push(l);}for(const side of [-1,1])add(core,spike(V(side*.07,-.07,.50),V(side*.25,-.2,1),.18,.03),eye);return{core,legs};},anim(v,P,{ph,moving,atk}){P.legs.forEach((l,i)=>l.rotation.y=moving?Math.sin(ph+(i%2)*PI)*.38:0);P.core.position.z=atk*.25;P.core.position.y=.43+(moving?Math.abs(Math.sin(ph))*.035:0);}};
+function spectralShade(v,d){
+ v.flyer=true;const cloth=v.own(d.color),dark=v.own('#27243a'),ivory=v.own('#dcd4ca'),gold=v.own('#cdb788'),core=grp(v.body,0,.32);core.scale.setScalar(d.modelScale||1);
+ add(core,ridges(lathe([[.5,.10],[.43,.35],[.32,.80],[.26,1.05]],16),10,.035),cloth);
+ const head=grp(core,0,1.24);add(head,sph(.34,14,10).scale(1,1.15,.82),cloth);add(head,sph(.23,12,8).scale(1,1,.45),dark,0,-.015,.26);eyes(head,.05,.37,.05,.105,{color:d.color,glow:true});
+ const arms=[];for(const side of [-1,1]){const arm=grp(core,side*.34,.87);add(arm,cyl(.12,.18,.55,10).rotateZ(side*.45),cloth,side*.1,-.21);add(arm,sph(.08,8,6),ivory,side*.20,-.43);arms.push(arm);}
+ if(d.model==='reaper'){const hand=arms[0];add(hand,cyl(.025,.025,1.8,8),gold,-.2,-.05,.12);add(hand,tube([[-.2,.8,.12],[.2,.76,.12],[.65,.4,.12]],[.075,.06,.004],6,12),ivory);if(d.mvp){for(let i=-1;i<=1;i++)add(head,spike(V(i*.2,.25,0),V(i*.1,1,0),.38,.06),gold);}}
+ else{add(core,oct(.14),gold,0,.68,.31);}
+ return{core,head,arms,y0:.32};
+}
+DEFS.shade={build:spectralShade,anim(v,P,{t,moving,atk,slam}){P.core.position.y=.32+Math.sin(t*2.6)*.10;P.core.position.z=atk*.3;P.core.rotation.z=Math.sin(t*1.7)*.04;P.arms.forEach((a,i)=>a.rotation.x=-atk*1.4+(slam>=0?-Math.sin(slam*PI)*1.8:Math.sin(t*1.3+i)*.08));}};
+DEFS.reaper=DEFS.shade;
+DEFS.stag={build(v,d){const P=shadowBeast(v,{...d,model:'basilisk'}),antler=v.own('#d3b996');for(const side of [-1,1]){const h=grp(P.head,side*.19,.18,0);add(h,tube([[0,0,0],[side*.18,.35,0],[side*.30,.60,-.05]],[.045,.032,.009],6,12),antler);for(const [y,z] of [[.22,.18],[.38,-.16]])add(h,tube([[side*.1,y,0],[side*.22,y+.15,z]],[.025,.008],6,6),antler);}return P;},anim(v,P,a){animQuad(v,P,a,{stride:.8,rate:1.1});}};
+export const MONSTER_MODEL_IDS = Object.keys(DEFS);

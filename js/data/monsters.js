@@ -3,7 +3,10 @@
 // attackDelay = วินาทีต่อการโจมตี 1 ครั้ง | respawn = [ต่ำสุด, สูงสุด] วินาที
 // baseExp / jobExp = EXP ที่ผู้เล่นได้เมื่อกำจัด
 // drops = [ไอเทม, โอกาสดรอป 0..1] สุ่มแยกกันทีละชิ้น
+import { ENDGAME_MONSTERS } from './endgameMonsters.js';
+import { BASE_ITEMS } from './items.js';
 export const MONSTERS = {
+  ...ENDGAME_MONSTERS,
   bloblet: {
     name: 'บล็อบเล็ต', level: 1, hp: 32, baseExp: 8, jobExp: 6, atk: [4, 6], def: 0, mdef: 0, hit: 76, flee: 3, crit: 0,
     speed: 32, attackDelay: 1.6, attackRange: 22, aggressive: false, respawn: [6, 9],
@@ -138,3 +141,17 @@ export const MONSTERS = {
     mvpReward: { novice: 'cinder_dagger', swordsman: 'flame_blade', mage: 'inferno_staff', archer: 'phoenix_bow', acolyte: 'magma_hammer' },
   },
 };
+
+// World variants reuse boss models with larger HP; never appear in normal map spawns.
+for (const [id, base, name, hp] of [['world_aurex','aurex','ออเร็กซ์ จอมทัพโลก',600000],['world_nocthar','nocthar','น็อคธาร์ ราชันคราสโลก',1000000]]) {
+ MONSTERS[id] = {...MONSTERS[base], name, hp, worldBoss:true, drops:[], baseExp:0, jobExp:0, boss:{...MONSTERS[base].boss, summon:null}};
+}
+
+// Legacy weapon drops ×2.5, capped at 40%; only table probabilities change.
+for (const [id, m] of Object.entries(MONSTERS)) {
+  if (ENDGAME_MONSTERS[id]) continue;
+  m.drops = m.drops.map(([item, p]) => [item, BASE_ITEMS[item]?.slot === 'weapon' ? Math.min(.4, p * 2.5) : p]);
+}
+// Starter white weapons are now obtainable from normal beginner mobs.
+MONSTERS.bloblet.drops.push(['knife', .08], ['oak_staff', .04]);
+MONSTERS.capling.drops.push(['hunter_bow', .06], ['chapel_mace', .05]);

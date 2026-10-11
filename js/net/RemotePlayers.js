@@ -4,6 +4,7 @@ import { COSTUME_BY_ID } from '../data/costumes.js';
 import { MAPS } from '../data/maps/index.js';
 import { JOBS } from '../data/progression.js';
 import { PETS } from '../data/pets.js';
+import { ACH_BY_ID } from '../data/collection.js';
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 const ENUMS = {
@@ -61,6 +62,9 @@ class RemotePlayer {
       const text = cleanText(P.say.m, 120);
       if (text && fresh) { this.bubble = { text, t: 5 }; this.newSay = text; }
     }
+    // v0.18: ฉายา — รับเฉพาะรหัสที่มีในเกม (แสดงชื่อจากข้อมูลในเครื่องเรา ไม่ใช้ข้อความจากคนอื่นตรง ๆ)
+    const ach = typeof P.tt === 'string' && ACH_BY_ID[P.tt] ? ACH_BY_ID[P.tt] : null;
+    this.honor = ach ? ach.title : ''; this.honorTier = ach ? ach.tier : '';
     this.petId = typeof P.pt === 'string' && PETS[P.pt] ? P.pt : null;   // v0.13: สัตว์เลี้ยงของผู้เล่นคนนี้
     this.petStars = clampNum(Math.floor(P.ps), 0, 5, 0);
     if (P.at !== this.atkSeq) { if (this.atkSeq !== undefined) this.attacked = P.ak === 'shoot' || P.ak === 'cast' ? P.ak : 'melee'; this.atkSeq = P.at; }

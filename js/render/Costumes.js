@@ -3109,7 +3109,12 @@ export const hasBuilder = (it) => it.slot === 'outfit' || !!(DICT[it.slot] && DI
 
 // ปรับหน้าตาพื้นฐานก่อนสร้างตัวละคร (สีชุด · ซ่อนชุดอาชีพ/หมวกอาชีพ/อาวุธเดิม)
 export function costumeLook(base, items = {}) {
-  const L = { ...base };
+  const L = { ...base, equipment: { ...(base.equipment || {}) } };
+  if (items.outfit) for (const slot of ['body','shoes','accessory','garment']) delete L.equipment[slot];
+  if (items.weapon) delete L.equipment.weapon;
+  if (items.head) delete L.equipment.head;
+  if (items.wings || items.back) delete L.equipment.garment;
+  if (items.weapon?.wtype === 'dual') delete L.equipment.shield;
   const o = items.outfit;
   if (o) { Object.assign(L, (o.p && o.p.look) || {}); L.jobGear = 'none'; if (L.accessory === 'quiver' || L.accessory === 'backpack') L.accessory = 'none'; if (!(o.p && o.p.look && 'scarf' in o.p.look)) L.scarf = null; L.cape = null; }
   if (items.weapon) L.weapon = 'none';

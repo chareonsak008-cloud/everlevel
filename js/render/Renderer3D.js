@@ -29,7 +29,7 @@ const PX_BASE = (() => { const a = new THREE.Color('#dcefff'), b = new THREE.Col
 const COSTUME_GLOW = 1.6;
 
 const S = 1 / TILE; // พิกัดโลก (px) → หน่วย 3 มิติ
-const isRareDrop = (it) => !!it && (it.type === 'card' || it.type === 'box' || ['rare', 'epic', 'legend'].includes(it.rarity));
+const isRareDrop = (it) => !!it && (it.type === 'card' || it.type === 'box' || ['rare', 'epic', 'legend', 'mythic', 'celestial'].includes(it.rarity));
 
 // v0.16: คืนหน่วยความจำ GPU ของเท็กซ์เจอร์ที่ชุดแฟชั่นโคลนไว้ใช้เฉพาะตัว (เท็กซ์เจอร์ที่ใช้ร่วมกันไม่ถูกลบ)
 // v0.16: เขียน DOM เฉพาะตอนค่าเปลี่ยน (ป้ายชื่อ/แถบเลือดขยับทุกเฟรม → ลดงาน layout บนมือถือ)
@@ -583,7 +583,7 @@ export class Renderer3D {
     if (c.view.dispose) c.view.dispose();
     disposeOwned(c.view.root);
     if (c.costume) { c.costume.dispose(); c.costume = null; }
-    for (const el of [c.label, c.bubble, c.hpbar, c.castbar]) if (el) el.remove();
+    for (const el of [c.label, c.bubble, c.hpbar, c.castbar, c.honorEl]) if (el) el.remove();
     this.characters.delete(entity);
   }
 
@@ -1233,8 +1233,17 @@ export class Renderer3D {
     const p = this.project(x, c.npc ? (c.head + 0.2) * this.vs : -0.05, z);
     setV(c.label, !!p);
     if (c.hpbar) setV(c.hpbar, !!p);
-    if (!p) { if (c.bubble) setH(c.bubble, true); return; }
+    if (!p) { if (c.bubble) setH(c.bubble, true); if (c.honorEl) setH(c.honorEl, true); return; }
     const [sx, sy] = p;
+    // v0.18: ฉายาเหนือหัว (ตัวเราและผู้เล่นคนอื่น)
+    const honor = !c.npc && !entity.dead ? entity.honor || '' : '';
+    if (honor || c.honorEl) {
+      if (!c.honorEl) { c.honorEl = document.createElement('div'); c.honorEl.className = 'tag-honor'; c.honorEl.hidden = true; this.labelLayer.append(c.honorEl); }
+      if (c.lastHonor !== honor + (entity.honorTier || '')) { c.honorEl.textContent = honor; c.honorEl.className = 'tag-honor t-' + (entity.honorTier || 'common'); c.lastHonor = honor + (entity.honorTier || ''); }
+      const hp2 = honor ? this.project(x, (c.head - 0.12) * this.vs, z) : null;
+      setH(c.honorEl, !hp2);
+      if (hp2) setT(c.honorEl, `translate3d(${hp2[0]}px, ${hp2[1]}px, 0) translate(-50%, -100%)`);
+    }
     if (c.npc) setT(c.label, `translate3d(${sx}px, ${sy}px, 0) translate(-50%, -100%)`);
     else {
       setT(c.label, `translate3d(${sx}px, ${sy + 6}px, 0) translate(-50%, 0)`);
@@ -1266,7 +1275,7 @@ export class Renderer3D {
         if (c.lastText !== b.text) { c.bubble.textContent = this.mobile && !c.npc && b.text.length > 56 ? b.text.slice(0, 54) + '…' : b.text; c.lastText = b.text; }   // v0.13: มือถือย่อข้อความยาวในบอลลูน
         setH(c.bubble, false);
         const op = String(Math.min(1, Math.round(b.t * 20) / 10)); if (c.bubble._o !== op) { c.bubble.style.opacity = op; c.bubble._o = op; }
-        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, (c.head + 0.35) * this.vs, z) || p)[1]}px, 0) translate(-50%, -100%)`);
+        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, (c.head + 0.35) * this.vs, z) || p)[1] - (c.honorEl && !c.honorEl.hidden ? 16 : 0)}px, 0) translate(-50%, -100%)`);
       } else if (!c.bubble.hidden) { c.bubble.hidden = true; c.lastText = ''; }
     }
   }
