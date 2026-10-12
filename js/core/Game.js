@@ -231,7 +231,10 @@ export class Game {
     this.petWin = new PetWindow(root, this.player, {
       summon: (id) => this.summonPet(id),
       hatch: (egg) => this.hatchEgg(egg),
-      filter: (f) => { this.player.pets.filter = f; this.hud.log(`สัตว์เลี้ยงจะ${{ all: 'เก็บของทุกอย่าง', skipCommon: 'ข้ามของธรรมดา', rare: 'เก็บเฉพาะของหายากขึ้นไป' }[f]}`, 'info'); this.dirty = true; },
+      // v0.24.1: ปุ่มลัดตัวกรอง = ตั้งระดับขั้นต่ำในตั้งค่าละเอียดด้วย
+      pick: () => { this.dirty = true; },
+      seenDrops: () => [...(this.seenDrops || new Map()).keys()].reverse(),
+      filter: (f) => { this.player.pets.filter = f; const P = this.player.pets.pick; P.min = f === 'rare' ? 2 : f === 'skipCommon' ? 1 : 0; P.usableAny = f === 'skipCommon'; this.hud.log(`สัตว์เลี้ยงจะ${{ all: 'เก็บของทุกอย่าง', skipCommon: 'ข้ามของธรรมดา', rare: 'เก็บเฉพาะของหายากขึ้นไป' }[f]}`, 'info'); this.dirty = true; },
       stats: (id) => this.pets.stats(id),
       reviveLeft: () => this.pets.reviveLeft(),
     });
@@ -670,6 +673,9 @@ export class Game {
       if (!this.map.isSolidTile(Math.floor(nx / TILE), Math.floor(ny / TILE))) { tx = nx; ty = ny; break; }
     }
     const drop = { uid: this.dropUid++, id, x: tx, y: ty, expireAt: this.time + 90, blink: false };
+    // v0.24.1: ของที่เพิ่งตก (ไว้เลือก "ไม่เก็บ" ในตั้งค่าสัตว์เลี้ยง)
+    const sd = this.seenDrops || (this.seenDrops = new Map()), bid = String(id).split('*')[0];
+    sd.delete(bid); sd.set(bid, 1); if (sd.size > 30) sd.delete(sd.keys().next().value);
     this.drops.push(drop);
     this.gfx.addDrop(drop, x, y);
     const it = ITEMS[id];

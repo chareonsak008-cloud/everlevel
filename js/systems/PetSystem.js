@@ -5,6 +5,8 @@ import { PETS, petStats, STAR_MAX } from '../data/pets.js';
 import { ITEMS } from '../data/items.js';
 import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js';
 import { THREE } from '../render/three.js';
+import { PICK_CATS, normPick } from './PetPick.js';
+export { PICK_CATS, PICK_RANKS, normPick } from './PetPick.js';
 
 const RANK = { common: 0, uncommon: 1, rare: 2, epic: 3, legend: 4, mythic: 5, celestial: 6 };
 export const PET_FILTERS = [
@@ -12,6 +14,7 @@ export const PET_FILTERS = [
   ['skipCommon', 'ข้ามของธรรมดา'],
   ['rare', 'เฉพาะของหายากขึ้นไป'],
 ];
+const baseOf = (id) => String(id).split('*')[0];
 const rankOf = (it) => (it.type === 'card' || it.type === 'box' ? 3 : RANK[it.rarity] ?? 0);
 const isRare = (it) => rankOf(it) >= 2;
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -36,7 +39,7 @@ export class PetSystem {
     const pl = this.g.player;
     if (!id) return null;
     const s = petStats(id, pl.pets.owned[id] || 0);
-    return { ...s, radius: s.radius + pl.itemBuffSum('petRadius'), speed: Math.round(s.speed * (1 + pl.itemBuffSum('petSpeedPct') / 100)) };
+    return { ...s, radius: s.radius + pl.itemBuffSum('petRadius'), speed: Math.max(125, Math.round(s.speed * (1 + pl.itemBuffSum('petSpeedPct') / 100))) };   // v0.24.1: ขั้นต่ำ 125% (เร็วกว่าเจ้าของ)
   }
 
   /* ---------- เรียก / เก็บ ---------- */
@@ -122,8 +125,12 @@ export class PetSystem {
   wants(d) {
     if (d.noPet || this.pet.skip.has(d.uid)) return false;
     const it = ITEMS[d.id]; if (!it) return false;
-    const f = this.g.player.pets.filter;
-    return f === 'rare' ? rankOf(it) >= 2 : f === 'skipCommon' ? rankOf(it) >= 1 || it.type === 'usable' : true;
+    const P = this.g.player.pets.pick || normPick(null, this.g.player.pets.filter);
+    const cat = PICK_CATS.some(([k]) => k === it.type) ? it.type : 'etc';
+    if (!P[cat]) return false;
+    if (P.skip.includes(baseOf(d.id))) return false;
+    if (cat === 'usable' && P.usableAny) return true;
+    return rankOf(it) >= P.min;
   }
 
   /* ---------- อัปเดตทุกเฟรม ---------- */
@@ -131,7 +138,7 @@ export class PetSystem {
     this.updateRemote(dt);
     const e = this.pet; if (!e || !this.view) return;
     const g = this.g, pl = g.player, m = this.mods, st = this.stats();
-    const R = st.radius * TILE, spd = PLAYER_SPEED * st.speed / 100;
+    const R = st.radius * TILE, spd = PLAYER_SPEED * Math.max(st.speed, 125) / 100;   // v0.24.1: เร็วกว่าเจ้าของเสมอ (เดิมช้ากว่าจนเก็บไม่ทัน)
     e.moving = false; e.speedK = st.speed / 100;
     this.view.range = Math.min(st.radius, 14);
     // ไกลเจ้าของเกินไป (วาร์ป/ติดสิ่งกีดขวาง) → กระโดดไปหา
@@ -139,7 +146,7 @@ export class PetSystem {
     if (pl.dead) { this.follow(dt, spd); return; }
     // เอมเบอร์: ของในรัศมีอยู่บนพื้นได้นานขึ้น
     if (m.dropLife) for (const d of g.drops) if (!d.phx && dist(d, pl) <= R) { d.phx = true; d.expireAt += 90 * (m.dropLife - 1); }
-    const want = (d) => this.wants(d) && dist(d, pl) <= R;
+    const want = (d) => this.wants(d) && dist(d, pl) <= R + TILE * 1.5;   // v0.24.1: เผื่อขอบรัศมี (ของที่กระเด็นออกนอกวงนิดเดียวไม่ถูกทิ้ง)
 
     // วาฬดวงดาว: ว่ายวนรอบเจ้าของ แล้วดูดของทั้งแผนที่เป็นรอบ ๆ
     if (m.vacuum) {
@@ -194,13 +201,17 @@ export class PetSystem {
       else if (e.carry.length) e.state = 'return';
       else this.follow(dt, spd);
     }
+    // v0.24.1: ระหว่างวิ่ง เจอของที่ต้องการอยู่ใกล้ตัว → หยิบเลยไม่ต้องหยุด
+    if ((e.state === 'seek' || e.state === 'return' || e.state === 'picking') && !full()) {
+      for (const d of g.drops) { if (full()) break; if (d !== e.target && dist(d, e) < 14 && want(d)) this.grab(d); }
+    }
     if (e.state === 'seek') {
       const t = e.target;
-      if (!t || !g.drops.includes(t) || dist(t, pl) > R + TILE) { e.state = e.carry.length ? 'return' : 'follow'; e.target = null; }
+      if (!t || !g.drops.includes(t) || dist(t, pl) > R + TILE * 2.5) { e.state = e.carry.length ? 'return' : 'follow'; e.target = null; }
       else {
-        const r = this.moveToward(e, t.x, t.y, 5, spd, dt);
+        const r = this.moveToward(e, t.x, t.y, 10, spd * 1.15, dt);
         if (r === 'blocked') { e.skip.add(t.uid); e.state = 'follow'; e.target = null; }
-        else if (r) { this.view.pick(); this.grab(t); e.state = 'picking'; e.timer = 0.4; }
+        else if (r) { this.view.pick(); this.grab(t); e.state = 'picking'; e.timer = 0.12; }
       }
     }
     if (e.state === 'picking') {
@@ -212,7 +223,9 @@ export class PetSystem {
       }
     }
     if (e.state === 'return') {
-      const r = this.moveToward(e, pl.x, pl.y, 14, spd * 1.1, dt);
+      // v0.24.1: ใกล้เจ้าของแล้ว (≤3 ช่อง) โยนของให้เลย · ยังมีของเหลือในพื้นและยังไม่เต็ม → กลับไปเก็บต่อก่อน
+      if (!full() && choose()) { e.state = 'follow'; }
+      const r = e.state === 'return' && (dist(e, pl) <= 3 * TILE || this.moveToward(e, pl.x, pl.y, 14, spd * 1.5, dt));
       if (r) { this.deliver(); e.state = 'follow'; }
     }
     this.view.load = cap ? e.carry.length / cap : Math.min(1, e.carry.length / 6);

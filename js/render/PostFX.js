@@ -139,7 +139,7 @@ export class PostFX {
     this.pxOn = false;
     const PN = { ...P, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter };
     this.pxRT = new THREE.WebGLRenderTarget(4, 4, PN);
-    this.pxRT.depthTexture = new THREE.DepthTexture(4, 4); this.pxRT.depthTexture.type = THREE.UnsignedIntType;
+    this.pxRT.depthTexture = new THREE.DepthTexture(4, 4); this.pxRT.depthTexture.type = renderer.capabilities.isWebGL2 ? THREE.FloatType : THREE.UnsignedIntType;   // v0.24.1: WebGL2 ใช้ความลึก 32 บิต (กันเส้นขีดบน Android)
     this.pxOut = new THREE.WebGLRenderTarget(4, 4, { ...PN, depthBuffer: false });
     this.matPx = new THREE.ShaderMaterial({
       ...common,

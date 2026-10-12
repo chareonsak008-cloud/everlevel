@@ -1000,6 +1000,10 @@ export class Renderer3D {
       if (hb.userData.y0 === undefined) hb.userData.y0 = hb.position.y;
       if (hb.scale.y !== vs) { hb.scale.y = vs; hb.position.y = hb.userData.y0 * vs; hb.updateMatrixWorld(); }
     }
+    // v0.24.1: ระยะ near/far ของกล้องตามระยะกล้องจริง — มือถือ Android หลายรุ่นเก็บความลึกได้หยาบ (16 บิต)
+    // กล้องแบบ RO อยู่ไกล (~30–110 หน่วย) ถ้า near = 0.5 ค่าความลึกเป็นขั้นบันได → เส้นขอบพิกเซลขึ้นเป็นขีดแนวนอนทั้งจอ
+    const cam = this.camera, cn = px ? Math.max(0.5, Math.min(d * 0.6, d - 25)) : 0.5, cf = px ? d + 110 : 220;
+    if (Math.abs(cam.near - cn) > 0.05 || Math.abs(cam.far - cf) > 0.5) { cam.near = cn; cam.far = cf; cam.updateProjectionMatrix(); }
     const f = this.scene.fog, fb = this.fogBase || { near: 34, far: 80 };
     if (px) { const off = d - 13 * (this.distScale0 || 1); f.near = fb.near + off; f.far = fb.far + off; }
     else { f.near = fb.near; f.far = fb.far; }
@@ -1189,7 +1193,8 @@ export class Renderer3D {
     this.updatePets(simDt);
     this.scene.updateMatrixWorld();
     this.pxTint();
-    this.px.update(dt);                       // v0.17: วาดสไปรต์พิกเซลของทุกตัวที่ถึงรอบ
+    this.px.setFocus(focus);
+    this.px.update(dt);                       // v0.24: ผู้เล่นได้ลำดับวาดก่อนและอนิเมชั่น 30 fps
     // v0.9: สวมแฟชั่นระดับล้ำค่าขึ้นไป → ตัวผู้เล่นและอนุภาคแฟชั่นเข้ารอบแสงเรือง (เฉพาะโหมดกราฟิกที่เปิดแสงเรือง)
     const busy = this.fx.busy();
     const glowOn = !!glowC && this.post.enabled && this.post.bloom;

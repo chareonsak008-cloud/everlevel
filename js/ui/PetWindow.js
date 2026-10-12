@@ -4,6 +4,7 @@ import { ITEMS } from '../data/items.js';
 import { iconURL } from '../render/ItemIcons.js';
 import { petThumb } from '../render/PetThumbs.js';
 import { PET_FILTERS } from '../systems/PetSystem.js';
+import { PICK_CATS, PICK_RANKS } from '../systems/PetPick.js';
 
 const EGGS = ['egg_spot', 'egg_moon', 'egg_galaxy'];
 
@@ -19,7 +20,41 @@ export class PetWindow {
     for (const ev of ['pointerdown', 'wheel', 'contextmenu']) this.el.addEventListener(ev, (e) => e.stopPropagation());
     const f = this.$('petFilter');
     for (const [k, label] of PET_FILTERS) { const o = document.createElement('option'); o.value = k; o.textContent = label; f.append(o); }
-    f.addEventListener('change', () => this.act.filter(f.value));
+    f.addEventListener('change', () => { this.act.filter(f.value); this.renderPick(); });
+    // v0.24.1: ตั้งค่าการเก็บของแบบละเอียด
+    const foot = this.el.querySelector('.pet-foot');
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'ghost pet-pick-btn'; btn.textContent = '⚙ ตั้งค่าการเก็บของ';
+    foot.prepend(btn);
+    const pk = this.pickEl = document.createElement('section'); pk.className = 'pet-pick'; pk.hidden = true;
+    foot.before(pk);
+    btn.addEventListener('click', () => { pk.hidden = !pk.hidden; btn.setAttribute('aria-expanded', String(!pk.hidden)); this.renderPick(); });
+    pk.addEventListener('change', (e) => {
+      const t = e.target, P = this.p.pets.pick;
+      if (t.dataset.cat) P[t.dataset.cat] = t.checked;
+      else if (t.dataset.k === 'min') P.min = +t.value;
+      else if (t.dataset.k === 'usableAny') P.usableAny = t.checked;
+      this.act.pick();
+    });
+    pk.addEventListener('click', (e) => {
+      const c = e.target.closest('[data-skip]'); if (!c) return;
+      const P = this.p.pets.pick, id = c.dataset.skip, i = P.skip.indexOf(id);
+      if (i >= 0) P.skip.splice(i, 1); else if (P.skip.length < 60) P.skip.push(id);
+      this.act.pick(); this.renderPick();
+    });
+  }
+
+  // แผงตั้งค่าการเก็บของ: หมวด · ระดับขั้นต่ำ · ไอเทมที่ไม่เก็บ (แตะของที่เพิ่งตกบนพื้นเพื่อสลับ)
+  renderPick() {
+    const pk = this.pickEl; if (!pk || pk.hidden) return;
+    const P = this.p.pets.pick, seen = this.act.seenDrops ? this.act.seenDrops() : [];
+    const ids = [...new Set([...P.skip, ...seen])].filter((id) => ITEMS[id]).slice(0, 40);
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    pk.innerHTML = `<h3>สัตว์เลี้ยงจะเก็บ</h3>
+      <div class="pp-cats">${PICK_CATS.map(([k, n]) => `<label><input type="checkbox" data-cat="${k}"${P[k] ? ' checked' : ''}> ${n}</label>`).join('')}</div>
+      <label class="pp-row">ระดับขั้นต่ำ <select data-k="min">${PICK_RANKS.map(([v, n]) => `<option value="${v}"${P.min === v ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label class="pp-row"><input type="checkbox" data-k="usableAny"${P.usableAny ? ' checked' : ''}> เก็บยา/ของใช้ทุกระดับ (ไม่สนระดับขั้นต่ำ)</label>
+      <h3>ไม่เก็บไอเทมเหล่านี้ <small>แตะเพื่อสลับ · มีขีดฆ่า = ไม่เก็บ</small></h3>
+      <div class="pp-items">${ids.length ? ids.map((id) => `<button type="button" class="pp-item${P.skip.includes(id) ? ' off' : ''}" data-skip="${id}" title="${esc(ITEMS[id].name)}"><img alt="" src="${iconURL(id)}"><span>${esc(ITEMS[id].name)}</span></button>`).join('') : '<small class="pp-empty">ยังไม่มีของตกบนพื้น — ออกไปล่ามอนแล้วกลับมาเลือกได้</small>'}</div>`;
   }
 
   toggle(force) {
@@ -36,6 +71,7 @@ export class PetWindow {
     const P = this.p.pets, owned = Object.keys(P.owned).length;
     this.$('petSub').textContent = `ได้มาแล้ว ${owned} / ${PET_ORDER.length} ตัว · ${P.active ? `ออกมาอยู่: ${PETS[P.active].name}` : 'ยังไม่ได้เรียกตัวไหนออกมา'}`;
     this.$('petFilter').value = P.filter;
+    this.renderPick();
 
     // ไข่ในกระเป๋า
     const eggs = EGGS.filter((e) => this.p.inventory.count(e) > 0);

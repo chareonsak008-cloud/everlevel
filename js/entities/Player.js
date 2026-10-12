@@ -14,6 +14,7 @@ import { COSTUME_BY_ID } from '../data/costumes.js';
 import { CONSUMABLES } from '../data/consumables.js';
 import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js';
 import { normAuto } from '../systems/AutoHunt.js';
+import { normPick } from '../systems/PetPick.js';
 import { normCol } from '../systems/Collection.js';
 import { ACH_BY_ID } from '../data/collection.js';
 import { normMail } from '../data/mail.js';
@@ -78,7 +79,7 @@ export class Player extends Entity {
     this.skills = { first_aid: 1 };   // id → เลเวล
     this.buffs = [];                  // { id, lv, left, total, bonus }
     this.itemBuffs = {};              // v0.13: บัฟจากไอเทม group → { id, left }
-    this.pets = { owned: {}, active: null, filter: 'all' };   // v0.13: สัตว์เลี้ยง id → ดาว
+    this.pets = { owned: {}, active: null, filter: 'all', pick: normPick() };   // v0.24.1: pick = ตั้งค่าการเก็บของละเอียด   // v0.13: สัตว์เลี้ยง id → ดาว
     this.bagUps = 0;                  // v0.13: ใช้กระเป๋าขยายไปแล้วกี่ใบ
     this.visited = new Set(['asteria_town']);   // v0.13: แผนที่ที่เคยไป (ใบวาร์ปเลือกแผนที่)
     this.auto = normAuto();           // v0.14: ตั้งค่าตีมอนออโต้ (แยกตามตัวละคร)
@@ -562,7 +563,7 @@ export class Player extends Entity {
       appearance: { ...this.appearance },
       // v0.13
       itemBuffs: Object.fromEntries(Object.entries(this.itemBuffs).map(([g, b]) => [g, { id: b.id, left: Math.max(1, Math.round(b.left)) }])),
-      pets: { owned: { ...this.pets.owned }, active: this.pets.active, filter: this.pets.filter },
+      pets: { owned: { ...this.pets.owned }, active: this.pets.active, filter: this.pets.filter, pick: JSON.parse(JSON.stringify(this.pets.pick)) },
       bagUps: this.bagUps,
       visited: [...this.visited],
       auto: JSON.parse(JSON.stringify(this.auto)),   // v0.14
@@ -606,6 +607,7 @@ export class Player extends Entity {
     }
     const PT = p.pets && typeof p.pets === 'object' ? p.pets : {};
     this.pets = { owned: {}, active: null, filter: ['all', 'skipCommon', 'rare'].includes(PT.filter) ? PT.filter : 'all' };
+    this.pets.pick = normPick(PT.pick, this.pets.filter);   // v0.24.1
     if (PT.owned && typeof PT.owned === 'object') for (const [id, st] of Object.entries(PT.owned)) if (PETS[id]) this.pets.owned[id] = Math.max(0, Math.min(STAR_MAX, Math.floor(st) || 0));
     if (PT.active && this.pets.owned[PT.active] != null) this.pets.active = PT.active;
     if (Array.isArray(p.inventory)) { this.inventory.capacity = 999; this.inventory.fromSave(p.inventory); }

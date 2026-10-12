@@ -101,11 +101,11 @@ export const ASTERIA_TOWN = {
       'ของที่ยังไม่ใช้ฝากไว้กับเอลซ่าได้ ส่วนเซเลสวาร์ปพาไปไกล ๆ ในทุ่งได้',
       'ถึง Job Lv.10 แล้วอัปสกิลทักษะพื้นฐานให้ครบ Lv.9 (กด K) จากนั้นไปหาออเรลทางเหนือของลานนี้เพื่อเปลี่ยนอาชีพ'
     ] },
-    { id: 'toben', name: 'โทเบน', title: 'ร้านของใช้', x: 41, y: 14, dir: 'down', look: LOOK.toben,
+    { id: 'toben', name: 'โทเบน', title: 'ร้านของใช้', x: 41, y: 15, dir: 'down', look: LOOK.toben,
       service: { type: 'shop', shop: 'tools' },
       greet: 'ยินดีต้อนรับ! ยาและสมุนไพรสดใหม่ทุกวัน ของที่เก็บมาจากทุ่งก็เอามาขายให้ข้าได้นะ',
       lines: ['เก็บเงินไว้ดี ๆ ล่ะ ของดีราคาไม่ถูกนะ'] },
-    { id: 'garth', name: 'การ์ธ', title: 'ช่างตีเหล็ก', x: 37, y: 14, dir: 'down', look: LOOK.garth,
+    { id: 'garth', name: 'การ์ธ', title: 'ช่างตีเหล็ก', x: 37, y: 15, dir: 'down', look: LOOK.garth,
       service: { type: 'shop', shop: 'arms', refine: true },
       greet: 'อาวุธกับชุดเกราะฝีมือข้า รับรองว่าทนทาน! จะซื้อของ หรือให้ข้าตีบวกอุปกรณ์ให้ก็ได้',
       lines: ['ดาบดีต้องตีด้วยใจ'] },
@@ -126,11 +126,11 @@ export const ASTERIA_TOWN = {
       'เควสที่เลเวลยังไม่ถึงจะยังไม่แสดงนะคะ ฝึกเพิ่มอีกนิดแล้วกลับมาค่ะ',
       'วันนี้ทำเควสครบแล้วเหรอคะ? เก่งมากเลย พรุ่งนี้มาใหม่นะคะ',
     ] },
-    { id: 'rowan', name: 'โรวัน', title: 'ทหารยาม', x: 58, y: 21, dir: 'left', look: LOOK.guard, lines: [
+    { id: 'rowan', name: 'โรวัน', title: 'ทหารยาม', x: 57, y: 22, dir: 'left', look: LOOK.guard, lines: [
       'นอกกำแพงมีมอนสเตอร์ ระวังตัวด้วย',
       'ถ้าหมดสติในทุ่ง เจ้าจะฟื้นที่ลานน้ำพุนี่แหละ',
     ] },
-    { id: 'brann', name: 'แบรนน์', title: 'ทหารยาม', x: 58, y: 26, dir: 'left', look: LOOK.guard, lines: [
+    { id: 'brann', name: 'แบรนน์', title: 'ทหารยาม', x: 57, y: 25, dir: 'left', look: LOOK.guard, lines: [
       'ข้าเฝ้าประตูนี้มาสิบปีแล้ว',
     ] },
     { id: 'pip', name: 'พิป', title: 'เด็กชาวเมือง', x: 15, y: 39, dir: 'left', look: LOOK.pip, lines: [

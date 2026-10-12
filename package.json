@@ -1,10 +1,10 @@
 {
   "name": "everlevel",
-  "version": "0.23.0",
+  "version": "0.24.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/test-events.mjs && node tests/test-rates.mjs && node tests/kill-chain.mjs"
+    "test": "node tests/test-events.mjs && node tests/test-rates.mjs && node tests/kill-chain.mjs && node tests/test-fashion.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "0.1.100"
