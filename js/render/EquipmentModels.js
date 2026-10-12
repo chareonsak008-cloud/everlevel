@@ -97,7 +97,7 @@ export function makeEquipmentModel(d){
    const radius=(xb?.2:long?.44:.32)+r*.008;
    const limbM=sh==='crescent'||sh==='eclipse'?toon('#2a1a30'):sh==='antler'?toon('#e8f6ff',{emissive:'#9ae8ff',emissiveIntensity:.2}):toon(mainHex);
    const bow=add(new THREE.TorusGeometry(radius,xb?.02:.02+r*.002,4,18,Math.PI*(xb?.9:4/3)),limbM);
-   if(xb){bow.rotation.set(Math.PI/2,0,Math.PI*.05);bow.position.set(0,.06,.25);const st=box(.05,.06,.5,toon(sh==='plank'?'#a8794a':(d.c2||'#4a3a2a')),0,0,.0);if(sh==='cog')for(const z of [-.05,.08])ring(.035,.012,.035,0,z,toon('#c8a860')).rotation.y=Math.PI/2;}
+   if(xb){bow.geometry.dispose();bow.geometry=new THREE.TorusGeometry(.3,.022,4,12,Math.PI*.55);bow.rotation.set(Math.PI/2,0,Math.PI/2-Math.PI*.275);bow.position.set(0,.05,0);const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-.22,.05,.2),new THREE.Vector3(0,.05,.06),new THREE.Vector3(.22,.05,.2)]),new THREE.LineBasicMaterial({color:'#f4e4bd'}));g.add(ln);const st=box(.05,.06,.5,toon(sh==='plank'?'#a8794a':(d.c2||'#4a3a2a')),0,0,.0);if(sh==='cog')for(const z of [-.05,.08])ring(.035,.012,.035,0,z,toon('#c8a860')).rotation.y=Math.PI/2;}
    else{bow.rotation.z=-Math.PI*2/3;
     const chord=-radius*.5;
     const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(chord,-radius*.866,0),new THREE.Vector3(chord,radius*.866,0)]),new THREE.LineBasicMaterial({color:r>=5||sh==='eclipse'?(d.glow||'#ff3a5a'):'#f4e4bd'}));g.add(line);
@@ -162,10 +162,29 @@ export function mountEquipment(view,designs){
  for(const [slot,d] of Object.entries(designs||{})){
   const g=makeEquipmentModel(d);models.push(g);
   if(slot==='weapon'){
-   const bow=d.type==='bow';view.hands[bow?1:0].add(g);
-   if(bow){g.position.set(.02,0,.04);g.rotation.y=-Math.PI/2;view.arms[1].userData.holding=true;}
-   else if(d.type==='staff'){g.position.set(-.015,0,.02);g.rotation.set(-.05,0,.25);}
-   else if(d.type!=='knife')g.rotation.x=.55;
+   // v0.25.1: ท่าถือตามประเภทอาวุธ — โมเดลอยู่ในกลุ่ม M ที่ท่าทาง (Characters.update) หมุนได้ต่อเฟรม
+   const f=d.form||({sword:'sword_1h',knife:'knife',staff:'staff',mace:'mace',bow:'shortbow'})[d.type]||'sword_1h';
+   const grip={sword_2h:'two',spear:'spear',staff:'staff',rod:'staff',orb:'orb',book:'book',shortbow:'bow',longbow:'bow',crossbow:'xbow'}[f]||'one';
+   const M=new THREE.Group();M.add(g);
+   if(grip==='bow'){
+    view.hands[1].add(M);view.arms[1].userData.holding=true;
+    // แกนโมเดลธนู: กิ่งตาม y · ท้องคันตาม +x → ในมือซ้าย: กิ่งชี้ขึ้น (z ของมือเมื่อเหยียดแขน) ท้องคันชี้ไปหน้า (−y ของมือ)
+    const B=new THREE.Group();M.remove(g);M.add(B);B.add(g);view.wInner=B;
+    view.bowQ=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0,-1,0),new THREE.Vector3(0,0,1),new THREE.Vector3(-1,0,0)));
+    const radius=(f==='longbow'?.44:.32)+(d.rank||0)*.008;g.position.set(-radius,0,0);
+    // ลูกศรในมือขวา (ชี้ตามแนวแขน)
+    const A=new THREE.Group(),sm=toon('#c8a878'),hm=toon('#e8edf2'),fm=toon(d.glow||'#ffffff');
+    const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,.62,5),sm);shaft.position.y=-.2;A.add(shaft);
+    const head=new THREE.Mesh(new THREE.ConeGeometry(.022,.07,4),hm);head.position.y=-.54;head.rotation.x=Math.PI;A.add(head);
+    for(const r2 of [0,Math.PI/2]){const fl=new THREE.Mesh(new THREE.BoxGeometry(.04,.08,.004),fm);fl.position.y=.07;fl.rotation.y=r2;A.add(fl);}
+    view.hands[0].add(A);view.arrow=A;
+   }else if(grip==='xbow'){view.hands[0].add(M);view.arms[1].userData.holding=true;g.position.set(0,.02,-.06);g.scale.setScalar(1.3);}
+   else{view.hands[0].add(M);
+    if(grip==='two'){g.position.z=-.12;view.arms[1].userData.holding=true;}
+    if(grip==='book'||grip==='spear')view.arms[1].userData.holding=true;
+    if(grip==='book'){g.rotation.set(0,0,0);g.position.set(0,-.06,.02);}
+   }
+   view.wMount=M;view.grip=grip;
   }else if(slot==='shield'){view.armInner[1].add(g);g.position.set(.07,-.25,.03);g.rotation.y=Math.PI/2-.25;}
   else if(slot==='head')view.head.add(g);
   else if(slot==='shoes'){view.legInner[0].add(g);const other=makeEquipmentModel(d);view.legInner[1].add(other);models.push(other);}

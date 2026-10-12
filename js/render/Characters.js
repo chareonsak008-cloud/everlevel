@@ -455,6 +455,76 @@ export class CharacterView {
   }
 
   attack(kind = 'melee') { this.attackT = 0.34; this.attackKind = kind; }
+
+  // v0.25.1: ท่าถืออาวุธตามประเภท — p = ความคืบหน้าท่าโจมตี (0..1) หรือ −1 เมื่อไม่ได้โจมตี
+  gripPose(p, casting, wb, swing) {
+    const [R, Lf] = this.arms, M = this.wMount, g = this.grip, t = this.time;
+    const ease = (x) => 1 - (1 - x) * (1 - x), lerp = (a, b, k) => a + (b - a) * k;
+    const sw = swing * 0.35;   // แขนแกว่งน้อยลงเมื่อถืออาวุธ
+    M.position.set(0, 0, 0); M.rotation.set(0, 0, 0);
+    if (this.arrow) this.arrow.visible = true;
+    const kind = this.attackKind;
+    if (g === 'one') {
+      R.rotation.x = -0.45 - sw; R.rotation.z = -0.2; M.rotation.x = p >= 0 ? -0.6 : -0.95; M.rotation.y = p >= 0 ? 0 : -0.4;
+      if (p >= 0 && kind !== 'cast') {
+        if (p < 0.35) { const k = ease(p / 0.35); R.rotation.x = lerp(-0.45, -2.7, k); M.rotation.x = -0.75; }
+        else { const k = ease((p - 0.35) / 0.65); R.rotation.x = lerp(-2.7, 0.15, k); M.rotation.x = lerp(-0.75, 0.35, k); R.rotation.z = -0.14 - 0.3 * Math.sin(k * Math.PI); }
+      } else if (casting || (p >= 0 && kind === 'cast')) { R.rotation.x = -1.6; M.rotation.x = -0.2; }
+    } else if (g === 'two') {
+      // ยืน/เดิน: พาดดาบใหญ่ไว้บนบ่าขวา สองมือจับด้าม
+      R.rotation.x = -0.95 - sw * 0.4; R.rotation.z = 0.22; Lf.rotation.x = -0.8 - sw * 0.4; Lf.rotation.z = -0.5;
+      M.rotation.x = -1.85; M.rotation.y = 0.25;
+      if (p >= 0) {
+        let a;
+        M.rotation.y = 0;
+        if (p < 0.4) { const k = ease(p / 0.4); a = lerp(-0.95, -2.75, k); M.rotation.x = lerp(-1.85, -0.85, k); }
+        else { const k = ease((p - 0.4) / 0.6); a = lerp(-2.75, -0.15, k); M.rotation.x = lerp(-0.85, 0.2, k); this.torso.rotation.x += 0.18 * Math.sin(k * Math.PI); }
+        R.rotation.x = a; Lf.rotation.x = a + 0.03;
+      }
+    } else if (g === 'spear') {
+      R.rotation.x = -0.32 - sw; R.rotation.z = -0.12; M.rotation.x = -1.22;
+      if (p >= 0) {
+        Lf.rotation.x = -1.0; Lf.rotation.z = -0.35;
+        if (p < 0.35) { const k = ease(p / 0.35); R.rotation.x = lerp(-0.32, -0.75, k); M.rotation.x = lerp(-1.22, 0.75, k); M.position.z = -0.12 * k; }
+        else { const k = (p - 0.35) / 0.65, th = Math.sin(Math.min(1, k * 1.6) * Math.PI * 0.5) * (k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3 * 0.6);
+          R.rotation.x = lerp(-0.75, -1.45, th); M.rotation.x = lerp(0.75, 1.45, th); M.position.z = lerp(-0.12, 0.18, th); this.torso.rotation.y = -0.25 * th; }
+      }
+    } else if (g === 'staff') {
+      R.rotation.x = -0.28 - sw; R.rotation.z = -0.16; M.rotation.x = 0.28 + sw; M.rotation.z = 0.08;
+      if (casting || (p >= 0 && kind === 'cast')) {
+        const k = p >= 0 ? Math.sin(p * Math.PI) : 0.6 + Math.sin(t * 6) * 0.05;
+        R.rotation.x = -1.2 - 0.6 * k; M.rotation.x = 0.55 + 0.3 * k; Lf.rotation.x = -1.1 - 0.4 * k; Lf.rotation.z = 0.3;
+      } else if (p >= 0) {
+        const k = p < 0.4 ? ease(p / 0.4) : 1 - ease((p - 0.4) / 0.6);
+        R.rotation.x = lerp(-0.28, -1.9, k); M.rotation.x = lerp(0.28, 1.2, k);
+      }
+    } else if (g === 'orb') {
+      R.rotation.x = -0.8 - sw * 0.3; R.rotation.z = -0.38; M.rotation.x = 0.8 + sw * 0.3; M.rotation.z = 0.38; M.position.y = -0.2 + Math.sin(t * 2.2) * 0.03;
+      if (casting || p >= 0) { const k = p >= 0 ? Math.sin(p * Math.PI) : 0.7; R.rotation.x = -1.3 - 0.4 * k; M.rotation.x = 1.3 + 0.4 * k; M.position.y = -0.14 + k * 0.08; Lf.rotation.x = -1.2; Lf.rotation.z = 0.35; }
+    } else if (g === 'book') {
+      R.rotation.x = -0.95 - sw * 0.3; R.rotation.z = 0.32; M.rotation.x = -0.3; M.rotation.y = -0.35;
+      Lf.rotation.x = -0.85 - sw * 0.3; Lf.rotation.z = -0.38;
+      if (casting || p >= 0) { const k = p >= 0 ? Math.sin(p * Math.PI) : 0.7; R.rotation.x = -1.3 - 0.3 * k; M.rotation.x = -0.6 - 0.2 * k; Lf.rotation.x = -1.6 - 0.6 * k; Lf.rotation.z = 0.4; }
+    } else if (g === 'bow') {
+      // มือซ้ายถือคันธนู · มือขวาถือลูกศร → ง้างยิง
+      Lf.rotation.x = -0.35 - sw * 0.3; Lf.rotation.z = 0.12; R.rotation.x = -0.2 - sw; R.rotation.z = -0.18;
+      if (p >= 0) {
+        const up = ease(Math.min(1, p / 0.35)), rel = p > 0.72 ? (p - 0.72) / 0.28 : 0;
+        Lf.rotation.x = lerp(-0.35, -1.52, up); Lf.rotation.z = lerp(0.12, -0.05, up);
+        R.rotation.x = lerp(-0.2, -1.42, up); R.rotation.z = lerp(-0.18, 0.62, up) - 0.35 * rel;
+        this.torso.rotation.y = -0.5 * up * (1 - rel * 0.5);
+        if (this.arrow) this.arrow.visible = rel === 0;
+      }
+      if (this.wInner && this.bowQ) { const k = p >= 0 ? ease(Math.min(1, p / 0.35)) : 0; this.wInner.quaternion.identity().slerp(this.bowQ, k); }
+    } else if (g === 'xbow') {
+      R.rotation.x = -0.62 - sw * 0.3; R.rotation.z = 0.12; M.rotation.x = 0.62 + sw * 0.3; Lf.rotation.x = -0.6 - sw * 0.3; Lf.rotation.z = -0.42;
+      if (p >= 0) {
+        const up = ease(Math.min(1, p / 0.3)), kick = p > 0.6 ? Math.sin((p - 0.6) / 0.4 * Math.PI) : 0;
+        R.rotation.x = lerp(-0.62, -1.35, up) + 0.18 * kick; M.rotation.x = lerp(0.62, 1.35, up) - 0.1 * kick; Lf.rotation.x = lerp(-0.6, -1.3, up) + 0.15 * kick;
+        this.torso.rotation.y = -0.15 * up;
+      }
+    }
+  }
   hurt() { this.hurtT = 0.25; }
 
   // อัปเดตท่าทางทุกเฟรม: moving/speedFactor มาจาก Entity
@@ -495,6 +565,7 @@ export class CharacterView {
 
     // ท่าร่ายเวทย์ค้างไว้ระหว่างร่าย
     const casting = (!!entity.cast || !!entity.castPose) && !entity.dead;
+    const wasAtk = this.attackT > 0;
     if (casting && this.attackT <= 0) {
       const w = Math.sin(this.time * 6) * 0.08;
       this.arms[0].rotation.x = -1.35 + w; this.arms[1].rotation.x = -1.2 - w;
@@ -524,6 +595,7 @@ export class CharacterView {
       this.torso.rotation.y = Math.sin(p * Math.PI) * 0.35;
       this.arms[1].rotation.x = 0.4 * Math.sin(p * Math.PI);
     } else this.torso.rotation.y *= 1 - damp(12, dt);
+    if (this.grip && this.wMount) this.gripPose(wasAtk ? 1 - this.attackT / 0.34 : -1, casting, wb, swing);
     // โดนตี: สั่น + หลับตาปี๋
     if (this.hurtT > 0) {
       this.hurtT = Math.max(0, this.hurtT - dt);

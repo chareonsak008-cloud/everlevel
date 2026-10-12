@@ -11,10 +11,11 @@ export const PX_LAYER = 1;
 export const PIXEL = { on: true };            // โหมดภาพพิกเซล (ตั้งค่า → กราฟิก) · ใช้กับรูปย่อในหน้าต่างด้วย
 const SNAPS = new WeakMap();
 export const PX = 1 / 48;                     // หน่วยโลกต่อ 1 พิกเซลของสไปรต์ (ตัวละครสูง ~85 พิกเซล) · 1 ช่องแผนที่ = 48 พิกเซลพอดี
-const SCRATCH = 256;                          // ขนาดภาพทดสอบชั่วคราว (สไปรต์ใหญ่สุด)
+const SCRATCH = 320;   // v0.25.1: เผื่อปีก/อาวุธใหญ่ (เดิม 256)                          // ขนาดภาพทดสอบชั่วคราว (สไปรต์ใหญ่สุด)
 const PITCH = 20 * Math.PI / 180;             // มุมก้มของ "ช่างวาด" (คงที่ทุกแผนที่) — มองค่อนข้างตรงแบบสไปรต์เกม
 const RANGE = 24;                             // ระยะความลึกที่เก็บ (หน่วยโลก)
 const STEP = 1 / 12;                          // แอนิเมชันแบบเฟรมพิกเซล 12 เฟรม/วินาที
+const FOCUS_STEP = 1 / 30;                    // ตัวผู้เล่น: ปีก/ผ้าคลุมและการเดินลื่นขึ้น โดยคงงบวาดรวมเดิม
 const DIR = Math.PI / 4;
 
 const ND_VS = `varying vec3 vN; varying float vZ;
@@ -263,11 +264,22 @@ export class PixelSprites {
 
   // ขนาดภาพ: ประมาณจากกล่องรอบโมเดล (ท่ายืน) แล้วปัดขึ้นเป็นทวีคูณ 8
   measure(root, kind) {
-    if (kind === 'char' || kind === 'npc' || kind === 'remote') return { w: 176, h: 184, ax: 88, ay: 156 };
+    const char = kind === 'char' || kind === 'npc' || kind === 'remote';
     const box = new THREE.Box3();
     root.updateMatrixWorld(true);
     const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), b = new THREE.Box3();
-    root.traverse((o) => { if (o.isMesh && o.geometry && !o.userData.outline && o.visible) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); b.copy(o.geometry.boundingBox).applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld)); box.union(b); } });
+    root.traverse((o) => { if (o.isMesh && o.geometry && !o.userData.outline && !o.userData.npc && !o.userData.actor && o.visible && !(o.material && o.material.visible === false)) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); b.copy(o.geometry.boundingBox).applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld)); box.union(b); } });
+    if (char) {   // v0.25.1: ตัวละครใส่ปีก/อาวุธใหญ่ → ขยายกรอบสไปรต์ตามขนาดจริง (กันปีกโดนตัดครึ่ง) · อย่างน้อยเท่ากรอบเดิม
+      if (box.isEmpty()) return { w: 176, h: 184, ax: 88, ay: 156 };
+      const k = root.getWorldScale(new THREE.Vector3()).x || 1;
+      box.min.multiplyScalar(k); box.max.multiplyScalar(k);
+      const rad = Math.max(Math.abs(box.min.x), Math.abs(box.max.x), Math.abs(box.min.z), Math.abs(box.max.z)) * 1.08;   // เผื่อปีกกระพือ
+      const half = Math.max(88, Math.ceil((rad + 0.3) / PX));
+      const above = Math.max(156, Math.ceil((box.max.y * Math.cos(PITCH) + rad * Math.sin(PITCH) + 0.5) / PX));
+      const below = Math.max(28, Math.ceil((rad * Math.sin(PITCH) + 0.3) / PX));
+      const w = Math.min(SCRATCH, Math.ceil(half * 2 / 8) * 8), h = Math.min(SCRATCH, Math.ceil((above + below) / 8) * 8);
+      return { w, h, ax: w / 2, ay: Math.min(h - 8, above) };
+    }
     if (box.isEmpty()) return { w: 64, h: 64, ax: 32, ay: 52 };
     const rad = Math.max(Math.abs(box.min.x), Math.abs(box.max.x), Math.abs(box.min.z), Math.abs(box.max.z));
     const up = box.max.y * Math.cos(PITCH) + rad * Math.sin(PITCH);
@@ -363,10 +375,11 @@ export class PixelSprites {
       const rel = s.root.rotation.y - yaw;
       const dir = Math.round(rel / DIR);
       if (dir !== s.lastDir || Math.abs(yaw - (s.lastYaw ?? 99)) > 0.02) s.dirty = true;
-      if (s.dirty || s.t >= STEP) due.push(s);
+      s.interval = s.key === this.focus ? FOCUS_STEP : STEP;
+      if (s.dirty || s.t >= s.interval) due.push(s);
     }
     if (!due.length) return;
-    due.sort((a, b) => (b.dirty - a.dirty) || (b.t - a.t));
+    due.sort((a, b) => ((b.key === this.focus) - (a.key === this.focus)) || (b.dirty - a.dirty) || (b.t - a.t));
     const prevRT = r.getRenderTarget(), prevClear = r.getClearColor(new THREE.Color()), prevAlpha = r.getClearAlpha(), prevAuto = r.autoClear;
     const prevTone = r.toneMapping, prevEnc = r.outputEncoding, prevShadow = r.shadowMap.autoUpdate;
     r.toneMapping = THREE.NoToneMapping; r.autoClear = false; r.shadowMap.autoUpdate = false;
@@ -375,7 +388,7 @@ export class PixelSprites {
     for (const s of due) {
       if (n++ >= this.budget) break;
       this.draw(s, yaw);
-      s.t = s.t % STEP; s.dirty = false;
+      s.t = s.t % s.interval; s.dirty = false;
     }
     r.setRenderTarget(prevRT); r.setClearColor(prevClear, prevAlpha); r.autoClear = prevAuto;
     r.toneMapping = prevTone; r.outputEncoding = prevEnc; r.shadowMap.autoUpdate = prevShadow;
