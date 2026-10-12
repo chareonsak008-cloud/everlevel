@@ -42,13 +42,13 @@ export function refineCheck(player, ref, guard = false) {
 export function doRefine(player, ref, guard = false, rnd = Math.random) {
   const chk = refineCheck(player, ref, guard);
   if (!chk.ok) return { error: chk.reason };
-  const { base, refine, cards } = itemMods(ref.key);
+  const { base, refine, cards, roll } = itemMods(ref.key);
   player.inventory.remove(chk.mat, 1);
   player.spendZeny(chk.fee);
   if (chk.useGuard) player.inventory.remove('refine_guard', 1);
   const result = rollRefine(chk.target, chk.useGuard, rnd);
   const to = result === 'success' ? chk.target : result === 'down' ? Math.max(0, refine - 1) : result === 'none' ? refine : -1;
-  const newKey = to < 0 ? null : itemKey(base, to, cards);
+  const newKey = to < 0 ? null : itemKey(base, to, cards, roll);   // v0.25: เก็บค่าสุ่มไว้
   replaceGear(player, ref, newKey);
   return { result, oldKey: ref.key, newKey, from: refine, to, guarded: chk.useGuard };
 }
@@ -76,12 +76,12 @@ export function doSocket(player, ref, cardId) {
   const c = CARDS[cardId], it = ITEMS[ref.key];
   if (!c || !it) return { error: 'ไม่พบการ์ดหรืออุปกรณ์' };
   if (player.inventory.count(cardId) < 1) return { error: 'ไม่มีการ์ดใบนี้' };
-  const { base, refine, cards } = itemMods(ref.key);
+  const { base, refine, cards, roll } = itemMods(ref.key);
   if (it.slot !== c.on) return { error: `การ์ดใบนี้ใส่ได้เฉพาะ${c.on}` };
   if (cards.length >= (it.slots || 0)) return { error: 'อุปกรณ์ชิ้นนี้ไม่มีช่องการ์ดว่าง' };
   if (ref.where === 'bag' && player.inventory.count(ref.key) > 1 && player.inventory.stacks.length >= player.inventory.capacity && player.inventory.count(cardId) > 1) return { error: 'กระเป๋าเต็ม ต้องมีช่องว่าง 1 ช่อง' };
   player.inventory.remove(cardId, 1);
-  const newKey = itemKey(base, refine, [...cards, cardId]);
+  const newKey = itemKey(base, refine, [...cards, cardId], roll);
   const oldKey = ref.key;
   replaceGear(player, ref, newKey);
   return { oldKey, newKey };

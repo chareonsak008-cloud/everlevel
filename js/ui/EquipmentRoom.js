@@ -3,6 +3,7 @@ import {CharacterView} from '../render/Characters.js';
 import {BASE_ITEMS,RARITY} from '../data/items.js';
 import {equipmentDesign,DESIGN_THEMES,DESIGN_GRADES} from '../data/equipmentDesigns.js';
 import {PLAYER_LOOK,JOB_LOOK} from '../entities/Player.js';
+import {iconURL} from '../render/ItemIcons.js';
 const $=id=>document.getElementById(id),levels=[1,15,30,50,70,85,95],weapons={swordsman:'sword',mage:'staff',archer:'bow',acolyte:'mace'};
 levels.forEach((lv,i)=>$('level').add(new Option('Lv.'+lv+' · '+DESIGN_THEMES[i].name,String(lv))));
 DESIGN_GRADES.forEach((gr,i)=>$('grade').add(new Option(['ขาว','เขียว','ฟ้า','ม่วง','ส้ม','ทอง','แดง'][i]+' · '+RARITY[gr].name,gr)));
@@ -27,7 +28,7 @@ for(const id of ['job','level','grade','variant'])$(id).onchange=build;
 const entries=Object.entries(BASE_ITEMS).filter(([,it])=>it.type==='equip');let chosen={};
 function list(){const filter=$('filter').value;$('catalogue').replaceChildren();for(const [id,it] of entries.filter(([,it])=>filter==='all'||it.slot===filter)){
  const b=document.createElement('button');b.className='item';b.style.setProperty('--grade',RARITY[it.rarity||'common'].color);
- const img=document.createElement('img');img.src='assets/equipment/'+id+'.png';img.alt=it.name;img.loading='lazy';
+ const img=document.createElement('img');img.src=iconURL(id);img.alt=it.name;img.loading='lazy';
  const title=document.createElement('strong');title.textContent=it.name;const info=document.createElement('small');info.textContent='Lv.'+(it.reqLevel||1)+' · '+RARITY[it.rarity||'common'].name;
  b.append(img,title,info);b.onclick=()=>{if(it.wtype){$('job').value=it.wtype==='bow'?'archer':it.wtype==='staff'?'mage':it.wtype==='mace'?'acolyte':'swordsman';}chosen[it.slot]=equipmentDesign(id,it);show(chosen);$('setName').textContent=it.name;};$('catalogue').append(b);
 }}

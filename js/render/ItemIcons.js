@@ -1,4 +1,4 @@
-import { equipmentPortrait } from './EquipmentPortraits.js';
+import { drawEquipmentIcon } from './EquipmentIcons.js';   // v0.24.2: ไอคอนอุปกรณ์ชุดใหม่ตามอาชีพ/ขั้น/เกรด
 import { drawMonsterCard, onPortraitReady } from './CardPortraits.js';
 // ไอคอนไอเทม วาดด้วย Canvas (ใช้ทั้งในหน้าต่าง UI และของที่ตกบนพื้น)
 import { ITEMS } from '../data/items.js';
@@ -225,8 +225,7 @@ export function iconCanvas(id, size = S) {
   const g = c.getContext('2d');
   if (size !== S) g.scale(size / S, size / S);
   const [kind, color, color2] = (it && it.icon) || ['blob', '#cccccc'];
-  const portrait=it?.type==='equip' && equipmentPortrait(id);
-  if(portrait){g.imageSmoothingEnabled=false;g.drawImage(portrait,0,0,S,S);}
+  if (it?.type === 'equip') drawEquipmentIcon(g, id, it, (gg) => (DRAW[kind] || DRAW.blob)(gg, color, color2, it.tier));
   else if(kind==='card') DRAW.card(g,color,it?.monster,it?.rarity);
   else (DRAW[kind] || DRAW.blob)(g, color, color2, it && it.tier);
   cache.set(key, c);

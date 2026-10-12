@@ -1,5 +1,5 @@
 // กระเป๋าไอเทม: เก็บเป็นกอง (stack) ตามชนิดไอเทม
-import { ITEMS } from '../data/items.js';
+import { ITEMS, rollItem } from '../data/items.js';
 
 export const STACK_MAX = 999;
 
@@ -16,6 +16,8 @@ export class Inventory {
   add(id, qty = 1, force = false) {
     qty = Math.floor(qty);
     if (!ITEMS[id] || !(qty > 0)) return 0;
+    // v0.25: อาวุธที่มีค่าสุ่ม → แต่ละชิ้นสุ่มค่าของตัวเองตอนเข้ากระเป๋า (ไม่ซ้อนกัน)
+    if (ITEMS[id].rolls && !String(id).includes('*')) { let n = 0; for (let i = 0; i < qty; i++) n += this.add(rollItem(id), 1, force); return n; }
     let s = this.stacks.find((x) => x.id === id);
     if (!s) {
       if (!force && this.stacks.length >= this.capacity) return 0;

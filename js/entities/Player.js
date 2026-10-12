@@ -7,6 +7,7 @@ import {
   START_STAT_POINTS, MAX_STAT, STAT_KEYS, JOBS, jobStatBonus, JOB_CHANGE_JOB_LEVEL, FIRST_JOBS,
 } from '../data/progression.js';
 import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js';
+import { setInfo } from '../data/affixes.js';
 import { SKILLS, skillTrees } from '../data/skills.js';
 import { Inventory } from '../systems/Inventory.js';
 import { START_ZENY, MAX_ZENY } from '../data/shops.js';
@@ -137,6 +138,8 @@ export class Player extends Entity {
     }
     for (const b of this.buffs) add(b.bonus);
     add(this.colBonus);   // v0.18: ระบบสะสม
+    const set = setInfo(this.equip.weapon && ITEMS[this.equip.weapon], this.equip);   // v0.25: โบนัสเซ็ตอาวุธแดง
+    if (set) add(set.bonus);
     for (const b of Object.values(this.itemBuffs || {})) {
       const u = CONSUMABLES[b.id] && CONSUMABLES[b.id].use.buff;
       if (u) for (const [k, v] of Object.entries(u)) if (!SPECIAL_BUFF_KEYS.has(k)) bonus[k] = (bonus[k] || 0) + v;
@@ -215,11 +218,12 @@ export class Player extends Entity {
     const d = derive(input);
     this.derived = d;
     this.bonus = input.bonus;
-    this.stats = { atk: d.atk, matk: d.matk, def: d.def, mdef: d.mdef, hit: d.hit, flee: d.flee, crit: d.crit };
+    this.stats = { atk: d.atk, matk: d.matk, def: d.def, mdef: d.mdef, hit: d.hit, flee: d.flee, crit: d.crit, critDmg: 1 + (input.bonus.critDmgPct || 0) / 100 };
     this.aspd = d.delay;
     this.speed = PLAYER_SPEED * (1 + (input.bonus.speedPct || 0) / 100);
     // ธนูยิงได้ไกล 5 ช่อง (+ สกิลสายตาไกล) อาวุธอื่นตีระยะประชิด
-    this.attackRange = this.weaponType === 'bow' ? (5 + (input.bonus.rangeTiles || 0)) * TILE : 24;
+    const w = this.equip.weapon && ITEMS[this.equip.weapon];
+    this.attackRange = this.weaponType === 'bow' ? Math.max(2, 5 + (input.bonus.rangeTiles || 0)) * TILE : 24 + ((w && w.reach) || 0) * TILE;   // v0.25: หอกเอื้อมไกลขึ้น
     this.maxHp = d.maxHp; this.maxSp = d.maxSp;
     this.hp = Math.min(this.hp ?? d.maxHp, d.maxHp);
     this.sp = Math.min(this.sp ?? d.maxSp, d.maxSp);
@@ -319,6 +323,10 @@ export class Player extends Entity {
     if (this.inventory.count(id) <= 0) return 'ไม่มีไอเทมนี้ในกระเป๋า';
     if (it.reqLevel && this.baseLevel < it.reqLevel) return `ต้องการ Base Lv.${it.reqLevel}`;
     if (!canJobUse(it, this.jobId)) return `${this.job} สวมใส่ ${it.name} ไม่ได้`;
+    // v0.25: ดาบสองมือใช้คู่กับโล่ไม่ได้
+    const wNow = this.equip.weapon && ITEMS[this.equip.weapon];
+    if (it.slot === 'shield' && wNow && wNow.twoHand) return `${wNow.name} เป็นอาวุธสองมือ ใส่โล่ไม่ได้`;
+    if (it.slot === 'weapon' && it.twoHand && this.equip.shield) { this.inventory.add(this.equip.shield, 1, true); this.equip.shield = null; }
     const old = this.equip[it.slot];
     this.inventory.remove(id, 1);
     if (old) this.inventory.add(old, 1, true);   // v0.16: สลับของ = ของเก่ากลับเข้ากระเป๋าเสมอ (ไม่หายแม้กระเป๋าเต็ม)

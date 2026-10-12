@@ -1,5 +1,6 @@
 // หน้าต่างกระเป๋า + อุปกรณ์ที่สวมใส่ (เปิดด้วย I หรือ Alt+E)
 import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js';
+import { weaponLines } from './WeaponInfo.js';
 import { refineBonus, canRefine } from '../data/refine.js';
 import { CARDS, cardSlotName } from '../data/cards.js';
 import { socketTargets } from '../systems/Forge.js';
@@ -137,7 +138,11 @@ export class InventoryWindow {
     if (it.effect) lines.push(`<span class="eff-line">${it.effect}${it.dur ? ` · ${fmtDur(it.dur)}` : ''}</span>`);
     // อุปกรณ์: แยกโบนัสฐาน / ตีบวก / การ์ด
     const mods = it.type === 'equip' ? itemMods(id) : null;
-    if (mods && (mods.refine || mods.cards.length)) {
+    if (it.form) {   // v0.25: อาวุธชุดใหม่
+      lines.push(...weaponLines(it, p));
+      if (mods.refine) lines.push(`<span class="ref-line">ตีบวก +${mods.refine}: ${describeBonus(refineBonus(BASE_ITEMS[mods.base], mods.refine))}</span>`);
+      for (const c of mods.cards) lines.push(`<span class="card-line">${ITEMS[c].name}: ${describeBonus(CARDS[c].bonus)}</span>`);
+    } else if (mods && (mods.refine || mods.cards.length)) {
       if (Object.keys(it.baseBonus || {}).length) lines.push(describeBonus(it.baseBonus));
       if (mods.refine) lines.push(`<span class="ref-line">ตีบวก +${mods.refine}: ${describeBonus(refineBonus(BASE_ITEMS[mods.base], mods.refine))}</span>`);
       for (const c of mods.cards) lines.push(`<span class="card-line">${ITEMS[c].name}: ${describeBonus(CARDS[c].bonus)}</span>`);

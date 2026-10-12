@@ -8,7 +8,7 @@ export function rollAttack(att, def, rnd = Math.random) {
   const [lo, hi] = att.atk;
   let dmg = lo + Math.floor(rnd() * (hi - lo + 1));
   const crit = rnd() < (att.crit ?? 0);
-  if (crit) dmg = Math.round(dmg * 1.5);           // คริติคอลทะลุเกราะ
+  if (crit) dmg = Math.round(dmg * 1.5 * (att.critDmg || 1));   // v0.25: CRIT DMG%           // คริติคอลทะลุเกราะ
   else dmg = Math.max(1, dmg - (def.def ?? 0));
   return { miss: false, crit, amount: dmg };
 }

@@ -1,55 +1,117 @@
 import {THREE} from './three.js';
 import {toon,bake} from './Toon.js';
 // Shared geometry for inventory portraits, fitting room, and equipped characters.
+// v0.25: อาวุธ 12 ประเภท แต่ละชิ้นมีทรง (shape) และสีของตัวเอง · ชุดใช้สีของชิ้นนั้น
 export function makeEquipmentModel(d){
- const g=new THREE.Group(),{rank:r,band:b,variant:v,theme:t,type}=d;
+ const g=new THREE.Group(),{rank:r,band:b,variant:v,theme:t,type,form,shape:sh}=d;
  g.userData.equipmentId=d.id;
- const metal=toon(t.metal),dark=toon(t.dark),cloth=toon(t.cloth),gold=toon(r>=4?'#f0cf80':t.metal),gem=toon(t.gem,{emissive:t.gem,emissiveIntensity:r>=4?.55:.15});
- const add=(geo,mat,x=0,y=0,z=0)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
+ const gemHex=r>=6?'#ff4a68':r>=5?'#ffd84a':(d.glow||t.gem);
+ const mainHex=d.c1||t.metal;
+ const metal=r>=5?toon(r>=6?'#ffd0d8':'#fff0c0',{emissive:gemHex,emissiveIntensity:r>=6?.35:.2}):toon(mainHex),dark=toon(d.c2||t.dark),cloth=toon(d.slot==='weapon'?t.cloth:mainHex),gold=toon(r>=4?'#ffd56a':r>=2?'#e2b85a':'#b9a27a'),gem=toon(gemHex,{emissive:gemHex,emissiveIntensity:.15+r*.1});
+ const wood=toon('#8a5a32'),glowM=toon(d.glow||gemHex,{emissive:d.glow||gemHex,emissiveIntensity:.6});
+ const add=(geo,mat,x=0,y=0,z=0,parent=g)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
  const box=(x,y,z,m,px=0,py=0,pz=0)=>add(new THREE.BoxGeometry(x,y,z),m,px,py,pz);
  const stone=(size,x,y,z)=>add(new THREE.OctahedronGeometry(size),gem,x,y,z);
- const ring=(rad,tube,x,y,z)=>add(new THREE.TorusGeometry(rad,tube,4,12),gold,x,y,z);
- const strip=(points,depth,mat)=>{const sh=new THREE.Shape();points.forEach(([x,y],i)=>i?sh.lineTo(x,y):sh.moveTo(x,y));sh.closePath();return add(new THREE.ExtrudeGeometry(sh,{depth,bevelEnabled:false}),mat);};
- if(type==='sword'||type==='knife'){
-  // Forward Z is the existing hand grip axis, so attack animation stays aligned.
-  const len=(type==='knife'?.30:.62)+b*.022+r*.014,w=.028+b*.004+r*.007;
-  const blade=strip([[-w,0],[-w,len*.55],[-w*(1.1+v*.2),len*.74],[0,len],[w*(1.1+v*.2),len*.74],[w,len*.55],[w,0]],.025,metal);
-  blade.rotation.x=Math.PI/2;blade.position.set(0,.013,.09);
-  if(b>=4){const spine=strip([[-w*.65,.16],[-w*1.5,len*.50],[-w*.6,len*.88],[0,len*.72]],.012,gold);spine.rotation.x=Math.PI/2;spine.position.set(0,.025,.09);}
-  if(b>=2){for(const s of [-1,1]){const fin=box(.025,.04,.10,gold,s*(w+.01),0,.22+b*.025);fin.rotation.y=s*.35;}}
-  const guard=box(.13+r*.027,.03,.035,gold,0,0,.07);guard.rotation.y=(v-1)*.15;
-  const grip=add(new THREE.CylinderGeometry(.02,.024,.14,6),dark,0,0,-.02);grip.rotation.x=Math.PI/2;
-  stone(.025+r*.003,0,0,-.105);
-  if(r>=2)stone(.03+r*.003,0,.026,.075);
-  for(let i=0;i<r;i++)box(.012,.012,.025,gem,0,.023,.17+i*.055);
-  if(r>=4)for(const s of [-1,1]){const fin=strip([[0,0],[s*.09,.06],[s*.13,.19],[s*.06,.14]],.025,gold);fin.rotation.x=Math.PI/2;fin.position.set(s*.08,.012,.04);}
- }else if(type==='staff'||type==='mace'){
-  const mace=type==='mace',height=mace?.42:1.14+b*.026;
-  if(mace){const shaft=add(new THREE.CylinderGeometry(.025,.025,.40,6),dark,0,0,.14);shaft.rotation.x=Math.PI/2;}
-  else add(new THREE.CylinderGeometry(.021,.028,height+.18,6),dark,0,height/2-.15,0);
-  const top=mace?new THREE.Group():g;if(mace){g.add(top);top.position.z=.40;}
-  const cy=mace?0:height;
-  if(mace){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.075+b*.007+r*.005),metal);top.add(m);}
-  else {ring(.07+b*.008+r*.009,.016,0,cy,0);stone(.055+r*.007,0,cy,0);}
-  const count=3+Math.min(5,b+r);
-  for(let i=0;i<count;i++){const a=i/count*Math.PI*2,rad=.075+r*.008;
-   const p=new THREE.Mesh(new THREE.ConeGeometry(.016,.10+b*.012+r*.012,4),gold);
-   p.position.set(Math.cos(a)*rad,cy+Math.sin(a)*rad,0);p.rotation.z=a-Math.PI/2;top.add(p);
+ const ring=(rad,tube,x,y,z,m=gold,arc=Math.PI*2)=>add(new THREE.TorusGeometry(rad,tube,4,12,arc),m,x,y,z);
+ const strip=(points,depth,mat)=>{const s2=new THREE.Shape();points.forEach(([x,y],i)=>i?s2.lineTo(x,y):s2.moveTo(x,y));s2.closePath();return add(new THREE.ExtrudeGeometry(s2,{depth,bevelEnabled:false}),mat);};
+ const mirror=pts=>[...pts,...pts.slice().reverse().map(([x,y])=>[-x,y])];
+ const cyl=(r1,r2,h,m,x,y,z,seg=6)=>add(new THREE.CylinderGeometry(r1,r2,h,seg),m,x,y,z);
+ // ด้ามตามแกน Z (ทิศเดียวกับดาบเดิม — ท่าโจมตีไม่เพี้ยน)
+ const shaftZ=(len,rad,m,z0)=>{const c=cyl(rad,rad*1.1,len,m,0,0,z0+len/2);c.rotation.x=Math.PI/2;return c;};
+ const wings=(y,z,size)=>{for(const s of [-1,1]){const w=strip([[0,0],[s*size*.5,size*.3],[s*size,size],[s*size*.35,size*.65]],.015,gold);w.rotation.x=Math.PI/2;w.position.set(s*.03,y,z);}};
+ if(d.slot==='weapon'){
+  const f=form||'sword_1h';
+  if(f==='sword_1h'||f==='sword_2h'||f==='knife'){
+   const two=f==='sword_2h',kn=f==='knife';
+   const len=(kn?.30:two?.86:.62)+b*.016+r*.012,w=(two?.05:.03)+r*.005;
+   const at=k=>len*k;
+   const P={saber:[[w*.4,len],[w*1.3,at(.75)],[w*1.2,at(.4)],[w,0],[-w,0],[-w*.8,at(.45)],[-w*.1,at(.85)]],rapier:mirror([[0,len*1.06],[w*.5,at(.9)],[w*.5,0]]),broad:mirror([[0,len],[w*1.5,at(.86)],[w*1.5,0]]),
+    cleaver:[[-w,0],[-w,at(.88)],[w*2.3,len],[w*2.3,at(.38)],[w,0]],jagged:mirror([[0,len],[w,at(.84)],[w*1.7,at(.74)],[w*.9,at(.62)],[w*1.8,at(.48)],[w,at(.34)],[w*1.6,at(.18)],[w,0]]),
+    flame:mirror([[0,len],[w*1.35,at(.82)],[w*.7,at(.66)],[w*1.5,at(.48)],[w*.8,at(.32)],[w*1.4,at(.14)],[w,0]]),crescent:mirror([[0,len],[w*1.7,at(.88)],[w*1.9,at(.5)],[w*1.3,0]]),
+    dagger:mirror([[0,len],[w,at(.7)],[w*.9,0]]),kris:mirror([[0,len],[w*1.2,at(.8)],[w*.5,at(.58)],[w*1.2,at(.36)],[w*.8,0]]),tanto:[[-w,at(.9)],[w*.4,len],[w,at(.8)],[w,0],[-w,0]],fang:[[w*1.5,len],[w*1.4,at(.6)],[w,0],[-w,0],[-w*.2,at(.6)]]}[sh]||mirror([[0,len],[w*1.3,at(.7)],[w*1.1,at(.25)],[w*.8,0]]);
+   const bm=sh==='crescent'?toon('#2a1a26',{emissive:d.glow||'#ff3a5a',emissiveIntensity:.15}):sh==='flame'?toon(mainHex,{emissive:d.glow||'#ff7a2a',emissiveIntensity:.35}):sh==='jagged'?toon(mainHex,{emissive:d.glow||'#7fe0ff',emissiveIntensity:.25}):metal;
+   const blade=strip(P,.024,bm);blade.rotation.x=Math.PI/2;blade.position.set(0,.012,.09);
+   if(sh==='crescent'){const c=ring(w*1.1,.008,0,.03,.09+len*.55,glowM);c.rotation.x=Math.PI/2;}
+   const gw=(kn?.10:two?.2:.13)+r*.02;
+   if(sh==='rapier'){const rg2=ring(.06,.01,0,0,.06);rg2.rotation.y=Math.PI/2;}
+   else if(sh==='flame'||sh==='cleaver'){const gr=cyl(.06,.06,.03,dark,0,0,.07,8);gr.rotation.x=Math.PI/2;}
+   const guard=box(gw,.03,.035,gold,0,0,.07);guard.rotation.y=(v-1)*.1;
+   if(r>=4||d.guard==='wing')wings(0,.05,.12+r*.01);
+   const grip=shaftZ(two?.28:.14,.02,dark,two?-.25:-.09);
+   stone(.025+r*.003,0,0,two?-.27:-.105);
+   if(r>=2)stone(.03+r*.003,0,.026,.075);
+  }else if(f==='spear'){
+   shaftZ(1.2,.018,sh==='pike'?toon('#c8c070'):dark,-.45);
+   const hz=.75,hm=metal;
+   if(sh==='halberd'){const sp=strip(mirror([[0,.3],[.03,.2],[.02,0]]),.02,hm);sp.rotation.x=Math.PI/2;sp.position.z=hz;const ax=strip([[0,.02],[.16,.0],[.18,.12],[.16,.24],[0,.2]],.02,hm);ax.rotation.x=Math.PI/2;ax.position.set(.01,.01,hz+.02);}
+   else if(sh==='glaive'){const bl=strip([[-.02,0],[-.01,.3],[.07,.26],[.11,.14],[.08,.04],[.02,0]],.02,hm);bl.rotation.x=Math.PI/2;bl.position.z=hz;}
+   else if(sh==='fang'){for(const s of [-1,1]){const fg=strip([[0,0],[s*.08,.12],[s*.01,.26],[s*.02,.12]],.02,toon('#efe6d0'));fg.rotation.x=Math.PI/2;fg.position.z=hz;}}
+   else{const hd=strip(mirror([[0,.26],[.045+r*.003,.12],[.02,0]]),.02,hm);hd.rotation.x=Math.PI/2;hd.position.z=hz;}
+   const tas=add(new THREE.ConeGeometry(.04,.14,5),sh==='pike'?toon('#d8433a'):glowM,0,0,hz-.06);tas.rotation.x=-Math.PI/2;
+   if(r>=2)stone(.028,0,.02,hz);
+   if(r>=4)wings(0,hz-.02,.12);
+  }else if(f==='staff'||f==='rod'){
+   const rod=f==='rod',H=rod?.55:1.14+b*.02;
+   cyl(.018,.026,H+.18,sh==='twig'||sh==='crook'?wood:dark,0,H/2-.15,0);
+   const cy=H;
+   if(sh==='crook'){const c=ring(.07,.018,-.07,cy,0,wood,Math.PI);c.rotation.z=0;}
+   else if(sh==='roots'){for(let i=0;i<4;i++){const a=i/4*Math.PI*2,c=add(new THREE.ConeGeometry(.02,.22,4),wood,Math.cos(a)*.05,cy-.02,Math.sin(a)*.05);c.rotation.z=Math.cos(a)*.4;}stone(.065+r*.006,0,cy+.06,0);}
+   else if(sh==='maw'){const sk=add(new THREE.SphereGeometry(.07,6,4),toon('#e8dcc8'),0,cy,0);sk.scale.set(1,.8,1.2);add(new THREE.SphereGeometry(.045,8,6),glowM,0,cy+.02,.06);}
+   else if(sh==='crescent'){const c=ring(.1,.022,0,cy+.06,0,toon(mainHex,{emissive:d.glow||'#ff3a5a',emissiveIntensity:.4}),Math.PI*1.4);c.rotation.z=Math.PI*.8;}
+   else if(sh==='mushroom'){const cap=add(new THREE.SphereGeometry(.08,8,5,0,Math.PI*2,0,Math.PI/2),toon(mainHex,{emissive:mainHex,emissiveIntensity:.4}),0,cy,0);cap.scale.y=.8;}
+   else if(sh==='icicle'){for(const x of [-.03,0,.03]){const c=add(new THREE.ConeGeometry(.02,.2,4),toon('#dff6ff',{emissive:'#7fe0ff',emissiveIntensity:.3}),x,cy+.1,0);c.rotation.z=-x*4;}}
+   else if(sh==='star'){const st=add(new THREE.OctahedronGeometry(.07),glowM,0,cy+.06,0);st.scale.set(1,1,.4);}
+   else if(sh==='twig'){for(const s of [-1,1]){const l=add(new THREE.SphereGeometry(.035,5,3),toon('#6ac04a'),s*.04,cy+.04,0);l.scale.set(1.6,.5,.8);}}
+   else {ring(.07+r*.008,.016,0,cy,0);stone(.055+r*.007,0,cy,0);}
+   if(r>=3&&!rod){ring(.12+r*.012,.012,0,cy,0);}
+   if(r>=4)for(const sx of [-1,1]){const w=strip([[0,0],[sx*.12,.06],[sx*.18,.24],[sx*.05,.17]],.02,gold);w.position.set(sx*.05,cy-.04,0);}
+  }else if(f==='orb'){
+   const R=.13+r*.006,o=new THREE.Group();g.add(o);o.position.set(0,.4,.12);
+   add(new THREE.SphereGeometry(R,10,8),toon(sh==='galaxy'?'#2a1a5a':sh==='sandstorm'?'#e8c88a':mainHex,{emissive:d.glow||gemHex,emissiveIntensity:.45}),0,0,0,o);
+   const rr=add(new THREE.TorusGeometry(R*1.5,.008,4,16),gold,0,0,0,o);rr.rotation.x=1.2;
+   if(sh==='wisp')for(let i=0;i<3;i++){const a=i/3*Math.PI*2;add(new THREE.SphereGeometry(.025,5,4),glowM,Math.cos(a)*R*1.6,Math.sin(a)*.04,Math.sin(a)*R*1.6,o);}
+   cyl(.03,.05,.06,dark,0,.08,.08,6);
+  }else if(f==='mace'||f==='scepter'){
+   const sc=f==='scepter';
+   const shaft=shaftZ(sc?.34:.40,.022,sc?gold:sh==='cudgel'?wood:dark,-.06);
+   const top=new THREE.Group();g.add(top);top.position.z=sc?.30:.40;
+   const M=(geo,m,x=0,y=0,z=0)=>add(geo,m,x,y,z,top);
+   if(sh==='cudgel'){const h=M(new THREE.SphereGeometry(.07,7,5),wood);h.scale.set(1,1,1.5);for(const z of [-.03,.04]){const bd=M(new THREE.TorusGeometry(.068,.01,4,10),gold,0,0,z);}}
+   else if(sh==='bell'){const bl=M(new THREE.CylinderGeometry(.03,.08,.12,10,1,true),metal,0,0,.02);bl.rotation.x=-Math.PI/2;bl.material.side=THREE.DoubleSide;}
+   else if(sh==='maul'){M(new THREE.BoxGeometry(.2,.1,.1),metal);M(new THREE.BoxGeometry(.05,.05,.05),gold,0,.05,0);}
+   else if(sh==='morningstar'){const ball=M(new THREE.SphereGeometry(.07,8,6),gold,0,0,.06);for(let i=0;i<8;i++){const a=i/8*Math.PI*2,c=M(new THREE.ConeGeometry(.015,.06,4),toon('#fff4c0'),Math.cos(a)*.08,Math.sin(a)*.08,.06);c.rotation.z=a-Math.PI/2;}}
+   else if(sh==='candle'){M(new THREE.CylinderGeometry(.06,.03,.03,8),gold).rotation.x=Math.PI/2;const cd=M(new THREE.CylinderGeometry(.02,.02,.1,6),toon('#f4ead2'),0,0,.06);cd.rotation.x=Math.PI/2;M(new THREE.SphereGeometry(.022,5,4),toon('#ffd27a',{emissive:'#ffb03a',emissiveIntensity:.9}),0,0,.13);}
+   else if(sh==='lotus'){for(let i=0;i<6;i++){const a=i/6*Math.PI*2,p=M(new THREE.ConeGeometry(.025,.1,4),toon(mainHex,{emissive:d.glow||mainHex,emissiveIntensity:.3}),Math.cos(a)*.03,Math.sin(a)*.03,.04);p.rotation.x=Math.PI/2;p.rotation.z=a;p.rotation.y=.4;}}
+   else if(sh==='plume'){for(const a of [-.4,0,.4]){const p=M(new THREE.ConeGeometry(.02,.2,4),toon('#ff8a3a',{emissive:'#ff6a2a',emissiveIntensity:.4}),a*.15,0,.09);p.rotation.x=Math.PI/2;p.rotation.y=a;}}
+   else if(sh==='seraph'){for(const s of [-1,1])for(let k=0;k<3;k++){const w=strip([[0,0],[s*.08,.03],[s*.14-k*.02*s,.11],[s*.04,.07]],.012,toon('#ffffff'));w.rotation.x=Math.PI/2;w.position.set(0,0,top.position.z-.02+k*.03);}M(new THREE.OctahedronGeometry(.045),gem,0,0,.05).scale.set(1,1,1.5);}
+   else {M(new THREE.DodecahedronGeometry(.075+b*.006+r*.005),metal);const count=3+Math.min(5,b+r);for(let i=0;i<count;i++){const a=i/count*Math.PI*2,rad=.075+r*.008;const p=M(new THREE.ConeGeometry(.016,.10+b*.012,4),gold,Math.cos(a)*rad,Math.sin(a)*rad,0);p.rotation.z=a-Math.PI/2;}}
+   if(r>=2&&sh!=='seraph')M(new THREE.OctahedronGeometry(.04),gem,0,0,sc?.0:.07);
+  }else if(f==='book'){
+   const bk=box(.16,.2,.05,toon(sh==='codex'?'#4a6a3a':sh==='tome'?'#2a3a6a':sh==='grimoire'?'#e8c060':(d.c2||'#6a3a2a')),0,.1,.06);
+   box(.15,.19,.04,toon('#f4ead2'),.008,.1,.06);
+   box(.03,.2,.052,gold,-.07,.1,.06);
+   add(new THREE.OctahedronGeometry(.03),gem,0,.1,.09);
+   if(sh==='grimoire'||r>=4)wings(.12,.06,.1);
+  }else if(f==='shortbow'||f==='longbow'||f==='crossbow'){
+   const xb=f==='crossbow',long=f==='longbow';
+   const radius=(xb?.2:long?.44:.32)+r*.008;
+   const limbM=sh==='crescent'||sh==='eclipse'?toon('#2a1a30'):sh==='antler'?toon('#e8f6ff',{emissive:'#9ae8ff',emissiveIntensity:.2}):toon(mainHex);
+   const bow=add(new THREE.TorusGeometry(radius,xb?.02:.02+r*.002,4,18,Math.PI*(xb?.9:4/3)),limbM);
+   if(xb){bow.rotation.set(Math.PI/2,0,Math.PI*.05);bow.position.set(0,.06,.25);const st=box(.05,.06,.5,toon(sh==='plank'?'#a8794a':(d.c2||'#4a3a2a')),0,0,.0);if(sh==='cog')for(const z of [-.05,.08])ring(.035,.012,.035,0,z,toon('#c8a860')).rotation.y=Math.PI/2;}
+   else{bow.rotation.z=-Math.PI*2/3;
+    const chord=-radius*.5;
+    const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(chord,-radius*.866,0),new THREE.Vector3(chord,radius*.866,0)]),new THREE.LineBasicMaterial({color:r>=5||sh==='eclipse'?(d.glow||'#ff3a5a'):'#f4e4bd'}));g.add(line);
+    box(.048,.16,.045,dark,radius,0,0);
+    if(sh==='eclipse'){const e=ring(.07,.014,radius+.01,0,0,glowM);e.rotation.y=Math.PI/2;}
+    for(const s of [-1,1]){
+     if(sh==='wing'||sh==='hawk'||sh==='feather'){const fin=strip([[0,0],[.1,.04],[.16,.16],[.04,.1]],.015,sh==='wing'?toon('#e8f4ff'):toon(sh==='feather'?'#ff8a3a':'#ffffff'));fin.position.set(radius*.35,s*radius*.75,0);fin.scale.y=s;}
+     else if(sh==='antler'){const c=add(new THREE.ConeGeometry(.014,.14,4),limbM,radius*.3,s*radius*.9,0);c.rotation.z=s*.9;}
+     if(r>=2)stone(.026+r*.003,radius*.72,s*radius*.48,.025);
+    }
+   }
+   if(r>=4)wings(0,0,.14);
   }
-  if(r>=3&&!mace){ring(.12+r*.014,.013,0,cy,0);for(const sx of [-1,1]){const wing=strip([[0,0],[sx*.12,.06],[sx*.18,.24],[sx*.05,.17]],.02,gold);wing.position.set(sx*.05,cy-.04,0);}for(const s of [-1,1])stone(.025,s*.11,cy-.17,0);}
-  if(mace&&r>=2){const s=new THREE.Mesh(new THREE.OctahedronGeometry(.046),gem);s.position.z=.07;top.add(s);}
- }else if(type==='bow'){
-  const radius=.34+b*.01+r*.012;
-  add(new THREE.TorusGeometry(radius,.022+r*.002,4,18,Math.PI*4/3),b<2?dark:metal).rotation.z=-Math.PI*2/3;
-  const chord=-radius*.5;
-  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(chord,-radius*.866,0),new THREE.Vector3(chord,radius*.866,0)]),new THREE.LineBasicMaterial({color:'#f4e4bd'}));g.add(line);
-  box(.048,.16,.045,dark,radius,0,0);
-  for(const s of [-1,1]){
-   const fin=strip([[0,0],[.07,.04],[.13,.13],[.04,.09]],.022,gold);fin.position.set(radius*.4,s*radius*.7,0);fin.scale.y=s*(.6+b*.1+r*.08);
-   if(r>=2)stone(.028+r*.003,radius*.72,s*radius*.48,.025);
-  }
-  if(r>=4){ring(.07,.012,radius+.01,0,0);for(const s of [-1,1]){const wing=strip([[0,0],[.17,.09],[.25,.23],[.08,.16]],.025,gold);wing.position.set(radius*.6,s*radius*.45,0);wing.scale.y=s;}}
- }else if(type==='body'){
+  }else if(type==='body'){
   const torso=add(new THREE.CylinderGeometry(.19,.215,.43,6+v*2),b<2?cloth:metal,0,.16,0);torso.scale.z=.84;
   box(.31,.10,.035,dark,0,.07,.168);
   const plate=strip([[-.115,0],[-.145,.14],[0,.20],[.145,.14],[.115,0],[0,-.07]],.03,gold);plate.position.set(0,.17,.155);
@@ -58,6 +120,8 @@ export function makeEquipmentModel(d){
    for(let i=0;i<Math.min(3,r);i++)add(new THREE.ConeGeometry(.023,.06+b*.008,4),gold,s*(.20+i*.025),.42,0);
   }
   for(let i=0;i<r;i++)box(.02,.025,.018,gem,(i-(r-1)/2)*.034,.11,.197);
+  if(r>=5)for(const sx of [-1,1]){const w=strip([[0,0],[sx*.16,.08],[sx*.30,.30],[sx*.12,.22],[sx*.20,.12]],.02,gold);w.position.set(sx*.06,.24,-.17);w.rotation.y=sx*.5;}
+  if(r>=6){const h=ring(.11,.012,0,.62,-.05);h.rotation.x=Math.PI/2;}
  }else if(type==='shield'){
   if(b%3===0){add(new THREE.CylinderGeometry(.19,.19,.05,8),b?metal:dark).rotation.x=Math.PI/2;}
   else {const p=strip([[-.17,.18],[.17,.18],[.17,-.04],[0,-.25],[-.17,-.04]],.05,metal);p.position.z=-.025;}

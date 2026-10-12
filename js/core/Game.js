@@ -14,6 +14,8 @@ import { Minimap } from '../ui/Minimap.js';
 import { Renderer3D } from '../render/Renderer3D.js';
 import { MonsterManager } from '../systems/MonsterAI.js';
 import { rollAttack, rollSkill } from '../systems/Combat.js';
+import * as WeaponFx from '../systems/WeaponFx.js';   // v0.25: ธาตุ/เผ่า/ขนาด + พาสซีฟอาวุธ
+import { skillElement } from '../data/affixes.js';
 import { StatusWindow } from '../ui/StatusWindow.js';
 import { InventoryWindow } from '../ui/InventoryWindow.js';
 import { Hotbar } from '../ui/Hotbar.js';
@@ -617,16 +619,19 @@ export class Game {
     }
   }
 
-  hitMonster(m, r) { this.damageMonster(m, r); }
+  hitMonster(m, r) { this.damageMonster(m, r, { basic: true }); }
 
-  damageMonster(m, r, { magic = false } = {}) {
+  damageMonster(m, r, opts = {}) {
+    const magic = !!opts.magic;
     if (m.dead) return;
+    WeaponFx.outgoing(this, m, r, opts);
     if (m.worldRun && !r.miss) { this.events.hit(m, r, magic); return; }
     if (r.miss) { this.gfx.floatText(m, 'Miss', 'miss'); this.sfx('miss'); return; }
     m.hp -= r.amount;
     this.sfx(r.crit ? 'crit' : 'hit');
     this.gfx.floatText(m, r.crit ? `${r.amount}!` : `${r.amount}`, r.crit ? 'crit' : magic ? 'hit magic' : 'hit');
     this.gfx.playHurt(m);
+    WeaponFx.afterHit(this, m, r, opts);
     if (m.hp <= 0) return this.killMonster(m);
     const B = m.data.boss;
     if (B) {
@@ -643,6 +648,7 @@ export class Game {
 
   killMonster(m) {
     this.mobs.kill(m, this.time);
+    WeaponFx.onKill(this);
     this.gfx.playDeath(m);
     this.sfx('monsterDie');
     if (this.player.target === m) this.clearTarget();
@@ -1314,7 +1320,7 @@ export class Game {
     if (pl.skillDelayUntil > this.time) return;   // รอหน่วงหลังสกิลก่อนหน้า (after-cast delay)
     pl.pendingSkill = null;
     // DEX ช่วยลดเวลาร่าย (สูงสุด 70%)
-    const total = skillCast(sk, ps.lv) * Math.max(0.3, 1 - pl.derived.total.dex / 150);
+    const total = skillCast(sk, ps.lv) * Math.max(0.3, 1 - pl.derived.total.dex / 150) * Math.max(0.4, 1 - ((pl.bonus && pl.bonus.castPct) || 0) / 100);
     if (total <= 0.02) { this.executeSkill(ps.id, ps.lv, t); return; }
     pl.cast = { id: ps.id, lv: ps.lv, target: t, t: 0, total, name: `${sk.name} Lv.${ps.lv}`, color: sk.color || sk.icon[1] };
     this.sfx('cast');
@@ -1437,7 +1443,7 @@ export class Game {
       }
       case 'heal': {
         this.gfx.playAttack(pl, 'cast');
-        const amt = Math.min(pl.maxHp - pl.hp, sval(sk.heal, lv, pl) || 0);
+        const amt = Math.min(pl.maxHp - pl.hp, (sval(sk.heal, lv, pl) || 0) * (1 + ((pl.bonus && pl.bonus.healPct) || 0) / 100));
         pl.hp += amt;
         this.gfx.healFx(pl, color);
         this.gfx.floatText(pl, `+${Math.round(amt)}`, 'heal', { h: 1.6, drift: false });
@@ -1456,6 +1462,7 @@ export class Game {
         break;
       }
     }
+    WeaponFx.onSkill(this, sk, sk.fx === 'heal' ? 'heal' : '');
     this.dirty = true;
   }
 
@@ -1479,7 +1486,7 @@ export class Game {
       hit: (i, info = {}) => this.skillHit(sk, lv, list[i] && list[i].m, info, origin),
       heal: () => {
         if (pl.dead) return;
-        const amt = Math.max(0, Math.min(pl.maxHp - pl.hp, Math.round(sval(sk.heal, lv, pl) || 0)));
+        const amt = Math.max(0, Math.min(pl.maxHp - pl.hp, Math.round((sval(sk.heal, lv, pl) || 0) * (1 + ((pl.bonus && pl.bonus.healPct) || 0) / 100))));
         pl.hp += amt;
         if (amt > 0) this.gfx.floatText(pl, `+${amt}`, 'heal', { h: 1.6, drift: false });
         this.hud.setPlayer(pl); this.status.render();
@@ -1503,7 +1510,8 @@ export class Game {
       this.hud.setPlayer(pl); this.hud.setBuffs(pl.buffs); this.status.render();
     }
     pl.lockUntil = this.time + (sk.lock || 0);
-    pl.skillDelayUntil = this.time + (sk.delay ?? 0.35);
+    pl.skillDelayUntil = this.time + (sk.delay ?? 0.35) * Math.max(0.3, 1 - ((pl.bonus && pl.bonus.delayPct) || 0) / 100);
+    WeaponFx.onSkill(this, sk, sk.heal ? 'heal' : '');
     pl.attackCd = Math.max(pl.attackCd, (sk.lock || 0) + 0.2);
     if (sk.lock) pl.path = [];
     if (sk.engage && t) pl.engage = true;
@@ -1517,7 +1525,7 @@ export class Game {
     const magic = !!(sk.magic || info.magic);
     const mult = ((info.mult ?? 1) / (sk.ref || 1)) * (sval(sk.mult, lv, pl) || 1);
     const r = rollSkill(pl.stats, m.stats, { mult, magic, hitBonus: sval(sk.hitBonus, lv) || 0 });
-    this.damageMonster(m, r, { magic });
+    this.damageMonster(m, r, { magic, element: skillElement(Object.keys(SKILLS).find((k) => SKILLS[k] === sk)) });
     const out = { stun: 0, freeze: 0 };
     if (r.miss || m.dead) return out;
     const boss = m.data.mvp ? 0.4 : 1;   // บอส MVP ติดสถานะสั้นลง
@@ -1694,7 +1702,8 @@ export class Game {
     const pl = this.player;
     if (pl.dead) return;
     const red = (pl.bonus && pl.bonus.dmgReduce) || 0;   // ม่านพลังเวทย์ลดดาเมจ
-    if (red) amount = Math.max(1, Math.round(amount * (1 - red / 100)));
+    if (red) amount = Math.max(1, Math.round(amount * (1 - Math.min(80, red) / 100)));
+    amount = WeaponFx.incoming(this, amount);   // v0.25: พาสซีฟป้องกันของอาวุธ
     // v0.13: ยาต้านหนาว/ร้อน ลดดาเมจในแผนที่หิมะ/ภูเขาไฟ
     const biome = this.map.id === 'frostveil' ? pl.itemBuffSum('dmgCutSnow') : this.map.id === 'ember_caldera' ? pl.itemBuffSum('dmgCutLava') : 0;
     if (biome) amount = Math.max(1, Math.round(amount * (1 - biome / 100)));
@@ -2002,7 +2011,7 @@ export class Game {
     // บัฟหมดเวลา + อัปเดตคูลดาวน์บนปุ่มลัด
     const gone = pl.updateBuffs(dt);
     if (gone.length) {
-      for (const bf of gone) this.hud.log(`${SKILLS[bf.id].name} หมดเวลา`, 'info');
+      for (const bf of gone) if (SKILLS[bf.id]) this.hud.log(`${SKILLS[bf.id].name} หมดเวลา`, 'info');
       this.hud.setPlayer(pl); this.status.render();
     }
     // v0.13: บัฟจากไอเทม (นับเวลาเฉพาะตอนเล่นอยู่) + สัตว์เลี้ยง + หาเพื่อนหลังวาร์ป

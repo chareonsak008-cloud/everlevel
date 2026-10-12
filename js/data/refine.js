@@ -26,6 +26,11 @@ export const failResult = (target, guarded) => (target <= SAFE_LIMIT ? 'none' : 
 // ชุดเกราะเพิ่ม DEF ระดับละ 1 (ชุดตั้งแต่ +5 ได้ MDEF) และตั้งแต่ +8 ได้ Max HP เพิ่ม
 export function refineBonus(it, n) {
   if (!n || !it) return {};
+  if (it.slot === 'weapon' && it.refinePer) {   // v0.25: อาวุธใหม่กำหนดค่าต่อขั้นเอง (+8 ขึ้นไปได้ซ้ำอีกเท่าตัว)
+    const o = {}, k = n + Math.max(0, n - 7);
+    for (const [s, v] of Object.entries(it.refinePer)) o[s] = v * k;
+    return o;
+  }
   if (it.slot === 'weapon') {
     const per = { celestial: 13, mythic: 11, legend: 9, epic: 7, rare: 5 }[it.rarity] || 3;
     const v = per * n + per * Math.max(0, n - 7);

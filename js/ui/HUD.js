@@ -63,7 +63,8 @@ export class HUD {
     const box = this.el.buffs; if (!box) return;
     const items = this.itemSrc ? Object.values(this.itemSrc()) : [];
     const list = [
-      ...buffs.map((b) => ({ key: 's:' + b.id, left: b.left, title: `${SKILLS[b.id].name} Lv.${b.lv}`, icon: () => skillIconURL(b.id), item: false })),
+      ...buffs.map((b) => (SKILLS[b.id] ? { key: 's:' + b.id, left: b.left, title: `${SKILLS[b.id].name} Lv.${b.lv}`, icon: () => skillIconURL(b.id), item: false }
+        : { key: 's:' + b.id, left: b.left, title: b.title || b.id, icon: () => iconURL(b.itemId || 'knife'), item: true })),   // v0.25: บัฟจากพาสซีฟอาวุธ
       ...items.filter((b) => ITEMS[b.id]).map((b) => ({ key: 'i:' + b.id, left: b.left, title: `${ITEMS[b.id].name} · ${ITEMS[b.id].effect}`, icon: () => iconURL(b.id), item: true })),
     ];
     const key = list.map((b) => b.key).join(',');

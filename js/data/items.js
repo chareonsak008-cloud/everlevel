@@ -10,7 +10,8 @@ import { ENDGAME_ITEMS } from './endgameItems.js';
 import { BOX_ITEMS } from './fashionBoxes.js';
 import { CARD_ITEMS, CARDS } from './cards.js';
 import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js';
-import { CONSUMABLES } from './consumables.js';   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
+import { CONSUMABLES } from './consumables.js';
+import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH } from './affixes.js';   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
 
 export const EQUIP_SLOTS = [
   { id: 'head', name: 'หัว' },
@@ -118,6 +119,7 @@ const BASE = {
 
   /* ---------- กล่องแฟชั่นสุ่ม (v0.9) ---------- */
   ...ENDGAME_ITEMS,
+  ...WEAPON_ITEMS,
   ...BOX_ITEMS,
 
   /* ---------- การ์ด + วัสดุตีบวก (v0.10) ---------- */
@@ -132,27 +134,35 @@ const BASE = {
 export const BASE_ITEMS = BASE;
 
 export function splitKey(key) {
-  const [base, r, c] = String(key).split('*');
-  return { base, refine: Math.max(0, Math.min(REFINE_MAX, Math.floor(+r) || 0)), cards: c ? c.split(',').filter(Boolean) : [] };
+  const [base, r, c, roll] = String(key).split('*');
+  return { base, refine: Math.max(0, Math.min(REFINE_MAX, Math.floor(+r) || 0)), cards: c ? c.split(',').filter(Boolean) : [], roll: roll || '' };
 }
 
-export function itemKey(base, refine = 0, cards = []) {
+// v0.25: ช่องที่ 4 = ค่าสุ่มของอาวุธ (ดู data/affixes.js)
+export function itemKey(base, refine = 0, cards = [], roll = '') {
   const cs = [...cards].filter(Boolean).sort();
+  if (roll) return `${base}*${refine || 0}*${cs.join(',')}*${roll}`;
   return !refine && !cs.length ? base : `${base}*${refine}*${cs.join(',')}`;
+}
+// คีย์ใหม่ของอาวุธที่มีค่าสุ่ม (ไอเทมอื่นคืน id เดิม)
+export function rollItem(id, rnd = Math.random) {
+  const b = BASE[id];
+  return b && b.rolls && !String(id).includes('*') ? itemKey(id, 0, [], rollCode(b, rnd)) : id;
 }
 
 const addBonus = (out, o) => { for (const [k, v] of Object.entries(o || {})) out[k] = +(((out[k] || 0) + v).toFixed(4)); return out; };
 const variants = new Map();
 function variant(key) {
   if (variants.has(key)) return variants.get(key);
-  const { base, refine, cards } = splitKey(key);
+  const { base, refine, cards, roll } = splitKey(key);
   const b = BASE[base];
+  const rolled = roll ? decodeRoll(b, roll) : [];
   let v;
-  if (!b || b.type !== 'equip' || cards.length > (b.slots || 0) || cards.some((c) => !CARDS[c] || CARDS[c].on !== b.slot) || itemKey(base, refine, cards) !== key) v = undefined;
+  if (!b || b.type !== 'equip' || !rolled || (roll && !b.rolls) || cards.length > (b.slots || 0) || cards.some((c) => !CARDS[c] || CARDS[c].on !== b.slot) || itemKey(base, refine, cards, roll) !== key) v = undefined;
   else {
-    const bonus = addBonus(addBonus({ ...(b.bonus || {}) }, refineBonus(b, refine)), {});
+    const bonus = addBonus(addBonus(addBonus({ ...(b.bonus || {}) }, rollBonus(rolled)), refineBonus(b, refine)), {});
     for (const c of cards) addBonus(bonus, CARDS[c].bonus);
-    v = { ...b, baseId: base, refine, cards, bonus, baseBonus: b.bonus || {}, name: (refine ? `+${refine} ` : '') + b.name };
+    v = { ...b, baseId: base, refine, cards, roll, rolled, bonus, baseBonus: b.bonus || {}, name: (refine ? `+${refine} ` : '') + b.name };
   }
   variants.set(key, v);
   return v;
@@ -167,8 +177,8 @@ export const ITEMS = new Proxy(BASE, {
 
 // ข้อมูลตีบวก/การ์ดของคีย์ใดก็ได้ (ไอเทมปกติ = ระดับ 0 ไม่มีการ์ด)
 export function itemMods(key) {
-  const { base, refine, cards } = splitKey(key);
-  return { base, refine, cards, slots: (BASE[base] && BASE[base].slots) || 0 };
+  const { base, refine, cards, roll } = splitKey(key);
+  return { base, refine, cards, roll, slots: (BASE[base] && BASE[base].slots) || 0 };
 }
 
 // ของเริ่มต้นสำหรับผู้เล่นใหม่
@@ -181,11 +191,25 @@ export const BONUS_LABEL = {
   str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', dex: 'DEX', luk: 'LUK',
   maxHpPct: 'Max HP', maxSpPct: 'Max SP', atkPct: 'ATK', defPct: 'DEF', aspdPct: 'ASPD',
   matkPct: 'MATK', mdefPct: 'MDEF', speedPct: 'ความเร็วเดิน', regenPct: 'ฟื้น HP', spRegenPct: 'ฟื้น SP',
+  // v0.25
+  critDmgPct: 'CRIT DMG', castPct: 'Cast Time', delayPct: 'After-cast Delay', healPct: 'Heal Power', rangedPct: 'Ranged DMG', meleePct: 'Melee DMG',
+  dmgReduce: 'ลดดาเมจรับ', lifesteal: 'ดูดเลือด', spDrain: 'ดูด SP', rangeTiles: 'ระยะยิง', atkFlat: 'ATK',
 };
+const TRAIT = { beast: 'สัตว์', plant: 'พืช', insect: 'แมลง', formless: 'ไร้รูป', undead: 'อันเดด', demon: 'ปีศาจ', dragon: 'มังกร', neutral: 'ไร้ธาตุ', earth: 'ธาตุดิน', water: 'ธาตุน้ำ', fire: 'ธาตุไฟ', wind: 'ธาตุลม', holy: 'ธาตุศักดิ์สิทธิ์', shadow: 'ธาตุมืด', small: 'ขนาดเล็ก', medium: 'ขนาดกลาง', large: 'ขนาดใหญ่' };
+const PCT = new Set(['critDmgPct', 'healPct', 'rangedPct', 'meleePct', 'dmgReduce', 'lifesteal', 'spDrain']);
+const sg = (v) => (v < 0 ? '−' + Math.abs(v) : '+' + v);
+export function bonusText(k, v) {
+  if (k === 'crit') return `CRIT ${sg(+(v * 100).toFixed(1))}%`;
+  if (k === 'castPct' || k === 'delayPct') return `${BONUS_LABEL[k]} ${v >= 0 ? '−' + v : '+' + -v}%`;   // ค่าบวก = เร็วขึ้น
+  if (k === 'rangeTiles') return `ระยะยิง ${sg(v)} ช่อง`;
+  if (k.startsWith('vs_')) return `ดาเมจต่อ${TRAIT[k.slice(3)] || k.slice(3)} ${sg(v)}%`;
+  return `${BONUS_LABEL[k] || k} ${sg(v)}${k.endsWith('Pct') || PCT.has(k) ? '%' : ''}`;
+}
 
 // สวมใส่อาวุธ/อุปกรณ์นี้ได้ไหมตามอาชีพ
 export const canJobUse = (it, job) => !it.jobs || it.jobs.includes(job);
+export const weaponTypeName = (it) => FORM_TH[it.form || it.wtype] || '';
 
 export function describeBonus(bonus = {}) {
-  return Object.entries(bonus).map(([k, v]) => `${BONUS_LABEL[k] || k} +${k === 'crit' ? +(v * 100).toFixed(1) + '%' : k.endsWith('Pct') ? v + '%' : v}`).join(' · ');
+  return Object.entries(bonus).filter(([, v]) => v).map(([k, v]) => bonusText(k, v)).join(' · ');
 }

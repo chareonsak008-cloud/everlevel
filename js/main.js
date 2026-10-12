@@ -57,9 +57,9 @@ async function createOnline({ Online }) {
 if (!window.THREE) {
   fatal('โหลดกราฟิก 3 มิติ (Three.js) ไม่สำเร็จ — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้า');
 } else {
-  Promise.all([import('./core/Game.js'), import('./net/Online.js'), import('./audio/AudioEngine.js'), import('./ui/TitleScreen.js'), import('./core/Save.js'), import('./render/CardPortraits.js'), import('./render/EquipmentPortraits.js')])
-    .then(async ([{ Game }, OnlineMod, { AudioEngine }, { TitleScreen }, { SaveManager }, Portraits, Equipment]) => {
-      await Promise.all([Portraits.preloadMonsterPortraits(), Equipment.preloadEquipmentPortraits()]);
+  Promise.all([import('./core/Game.js'), import('./net/Online.js'), import('./audio/AudioEngine.js'), import('./ui/TitleScreen.js'), import('./core/Save.js'), import('./render/CardPortraits.js')])
+    .then(async ([{ Game }, OnlineMod, { AudioEngine }, { TitleScreen }, { SaveManager }, Portraits]) => {
+      await Portraits.preloadMonsterPortraits();   // v0.24.2: ไอคอนอุปกรณ์วาดสดแล้ว ไม่ต้องโหลดภาพ
       const online = await createOnline(OnlineMod);
       const audio = new AudioEngine();
       const game = new Game(root, { online, audio });

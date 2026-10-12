@@ -1856,3 +1856,42 @@ body:not(.touch) .menu-btn {display:grid;place-items:center;position:absolute;ri
 .pp-item.off img { filter: grayscale(1) opacity(0.6); }
 .pp-empty { color: var(--muted); }
 .pet-pick-btn { font-size: 12px; padding: 4px 10px; }
+
+/* v0.24.2: พื้นหลังช่องไอเทมตามเกรด ขาว → เขียว → ฟ้า → ม่วง → ส้ม → ทอง → แดง */
+.slot[class*=" r-"] {
+  --rt: #e9edf3; --rb: #9aa3b0; --re: #ffffff;
+  background: radial-gradient(120% 90% at 30% 18%, rgba(255,255,255,.55), rgba(255,255,255,0) 55%), linear-gradient(160deg, var(--rt), var(--rb));
+  border: 1.5px solid var(--re); border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), inset 0 -6px 10px rgba(0,0,0,.28), 0 1px 2px rgba(0,0,0,.5);
+}
+.slot.r-common    { --rt: #f1f3f6; --rb: #a7aebb; --re: #ffffff; }
+.slot.r-uncommon  { --rt: #a6ec8f; --rb: #2f8f3a; --re: #c9ffb8; }
+.slot.r-rare      { --rt: #8fd0ff; --rb: #1f5fb8; --re: #c4e6ff; }
+.slot.r-epic      { --rt: #d6a6ff; --rb: #6a2fb4; --re: #ead0ff; }
+.slot.r-legend    { --rt: #ffc477; --rb: #c25a10; --re: #ffe0b0; }
+.slot.r-mythic    { --rt: #fff09a; --rb: #c08a12; --re: #fff6c8; }
+.slot.r-celestial { --rt: #ff8a96; --rb: #a8122c; --re: #ffc6cd; }
+.slot.r-legend, .slot.r-mythic, .slot.r-celestial { box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), inset 0 -6px 10px rgba(0,0,0,.25), 0 0 8px color-mix(in srgb, var(--re) 55%, transparent); }
+.slot.r-mythic::after, .slot.r-celestial::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.55) 50%, transparent 65%) -150% 0 / 250% 100% no-repeat;
+  animation: slotShine 3.2s ease-in-out infinite;
+}
+.slot.r-celestial::after { animation-duration: 2.4s; }
+@keyframes slotShine { 0%, 55% { background-position: -150% 0; } 100% { background-position: 150% 0; } }
+.slot[class*=" r-"]:hover { filter: brightness(1.12); }
+.slot[class*=" r-"].sel { outline: 2px solid #fff; outline-offset: 1px; filter: brightness(1.15); }
+.slot[class*=" r-"] img { width: 86%; height: 86%; filter: drop-shadow(0 1px 0 rgba(0,0,0,.55)) drop-shadow(0 0 1px rgba(0,0,0,.6)); }
+.slot .ref { color: #fff; background: rgba(20,12,24,.72); border-radius: 4px; padding: 0 3px; left: 2px; top: 2px; }
+@media (prefers-reduced-motion: reduce) { .slot.r-mythic::after, .slot.r-celestial::after { animation: none; } }
+/* v0.25: รายละเอียดอาวุธชุดใหม่ */
+.d-stats .wi-type { color: #e8e2f0; }
+.d-stats .wi-style { color: #c8bfd8; font-size: 11.5px; }
+.d-stats .wi-style i { color: #ff9a9a; font-style: normal; }
+.d-stats .wi-roll { color: #8fe0ff; }
+.d-stats .wi-roll small { color: #7a90a8; }
+.d-stats .wi-passive { color: #ffd86a; }
+.d-stats .wi-set { color: #ff8a9a; font-size: 11.5px; }
+.d-stats .wi-set .on { color: #ffd0d8; font-weight: 700; }
+.d-stats .wi-ref { color: #ffc89a; font-size: 11px; }
+.d-stats .wi-drop { color: #a8b8a0; font-size: 11px; }

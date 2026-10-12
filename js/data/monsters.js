@@ -5,6 +5,7 @@
 // drops = [ไอเทม, โอกาสดรอป 0..1] สุ่มแยกกันทีละชิ้น
 import { ENDGAME_MONSTERS } from './endgameMonsters.js';
 import { BASE_ITEMS } from './items.js';
+import { WEAPON_DEFS } from './weapons.js';
 export const MONSTERS = {
   ...ENDGAME_MONSTERS,
   bloblet: {
@@ -155,3 +156,6 @@ for (const [id, m] of Object.entries(MONSTERS)) {
 // Starter white weapons are now obtainable from normal beginner mobs.
 MONSTERS.bloblet.drops.push(['knife', .08], ['oak_staff', .04]);
 MONSTERS.capling.drops.push(['hunter_bow', .06], ['chapel_mace', .05]);
+
+// v0.25: อาวุธใหม่ 48 ชิ้น — ดรอปตามตาราง drop ใน data/weapons.js
+for (const d of WEAPON_DEFS) for (const x of d.drop) if (MONSTERS[x.monster]) MONSTERS[x.monster].drops.push([d.id, x.rate]);
