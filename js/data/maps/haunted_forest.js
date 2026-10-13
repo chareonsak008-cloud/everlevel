@@ -4,7 +4,20 @@ const look={hair:'#a59ab4',skin:'#e5c4b4',eye:'#684a89',tunic:'#676581',pants:'#
 export const HAUNTED_FOREST={
  id:'haunted_forest',name:'Haunted Forest',subtitle:'ป่าวิญญาณ · Lv.75–90 · เขตลึก Lv.90–99 · MVP น็อคธาร์',levelRange:[75,90],eliteRange:[90,99],width:W,height:H,fill:'GRASS',spawn:{x:5.5,y:31.5},music:'haunted',
  theme:{fog:'#3d405c',fogNear:25,fogFar:70,outer:'#191d2b',light:{hemi:.85,sky:'#b5b9eb',ground:'#35314b',sun:1.05,sunColor:'#c4d5fa',exposure:1.07},grass:{base:'#465c58',blobs:['#3c514d','#536662','#4c5b67'],blades:['#739387','#4a7169','#77989c'],litter:['#b8a7ce','#72d5bc','#667a88']},dirt:{base:'#746b82',blobs:['#82758e','#625e77','#898298'],pebble:'#bbb4c8',cracks:'#4c455a'},trees:'dead',tufts:true,flowers:['#bb9bdf','#b4e0d4','#7db8d1'],motes:'#c2b4ff',moteCount:85,moteSize:.06,fx:{gain:.75,glow:.8,flash:.75},mini:{grass:'#465c58',dirt:'#8b7b9d',water:'#586ca2',flowers:'#bf9fdf',bridge:'#a894b4'}},
- regions:[...lanes.map(rect=>({tile:'DIRT',rect})),{tile:'DIRT',rect:camp},{tile:'DIRT',rect:arena},{tile:'WATER',rect:[25,19,7,7]},{tile:'WATER',rect:[46,38,8,6]},{tile:'FLOWERS',rect:[23,43,4,3]},{tile:'FLOWERS',rect:[65,20,4,3]}],
+ prune:true,
+ // v0.27 รีมาสเตอร์: ทางดินคดเคี้ยวในป่าหลอน · บึงหมอก · ลานคราสทรงกลม
+ regions:[
+  {tile:'FLOWERS',circle:[25,44.5,3,2]},{tile:'FLOWERS',circle:[67,21.5,3,2]},{tile:'FLOWERS',circle:[28.5,22.5,5,4.4]},
+  {tile:'DIRT',circle:[7.5,32.5,6,7.6]},
+  {tile:'DIRT',circle:[70,49,6.6,9.2]},
+  {tile:'DIRT',path:[[0,32],[10,32],[18,33.5],[28,30.5],[40,32.5],[52,30.5],[62,32.5],[80,32]],w:3.6},
+  {tile:'DIRT',path:[[17.5,8],[16,20],[18.5,32],[17,45],[18,56]],w:3.4},
+  {tile:'DIRT',path:[[39.5,9],[41,20],[39.5,32],[38,44],[40,56]],w:3.4},
+  {tile:'DIRT',path:[[61.5,9],[60,20],[62,32],[61,45],[62,56]],w:3.4},
+  {tile:'DIRT',path:[[16,11.5],[28,10],[40,12],[52,10],[64,12]],w:3.4},
+  {tile:'DIRT',path:[[16,51.5],[28,53],[40,51],[54,53],[70,51.5]],w:3.4},
+  {tile:'WATER',circle:[28.5,22.5,3.6,3.2]},{tile:'WATER',circle:[50,41,4,3]},{tile:'WATER',circle:[8,52,2.2,1.6]},
+ ],
  objects:[{kind:'tent',x:3,y:26,color:'#686582'},{kind:'campfire',x:8,y:36},{kind:'warpstone',x:4,y:37,color:'#c4a9ff'},{kind:'sign',x:12,y:28,text:'Haunted Forest · Lv.75–90'},{kind:'sign',x:59,y:28,text:'⚠ เขตคราส Lv.94–98 / MVP Lv.99'},
  ...[[22,15],[34,7],[43,20],[58,42],[65,45],[73,45],[73,54]].map(([x,y],i)=>({kind:'pillar',x,y,seed:900+i})),{kind:'bones',x:26,y:37},{kind:'bones',x:68,y:9},{kind:'bigshroom',x:34,y:45,color:'#bb93df'},{kind:'bigshroom',x:47,y:16,color:'#89d2c4'},
  ...scatterTrees(W,H,68,[...lanes,camp,arena,[24,18,9,9],[45,37,10,8],[25,36,5,5]],77431,3,.15),

@@ -7,7 +7,22 @@ const look={hair:'#d7c5a0',skin:'#e8bd99',eye:'#32534d',tunic:'#5a8275',pants:'#
 export const ANCIENT_RUINS={
  id:'ancient_ruins',name:'Ancient Ruins',subtitle:'ซากอารยธรรมอักขระ · Lv.60–75 · MVP ออเร็กซ์ Lv.78',levelRange:[60,75],width:W,height:H,fill:'GRASS',spawn:{x:5.5,y:29.5},music:'ruins',
  theme:{fog:'#71817b',fogNear:25,fogFar:70,outer:'#27382f',light:{hemi:.8,sky:'#dce8d2',ground:'#384936',sun:1.1,sunColor:'#ffe4b0',exposure:1.03},grass:{base:'#79835d',blobs:['#68754e','#89966c','#76815b'],blades:['#9caa76','#6c7e52','#b0b48c'],litter:['#cfba87','#d9d1ac','#ac956b']},dirt:{base:'#a99e84',blobs:['#b5aa91','#978e76','#c0b59a'],pebble:'#7e7e71',cracks:'#79745d'},trees:'normal',tufts:true,flowers:['#d6c499','#91dbcb','#a8c57b'],motes:'#8fe6db',moteCount:75,moteSize:.05,fx:{gain:.8,glow:.75,flash:.8},mini:{grass:'#76815b',dirt:'#b3a787',water:'#538e91',flowers:'#92c9b2',bridge:'#9a8a6b'}},
- regions:[...lanes.map(rect=>({tile:'DIRT',rect})),{tile:'DIRT',rect:camp},{tile:'DIRT',rect:arena},{tile:'WATER',rect:[25,17,8,7]},{tile:'WATER',rect:[44,38,7,6]},{tile:'FLOWERS',rect:[20,38,4,3]},{tile:'FLOWERS',rect:[64,35,4,3]}],
+ prune:true,
+ // v0.27 รีมาสเตอร์: ถนนหินโบราณ (PLAZA) · ลานวงกลมตามแยก · กำแพงพังเป็นช่วง · สระศักดิ์สิทธิ์
+ regions:[
+  {tile:'FLOWERS',circle:[22,39.5,3,2]},{tile:'FLOWERS',circle:[66,36.5,3,2]},{tile:'FLOWERS',circle:[29,20.5,5.4,4.6]},
+  {tile:'DIRT',circle:[7,31,6,7.4]},
+  {tile:'PLAZA',path:[[0,30],[14,30],[26,29],[40,30],[50,31],[58,30],[76,30]],w:4},
+  {tile:'PLAZA',path:[[16,6],[16,54]],w:4},{tile:'PLAZA',path:[[40,8],[40,52]],w:4},{tile:'PLAZA',path:[[58,8],[58,51]],w:4},
+  {tile:'PLAZA',path:[[14,10],[62,10]],w:4},{tile:'PLAZA',path:[[14,50],[64,50]],w:4},
+  ...[[16,10],[40,10],[58,10],[16,50],[40,50],[58,50],[40,30],[16,30]].map(([x,y])=>({tile:'PLAZA',circle:[x,y,4.2]})),
+  {tile:'PLAZA',circle:[60,19.5,9,7.6]},
+  {tile:'FLOWERS',circle:[40,30,1.3]},
+  {tile:'WATER',circle:[29,20.5,4,3.4]},{tile:'WATER',circle:[47.5,41,3.6,3]},
+  // กำแพงโบราณที่พังเหลือเป็นช่วง ๆ
+  {tile:'WALL',rect:[22,44,6,1]},{tile:'WALL',rect:[30,44,3,1]},{tile:'WALL',rect:[46,16,1,5]},{tile:'WALL',rect:[68,38,1,5]},{tile:'WALL',rect:[26,55,6,1]},
+  {tile:'WALL',rect:[6,46,1,4]},{tile:'WALL',rect:[48,55,7,1]},{tile:'WALL',rect:[30,4,4,1]},{tile:'WALL',rect:[66,4,5,1]},
+ ],
  objects:[{kind:'tent',x:3,y:25,color:'#617b66'},{kind:'campfire',x:8,y:34},{kind:'warpstone',x:4,y:35,color:'#8de6d5'},{kind:'sign',x:11,y:27,text:'Ancient Ruins · Lv.60–75'},{kind:'sign',x:68,y:27,text:'Haunted Forest ➜ Lv.75–99'},{kind:'sign',x:51,y:27,text:'⚠ ออเร็กซ์ MVP Lv.78'},
  ...[[21,12],[29,12],[45,14],[50,18],[66,18],[50,23],[66,23],[21,42],[32,43],[61,42]].map(([x,y],i)=>({kind:'pillar',x,y,seed:700+i})),
  {kind:'chest',x:65,y:14},{kind:'bones',x:25,y:35},{kind:'boulder',x:32,y:8,w:2},

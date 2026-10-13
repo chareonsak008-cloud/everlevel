@@ -59,18 +59,33 @@ export const WHISPER_FOREST = {
     sunbeams: 12,
   },
 
+  prune: true,   // v0.27
+
+  // v0.27 รีมาสเตอร์: ทางเดินดินคดเคี้ยวใต้ร่มไม้ · ลำธารโค้ง · ลานถ้ำ/ลานบอสทรงกลม
   regions: [
-    { tile: 'FLOWERS', rect: [6, 33, 6, 2] },
-    { tile: 'FLOWERS', rect: [20, 14, 4, 2] },
-    { tile: 'FLOWERS', rect: [35, 36, 4, 3] },
-    { tile: 'FLOWERS', rect: [25, 52, 5, 2] },
-    { tile: 'FLOWERS', rect: [76, 51, 3, 3] },
-    ...PATHS.map((rect) => ({ tile: 'DIRT', rect })),
-    { tile: 'DIRT', rect: DEN },
-    { tile: 'DIRT', rect: [64, 41, 14, 13] },
-    { tile: 'FLOWERS', rect: [64, 40, 3, 1] },
-    { tile: 'WATER', rect: POND },
-    ...STREAM.map((rect) => ({ tile: 'WATER', rect })),
+    { tile: 'FLOWERS', circle: [8, 33.5, 4, 1.6] },
+    { tile: 'FLOWERS', circle: [22, 15, 3.4, 2.2] },
+    { tile: 'FLOWERS', circle: [37, 37, 3, 2.4] },
+    { tile: 'FLOWERS', circle: [27, 53, 3.6, 2] },
+    { tile: 'FLOWERS', circle: [70.5, 47.5, 8.6] },
+    { tile: 'FLOWERS', circle: [18, 46, 2.6, 2] },
+    // จุดพักริมทางเข้า · ถ้ำหมาป่า · ลานหินต้นไม้เฒ่า
+    { tile: 'DIRT', circle: [7.5, 27.5, 6, 5] },
+    { tile: 'DIRT', circle: [67.5, 12, 7.6, 6.6] },
+    { tile: 'DIRT', circle: [70.5, 47.5, 7.2] },
+    // ทางเดินหลัก → ลานบอส
+    { tile: 'DIRT', path: [[0, 28.5], [12, 28.5], [20, 26], [31, 28], [37, 30], [43, 29.5], [50, 31], [54, 36], [56, 42], [63, 44.5], [66, 46]], w: 3 },
+    // ทางขึ้นเหนือสู่ Frostveil
+    { tile: 'DIRT', path: [[31, 28], [29.5, 20], [32, 12], [31.5, 5], [31.5, 0]], w: 3 },
+    // ทางไปถ้ำหมาป่า (ข้ามสะพานเหนือ)
+    { tile: 'DIRT', path: [[32, 12], [37, 10.5], [47, 10.5], [53, 9], [61, 11]], w: 3 },
+    // ทางลัดเลียบลำธารลงใต้
+    { tile: 'DIRT', path: [[20, 26], [17, 36], [22, 46], [33, 50], [40, 48]], w: 2 },
+    // บึงในป่า
+    { tile: 'WATER', circle: [14.5, 19.5, 2.8, 1.8] },
+    { tile: 'WATER', circle: [26, 41, 2, 1.5] },
+    // ลำธารคดเคี้ยว (ช่วงสะพานตรงแนวตั้ง)
+    { tile: 'WATER', path: [[42, 0], [42, 15], [43, 21], [43, 36], [45, 44], [44, 52], [44, 64]], w: 2 },
     { tile: 'BRIDGE', rect: [41, 9, 2, 3] },
     { tile: 'BRIDGE', rect: [42, 28, 2, 3] },
   ],

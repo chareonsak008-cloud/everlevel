@@ -7,7 +7,7 @@
 <meta name="description" content="Everlevel — เกม MMORPG แฟนตาซีบนเบราว์เซอร์ เล่นกับเพื่อนได้">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Cinzel:wght@600;700&family=Lilita+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Cinzel:wght@600;700&family=Lilita+One&family=Pixelify+Sans:wght@500;700&display=swap">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/events.css">
 </head>
@@ -38,8 +38,13 @@
     </div>
     <div class="buffs" id="buffs" aria-label="บัฟที่ทำงานอยู่"></div>
     <div class="panel mini">
-      <div class="mini-title"><span id="mapName">Asteria Town</span><span id="coords">0, 0</span></div>
-      <canvas id="minimap"></canvas>
+      <div class="mhead">
+        <span class="chip" id="mapChip" title="ช่องเซิร์ฟเวอร์">CH 1</span><span class="sp"></span>
+        <button class="ibtn" id="btnMapBig" type="button" aria-label="เปิดแผนที่ (N)" title="แผนที่ (N)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="2.2" fill="none"/></svg></button>
+        <button class="ibtn" id="btnWorld" type="button" aria-label="แผนที่โลก" title="แผนที่โลก"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4 12h16M12 4c3 3 3 13 0 16M12 4c-3 3-3 13 0 16" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>
+      </div>
+      <canvas id="minimap" title="แตะเพื่อเปิดแผนที่"></canvas>
+      <div class="mfoot"><b id="mapName">Asteria Town</b><small><span id="coords">0, 0</span><span id="mapOnline"></span></small></div>
       <div class="cam-btns">
         <button id="rotL" type="button" aria-label="หมุนกล้องซ้าย">⟲</button>
         <button id="rotR" type="button" aria-label="หมุนกล้องขวา">⟳</button>
@@ -133,6 +138,21 @@
         <span class="skw-job" id="skwJob"></span>
       </footer>
     </section>
+    <section class="panel mapwin" id="mapWin" hidden aria-labelledby="mapTitle">
+      <header class="mw-head">
+        <h2 id="mapTitle">แผนที่</h2>
+        <div class="mw-tabs" role="tablist"><button type="button" role="tab" data-tab="local">แผนที่นี้</button><button type="button" role="tab" data-tab="world">แผนที่โลก</button></div>
+        <button type="button" class="st-close" id="mapClose" aria-label="ปิดแผนที่">✕</button>
+      </header>
+      <div class="mw-local" id="mwLocal">
+        <div class="mw-scroll"><canvas id="mwCanvas"></canvas></div>
+        <div class="mw-foot"><b id="mwName"></b><span id="mwSub"></span></div>
+        <div class="mw-legend"><span><i style="background:#ff9a3a"></i>ร้านค้า</span><span><i style="background:#5ae0a8"></i>คลัง</span><span><i style="background:#7fe0ff"></i>วาร์ป</span><span><i style="background:#d49bff"></i>เปลี่ยนอาชีพ</span><span><i style="background:#ffd34d"></i>ชาวเมือง</span><span><i class="dia"></i>ทางออก</span><span><i style="background:#e8384f"></i>คุณ</span></div>
+      </div>
+      <div class="mw-world" id="mwWorld" hidden>
+        <div class="wm-grid"><canvas id="wmCanvas" aria-label="แผนที่โลก แตะภูมิภาคเพื่อดูรายละเอียด"></canvas><div class="wm-info" id="wmInfo"></div></div>
+      </div>
+    </section>
     <section class="panel status" id="status" hidden aria-labelledby="stTitle">
       <header class="st-head">
         <div><h2 id="stTitle">สถานะตัวละคร</h2><p id="stSub">Novice</p></div>
@@ -203,14 +223,14 @@
       <button type="button" class="qt-head" id="qtHead">📜 เควส <span id="qtCount">0</span><i aria-hidden="true">▾</i></button>
       <div class="qt-list" id="qtList"></div>
     </div>
-    <div class="panel help">คลิกมอนสเตอร์เพื่อโจมตี · <kbd>Space</kbd> ตีตัวใกล้สุด · <kbd>C</kbd> สถานะ · <kbd>I</kbd> กระเป๋า · <kbd>K</kbd> สกิล · <kbd>O</kbd> ตู้แฟชั่น · <kbd>J</kbd> เควส · <kbd>P</kbd> สัตว์เลี้ยง · <kbd>H</kbd> ตั้งค่าออโต้ · <kbd>Z</kbd> เริ่ม/หยุดออโต้ · <kbd>M</kbd> จดหมาย · <kbd>B</kbd> สมุดสะสม · <kbd>F1</kbd>–<kbd>F9</kbd> ปุ่มลัด · <kbd>Enter</kbd> แชต · คลิก NPC เพื่อซื้อขาย/ฝากของ/วาร์ป · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> เดิน · <kbd>Q</kbd><kbd>E</kbd> หมุนกล้อง · คลิกขวาลากขึ้นลง หรือ <kbd>PgUp</kbd><kbd>PgDn</kbd> ปรับมุมก้ม · ⚙ ตั้งค่าเสียง/กราฟิก</div>
+    <div class="panel help">คลิกมอนสเตอร์เพื่อโจมตี · <kbd>Space</kbd> ตีตัวใกล้สุด · <kbd>C</kbd> สถานะ · <kbd>I</kbd> กระเป๋า · <kbd>K</kbd> สกิล · <kbd>O</kbd> ตู้แฟชั่น · <kbd>J</kbd> เควส · <kbd>P</kbd> สัตว์เลี้ยง · <kbd>H</kbd> ตั้งค่าออโต้ · <kbd>Z</kbd> เริ่ม/หยุดออโต้ · <kbd>M</kbd> จดหมาย · <kbd>B</kbd> สมุดสะสม · <kbd>N</kbd> แผนที่ · <kbd>F1</kbd>–<kbd>F9</kbd> ปุ่มลัด · <kbd>Enter</kbd> แชต · คลิก NPC เพื่อซื้อขาย/ฝากของ/วาร์ป · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> เดิน · <kbd>Q</kbd><kbd>E</kbd> หมุนกล้อง · คลิกขวาลากขึ้นลง หรือ <kbd>PgUp</kbd><kbd>PgDn</kbd> ปรับมุมก้ม · ⚙ ตั้งค่าเสียง/กราฟิก</div>
     <div class="skill-arc" id="skillArc" hidden aria-label="ปุ่มลัด 1 ถึง 4"></div>
     <button class="attack-btn" id="btnAttack" type="button" aria-label="โจมตีมอนสเตอร์ที่ใกล้ที่สุด">⚔</button>
     <button class="menu-btn" id="btnMenu" type="button" aria-label="เมนู" aria-expanded="false" aria-controls="menuPanel">☰</button>
     <div class="tools">
       <span class="net" id="netStatus" data-s="offline" title="ออฟไลน์"><i aria-hidden="true"></i><span>ออฟไลน์</span></span>
       <span id="fps">60 FPS</span>
-      <span class="ver">v0.26.0</span>
+      <span class="ver">v0.27.0</span>
       <button id="btnBook" type="button" aria-label="สมุดสะสม" title="สมุดสะสม (B)">📖</button>
       <button id="btnMail" type="button" aria-label="จดหมาย" title="จดหมาย (M)">📬<span class="badge" id="mailBadge" hidden>0</span></button>
       <button id="btnOnline" type="button" aria-label="ผู้เล่นออนไลน์" title="ผู้เล่นออนไลน์">👥</button>

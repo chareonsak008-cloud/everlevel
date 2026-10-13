@@ -28,7 +28,23 @@ export class GameMap {
     for (let i = 0; i < n; i++) this.solid[i] = TILE_INFO[this.ground[i]].solid ? 1 : 0;
     this.computeEdges();
 
-    this.objects = (def.objects || []).map((o) => this.placeObject(o));
+    // v0.27: def.prune = ตัดของตกแต่ง (ต้นไม้/พุ่ม/หิน) ที่งอกทับทางเดิน น้ำ หรือลาน ออกอัตโนมัติ
+    let objs = def.objects || [];
+    if (def.prune) {
+      const DECOR = new Set(['tree', 'pine', 'bush', 'stump', 'boulder', 'bigshroom', 'icecrystal', 'obsidian']);
+      const OPEN = new Set([T.GRASS, T.FLOWERS, T[def.fill] ?? T.GRASS]);
+      const keepOut = (def.portals || []).map((p) => [p.x - 1, p.y - 1, p.w + 2, p.h + 2]).concat((def.npcs || []).map((n) => [n.x - 1, n.y - 1, 3, 3]));
+      objs = objs.filter((o) => {
+        if (o.keep || !DECOR.has(o.kind)) return true;
+        const { fw, fh } = footprint(o);
+        for (let j = o.y; j < o.y + fh; j++) for (let i = o.x; i < o.x + fw; i++) {
+          if (!this.inBounds(i, j) || !OPEN.has(this.ground[this.idx(i, j)])) return false;
+          if (keepOut.some(([x, y, w, h]) => i >= x && i < x + w && j >= y && j < y + h)) return false;
+        }
+        return true;
+      });
+    }
+    this.objects = objs.map((o) => this.placeObject(o));
     this.portals = (def.portals || []).map((p) => ({
       ...p, inside: false,
       rect: [p.x * TILE, p.y * TILE, (p.x + p.w) * TILE, (p.y + p.h) * TILE],
@@ -52,6 +68,27 @@ export class GameMap {
       for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) {
         const edge = i < x + th || i >= x + w - th || j < y + th || j >= y + h - th;
         if (edge) this.setTile(i, j, t);
+      }
+    } else if (reg.circle) {
+      // v0.27: วงกลม/วงรี [cx, cy, rx, ry?] (จุดกึ่งกลางช่อง = x + 0.5)
+      const [cx, cy, rx, ry = rx] = reg.circle;
+      for (let j = Math.floor(cy - ry); j <= Math.ceil(cy + ry); j++) for (let i = Math.floor(cx - rx); i <= Math.ceil(cx + rx); i++) {
+        const dx = (i + 0.5 - cx) / rx, dy = (j + 0.5 - cy) / ry;
+        if (dx * dx + dy * dy <= 1) this.setTile(i, j, t);
+      }
+    } else if (reg.path) {
+      // v0.27: เส้นทางคดเคี้ยว { path: [[x,y],...], w: ความกว้าง }
+      const pts = reg.path, hw = (reg.w || 3) / 2;
+      for (let k = 0; k < pts.length - 1; k++) {
+        const [ax, ay] = pts[k], [bx, by] = pts[k + 1];
+        const x0 = Math.floor(Math.min(ax, bx) - hw - 1), x1 = Math.ceil(Math.max(ax, bx) + hw + 1);
+        const y0 = Math.floor(Math.min(ay, by) - hw - 1), y1 = Math.ceil(Math.max(ay, by) + hw + 1);
+        const L2 = (bx - ax) ** 2 + (by - ay) ** 2 || 1;
+        for (let j = y0; j <= y1; j++) for (let i = x0; i <= x1; i++) {
+          const px = i + 0.5, py = j + 0.5;
+          const u = Math.max(0, Math.min(1, ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / L2));
+          if (Math.hypot(px - ax - u * (bx - ax), py - ay - u * (by - ay)) <= hw) this.setTile(i, j, t);
+        }
       }
     }
   }

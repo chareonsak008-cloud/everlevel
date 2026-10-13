@@ -1895,3 +1895,169 @@ body:not(.touch) .menu-btn {display:grid;place-items:center;position:absolute;ri
 .d-stats .wi-set .on { color: #ffd0d8; font-weight: 700; }
 .d-stats .wi-ref { color: #ffc89a; font-size: 11px; }
 .d-stats .wi-drop { color: #a8b8a0; font-size: 11px; }
+
+/* =====================================================================
+   v0.27 REMASTER SKIN — กรอบกรมท่า + ขอบทองเหลือง (ทับธีมเดิมทั้งเกม)
+   ===================================================================== */
+:root {
+  --navy: #0e1836; --navy2: #16244d; --navy3: #1f3268; --ink: #070d22;
+  --brass: #d8b45c; --brass2: #f3dc95; --brassD: #8a6a2a; --cream: #f5ecd2;
+  --panel: rgba(14, 24, 54, 0.9); --panel-solid: #0e1836;
+  --edge: rgba(216, 180, 92, 0.5); --edge-strong: #d8b45c;
+  --text: #f5ecd2; --muted: #a9b8dc; --gold: #f3dc95;
+  --num: 'Pixelify Sans', 'Kanit', monospace;
+}
+#game .panel {
+  background: linear-gradient(180deg, rgba(31, 50, 104, 0.95), rgba(14, 24, 54, 0.95) 55%, rgba(7, 13, 34, 0.96));
+  border: 2px solid var(--brass); border-radius: 10px;
+  box-shadow: 0 0 0 2px var(--ink), 0 0 0 3px var(--brassD), 0 10px 26px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+#game .panel.help, #game .panel.qtrack, #game .panel.target { border-width: 1px; box-shadow: 0 0 0 1px var(--ink), 0 6px 16px rgba(0, 0, 0, 0.4); }
+/* มุมเพชรประดับ (การ์ดตัวละคร · มินิแมพ · หน้าต่างหลัก) */
+#game .char::before, #game .char::after, #game .mini::before, #game .mini::after,
+#game .mapwin::before, #game .mapwin::after {
+  content: ''; position: absolute; width: 10px; height: 10px; background: var(--brass2); transform: rotate(45deg);
+  box-shadow: 0 0 6px rgba(243, 220, 149, 0.7); pointer-events: none; z-index: 2;
+}
+#game .char::before, #game .mini::before, #game .mapwin::before { left: -6px; top: -6px; }
+#game .char::after, #game .mini::after, #game .mapwin::after { right: -6px; bottom: -6px; }
+#game .status, #game .mapwin { position: absolute; }
+#game .st-head h2, #game .mp-head b { color: var(--brass2); text-shadow: 0 2px 0 #000; }
+#game .st-close { width: 30px; height: 30px; border-radius: 50%; background: #7a1f22; border: 2px solid var(--brass); color: #fff; font-weight: 700; }
+#game .st-close:hover { background: #9a2a2e; color: #fff; }
+#game .status-btn, #game .cam-btns button, #game .tools button, #game .mp-grid button {
+  background: radial-gradient(circle at 50% 30%, var(--navy3), var(--ink)); border: 1px solid var(--brass); color: var(--cream);
+}
+#game .status-btn:hover, #game .cam-btns button:hover, #game .tools button:hover, #game .mp-grid button:hover { background: radial-gradient(circle at 50% 30%, #2c4590, var(--navy)); border-color: var(--brass2); }
+#game .badge { background: radial-gradient(circle at 35% 30%, #ff9a8a, #e2433f); color: #fff; box-shadow: 0 0 0 2px var(--ink), 0 0 0 3px var(--brass); }
+
+/* การ์ดตัวละคร */
+#game .char { width: 272px; padding: 9px 12px 10px 9px; }
+#game .crest { width: 54px; height: 54px; border: 2px solid var(--brass); box-shadow: 0 0 0 2px var(--ink), 0 3px 8px rgba(0, 0, 0, 0.5); font-size: 22px; }
+#game .char .name { color: var(--cream); font-size: 16px; }
+#game .char .job { color: var(--brass2); font-size: 11px; letter-spacing: 0.02em; }
+#game .bar-row { grid-template-columns: 22px 1fr auto; font-family: var(--num); font-size: 11px; }
+#game .bar-row b { color: var(--brass2); font-family: var(--num); }
+#game .bar { background: #05091a; border: 1px solid rgba(0, 0, 0, 0.6); box-shadow: inset 0 1px 2px #000; }
+#game .bar-row .bar.hp, #game .bar-row .bar.sp { height: 10px; border-radius: 6px; }
+#game .bar.hp > i { background: linear-gradient(180deg, #ff7a6a, #e2433f 55%, #9a1f22); }
+#game .bar.sp > i { background: linear-gradient(180deg, #8ab8ff, #3c7cf0 55%, #1c3f9a); }
+#game .bar.exp > i { background: linear-gradient(180deg, #a8f0a0, #58d26a 60%, #2a8a3a); }
+#game .bar.jexp > i { background: linear-gradient(180deg, #ffe9a0, #e0b040 60%, #8a6a1a); }
+
+/* มินิแมพ */
+#game .mini { padding: 0 0 6px; width: 196px; box-sizing: border-box; }
+#game .mhead { display: flex; align-items: center; gap: 5px; padding: 5px 6px 4px; }
+#game .mhead .sp { flex: 1; }
+#game .chip { background: var(--ink); border: 1px solid var(--brass); border-radius: 6px; padding: 0 7px; font: 700 11px/18px var(--num); color: var(--brass2); white-space: nowrap; }
+#game .ibtn { width: 24px; height: 24px; padding: 0; border-radius: 6px; background: var(--ink); border: 1px solid var(--brass); color: var(--brass2); display: grid; place-items: center; cursor: pointer; pointer-events: auto; }
+#game .ibtn:hover { border-color: var(--brass2); background: var(--navy3); }
+#game .ibtn svg { width: 15px; height: 15px; }
+#game #minimap { width: calc(100% - 12px); height: auto; aspect-ratio: 1.29; margin: 0 6px; border: 1px solid var(--brassD); border-radius: 4px; cursor: pointer; pointer-events: auto; background: #2a4a2a; box-sizing: border-box; }
+#game .mfoot { text-align: center; padding: 4px 6px 0; line-height: 1.25; }
+#game .mfoot b { display: block; font: 700 14px var(--display); color: var(--brass2); letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#game .mfoot small { font: 500 11px var(--num); color: var(--muted); }
+#game .mini .cam-btns { margin: 5px 6px 0; }
+#game .mini-title { display: none; }
+
+/* หน้าต่างสถานะ: แผงครีม */
+#game .status { background: linear-gradient(180deg, rgba(31, 50, 104, 0.97), rgba(14, 24, 54, 0.97)); width: 470px; }
+#game .st-levels .lv { background: rgba(7, 13, 34, 0.6); border: 1px solid rgba(216, 180, 92, 0.35); border-radius: 8px; padding: 6px 8px; }
+#game .st-body { background: linear-gradient(180deg, #f6eedb, #e8dcc0); border: 2px solid var(--brassD); border-radius: 8px; padding: 8px; color: #2a2238; }
+#game .st-name { display: none; }
+#game .st-row { grid-template-columns: 30px minmax(0, 1fr) 46px 28px 18px; background: rgba(255, 255, 255, 0.55); border: 1px solid #d4c6a4; }
+#game .st-ico { width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; border: 2px solid rgba(0, 0, 0, 0.25); }
+#game .st-ico svg { width: 18px; height: 18px; }
+#game .st-key { font-family: var(--num); font-size: 14px; color: #2a2238; }
+#game .st-name { color: #6a6078; }
+#game .st-val { background: #fff; border: 1px solid #bba; border-radius: 4px; padding: 1px 5px; font: 700 14px var(--num); color: #2a2238; }
+#game .st-bonus { color: #a06a1a; }
+#game .st-cost { color: #6a6078; font-family: var(--num); }
+#game .st-row.affordable .st-cost { color: #a06a1a; }
+#game .st-plus { width: 28px; height: 28px; border-radius: 6px; border: 2px solid #39456a; background: linear-gradient(180deg, #6a7aa8, #3a4670); color: #fff; font: 700 18px var(--num); }
+#game .st-plus:disabled { opacity: 0.35; background: linear-gradient(180deg, #6a7aa8, #3a4670); color: #fff; }
+#game .st-derived div { background: #fffaf0; border: 1px solid #cbbd9c; border-radius: 6px; margin-bottom: 3px; }
+#game .st-derived dt { color: #6a5a48; font-family: var(--num); }
+#game .st-derived dd { color: #2a2238; font: 700 13px var(--num); }
+#game .st-foot { background: linear-gradient(180deg, #1d2c5c, #0e1836); border: 2px solid var(--brass); border-radius: 8px; padding: 6px 12px; }
+#game .st-foot b { color: var(--brass2); font: 700 20px var(--num); }
+
+/* หน้าต่างแผนที่ */
+.mapwin { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(980px, calc(100% - 24px)); max-height: calc(100% - 24px); box-sizing: border-box; display: flex; flex-direction: column; pointer-events: auto; z-index: 6; padding: 0; }
+.mapwin[hidden] { display: none; }
+.mw-head { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-bottom: 2px solid var(--brassD); background: linear-gradient(180deg, #24397a, #13214a); border-radius: 8px 8px 0 0; }
+.mw-head h2 { margin: 0; font: 700 20px var(--display); color: var(--brass2); letter-spacing: 0.05em; text-shadow: 0 2px 0 #000; }
+.mw-tabs { display: flex; gap: 6px; flex: 1; }
+.mw-tabs button { font: 500 13px var(--font); color: var(--cream); background: var(--ink); border: 1px solid rgba(216, 180, 92, 0.5); border-radius: 14px; padding: 3px 14px; cursor: pointer; }
+.mw-tabs button.on { background: #2a3c74; border-color: var(--brass2); color: var(--brass2); }
+.mw-local, .mw-world { padding: 10px 12px 12px; overflow: auto; min-height: 0; }
+.mw-local[hidden], .mw-world[hidden] { display: none; }
+.mw-scroll { overflow: auto; max-height: calc(100vh - 210px); border: 1px solid var(--brassD); border-radius: 6px; background: #1a2a1a; }
+#mwCanvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.mw-foot { text-align: center; padding: 8px 0 2px; }
+.mw-foot b { display: block; font: 700 22px var(--display); color: var(--brass2); }
+.mw-foot span { font: 500 13px var(--num); color: var(--cream); }
+.mw-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+.mw-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; box-shadow: 0 0 0 1px #000; }
+.mw-legend i.dia { border-radius: 1px; transform: rotate(45deg); background: #e8b8ff; }
+.wm-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; }
+#wmCanvas { width: 100%; height: auto; aspect-ratio: 680 / 500; display: block; border: 2px solid var(--brassD); border-radius: 6px; cursor: pointer; background: #1d5a8c; }
+.wm-info { background: #0a1229; border: 1px solid rgba(216, 180, 92, 0.35); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.wm-head { display: flex; gap: 10px; align-items: center; }
+.wm-badge { width: 42px; height: 42px; flex: none; border-radius: 50%; border: 2px solid var(--brass); background: var(--navy); display: grid; place-items: center; font: 700 15px var(--num); color: var(--brass2); }
+.wm-head h3 { margin: 0; font: 600 18px var(--font); color: var(--cream); }
+.wm-head small { color: var(--muted); font-size: 12px; }
+.wm-tags { margin-left: auto; display: grid; grid-template-columns: auto auto; gap: 2px 6px; font-size: 11px; align-items: center; color: var(--muted); }
+.wm-tags b { font: 700 13px var(--num); color: var(--brass2); background: var(--ink); border: 1px solid rgba(216, 180, 92, 0.4); border-radius: 4px; padding: 0 6px; text-align: center; }
+.wm-split { display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 8px; }
+.wm-mobs { display: flex; flex-direction: column; gap: 4px; max-height: 270px; overflow: auto; }
+.wm-mobs h4 { margin: 0 0 2px; font: 500 12px var(--font); color: var(--muted); display: flex; justify-content: space-between; }
+.wm-mobs h4 em { font-style: normal; color: #ff8a9a; }
+.wm-mob { display: flex; gap: 6px; align-items: center; background: #111b3a; border: 1px solid #2a3c74; border-radius: 6px; padding: 3px 6px; cursor: pointer; font: inherit; color: var(--cream); text-align: left; }
+.wm-mob:hover, .wm-mob.on { border-color: var(--brass); }
+.wm-mob i { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1px #000; }
+.wm-mob b { font-weight: 500; font-size: 12px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wm-mob small { font: 500 11px var(--num); color: var(--muted); }
+.wm-mob.boss { border-color: #c8963a; background: #2a1f12; }
+.wm-minibox canvas { width: 100%; height: auto; display: block; border: 1px solid rgba(216, 180, 92, 0.4); border-radius: 4px; image-rendering: pixelated; }
+.wm-links { margin: 0; font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.wm-links button { font: inherit; font-size: 12px; color: var(--brass2); background: var(--ink); border: 1px solid rgba(216, 180, 92, 0.5); border-radius: 12px; padding: 1px 9px; cursor: pointer; }
+.wm-note { margin: 0; font-size: 11.5px; color: #8090b8; line-height: 1.5; }
+@media (max-width: 760px) {
+  .wm-grid { grid-template-columns: 1fr; }
+  .wm-split { grid-template-columns: minmax(0, 1fr) 120px; }
+  .mw-head h2 { font-size: 16px; }
+  .mw-tabs button { padding: 3px 9px; font-size: 12px; }
+  #game .mini { width: 150px; }
+  #game .mfoot b { font-size: 12px; }
+  #game .char { width: 220px; }
+  #game .crest { width: 42px; height: 42px; font-size: 18px; }
+  #game .status { width: auto; }
+  #game .st-row { grid-template-columns: 26px minmax(0, 1fr) 42px 28px 16px; gap: 4px; }
+  #game .st-ico { width: 24px; height: 24px; }
+}
+body.touch #game .mini { width: 140px; }
+body.touch #game .mini .cam-btns { display: none; }
+body.touch #game #minimap { width: calc(100% - 12px); height: auto; }
+.mw-scroll { display: flex; justify-content: center; }
+#mwCanvas { width: auto; max-width: 100%; max-height: calc(100vh - 210px); }
+/* v0.27: จอสัมผัส — การ์ด/มินิแมพกะทัดรัด */
+body.touch #game .char { width: 214px; padding: 7px 10px 8px 7px; gap: 8px; }
+body.touch #game .crest { width: 40px; height: 40px; font-size: 17px; }
+body.touch #game .char .name { font-size: 14px; }
+body.touch #game .mini { width: 140px; }
+body.touch #game .mfoot small { display: none; }
+body.touch #game .mfoot b { font-size: 11.5px; }
+@media (max-height: 500px) {
+  body.touch #game .mini { width: 128px; padding-bottom: 5px; }
+  body.touch #game .mfoot { display: none; }
+  body.touch .auto-dock { top: calc(142px + env(safe-area-inset-top, 0px)); }
+  .mw-foot, .mw-legend { display: none; }
+  .mw-head { padding: 4px 8px; }
+  .mw-local, .mw-world { padding: 6px 8px 8px; }
+  .mw-scroll, #mwCanvas { max-height: calc(100vh - 70px); }
+  .mapwin { max-height: calc(100% - 8px); }
+  .wm-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .wm-mobs { max-height: 150px; }
+}

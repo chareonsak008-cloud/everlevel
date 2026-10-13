@@ -17,23 +17,34 @@ export const BEGINNER_FIELD = {
   music: 'field',
   theme: { fog: '#e3e7d8', outer: '#5a9a3e' },
 
+  prune: true,   // v0.27: ต้นไม้/หินที่ทับทางเดินถูกตัดออกอัตโนมัติ
+
+  // v0.27 รีมาสเตอร์: ทางเดินโค้งตามธรรมชาติ · ลำธารคดเคี้ยว · บึงดอกไม้ · ลานซากโบราณวงกลม
   regions: [
-    { tile: 'FLOWERS', rect: [8, 30, 6, 2] },
-    { tile: 'FLOWERS', rect: [25, 18, 5, 3] },
-    { tile: 'FLOWERS', rect: [44, 24, 4, 2] },
-    { tile: 'FLOWERS', rect: [60, 44, 6, 2] },
-    { tile: 'FLOWERS', rect: [15, 48, 5, 2] },
-    { tile: 'FLOWERS', rect: [50, 12, 3, 2] },
-    { tile: 'DIRT', rect: [0, 26, 72, 3] },   // เส้นทางหลัก ตะวันตก–ตะวันออก
-    { tile: 'DIRT', rect: [19, 6, 3, 20] },   // ทางแยกขึ้นเหนือ
-    { tile: 'DIRT', rect: [52, 29, 3, 21] },  // ทางแยกลงใต้
-    { tile: 'DIRT', rect: [53, 9, 8, 6] },    // ลานซากปรักหักพัง
-    { tile: 'WATER', rect: [9, 9, 6, 4] },    // บึงเล็ก
-    // ลำธารคดเคี้ยวผ่ากลางทุ่ง
-    { tile: 'WATER', rect: [37, 0, 2, 14] },
-    { tile: 'WATER', rect: [38, 13, 2, 17] },
-    { tile: 'WATER', rect: [39, 29, 2, 13] },
-    { tile: 'WATER', rect: [38, 41, 2, 15] },
+    // ทุ่งดอกไม้
+    { tile: 'FLOWERS', circle: [12, 11, 6, 4.8] },
+    { tile: 'FLOWERS', circle: [24, 8, 4.5, 3.5] },
+    { tile: 'FLOWERS', circle: [27, 19, 3, 2] },
+    { tile: 'FLOWERS', circle: [47, 22, 3, 1.8] },
+    { tile: 'FLOWERS', circle: [62, 44, 4, 2.4] },
+    { tile: 'FLOWERS', circle: [17, 48, 4, 2.2] },
+    { tile: 'FLOWERS', circle: [9, 32, 4, 1.6] },
+    // ลานกองไฟริมทางเข้า + ลานซากโบราณ + ลานโล่งทางใต้
+    { tile: 'DIRT', circle: [8, 24, 4.6, 3] },
+    { tile: 'DIRT', circle: [56.5, 12, 5.8, 4.6] },
+    { tile: 'DIRT', circle: [55, 47, 4.5, 3.4] },
+    // ทางเดินหลัก ตะวันตก–ตะวันออก (โค้งไปมา)
+    { tile: 'DIRT', path: [[0, 27.5], [10, 27.5], [19, 25.5], [29, 27], [39, 27.5], [47, 28.5], [56, 26], [64, 27.5], [72, 27.5]], w: 3 },
+    // ทางแยกขึ้นเหนือ → ทุ่งดอกไม้ · ทางไปซากโบราณ · ทางลงใต้
+    { tile: 'DIRT', path: [[19, 25.5], [18, 17], [22, 10], [24, 8]], w: 2.4 },
+    { tile: 'DIRT', path: [[56, 26], [58, 19], [56.5, 15]], w: 2.2 },
+    { tile: 'DIRT', path: [[47, 28.5], [52, 36], [54, 44]], w: 2.4 },
+    { tile: 'DIRT', path: [[29, 27], [27, 36], [22, 44], [17, 48]], w: 2 },
+    // บึงเล็ก
+    { tile: 'WATER', circle: [12, 11, 3.6, 2.6] },
+    { tile: 'WATER', circle: [64, 41, 1.8, 1.4] },
+    // ลำธารคดเคี้ยวผ่ากลางทุ่ง (ช่วงใต้สะพานตรงแนวตั้ง)
+    { tile: 'WATER', path: [[37, 0], [37, 7], [40, 14], [39, 20], [39, 34], [41, 41], [39, 49], [39, 56]], w: 2 },
     { tile: 'BRIDGE', rect: [38, 26, 2, 3] },
   ],
 
@@ -44,7 +55,7 @@ export const BEGINNER_FIELD = {
     { kind: 'stump', x: 11, y: 23 },
     { kind: 'sign', x: 4, y: 25, text: '⬅ Asteria Town' },
     { kind: 'sign', x: 66, y: 25, text: 'Whisperwood ➜' },
-    { kind: 'fence', x: 12, y: 25, w: 6 },
+    { kind: 'fence', x: 13, y: 21, w: 4 },
     { kind: 'fence', x: 4, y: 29, w: 10 },
     { kind: 'fence', x: 44, y: 25, w: 5 },
     // ซากเสาโบราณ
@@ -87,7 +98,7 @@ export const BEGINNER_FIELD = {
   ],
 
   portals: [
-    { x: 1, y: 26, w: 2, h: 2, to: 'asteria_town', arrive: { x: 59.5, y: 24, angle: -Math.PI / 2 }, label: 'Asteria Town' },
+    { x: 1, y: 26, w: 2, h: 2, to: 'asteria_town', arrive: { x: 65.5, y: 28, angle: -Math.PI / 2 }, label: 'Asteria Town' },
     { x: 69, y: 26, w: 2, h: 2, to: 'whisper_forest', arrive: { x: 5, y: 28.5, angle: Math.PI / 2 }, label: 'Whisperwood Forest' },
   ],
 

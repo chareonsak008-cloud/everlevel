@@ -61,14 +61,25 @@ export const FROSTVEIL_PEAKS = {
     mini: { grass: '#e2ebf4', dirt: '#b2c0ce', water: '#9ad0f0', flowers: '#d0e0f4', bridge: '#9b6b3e' },
   },
 
+  prune: true,   // v0.27
+
+  // v0.27 รีมาสเตอร์: ทางหิมะอัดแน่นคดเคี้ยวขึ้นเขา · ทะเลสาบน้ำแข็งรูปไข่ · ลานบัลลังก์วงรี
   regions: [
-    ...PATHS.map((rect) => ({ tile: 'DIRT', rect })),
-    { tile: 'DIRT', rect: CAMP },
-    { tile: 'DIRT', rect: [35, 2, 13, 10] },
-    { tile: 'FLOWERS', rect: [6, 40, 4, 2] }, { tile: 'FLOWERS', rect: [22, 50, 5, 2] }, { tile: 'FLOWERS', rect: [66, 44, 4, 2] },
-    { tile: 'FLOWERS', rect: [12, 8, 3, 2] }, { tile: 'FLOWERS', rect: [60, 12, 4, 2] },
-    { tile: 'WATER', rect: LAKE },
-    ...POOLS.map((rect) => ({ tile: 'WATER', rect })),
+    { tile: 'FLOWERS', circle: [8, 41, 3, 1.6] }, { tile: 'FLOWERS', circle: [24.5, 51, 3, 1.6] }, { tile: 'FLOWERS', circle: [68, 45, 3, 1.6] },
+    { tile: 'FLOWERS', circle: [13.5, 9, 2.4, 1.6] }, { tile: 'FLOWERS', circle: [62, 13, 2.6, 1.6] }, { tile: 'FLOWERS', circle: [22, 25.5, 8.4, 5.6] },
+    { tile: 'DIRT', circle: [42, 55, 9.5, 6.2] },
+    { tile: 'DIRT', circle: [41.5, 6.5, 7.6, 5.4] },
+    // ทางหลัก: ค่ายพัก → บัลลังก์ราชินีหิมะ
+    { tile: 'DIRT', path: [[42, 64], [42, 56], [40, 46], [43, 36], [41, 26], [42.5, 16], [41.5, 10]], w: 3 },
+    // ทุ่งจิ้งจอก (ตะวันตก) · หุบเยติ · ธารน้ำแข็งโกเลม · ทางสู่ภูเขาไฟ
+    { tile: 'DIRT', path: [[43, 36], [32, 35], [20, 37.5], [10, 34]], w: 3 },
+    { tile: 'DIRT', path: [[42.5, 16], [32, 14], [22, 17], [14, 13]], w: 3 },
+    { tile: 'DIRT', path: [[42.5, 16], [52, 13], [62, 16], [70, 13]], w: 3 },
+    { tile: 'DIRT', path: [[41, 45], [52, 41], [64, 43.5], [74, 40], [84, 41.5]], w: 3 },
+    // ทะเลสาบน้ำแข็ง + บ่อน้ำแข็ง
+    { tile: 'WATER', circle: [22, 25.5, 7, 4.5] },
+    { tile: 'WATER', circle: [63, 52, 3.2, 2.2] },
+    { tile: 'WATER', circle: [10, 48.5, 2.2, 1.6] },
   ],
 
   objects: [

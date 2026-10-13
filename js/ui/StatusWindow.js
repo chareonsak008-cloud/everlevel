@@ -2,6 +2,15 @@
 import { STAT_KEYS, STAT_INFO, statCost, MAX_STAT, statResetCost, STAT_RESET_FREE_LEVEL } from '../data/progression.js';
 
 const fmt = (n) => n.toLocaleString('en-US');
+// v0.27: ไอคอนสเตตัส (สีประจำค่า)
+const ICO = {
+  str: ['#b84a4a', '<path d="M6 14c0-4 3-8 7-8 2 0 3 2 2 3l-3 1 2 3c2 0 4 1 4 4-2 3-8 3-12-3z" fill="#fff"/>'],
+  agi: ['#3a8a5a', '<path d="M4 16c4-1 7-4 9-10 1 4 3 6 7 7-5 2-9 3-16 3z" fill="#fff"/>'],
+  vit: ['#b84a6a', '<path d="M12 20s-7-4.5-7-10a4 4 0 017-2 4 4 0 017 2c0 5.5-7 10-7 10z" fill="#fff"/>'],
+  int: ['#3a5ab8', '<path d="M4 6h7v13H4zM13 6h7v13h-7z" fill="#fff"/>'],
+  dex: ['#3a6ab8', '<circle cx="12" cy="12" r="7" stroke="#fff" stroke-width="2.4" fill="none"/><circle cx="12" cy="12" r="2.4" fill="#fff"/>'],
+  luk: ['#3a9a4a', '<circle cx="9" cy="9" r="3.4" fill="#fff"/><circle cx="15" cy="9" r="3.4" fill="#fff"/><circle cx="9" cy="15" r="3.4" fill="#fff"/><circle cx="15" cy="15" r="3.4" fill="#fff"/>'],
+};
 const pct = (a, b) => (b === Infinity ? 'MAX' : `${((a / b) * 100).toFixed(1)}%`);
 
 export class StatusWindow {
@@ -22,8 +31,9 @@ export class StatusWindow {
     for (const k of STAT_KEYS) {
       const info = STAT_INFO[k];
       const row = document.createElement('div');
-      row.className = 'st-row';
-      row.innerHTML = `<span class="st-key">${info.label}</span><span class="st-name">${info.name}</span><b class="st-val">1</b>`
+      row.className = 'st-row'; row.dataset.stat = k;
+      const [ic, svg] = ICO[k] || ['#666', ''];
+      row.innerHTML = `<span class="st-ico" style="background:${ic}" aria-hidden="true"><svg viewBox="0 0 24 24">${svg}</svg></span><span class="st-key">${info.label}</span><span class="st-name">${info.name}</span><b class="st-val">1</b>`
         + `<button type="button" class="st-plus" aria-label="เพิ่ม ${info.label}">+</button><span class="st-cost" title="แต้มที่ใช้">2</span>`;
       const btn = row.querySelector('.st-plus');
       btn.addEventListener('click', (e) => {

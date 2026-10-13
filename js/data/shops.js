@@ -39,12 +39,12 @@ for (const [id, c] of Object.entries(CONSUMABLES)) for (const sh of [].concat(c.
 // เส้นทางวาร์ปของนักเวทย์แต่ละคน (arrive เป็นหน่วยช่อง)
 export const WARP_ROUTES = {
   frost: [
-    { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 31.5, y: 27.5, angle: 0 }, cost: 300 },
+    { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 36, y: 31.5, angle: 0 }, cost: 300 },
     { label: 'Whisperwood Forest · ทางเข้า', hint: 'ป่ากระซิบ', map: 'whisper_forest', arrive: { x: 7.5, y: 28.5, angle: Math.PI / 2 }, cost: 150 },
     { label: 'Ember Caldera · ค่ายผู้กล้า', hint: 'ภูเขาไฟ · แนะนำ Lv.40+', map: 'ember_caldera', arrive: { x: 8.5, y: 31.5, angle: Math.PI / 2 }, cost: 800 },
   ],
   ember: [
-    { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 31.5, y: 27.5, angle: 0 }, cost: 600 },
+    { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 36, y: 31.5, angle: 0 }, cost: 600 },
     { label: 'Frostveil Peaks · ค่ายนักสำรวจ', hint: 'ยอดเขาหิมะ', map: 'frostveil', arrive: { x: 42, y: 57.5, angle: Math.PI }, cost: 400 },
   ],
   town: [
@@ -56,13 +56,13 @@ export const WARP_ROUTES = {
     { label: 'Ember Caldera · ค่ายผู้กล้า', hint: 'ภูเขาไฟ · แนะนำ Lv.40+', map: 'ember_caldera', arrive: { x: 8.5, y: 31.5, angle: Math.PI / 2 }, cost: 1500 },
   ],
   ruins: [
-    { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 31.5, y: 27.5, angle: 0 }, cost: 30 },
+    { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 36, y: 31.5, angle: 0 }, cost: 30 },
     { label: 'Beginner Field · ทางเข้าตะวันตก', hint: 'ข้างกองไฟของลีน่า', map: 'beginner_field', arrive: { x: 5.5, y: 27.5, angle: Math.PI / 2 }, cost: 10 },
     { label: 'Beginner Field · ทางแยกใต้', hint: 'แคปปลิง', map: 'beginner_field', arrive: { x: 53.5, y: 32.5, angle: 0 }, cost: 20 },
     { label: 'Whisperwood Forest · ทางเข้า', hint: 'ป่าทางตะวันออก · แนะนำ Lv.9+', map: 'whisper_forest', arrive: { x: 7.5, y: 28.5, angle: Math.PI / 2 }, cost: 30 },
   ],
   forest: [
-    { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 31.5, y: 27.5, angle: 0 }, cost: 40 },
+    { label: 'Asteria Town · ลานน้ำพุ', hint: 'กลับเมือง', map: 'asteria_town', arrive: { x: 36, y: 31.5, angle: 0 }, cost: 40 },
     { label: 'Frostveil Peaks · ค่ายนักสำรวจ', hint: 'ยอดเขาหิมะทางเหนือ · แนะนำ Lv.20+', map: 'frostveil', arrive: { x: 42, y: 57.5, angle: Math.PI }, cost: 300 },
     { label: 'Beginner Field · ลานซากโบราณ', hint: 'ข้างไอริส', map: 'beginner_field', arrive: { x: 56.5, y: 13.5, angle: 0 }, cost: 20 },
     { label: 'Beginner Field · ทางเข้าตะวันตก', hint: 'ข้างกองไฟของลีน่า', map: 'beginner_field', arrive: { x: 5.5, y: 27.5, angle: Math.PI / 2 }, cost: 20 },

@@ -1,4 +1,4 @@
-// ข้อมูลแผนที่ Asteria Town (เมืองเริ่มต้น)
+// ข้อมูลแผนที่ Asteria Town (เมืองเริ่มต้น) — v0.27 รีมาสเตอร์: ลานวงกลมกลางเมือง · คลองตะวันตก · 4 ย่าน
 import { borderTrees as _borderTrees } from './helpers.js';
 // พิกัดทั้งหมดเป็นหน่วย "ช่อง" (tile) — วัตถุใช้มุมซ้ายบนของ footprint
 
@@ -14,16 +14,17 @@ const LOOK = {
   pip:   { hair: '#2e2a33', skin: '#f0c49a', eye: '#2a2030', tunic: '#e0a040', pants: '#3f6a8a', boot: '#2e2420', belt: '#7a5232', hairStyle: 'spiky', accessory: 'none', scale: 0.82 },
 };
 
-const W = 64, H = 48;
+const W = 72, H = 56;
 
-// ป่ารอบนอกกำแพง
-const borderTrees = () => _borderTrees(W, H, 3, [{ x0: 61, x1: 63, y0: 20, y1: 27 }]);
+// ป่ารอบนอกกำแพง (เว้นทางออกประตูตะวันออก)
+const borderTrees = () => _borderTrees(W, H, 3, [{ x0: 66, x1: 71, y0: 24, y1: 31 }], 2027, 0.9);
 
+// ต้นสนเรียงสองข้างถนนเหนือ–ใต้ + ต้นไม้ริมคลอง/ในย่าน
+const T = (kind, list, s) => list.map(([x, y], i) => ({ kind, x, y, seed: s + i * 7 }));
 const innerTrees = [
-  [13, 6], [13, 12], [22, 13], [26, 8], [25, 13], [5, 18],
-  [37, 7], [45, 7], [57, 12], [56, 17], [5, 28], [15, 28],
-  [24, 38], [26, 34], [5, 41], [15, 42], [55, 29], [44, 39], [57, 40], [34, 37],
-].map(([x, y], i) => ({ kind: i % 4 === 3 ? 'pine' : 'tree', x, y, seed: 500 + i * 7 }));
+  ...T('pine', [[32, 6], [32, 9], [32, 12], [32, 15], [39, 6], [39, 9], [39, 12], [39, 15], [32, 39], [32, 42], [32, 45], [32, 48], [39, 39], [39, 42], [39, 45], [39, 48]], 300),
+  ...T('tree', [[6, 7], [8, 10], [6, 14], [8, 18], [6, 22], [6, 33], [8, 36], [6, 39], [14, 6], [41, 6], [64, 13], [64, 20], [15, 30], [24, 30], [62, 34], [56, 49], [48, 49], [24, 50], [17, 50]], 500),
+];
 
 export const ASTERIA_TOWN = {
   id: 'asteria_town',
@@ -32,114 +33,151 @@ export const ASTERIA_TOWN = {
   width: W,
   height: H,
   fill: 'GRASS',
-  spawn: { x: 31.5, y: 27.5 },
+  spawn: { x: 36, y: 31.5 },
   music: 'town',
   safe: true, // เมือง: ไม่มีมอนสเตอร์
   theme: { cobble: 'gray', lamp: 'teal' },
+  // v0.27: ชื่อย่านสำหรับแผนที่เมือง (ป้ายบนแผนที่ใหญ่)
+  districts: [
+    { name: 'ย่านช่าง', x: 23, y: 15 }, { name: 'หอสมาคม', x: 52, y: 15 },
+    { name: 'ลานน้ำพุ', x: 36, y: 24 }, { name: 'คลังสินค้า', x: 20, y: 40 }, { name: 'ตลาดนัด', x: 51, y: 40 },
+  ],
 
   // ลำดับมีผล: อันหลังทับอันก่อน
   regions: [
-    { tile: 'FLOWERS', rect: [6, 19, 6, 2] },
-    { tile: 'FLOWERS', rect: [36, 40, 8, 2] },
-    { tile: 'FLOWERS', rect: [52, 28, 5, 2] },
-    { tile: 'FLOWERS', rect: [21, 32, 4, 2] },
-    { tile: 'FLOWERS', rect: [6, 35, 9, 1] },
-    { tile: 'DIRT', rect: [35, 12, 16, 4] },
-    { tile: 'WALL', ring: [3, 3, 58, 42, 2] },
-    { tile: 'PATH', rect: [5, 22, 59, 4] },   // ถนนตะวันตก–ตะวันออก (ทะลุประตู)
-    { tile: 'PATH', rect: [30, 5, 4, 38] },   // ถนนเหนือ–ใต้
-    { tile: 'PLAZA', rect: [24, 17, 16, 14] }, // ลานกลางเมือง
-    { tile: 'WATER', rect: [7, 37, 7, 5] },   // บ่อน้ำ
+    // แปลงดอกไม้
+    { tile: 'FLOWERS', rect: [5, 30, 4, 3] }, { tile: 'FLOWERS', rect: [61, 36, 5, 8] },
+    { tile: 'FLOWERS', circle: [24.5, 26, 2.2] }, { tile: 'FLOWERS', circle: [47.5, 26, 2.2] },
+    { tile: 'FLOWERS', rect: [14, 28, 2, 2] }, { tile: 'FLOWERS', rect: [44, 10, 2, 2] },
+    // กำแพงเมือง
+    { tile: 'WALL', ring: [3, 3, 66, 50, 2] },
+    // ลานย่าน
+    { tile: 'DIRT', rect: [15, 13, 17, 11] },            // ลานย่านช่าง
+    { tile: 'PLAZA', rect: [42, 13, 20, 10] },           // ลานหน้าหอสมาคม
+    { tile: 'DIRT', rect: [42, 35, 18, 9] },             // ตลาดนัด
+    { tile: 'PLAZA', rect: [16, 36, 10, 3] },            // ลานหน้าคลัง
+    // ถนนหลัก (ทะลุประตูตะวันออก)
+    { tile: 'PATH', rect: [5, 26, 67, 4] },
+    { tile: 'PATH', rect: [34, 5, 4, 46] },
+    // ทางเดินแยกเข้าย่าน
+    { tile: 'PATH', path: [[18, 12], [18, 26]], w: 2 },
+    { tile: 'PATH', path: [[27, 12], [27, 26]], w: 2 },
+    { tile: 'PATH', path: [[51.5, 12], [51.5, 26]], w: 2 },
+    { tile: 'PATH', path: [[20, 39], [20, 30]], w: 2 },
+    { tile: 'PATH', path: [[51, 34], [51, 30]], w: 2 },
+    { tile: 'PATH', path: [[22, 44], [30, 44], [34, 44]], w: 2 },
+    { tile: 'PATH', path: [[38, 44], [42, 44]], w: 2 },
+    // ลานน้ำพุวงกลม
+    { tile: 'PLAZA', circle: [36, 28, 8.5] },
+    { tile: 'FLOWERS', circle: [36, 28, 1.2] },
+    // คลองฝั่งตะวันตก + สระ + สะพาน
+    { tile: 'WATER', rect: [10, 5, 2, 38] },
+    { tile: 'WATER', circle: [11, 45.5, 4.2, 3.8] },
+    { tile: 'BRIDGE', rect: [10, 26, 2, 4] },
   ],
 
   objects: [
-    { kind: 'fountain', x: 30, y: 21 },
-    { kind: 'house', x: 7, y: 8, w: 5, roof: '#b5473a', seed: 1 },
-    { kind: 'house', x: 15, y: 8, w: 6, roof: '#6a5a94', seed: 2 },
-    { kind: 'house', x: 7, y: 15, w: 5, roof: '#5a8a3c', wall: '#efe2c4', seed: 3 },
-    { kind: 'house', x: 50, y: 7, w: 6, roof: '#5a4f86', seed: 4 },
-    { kind: 'house', x: 48, y: 16, w: 5, roof: '#c9822f', wall: '#efe2c4', seed: 5 },
-    { kind: 'house', x: 8, y: 30, w: 6, roof: '#4f6a9e', wall: '#efe2c4', seed: 6 },
-    { kind: 'house', x: 17, y: 35, w: 5, roof: '#b5473a', seed: 7 },
-    { kind: 'house', x: 38, y: 32, w: 6, roof: '#6a5a94', seed: 8 },
-    { kind: 'house', x: 49, y: 34, w: 5, roof: '#c9822f', seed: 9 },
-    { kind: 'stall', x: 36, y: 13, color: '#d84a4a', seed: 1 },
-    { kind: 'stall', x: 40, y: 13, color: '#3f7fd8', seed: 2 },
-    { kind: 'stall', x: 44, y: 13, color: '#e0b030', seed: 3 },
-    { kind: 'crate', x: 35, y: 13 },
-    { kind: 'barrel', x: 47, y: 12 },
-    { kind: 'barrel', x: 47, y: 13 },
-    { kind: 'well', x: 46, y: 28 },
-    { kind: 'lamp', x: 28, y: 19 }, { kind: 'lamp', x: 35, y: 19 },
-    { kind: 'lamp', x: 28, y: 28 }, { kind: 'lamp', x: 35, y: 28 },
-    { kind: 'lamp', x: 57, y: 20 }, { kind: 'lamp', x: 57, y: 27 },
-    { kind: 'bench', x: 25, y: 20 }, { kind: 'bench', x: 37, y: 20 },
-    // v0.5: แท่นผลึกวาร์ปของเซเลส + หีบคลังของเอลซ่า
-    { kind: 'warpstone', x: 24, y: 18 },
-    { kind: 'chest', x: 39, y: 18 },
-    { kind: 'crate', x: 39, y: 17 },
-    // v0.6: ป้ายสมาคมนักผจญภัย (ออเรล — เปลี่ยนอาชีพ)
-    { kind: 'sign', x: 28, y: 13, text: 'Adventurer Guild' },
-    { kind: 'sign', x: 61, y: 21 },
-    // หอคอยประตูเมืองและมุมกำแพง
-    { kind: 'tower', x: 59, y: 20, roof: '#b5473a' }, { kind: 'tower', x: 59, y: 26, roof: '#b5473a' },
-    { kind: 'tower', x: 3, y: 3, roof: '#3f6fb5' }, { kind: 'tower', x: 59, y: 3, roof: '#3f6fb5' },
-    { kind: 'tower', x: 3, y: 43, roof: '#3f6fb5' }, { kind: 'tower', x: 59, y: 43, roof: '#3f6fb5' },
+    { kind: 'fountain', x: 34, y: 26 },
+    // ย่านช่าง (ตะวันตกเฉียงเหนือ)
+    { kind: 'house', x: 15, y: 7, w: 6, roof: '#7a3a2a', wall: '#e4d2b0', seed: 11 },   // โรงตีเหล็ก
+    { kind: 'house', x: 24, y: 7, w: 6, roof: '#5a8a3c', seed: 12 },                    // ร้านของใช้
+    { kind: 'stall', x: 16, y: 16, color: '#d84a4a', seed: 1 },
+    { kind: 'stall', x: 22, y: 19, color: '#3f7fd8', seed: 2 },
+    { kind: 'stall', x: 28, y: 16, color: '#e0b030', seed: 3 },
+    { kind: 'crate', x: 15, y: 21 }, { kind: 'barrel', x: 16, y: 21 }, { kind: 'barrel', x: 30, y: 13 }, { kind: 'crate', x: 30, y: 14 },
+    { kind: 'barrel', x: 21, y: 11 }, { kind: 'crate', x: 22, y: 11 },
+    { kind: 'sign', x: 20, y: 12, text: 'Forge' }, { kind: 'sign', x: 29, y: 11, text: 'Tools' },
+    // หอสมาคมนักผจญภัย (ตะวันออกเฉียงเหนือ)
+    { kind: 'house', x: 47, y: 7, w: 9, roof: '#3a4f9e', wall: '#efe6d0', seed: 13 },
+    { kind: 'tower', x: 44, y: 7, roof: '#d8b45c' }, { kind: 'tower', x: 57, y: 7, roof: '#d8b45c' },
+    { kind: 'house', x: 60, y: 7, w: 5, roof: '#6a5a94', seed: 14 },
+    { kind: 'sign', x: 55, y: 11, text: 'Quest Board' }, { kind: 'sign', x: 48, y: 11, text: 'Adventurer Guild' },
+    { kind: 'pillar', x: 43, y: 14, seed: 1 }, { kind: 'pillar', x: 43, y: 20, seed: 2 },
+    { kind: 'pillar', x: 60, y: 14, seed: 3 }, { kind: 'pillar', x: 60, y: 20, seed: 4 },
+    { kind: 'bench', x: 46, y: 18 }, { kind: 'bench', x: 56, y: 18 },
+    // ลานน้ำพุ (กลางเมือง)
+    { kind: 'warpstone', x: 30, y: 24 },
+    { kind: 'lamp', x: 30, y: 21 }, { kind: 'lamp', x: 41, y: 21 }, { kind: 'lamp', x: 30, y: 34 }, { kind: 'lamp', x: 41, y: 34 },
+    { kind: 'bench', x: 28, y: 25 }, { kind: 'bench', x: 42, y: 25 }, { kind: 'bench', x: 28, y: 31 }, { kind: 'bench', x: 42, y: 31 },
+    { kind: 'lamp', x: 33, y: 8 }, { kind: 'lamp', x: 38, y: 47 }, { kind: 'lamp', x: 8, y: 25 }, { kind: 'lamp', x: 48, y: 25 }, { kind: 'lamp', x: 57, y: 25 }, { kind: 'lamp', x: 21, y: 25 },
+    // คลังสินค้า + บ้านพัก (ตะวันตกเฉียงใต้)
+    { kind: 'house', x: 16, y: 33, w: 8, roof: '#2f6a5a', wall: '#efe2c4', seed: 15 },
+    { kind: 'chest', x: 22, y: 37 }, { kind: 'crate', x: 23, y: 37 }, { kind: 'barrel', x: 24, y: 37 },
+    { kind: 'house', x: 26, y: 39, w: 5, roof: '#b5473a', seed: 16 },
+    { kind: 'house', x: 18, y: 45, w: 5, roof: '#c9822f', wall: '#efe2c4', seed: 17 },
+    { kind: 'house', x: 26, y: 46, w: 5, roof: '#4f6a9e', seed: 18 },
+    { kind: 'bench', x: 16, y: 40 },
+    // ตลาดนัด (ตะวันออกเฉียงใต้)
+    { kind: 'stall', x: 43, y: 37, color: '#d84a4a', seed: 4 }, { kind: 'stall', x: 48, y: 37, color: '#4aa86a', seed: 5 }, { kind: 'stall', x: 53, y: 37, color: '#3f7fd8', seed: 6 },
+    { kind: 'stall', x: 43, y: 41, color: '#e0b030', seed: 7 }, { kind: 'stall', x: 53, y: 41, color: '#a05ad8', seed: 8 },
+    { kind: 'well', x: 49, y: 41 }, { kind: 'crate', x: 57, y: 37 }, { kind: 'barrel', x: 57, y: 38 },
+    { kind: 'house', x: 45, y: 31, w: 5, roof: '#6a5a94', seed: 19 },
+    { kind: 'house', x: 55, y: 31, w: 6, roof: '#c9822f', seed: 20 },
+    { kind: 'house', x: 41, y: 46, w: 6, roof: '#b5473a', wall: '#efe2c4', seed: 21 },
+    { kind: 'house', x: 50, y: 46, w: 5, roof: '#5a8a3c', seed: 22 },
+    { kind: 'house', x: 58, y: 46, w: 6, roof: '#3a4f9e', seed: 23 },
+    // ประตูตะวันออก + หอคอยมุมกำแพง
+    { kind: 'tower', x: 67, y: 24, roof: '#b5473a' }, { kind: 'tower', x: 67, y: 30, roof: '#b5473a' },
+    { kind: 'lamp', x: 64, y: 24 }, { kind: 'lamp', x: 64, y: 31 },
+    { kind: 'sign', x: 66, y: 31, text: 'Beginner Field ➜' },
+    { kind: 'tower', x: 3, y: 3, roof: '#3f6fb5' }, { kind: 'tower', x: 67, y: 3, roof: '#3f6fb5' },
+    { kind: 'tower', x: 3, y: 51, roof: '#3f6fb5' }, { kind: 'tower', x: 67, y: 51, roof: '#3f6fb5' },
+    { kind: 'tower', x: 34, y: 3, roof: '#3f6fb5' }, { kind: 'tower', x: 36, y: 51, roof: '#3f6fb5' }, { kind: 'tower', x: 3, y: 27, roof: '#3f6fb5' },
     ...innerTrees,
     ...borderTrees(),
   ],
 
   npcs: [
-    { id: 'mira', name: 'มีร่า', title: 'ไกด์', x: 27, y: 26, dir: 'down', look: LOOK.mira, lines: [
+    { id: 'mira', name: 'มีร่า', title: 'ไกด์', x: 33, y: 31, dir: 'down', look: LOOK.mira, lines: [
       'ยินดีต้อนรับสู่ Asteria Town นักผจญภัยหน้าใหม่!',
       'คลิกที่พื้นเพื่อเดิน หรือกดเมาส์ค้างไว้ให้ตัวละครเดินตาม',
       'ประตูมิติทางตะวันออกพาไปยัง Beginner Field ลองไปฝึกฝีมือดูสิ',
       'คลิกที่มอนสเตอร์เพื่อโจมตี ตัวละครจะเดินเข้าไปตีให้เอง',
       'ทุกครั้งที่เลเวลอัปจะได้แต้มสเตตัส กด C หรือแตะกรอบตัวละครเพื่อเปิดหน้าต่างสถานะ',
       'อยากตีแรงอัป STR อยากหลบเก่งอัป AGI อยากอึดอัป VIT เลือกให้เข้ากับสไตล์เจ้าเลย',
-      'ของที่เก็บได้จากมอนสเตอร์ เอาไปขายให้โทเบนหรือการ์ธที่ตลาดทางเหนือได้นะ',
+      'ของที่เก็บได้จากมอนสเตอร์ เอาไปขายให้โทเบนหรือการ์ธที่ย่านช่างฝั่งตะวันตกเฉียงเหนือได้นะ',
       'ของที่ยังไม่ใช้ฝากไว้กับเอลซ่าได้ ส่วนเซเลสวาร์ปพาไปไกล ๆ ในทุ่งได้',
-      'ถึง Job Lv.10 แล้วอัปสกิลทักษะพื้นฐานให้ครบ Lv.9 (กด K) จากนั้นไปหาออเรลทางเหนือของลานนี้เพื่อเปลี่ยนอาชีพ'
+      'ถึง Job Lv.10 แล้วอัปสกิลทักษะพื้นฐานให้ครบ Lv.9 (กด K) จากนั้นไปหาออเรลที่หอสมาคมฝั่งตะวันออกเฉียงเหนือเพื่อเปลี่ยนอาชีพ'
     ] },
-    { id: 'toben', name: 'โทเบน', title: 'ร้านของใช้', x: 41, y: 15, dir: 'down', look: LOOK.toben,
+    { id: 'toben', name: 'โทเบน', title: 'ร้านของใช้', x: 27, y: 11, dir: 'down', look: LOOK.toben,
       service: { type: 'shop', shop: 'tools' },
       greet: 'ยินดีต้อนรับ! ยาและสมุนไพรสดใหม่ทุกวัน ของที่เก็บมาจากทุ่งก็เอามาขายให้ข้าได้นะ',
       lines: ['เก็บเงินไว้ดี ๆ ล่ะ ของดีราคาไม่ถูกนะ'] },
-    { id: 'garth', name: 'การ์ธ', title: 'ช่างตีเหล็ก', x: 37, y: 15, dir: 'down', look: LOOK.garth,
+    { id: 'garth', name: 'การ์ธ', title: 'ช่างตีเหล็ก', x: 18, y: 11, dir: 'down', look: LOOK.garth,
       service: { type: 'shop', shop: 'arms', refine: true },
       greet: 'อาวุธกับชุดเกราะฝีมือข้า รับรองว่าทนทาน! จะซื้อของ หรือให้ข้าตีบวกอุปกรณ์ให้ก็ได้',
       lines: ['ดาบดีต้องตีด้วยใจ'] },
-    { id: 'elsa', name: 'เอลซ่า', title: 'ผู้ดูแลคลัง', x: 37, y: 18, dir: 'down', look: LOOK.elsa,
+    { id: 'elsa', name: 'เอลซ่า', title: 'ผู้ดูแลคลัง', x: 20, y: 37, dir: 'down', look: LOOK.elsa,
       service: { type: 'storage' },
       greet: 'สวัสดีค่ะ คลังเก็บของ Asteria ยินดีให้บริการ ฝากของไว้ที่นี่ได้ฟรีเลยนะคะ',
       lines: ['ของในคลังจะอยู่ครบทุกชิ้น ไม่ต้องห่วงค่ะ'] },
-    { id: 'celes', name: 'เซเลส', title: 'นักเวทย์วาร์ป', x: 26, y: 18, dir: 'down', look: LOOK.celes,
+    { id: 'celes', name: 'เซเลส', title: 'นักเวทย์วาร์ป', x: 31, y: 23, dir: 'down', look: LOOK.celes,
       service: { type: 'warp', routes: 'town' },
       greet: 'อยากไปที่ไหนล่ะ? ข้าส่งเจ้าไปได้ในพริบตา แค่จ่ายค่าผลึกเวทย์นิดหน่อย',
-      lines: ['ผลึกวาร์ปเชื่อมกับแท่นที่ลานซากโบราณในทุ่ง'] },
-    { id: 'aurel', name: 'ออเรล', title: 'ประมุขสมาคมนักผจญภัย', x: 28, y: 15, dir: 'down', look: LOOK.aurel,
+      lines: ['ผลึกวาร์ปเชื่อมกับแท่นที่ลานซากโบราณในทุ่ง', 'กดปุ่มแผนที่โลกเพื่อดูว่าแต่ละที่มีมอนสเตอร์อะไรบ้าง'] },
+    { id: 'aurel', name: 'ออเรล', title: 'ประมุขสมาคมนักผจญภัย', x: 50, y: 11, dir: 'down', look: LOOK.aurel,
       service: { type: 'job' },
       greet: 'ข้าคือออเรล ผู้ดูแลการเปลี่ยนอาชีพของ Asteria เจ้าพร้อมจะเลือกเส้นทางของตัวเองแล้วหรือยัง?',
       lines: ['นักดาบ นักเวทย์ นักธนู นักบวช ทุกเส้นทางล้วนมีคุณค่า'] },
-    { id: 'nina', name: 'นีน่า', title: 'กระดานเควสรายวัน', x: 31, y: 15, dir: 'down', look: LOOK.nina, lines: [
+    { id: 'nina', name: 'นีน่า', title: 'กระดานเควสรายวัน', x: 53, y: 11, dir: 'down', look: LOOK.nina, lines: [
       'กระดานเควสมีงานใหม่ทุกวันนะคะ ทำได้วันละครั้ง รีเซ็ตตอนเที่ยงคืน',
       'เควสที่เลเวลยังไม่ถึงจะยังไม่แสดงนะคะ ฝึกเพิ่มอีกนิดแล้วกลับมาค่ะ',
       'วันนี้ทำเควสครบแล้วเหรอคะ? เก่งมากเลย พรุ่งนี้มาใหม่นะคะ',
     ] },
-    { id: 'rowan', name: 'โรวัน', title: 'ทหารยาม', x: 57, y: 22, dir: 'left', look: LOOK.guard, lines: [
+    { id: 'rowan', name: 'โรวัน', title: 'ทหารยาม', x: 65, y: 26, dir: 'left', look: LOOK.guard, lines: [
       'นอกกำแพงมีมอนสเตอร์ ระวังตัวด้วย',
       'ถ้าหมดสติในทุ่ง เจ้าจะฟื้นที่ลานน้ำพุนี่แหละ',
     ] },
-    { id: 'brann', name: 'แบรนน์', title: 'ทหารยาม', x: 57, y: 25, dir: 'left', look: LOOK.guard, lines: [
+    { id: 'brann', name: 'แบรนน์', title: 'ทหารยาม', x: 65, y: 29, dir: 'left', look: LOOK.guard, lines: [
       'ข้าเฝ้าประตูนี้มาสิบปีแล้ว',
     ] },
-    { id: 'pip', name: 'พิป', title: 'เด็กชาวเมือง', x: 15, y: 39, dir: 'left', look: LOOK.pip, lines: [
+    { id: 'pip', name: 'พิป', title: 'เด็กชาวเมือง', x: 16, y: 42, dir: 'left', look: LOOK.pip, lines: [
       'ปลาในบ่อนี้ตัวใหญ่มากเลยนะ!',
       'โตขึ้นผมจะเป็นนักดาบให้ได้',
     ] },
   ],
 
   portals: [
-    { x: 62, y: 23, w: 2, h: 2, to: 'beginner_field', arrive: { x: 5.5, y: 27.5, angle: Math.PI / 2 }, label: 'Beginner Field' },
+    { x: 69, y: 27, w: 2, h: 2, to: 'beginner_field', arrive: { x: 5.5, y: 27.5, angle: Math.PI / 2 }, label: 'Beginner Field' },
   ],
 };

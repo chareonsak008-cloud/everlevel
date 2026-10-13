@@ -18,7 +18,7 @@ export class Minimap {
       b.fillStyle = mini[ti.key] || ti.mini; b.fillRect(x * S, y * S, S, S);
     }
     for (const o of map.objects) {
-      const c = OBJ_COLORS[o.kind]; if (!c) continue;
+      const c = o.kind === 'house' && o.def.roof ? o.def.roof : OBJ_COLORS[o.kind]; if (!c) continue;   // v0.27: หลังคาตามสีจริง
       b.fillStyle = c; b.fillRect(o.def.x * S, o.def.y * S, o.fw * S, o.fh * S);
     }
     for (const p of map.portals) { b.fillStyle = '#c86bff'; b.fillRect(p.x * S, p.y * S, p.w * S, p.h * S); }

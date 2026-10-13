@@ -11,6 +11,7 @@ import { SaveManager } from './Save.js';
 import { findPath, smoothPath, nearestWalkable } from './Pathfinder.js';
 import { HUD } from '../ui/HUD.js';
 import { Minimap } from '../ui/Minimap.js';
+import { MapWindow, regionInfo } from '../ui/MapWindow.js';
 import { Renderer3D } from '../render/Renderer3D.js';
 import { MonsterManager } from '../systems/MonsterAI.js';
 import { rollAttack, rollSkill } from '../systems/Combat.js';
@@ -216,6 +217,12 @@ export class Game {
     this.netTimer = 0; this.lastPres = {}; this.netSay = null; this.netRefresh = 0;
     this.chat = new ChatBox(root, { onSend: (t) => this.sendChat(t) });
     this.menu = new MenuPanel(root, (act) => this.menuAction(act));
+    // v0.27: แผนที่ใหญ่ + แผนที่โลก
+    this.mapWin = new MapWindow(root, this);
+    for (const [id, tab] of [['#btnMapBig', 'local'], ['#minimap', 'local'], ['#btnWorld', 'world']]) {
+      const el = root.querySelector(id);
+      if (el) { el.addEventListener('click', (e) => { e.stopPropagation(); this.mapWin.toggle(this.mapWin.open && this.mapWin.tab === tab ? false : true, tab); }); el.addEventListener('pointerdown', (e) => e.stopPropagation()); }
+    }
     this.netStatus = root.querySelector('#netStatus');
     // เสียง: เบราว์เซอร์เปิดเสียงได้หลังแตะ/กดปุ่มครั้งแรก · ปุ่มทุกปุ่มมีเสียงคลิก
     const unlock = () => this.audio.unlock();
@@ -284,10 +291,11 @@ export class Game {
       if (e.code === 'KeyZ') { e.preventDefault(); this.auto.toggle(); }
       if (e.code === 'KeyM') { e.preventDefault(); this.mailWin.toggle(); }
       if (e.code === 'KeyB') { e.preventDefault(); this.toggleCollection(); }   // v0.18
+      if (e.code === 'KeyN') { e.preventDefault(); this.mapWin.toggle(); }   // v0.27
       if (e.code === 'Escape') {
         if (this.dialog.open || this.shop.open || this.storWin.open || this.refineWin.open) { this.closeServices(); return; }
         if (this.setWin.open || this.onWin.open || this.menu.open) { this.setWin.toggle(false); this.onWin.toggle(false); this.menu.toggle(false); return; }
-        this.status.toggle(false); this.inv.toggle(false); this.skillWin.toggle(false); this.ward.toggle(false); this.questWin.toggle(false); this.petWin.toggle(false); this.autoWin.toggle(false); this.mailWin.toggle(false); this.colWin.toggle(false); this.eventWin?.toggle(false);
+        this.status.toggle(false); this.inv.toggle(false); this.skillWin.toggle(false); this.ward.toggle(false); this.questWin.toggle(false); this.petWin.toggle(false); this.autoWin.toggle(false); this.mailWin.toggle(false); this.colWin.toggle(false); this.eventWin?.toggle(false); this.mapWin.toggle(false);
         if (this.player.cast) this.cancelCast();
       }
     });
@@ -337,6 +345,8 @@ export class Game {
     if (this.auto) { this.auto.onMapLoaded(); this.autoWin.sync(); if (this.autoWin.open) this.autoWin.render(); }
     this.questEvents(this.questLog.onMap(def.id || id));
     this.hud.setMap(this.map);
+    { const ri = regionInfo(def.id || id), chip = this.root.querySelector('#mapChip'); if (chip && ri) chip.textContent = def.safe ? 'เมือง' : `Lv.${ri.min}–${ri.max}`; }
+    if (this.mapWin && this.mapWin.open) this.mapWin.show(this.mapWin.tab);
     this.gfx.snapCamera(pl);
     if (this.started) this.gfx.warpIn(pl, def.safe ? '#ffe08a' : '#8fd8ff');
     this.audio.music(def.music || 'field');
@@ -437,7 +447,7 @@ export class Game {
       this.updateNet(dt);
       this.gfx.render(dt, this.player, simDt);
       // v0.16: แผนที่ย่อวาดใหม่ 10 ครั้ง/วินาที (เดิมทุกเฟรม)
-      if ((this.mmT = (this.mmT || 0) - real) <= 0) { this.mmT = 0.1; this.minimap.draw(this.player, this.gfx.yaw, this.mobs ? this.mobs.list.filter((m) => m.data.mvp && !m.dead) : []); }
+      if ((this.mmT = (this.mmT || 0) - real) <= 0) { this.mmT = 0.1; this.minimap.draw(this.player, this.gfx.yaw, this.mobs ? this.mobs.list.filter((m) => m.data.mvp && !m.dead) : []); if ((this.mwT = (this.mwT || 0) + 1) % 2 === 0) this.mapWin.update(); }
       if (first) { first = false; this.root.classList.add('ready'); }
       this.fpsFrames++; this.fpsTime += real;
       if (this.fpsTime >= 0.5) {
@@ -2388,6 +2398,7 @@ export class Game {
       ward: () => this.toggleWardrobe(true), quest: () => this.toggleQuests(true), online: () => this.toggleOnline(true),
       settings: () => this.toggleSettings(true), save: () => this.saveNow(true), pet: () => this.togglePets(true),
       auto: () => this.autoWin.toggle(true), mail: () => this.mailWin.toggle(true), book: () => this.toggleCollection(true),
+      map: () => this.mapWin.toggle(true, 'local'), world: () => this.mapWin.toggle(true, 'world'),
     };
     if (map[act]) map[act]();
   }
@@ -2456,6 +2467,8 @@ export class Game {
     el.dataset.s = state;
     el.title = label;
     el.querySelector('span').textContent = this.mode === 'online' && state !== 'offline' ? `${label} · ${this.remote.count() + 1} คน` : label;
+    const mo = document.getElementById('mapOnline');   // v0.27: จำนวนคนออนไลน์ใต้มินิแมพ
+    if (mo) mo.textContent = this.mode === 'online' && state !== 'offline' ? ` · ออนไลน์ ${this.remote.count() + 1}` : '';
   }
 
   startNet() {
