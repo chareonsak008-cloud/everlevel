@@ -30,6 +30,8 @@ export class HUD {
       boss: root.querySelector('#bossBar'), bossName: root.querySelector('#bossName'), bossLv: root.querySelector('#bossLv'),
       bossHpBar: root.querySelector('#bossHpBar'), bossHp: root.querySelector('#bossHp'),
     };
+    // v0.31.1: ย้ายคอลัมน์บัฟเข้าไปเป็นลูกของกรอบตัวละคร แล้ววางด้วย CSS (left: 100%) → ชิดขวากรอบเสมอ ไม่ว่าจอ/ขนาด UI/ชื่อยาวแค่ไหน
+    { const ch = root.querySelector('.char'), bf = this.el.buffs; if (ch && bf && bf.parentElement !== ch) ch.append(bf); }
     this.targetMob = null; this.targetHp = -1;
     this.lastCoords = '';
     this.bannerTimer = null;
@@ -77,16 +79,6 @@ export class HUD {
         box.append(d);
       }
       box.dataset.key = key;
-    }
-    // v0.31.1: วางคอลัมน์บัฟชิดขวากรอบตัวละครเสมอ (กรอบกว้างไม่เท่ากันตามขนาดจอ/ชื่อยาว → เดิมบังข้อมูลตัวละคร)
-    if (list.length) {
-      const ch = this.el.char || (this.el.char = box.parentElement && box.parentElement.querySelector('.char'));
-      if (ch && ch.offsetParent && ch.offsetParent === box.offsetParent) {
-        // ใช้ตำแหน่งแบบเลย์เอาต์ (ไม่โดนผลของการย่อ/ขยาย UI ด้วย CSS zoom ที่ทำให้ getBoundingClientRect คลาดเคลื่อน)
-        const L = Math.round(ch.offsetLeft + ch.offsetWidth + 6) + 'px', T = Math.round(ch.offsetTop) + 'px';
-        if (box.style.left !== L) box.style.left = L;
-        if (box.style.top !== T) box.style.top = T;
-      }
     }
     list.forEach((b, i) => {
       const d = box.children[i]; if (!d) return;
