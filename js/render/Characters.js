@@ -78,6 +78,12 @@ export class CharacterView {
     const gear = L.jobGear;
     const robed = gear === 'mage' || gear === 'acolyte';
     this.robed = robed;
+    const v2 = !!L.v2;                          // v0.32: ชุดอาชีพแบบใหม่ (ฮู้ดนักเวท · ผ้าโพกนักธนู · ผ้าคลุมไหล่นักบวช)
+    // v0.32: สัดส่วนแบบใหม่ — หัวเล็กลง ขายาวขึ้น ไหล่กว้างขึ้น (ดูเป็นผู้ใหญ่แบบสไปรต์ RPG คลาสสิก)
+    const LEGv = v2 ? 0.68 : LEG, LSv = LEGv / 0.34, HSv = v2 ? 0.58 : HS, TX = v2 ? 1.1 : 1;
+    this.pxStyle = v2 ? 1 : 0;
+    if (v2 && gear === 'mage') { L.hairStyle = 'none'; L.hatTight = true; L.hideAhoge = true; L.noLocks = true; }
+    if (v2 && gear === 'archer' && !L.headgear) { L.headgear = 'bandana'; L.headColor = L.headColor || '#7a4a2a'; L.hideAhoge = true; L.hatTight = true; L.bigBand = true; }
 
     const skin = toon(L.skin), cloth = toon(L.tunic), clothDk = toon(shadeHex(L.tunic, -0.22));
     const trim = toon(shadeHex(L.tunic, 0.42)), pants = toon(L.pants), boot = toon(L.boot), bootTrim = toon(shadeHex(L.boot, 0.25));
@@ -91,8 +97,8 @@ export class CharacterView {
     /* ---------- ขา (หมุนที่สะโพก) ---------- */
     this.legInner = [];
     this.legs = [-1, 1].map((side) => {
-      const hip = new THREE.Group(); hip.position.set(side * 0.082, LEG, 0); hip.scale.set(1, LS, 1); this.body.add(hip);
-      const g = new THREE.Group(); g.scale.set(1, 1 / LS, 1); hip.add(g); this.legInner.push(g);
+      const hip = new THREE.Group(); hip.position.set(side * 0.082 * TX, LEGv, 0); hip.scale.set(1, LSv, 1); this.body.add(hip);
+      const g = new THREE.Group(); g.scale.set(1, (LEGv / LEG) / LSv, 1); hip.add(g); this.legInner.push(g);
       part(cyl(0.072, 0.056, 0.3), pants, g, 0, -0.15, 0);
       part(sph(0.057, 12, 8), pants, g, 0, -0.3, 0.004);
       part(cyl(0.054, 0.046, 0.14), pants, g, 0, -0.37, 0);
@@ -107,14 +113,16 @@ export class CharacterView {
     });
 
     /* ---------- ลำตัว (จุดหมุน = สะโพก) ---------- */
-    this.torso = new THREE.Group(); this.torso.position.y = LEG; this.body.add(this.torso);
+    this.torso = new THREE.Group(); this.torso.position.y = LEGv; this.torso.scale.x = TX; this.body.add(this.torso);
     const T = this.torso;
     // เสื้อตัวใน: เอวคอด อกผาย ชายเสื้อบานคลุมสะโพก
     part(pleats(lathe([[0.001, -0.15], [0.2, -0.15], [0.178, -0.05], [0.16, 0.05], [0.148, 0.13], [0.162, 0.22], [0.172, 0.3], [0.166, 0.35], [0.125, 0.395], [0.06, 0.42], [0.001, 0.42]], 40), 7, 0.01, 0.55), cloth, T);
     part(new THREE.TorusGeometry(0.198, 0.014, 6, 26).rotateX(Math.PI / 2).scale(1, 1, 0.82), trim, T, 0, -0.148, 0);
     // เข็มขัด + หัวเข็มขัด + กระเป๋าคาดเอว
     part(cyl(0.156, 0.16, 0.05, 22).scale(1, 1, 0.84), belt, T, 0, 0.09, 0);
-    part(new THREE.BoxGeometry(0.06, 0.05, 0.02), gold, T, 0, 0.09, 0.136);
+    if (v2 && robed) {                          // เชือกคาดเอว + ปลายเชือกห้อย
+      for (const sx of [-1, 1]) { const c = part(cyl(0.012, 0.012, 0.2, 5), belt, T, 0.05 + sx * 0.018, -0.02, 0.15); c.rotation.z = sx * 0.08; part(sph(0.02, 6, 5), belt, T, 0.05 + sx * 0.026, -0.125, 0.15); }
+    } else part(new THREE.BoxGeometry(0.06, 0.05, 0.02), gold, T, 0, 0.09, 0.136);
     if (!robed) { const pouch = part(new THREE.BoxGeometry(0.07, 0.08, 0.05), leather, T, 0.13, 0.05, 0.07); pouch.rotation.y = 0.9; }
     // คอ
     part(cyl(0.044, 0.05, 0.1, 12), skin, T, 0, 0.44, 0);
@@ -127,7 +135,7 @@ export class CharacterView {
 
     /* ---------- แขน (หมุนที่ไหล่) ---------- */
     this.hands = [];
-    const sleeve = robed ? cloth : clothDk;
+    const sleeve = L.sleeve ? toon(L.sleeve) : robed ? cloth : clothDk;
     this.armInner = [];
     this.arms = [-1, 1].map((side) => {
       const sh = new THREE.Group(); sh.position.set(side * 0.19, 0.345, 0); sh.scale.set(1, AS, 1); T.add(sh);
@@ -135,7 +143,7 @@ export class CharacterView {
       part(sph(0.062, 12, 10), sleeve, g, 0, -0.01, 0);
       part(cyl(0.058, 0.049, 0.2, 12), sleeve, g, side * 0.006, -0.11, 0);
       part(sph(0.046, 10, 8), sleeve, g, side * 0.01, -0.21, 0);
-      if (robed) { part(cyl(0.048, 0.078, 0.15, 14), cloth, g, side * 0.014, -0.29, 0); part(new THREE.TorusGeometry(0.078, 0.01, 4, 16).rotateX(Math.PI / 2), gold, g, side * 0.016, -0.365, 0); }
+      if (robed) { part(cyl(0.048, 0.078, 0.15, 14), cloth, g, side * 0.014, -0.29, 0); part(new THREE.TorusGeometry(0.078, 0.01, 4, 16).rotateX(Math.PI / 2), v2 ? (gear === 'mage' ? clothDk : gold) : gold, g, side * 0.016, -0.365, 0); }
       else { part(cyl(0.044, 0.037, 0.15, 12), skin, g, side * 0.014, -0.29, 0); part(cyl(0.047, 0.047, 0.035, 12), trim, g, side * 0.013, -0.225, 0); }
       const hd = part(sph(0.042, 10, 8), skin, g, side * 0.02, -0.38, 0.005); hd.scale.set(0.9, 1.15, 0.95);
       const hand = new THREE.Group(); hand.position.set(side * 0.02, -0.38, 0.012); g.add(hand); this.hands.push(hand);
@@ -144,7 +152,7 @@ export class CharacterView {
     const [armR, armL] = this.armInner;      // arms[0] = มือขวา (ถืออาวุธ)
 
     /* ---------- หัว + ใบหน้า ---------- */
-    this.head = new THREE.Group(); this.head.position.y = 0.46; this.head.scale.setScalar(HS); T.add(this.head);
+    this.head = new THREE.Group(); this.head.position.y = 0.46; this.head.scale.set(HSv / TX, HSv, HSv); T.add(this.head);
     const H = this.head;
     const skull = part(sph(0.26, 28, 20), skin, H, 0, 0.2, 0); skull.scale.set(0.93, 1.04, 0.98);
     const chin = part(sph(0.17, 18, 12), skin, H, 0, 0.055, 0.08); chin.scale.set(0.9, 0.9, 0.9);   // คางเรียวแบบอนิเมะ
@@ -178,7 +186,7 @@ export class CharacterView {
       bangs.forEach(([a, len], i) => clump(a, 1.0, len, 0.082 + (i % 2) * 0.014, 0.32, 0.5));
       // จอนผมยาวลงมาข้างแก้ม
       const lock = style === 'long' ? 0.62 : style === 'ponytail' ? 0.42 : 0.36;
-      for (const sx of [-1, 1]) { clump(sx * 1.36, 0.62, lock, 0.075, 0.1, 0.5, 0.02); clump(sx * 1.6, 0.5, lock * 0.85, 0.07, 0.12, 0.5, 0.02); }
+      if (!L.noLocks) for (const sx of [-1, 1]) { clump(sx * 1.36, 0.62, lock, 0.075, 0.1, 0.5, 0.02); clump(sx * 1.6, 0.5, lock * 0.85, 0.07, 0.12, 0.5, 0.02); }
       // ด้านหลัง
       if (style === 'long') {
         for (let i = 0; i < 11; i++) { const k = i - 5, a = Math.PI + k * 0.22; clump(a, 0.55 - Math.abs(k) * 0.03, 0.78 + (i % 2) * 0.12 - Math.abs(k) * 0.03, 0.11, 0.12, 0.45, 0.03); }
@@ -306,6 +314,28 @@ export class CharacterView {
         part(cyl(0.05, 0.044, 0.15, 12), steel, g, side * 0.014, -0.29, 0);
         const fist = part(sph(0.047, 10, 8), steel, g, side * 0.02, -0.38, 0.005); fist.scale.set(0.95, 1.1, 1);
       }
+    } else if (gear === 'mage' && v2) {
+      // v0.32: เสื้อคลุมยาวมีฮู้ดคลุมหัว · สีหม่น · ขอบผ้าเข้ม (ไม่มีขลิบทอง)
+      const robe = toon(L.tunic, { side: THREE.DoubleSide }), dk = toon(shadeHex(L.tunic, -0.3), { side: THREE.DoubleSide });
+      part(pleats(lathe([[0.16, 0.12], [0.175, 0.0], [0.2, -0.15], [0.245, -0.35], [0.28, -0.53]], 48, 0.86), 9, 0.02, 0.1), robe, T).userData.noOutline = true;
+      part(new THREE.TorusGeometry(0.28, 0.014, 6, 30).rotateX(Math.PI / 2).scale(1, 1, 0.86), dk, T, 0, -0.53, 0);
+      const panel = part(new THREE.BoxGeometry(0.11, 0.6, 0.012), dk, T, 0, -0.22, 0.205); panel.rotation.x = -0.11;
+      part(lathe([[0.1, 0.43], [0.18, 0.39], [0.245, 0.29], [0.265, 0.2]], 24, 0.9), robe, T).userData.noOutline = true;
+      part(new THREE.TorusGeometry(0.265, 0.012, 4, 30).rotateX(Math.PI / 2).scale(1, 1, 0.9), dk, T, 0, 0.2, 0);
+      if (!L.hideJobHat) {
+        // ฮู้ด: ทรงกลมคลุมหัว เจาะช่องหน้า + ปลายแหลมพับไปด้านหลัง
+        const hg = new THREE.SphereGeometry(0.335, 30, 20, 0, Math.PI * 2, 0, Math.PI * 0.8).toNonIndexed();
+        const pos = hg.attributes.position, keep = [], fd = new THREE.Vector3(0, -0.12, 1).normalize(), v = new THREE.Vector3();
+        for (let i = 0; i < pos.count; i += 3) {
+          v.set(0, 0, 0); for (let j = 0; j < 3; j++) v.add(new THREE.Vector3().fromBufferAttribute(pos, i + j));
+          if (v.normalize().dot(fd) > Math.cos(0.92)) continue;
+          for (let j = 0; j < 3; j++) keep.push(pos.getX(i + j), pos.getY(i + j), pos.getZ(i + j));
+        }
+        const hood = new THREE.BufferGeometry(); hood.setAttribute('position', new THREE.Float32BufferAttribute(keep, 3)); hood.computeVertexNormals();
+        const hm = part(hood, robe, H, 0, 0.2, -0.02); hm.scale.set(0.98, 1.04, 1.04);
+        const rim = part(new THREE.TorusGeometry(0.255, 0.032, 6, 26), dk, H, 0, 0.17, 0.215); rim.rotation.x = -0.12; rim.scale.set(0.92, 1.12, 0.6);
+        const tip = part(new THREE.ConeGeometry(0.12, 0.3, 10), robe, H, 0, 0.42, -0.27); tip.rotation.x = -2.1; tip.scale.z = 0.7;
+      }
     } else if (gear === 'mage') {
       // เสื้อคลุมยาวถึงข้อเท้า ขลิบทอง + ผ้าคลุมไหล่ปกสูง + มงกุฎผลึก
       const robe = toon(L.tunic, { side: THREE.DoubleSide });
@@ -325,11 +355,17 @@ export class CharacterView {
       // เสื้อกั๊กหนัง + ผ้าคลุมไหล่มีฮู้ดพับหลัง + ปลอกแขน
       part(lathe([[0.155, 0.08], [0.17, 0.2], [0.178, 0.3], [0.17, 0.35], [0.13, 0.385]], 22, 0.84, [Math.PI * 0.3, Math.PI * 1.4]), toon('#6a4a30', { side: THREE.DoubleSide }), T).userData.noOutline = true;
       const cl = toon(shadeHex(L.tunic, -0.15), { side: THREE.DoubleSide });
-      part(lathe([[0.1, 0.42], [0.18, 0.37], [0.24, 0.26], [0.25, 0.16]], 22, 0.9), cl, T).userData.noOutline = true;
-      const hood = part(new THREE.SphereGeometry(0.16, 16, 10, 0, Math.PI * 2, Math.PI * 0.3, Math.PI * 0.6), cl, T, 0, 0.43, -0.13); hood.scale.set(1.1, 0.8, 0.9);
-      hood.userData.noOutline = true;
+      if (!v2) {
+        part(lathe([[0.1, 0.42], [0.18, 0.37], [0.24, 0.26], [0.25, 0.16]], 22, 0.9), cl, T).userData.noOutline = true;
+        const hood = part(new THREE.SphereGeometry(0.16, 16, 10, 0, Math.PI * 2, Math.PI * 0.3, Math.PI * 0.6), cl, T, 0, 0.43, -0.13); hood.scale.set(1.1, 0.8, 0.9);
+        hood.userData.noOutline = true;
+      } else {                                   // v0.32: เสื้อกั๊กเขียวทับเสื้อเชิ้ต · ปกเสื้อ · สายคาดอกคู่
+        part(lathe([[0.17, 0.3], [0.168, 0.36], [0.13, 0.4], [0.09, 0.415]], 22, 0.86), cl, T).userData.noOutline = true;
+        const s2 = part(new THREE.BoxGeometry(0.03, 0.46, 0.012), leather, T, 0, 0.2, 0.135); s2.rotation.z = -0.7;
+        part(new THREE.BoxGeometry(0.035, 0.035, 0.016), gold, T, 0.035, 0.2, 0.15);
+      }
       for (const g of this.armInner) part(cyl(0.05, 0.044, 0.12, 12), leather, g, 0, -0.29, 0);
-      if (!L.hideJobHat) {
+      if (!L.hideJobHat && !v2) {
         const feather = part(new THREE.ConeGeometry(0.03, 0.3, 6), toon('#d8433a'), H, 0.22, 0.4, -0.08); feather.rotation.set(-0.9, 0, -0.5); feather.scale.z = 0.35;
       }
     } else if (gear === 'acolyte') {
@@ -338,11 +374,12 @@ export class CharacterView {
       part(pleats(lathe([[0.16, 0.12], [0.172, 0.0], [0.19, -0.15], [0.23, -0.35], [0.265, -0.53]], 48, 0.86), 8, 0.016, 0.15), robe, T).userData.noOutline = true;
       part(new THREE.TorusGeometry(0.265, 0.014, 6, 30).rotateX(Math.PI / 2).scale(1, 1, 0.86), gold, T, 0, -0.53, 0);
       const stole = toon(L.scarf || '#c94a3a');
+      if (v2) { const fh = part(new THREE.SphereGeometry(0.15, 16, 10, 0, Math.PI * 2, Math.PI * 0.3, Math.PI * 0.6), toon(L.scarf || '#c94a3a', { side: THREE.DoubleSide }), T, 0, 0.42, -0.13); fh.scale.set(1.15, 0.8, 0.9); fh.userData.noOutline = true; }
       for (const sx of [-1, 1]) { const st = part(new THREE.BoxGeometry(0.05, 0.85, 0.012), stole, T, sx * 0.07, -0.02, 0.18); st.rotation.x = -0.14; }
       part(lathe([[0.1, 0.42], [0.18, 0.37], [0.23, 0.28], [0.235, 0.22]], 22, 0.9), toon(L.scarf || '#c94a3a', { side: THREE.DoubleSide }), T).userData.noOutline = true;
       part(new THREE.BoxGeometry(0.024, 0.1, 0.015), gold, T, 0, 0.3, 0.19);
       part(new THREE.BoxGeometry(0.072, 0.024, 0.015), gold, T, 0, 0.32, 0.19);
-      if (!L.hideJobHat) { const zc = part(new THREE.SphereGeometry(0.2, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.32), toon(L.scarf || '#c94a3a'), H, 0, 0.36, -0.06); zc.rotation.x = -0.3; }
+      if (!L.hideJobHat && !v2) { const zc = part(new THREE.SphereGeometry(0.2, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.32), toon(L.scarf || '#c94a3a'), H, 0, 0.36, -0.06); zc.rotation.x = -0.3; }
     }
 
     // ผ้าคลุมหลังยาว (ปลิวตามการเดิน) — อัศวินมีผ้าคลุมแดงเป็นค่าเริ่มต้น
@@ -390,6 +427,14 @@ export class CharacterView {
       for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2; const pr = part(new THREE.ConeGeometry(0.014, 0.12, 4), gold, s, Math.cos(a) * 0.05, 1.12, Math.sin(a) * 0.05); pr.rotation.set(Math.sin(a) * 0.4, 0, -Math.cos(a) * 0.4); }
       bake(s);
     }
+    if (!equipment.weapon && L.weapon === 'crook') {
+      // v0.32: ไม้เท้าไม้คดงอ ปลายม้วน
+      const s = inHand(0, -0.015, 0.0, 0.02, -0.05, 0, 0.22), wd = toon('#7a5232'), wk = toon('#5a3a22');
+      let y = -0.25, x = 0;
+      for (const [len, bend] of [[0.42, 0.05], [0.38, -0.08], [0.36, 0.06], [0.22, -0.04]]) { const sg = part(cyl(0.02, 0.024, len, 7), wd, s, x, y + len / 2, 0); sg.rotation.z = bend; x -= Math.sin(bend) * len; y += len * Math.cos(bend); part(sph(0.028, 7, 6), wk, s, x, y, 0); }
+      const curl = part(new THREE.TorusGeometry(0.075, 0.021, 6, 14, Math.PI * 1.35), wd, s, x - 0.075, y + 0.02, 0); curl.rotation.z = -0.2;
+      bake(s);
+    }
     if (!equipment.weapon && L.weapon === 'mace') {
       const h = inHand(0, 0, 0, 0, 0.55, 0, 0);
       const grip = part(cyl(0.02, 0.022, 0.44, 8), toon('#5e3f27'), h, 0, 0, 0.14); grip.rotation.x = Math.PI / 2;
@@ -421,7 +466,10 @@ export class CharacterView {
     }
     if (!equipment.head && L.headgear === 'bandana') {
       const c = toon(L.headColor || '#d8433a');
-      const band = part(new THREE.TorusGeometry(0.276, 0.04, 8, 28), c, H, 0, 0.3, -0.01); band.rotation.x = Math.PI / 2 - 0.25; band.scale.set(1, 1, 0.9);
+      if (L.bigBand) {                         // v0.32: ผ้าโพกคลุมกระหม่อม (แนบหัว) + ขอบผ้าเหนือคิ้ว
+        const capG = part(new THREE.SphereGeometry(0.298, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.42), c, H, 0, 0.215, -0.02); capG.rotation.x = -0.32;
+        const edge = part(new THREE.TorusGeometry(0.272, 0.03, 6, 28), toon(shadeHex(L.headColor || '#7a4a2a', -0.18)), H, 0, 0.31, 0.0); edge.rotation.x = Math.PI / 2 - 0.32;
+      } else { const band = part(new THREE.TorusGeometry(0.276, 0.04, 8, 28), c, H, 0, 0.3, -0.01); band.rotation.x = Math.PI / 2 - 0.25; band.scale.set(1, 1, 0.9); }
       part(sph(0.05, 10, 8), c, H, 0, 0.27, -0.29);
       for (const sx of [-1, 1]) { const t = part(new THREE.BoxGeometry(0.06, 0.2, 0.025), c, H, sx * 0.05, 0.17, -0.31); t.rotation.set(0.4, 0, sx * 0.4); }
     } else if (!equipment.head && L.headgear === 'crown') {

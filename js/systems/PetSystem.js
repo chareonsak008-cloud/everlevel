@@ -5,8 +5,8 @@ import { PETS, petStats, STAR_MAX } from '../data/pets.js';
 import { ITEMS } from '../data/items.js';
 import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js';
 import { THREE } from '../render/three.js';
-import { PICK_CATS, normPick } from './PetPick.js';
-export { PICK_CATS, PICK_RANKS, normPick } from './PetPick.js';
+import { normPick, pickCat, GRADE_RANK } from './PetPick.js';
+export { PICK_CATS, PICK_RANKS, PICK_GRADES, normPick } from './PetPick.js';
 
 const RANK = { common: 0, uncommon: 1, rare: 2, epic: 3, legend: 4, mythic: 5, celestial: 6 };
 export const PET_FILTERS = [
@@ -126,11 +126,19 @@ export class PetSystem {
     if (d.noPet || this.pet.skip.has(d.uid)) return false;
     const it = ITEMS[d.id]; if (!it) return false;
     const P = this.g.player.pets.pick || normPick(null, this.g.player.pets.filter);
-    const cat = PICK_CATS.some(([k]) => k === it.type) ? it.type : 'etc';
+    const cat = pickCat(d.id) || 'etc';
     if (!P[cat]) return false;
     if (P.skip.includes(baseOf(d.id))) return false;
-    if (cat === 'usable' && P.usableAny) return true;
-    return rankOf(it) >= P.min;
+    if (cat === 'equip') return (GRADE_RANK[it.rarity] ?? 0) >= (P.eqMin || 0);   // v0.31.1: เลือกระดับได้เฉพาะอุปกรณ์
+    return true;                                                                  // ของอื่น: เก็บทั้งหมด (ยกเว้นที่ติ๊กไม่เก็บ)
+  }
+
+  // ระยะเก็บจริง = รัศมีสัตว์เลี้ยง + ระยะตีของเจ้าของที่เกินระยะประชิด (สูงสุด 14 ช่อง กันวิ่งไกลจนหลุดวาร์ป)
+  reach(R) {
+    const pl = this.g.player, J = pl.jobId || '';
+    const far = /^(mage|wizard|archer|hunter)$/.test(J) || pl.weaponType === 'bow' ? 9 * TILE : 0;
+    const extra = Math.max(far, (pl.attackRange || 0) - 2 * TILE);
+    return Math.min(14 * TILE, R + Math.max(0, extra));
   }
 
   /* ---------- อัปเดตทุกเฟรม ---------- */
@@ -140,13 +148,15 @@ export class PetSystem {
     const g = this.g, pl = g.player, m = this.mods, st = this.stats();
     const R = st.radius * TILE, spd = PLAYER_SPEED * Math.max(st.speed, 125) / 100;   // v0.24.1: เร็วกว่าเจ้าของเสมอ (เดิมช้ากว่าจนเก็บไม่ทัน)
     e.moving = false; e.speedK = st.speed / 100;
-    this.view.range = Math.min(st.radius, 14);
+    this.view.range = Math.min(this.reach(R) / TILE, 14);
     // ไกลเจ้าของเกินไป (วาร์ป/ติดสิ่งกีดขวาง) → กระโดดไปหา
     if (dist(e, pl) > 15 * TILE) { e.x = pl.x - 16; e.y = pl.y + 8; e.path = []; if (e.state !== 'follow') { e.state = 'follow'; e.target = null; } }
     if (pl.dead) { this.follow(dt, spd); return; }
     // เอมเบอร์: ของในรัศมีอยู่บนพื้นได้นานขึ้น
     if (m.dropLife) for (const d of g.drops) if (!d.phx && dist(d, pl) <= R) { d.phx = true; d.expireAt += 90 * (m.dropLife - 1); }
-    const want = (d) => this.wants(d) && dist(d, pl) <= R + TILE * 1.5;   // v0.24.1: เผื่อขอบรัศมี (ของที่กระเด็นออกนอกวงนิดเดียวไม่ถูกทิ้ง)
+    // v0.31.1: อาชีพตีไกล (ธนู/เวท) ฆ่ามอนไกลตัว → ขยายระยะเก็บตามระยะโจมตีของเจ้าของ (ยังคงความต่างตามระดับสัตว์เลี้ยง)
+    const RR = this.reach(R);
+    const want = (d) => this.wants(d) && dist(d, pl) <= RR + TILE * 1.5;   // v0.24.1: เผื่อขอบรัศมี (ของที่กระเด็นออกนอกวงนิดเดียวไม่ถูกทิ้ง)
 
     // วาฬดวงดาว: ว่ายวนรอบเจ้าของ แล้วดูดของทั้งแผนที่เป็นรอบ ๆ
     if (m.vacuum) {
@@ -207,7 +217,7 @@ export class PetSystem {
     }
     if (e.state === 'seek') {
       const t = e.target;
-      if (!t || !g.drops.includes(t) || dist(t, pl) > R + TILE * 2.5) { e.state = e.carry.length ? 'return' : 'follow'; e.target = null; }
+      if (!t || !g.drops.includes(t) || dist(t, pl) > RR + TILE * 2.5) { e.state = e.carry.length ? 'return' : 'follow'; e.target = null; }
       else {
         const r = this.moveToward(e, t.x, t.y, 10, spd * 1.15, dt);
         if (r === 'blocked') { e.skip.add(t.uid); e.state = 'follow'; e.target = null; }

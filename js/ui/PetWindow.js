@@ -3,8 +3,8 @@ import { PETS, PET_ORDER, PET_RARITY, PET_EGGS, petStats, STAR_MAX, fmtPct, pets
 import { ITEMS } from '../data/items.js';
 import { iconURL } from '../render/ItemIcons.js';
 import { petThumb } from '../render/PetThumbs.js';
-import { PET_FILTERS } from '../systems/PetSystem.js';
-import { PICK_CATS, PICK_RANKS } from '../systems/PetPick.js';
+import { PICK_CATS, PICK_GRADES } from '../systems/PetPick.js';
+import { RARITY } from '../data/items.js';
 
 const EGGS = ['egg_spot', 'egg_moon', 'egg_galaxy'];
 
@@ -18,9 +18,8 @@ export class PetWindow {
     this.sel = null;
     this.$('petClose').addEventListener('click', () => this.toggle(false));
     for (const ev of ['pointerdown', 'wheel', 'contextmenu']) this.el.addEventListener(ev, (e) => e.stopPropagation());
-    const f = this.$('petFilter');
-    for (const [k, label] of PET_FILTERS) { const o = document.createElement('option'); o.value = k; o.textContent = label; f.append(o); }
-    f.addEventListener('change', () => { this.act.filter(f.value); this.renderPick(); });
+    // v0.31.1: ตัวกรองแบบเดิม (ทุกอย่าง/ข้ามของธรรมดา/หายาก) ย้ายไปอยู่ในแผงตั้งค่าการเก็บของแทน
+    const oldF = this.$('petFilter'); if (oldF) oldF.closest('label')?.remove();
     // v0.24.1: ตั้งค่าการเก็บของแบบละเอียด
     const foot = this.el.querySelector('.pet-foot');
     const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'ghost pet-pick-btn'; btn.textContent = '⚙ ตั้งค่าการเก็บของ';
@@ -31,11 +30,11 @@ export class PetWindow {
     pk.addEventListener('change', (e) => {
       const t = e.target, P = this.p.pets.pick;
       if (t.dataset.cat) P[t.dataset.cat] = t.checked;
-      else if (t.dataset.k === 'min') P.min = +t.value;
-      else if (t.dataset.k === 'usableAny') P.usableAny = t.checked;
-      this.act.pick();
+      this.act.pick(); this.renderPick();
     });
     pk.addEventListener('click', (e) => {
+      const gr = e.target.closest('[data-eq]');
+      if (gr) { this.p.pets.pick.eqMin = +gr.dataset.eq; this.p.pets.pick.equip = true; this.act.pick(); this.renderPick(); return; }
       const c = e.target.closest('[data-skip]'); if (!c) return;
       const P = this.p.pets.pick, id = c.dataset.skip, i = P.skip.indexOf(id);
       if (i >= 0) P.skip.splice(i, 1); else if (P.skip.length < 60) P.skip.push(id);
@@ -51,8 +50,10 @@ export class PetWindow {
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     pk.innerHTML = `<h3>สัตว์เลี้ยงจะเก็บ</h3>
       <div class="pp-cats">${PICK_CATS.map(([k, n]) => `<label><input type="checkbox" data-cat="${k}"${P[k] ? ' checked' : ''}> ${n}</label>`).join('')}</div>
-      <label class="pp-row">ระดับขั้นต่ำ <select data-k="min">${PICK_RANKS.map(([v, n]) => `<option value="${v}"${P.min === v ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
-      <label class="pp-row"><input type="checkbox" data-k="usableAny"${P.usableAny ? ' checked' : ''}> เก็บยา/ของใช้ทุกระดับ (ไม่สนระดับขั้นต่ำ)</label>
+      <div class="pp-eq${P.equip ? '' : ' off'}"><span>อุปกรณ์ เก็บตั้งแต่ระดับ</span>
+        <div class="pp-grades">${PICK_GRADES.map(([k, n], i) => `<button type="button" data-eq="${i}" class="pp-g${i >= (P.eqMin || 0) ? ' on' : ''}${i === (P.eqMin || 0) ? ' cur' : ''}" style="--gc:${RARITY[k].color}" title="${n}${i ? 'ขึ้นไป' : ' (ทุกระดับ)'}">${n}</button>`).join('')}</div>
+        <small>${P.equip ? `เก็บอุปกรณ์ระดับ <b style="color:${RARITY[PICK_GRADES[P.eqMin || 0][0]].color}">${PICK_GRADES[P.eqMin || 0][1]}</b>${(P.eqMin || 0) === 0 ? ' ขึ้นไป (ทุกระดับ)' : (P.eqMin || 0) === 6 ? ' เท่านั้น' : ' ขึ้นไป'}` : 'ไม่เก็บอุปกรณ์ (ติ๊ก "อุปกรณ์" ด้านบนเพื่อเปิด)'}</small></div>
+      <small class="pp-note">ของตีบวก ยา วัตถุดิบ การ์ด และกล่อง เก็บทั้งหมดตามหมวดที่ติ๊กไว้ — ไม่ต้องการชิ้นไหน แตะเลือกด้านล่าง</small>
       <h3>ไม่เก็บไอเทมเหล่านี้ <small>แตะเพื่อสลับ · มีขีดฆ่า = ไม่เก็บ</small></h3>
       <div class="pp-items">${ids.length ? ids.map((id) => `<button type="button" class="pp-item${P.skip.includes(id) ? ' off' : ''}" data-skip="${id}" title="${esc(ITEMS[id].name)}"><img alt="" src="${iconURL(id)}"><span>${esc(ITEMS[id].name)}</span></button>`).join('') : '<small class="pp-empty">ยังไม่มีของตกบนพื้น — ออกไปล่ามอนแล้วกลับมาเลือกได้</small>'}</div>`;
   }
@@ -70,7 +71,6 @@ export class PetWindow {
     if (!this.open) return;
     const P = this.p.pets, owned = Object.keys(P.owned).length;
     this.$('petSub').textContent = `ได้มาแล้ว ${owned} / ${PET_ORDER.length} ตัว · ${P.active ? `ออกมาอยู่: ${PETS[P.active].name}` : 'ยังไม่ได้เรียกตัวไหนออกมา'}`;
-    this.$('petFilter').value = P.filter;
     this.renderPick();
 
     // ไข่ในกระเป๋า
@@ -114,7 +114,7 @@ export class PetWindow {
       <div class="d-head"><img alt="" src="${petThumb(id) || ''}" class="${has ? '' : 'locked'}"><div><b style="color:${col}"></b>
       <small>${PET_RARITY[d.tier].name} · ${d.en}${has ? ` · ${stars ? '★'.repeat(stars) : 'ยังไม่มีดาว'}${stars >= STAR_MAX ? ' (สูงสุด)' : ''}` : ' · ยังไม่มี'}</small></div></div>
       <p class="d-desc"></p>
-      <p class="d-stats">รัศมีเก็บของ <b>${st.radius}</b> ช่อง · ความเร็ว <b>${st.speed}%</b> · ขนต่อรอบ <b>${st.carry || 'ไม่จำกัด'}</b></p>
+      <p class="d-stats">รัศมีเก็บของ <b>${st.radius}</b> ช่อง · ความเร็ว <b>${st.speed}%</b> · ขนต่อรอบ <b>${st.carry || 'ไม่จำกัด'}</b><br><small>อาชีพตีไกล (นักธนู/นักเวทย์) วิ่งไปเก็บได้ไกลขึ้นอีก 9 ช่อง (สูงสุด 14 ช่อง)</small></p>
       <p class="d-skill"><b></b><br><span></span></p>
       ${has ? '' : `<p class="d-price">ฟักได้จาก: ${chance}</p>`}
       <div class="d-actions"></div>`;

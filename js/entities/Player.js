@@ -54,6 +54,14 @@ export const JOB_LOOK = {
   priest: { tunic: '#fffaf0', pants: '#3a3a6a', belt: '#e8c050', boot: '#2a2a40', scarf: '#e8c050', accessory: 'none', jobGear: 'acolyte' },
 };
 
+// v0.32 (ทดลอง): โทนสีชุดอาชีพแบบใหม่ — หม่นลง ดูเป็นนักผจญภัยมากขึ้น
+export const JOB_LOOK_V2 = {
+  swordsman: { tunic: '#6a2a2a', pants: '#3a302c', belt: '#4a3222', boot: '#2a221e', cape: '#7a2228' },
+  mage: { tunic: '#5a7090', pants: '#2e3446', belt: '#c8b48a', boot: '#3a3030', scarf: null },
+  archer: { tunic: '#4f7a38', sleeve: '#e6dcc4', pants: '#6a4a30', belt: '#5a3a22', boot: '#3a2a1e', scarf: null, headColor: '#7a4a2a' },
+  acolyte: { tunic: '#ece4d0', pants: '#4a3e46', belt: '#c8b48a', boot: '#4a3426', scarf: '#7a2e36' },
+};
+
 // ช่องปุ่มลัดเก็บได้ทั้งไอเทม (id) และสกิล ('skill:id')
 export const isSkillKey = (k) => typeof k === 'string' && k.startsWith('skill:');
 export const validHotkey = (k) => (isSkillKey(k) ? !!SKILLS[k.slice(6)] : !!ITEMS[k]);

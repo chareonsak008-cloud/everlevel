@@ -78,6 +78,17 @@ export class HUD {
       }
       box.dataset.key = key;
     }
+    // v0.31.1: วางคอลัมน์บัฟชิดขวากรอบตัวละครเสมอ (กรอบกว้างไม่เท่ากันตามขนาดจอ/ชื่อยาว → เดิมบังข้อมูลตัวละคร)
+    if (list.length) {
+      const ch = this.el.char || (this.el.char = box.parentElement && box.parentElement.querySelector('.char'));
+      const par = box.offsetParent;
+      if (ch && par) {
+        const r = ch.getBoundingClientRect(), pr = par.getBoundingClientRect();
+        const L = Math.round(r.right - pr.left + 6) + 'px', T = Math.round(r.top - pr.top) + 'px';
+        if (box.style.left !== L) box.style.left = L;
+        if (box.style.top !== T) box.style.top = T;
+      }
+    }
     list.forEach((b, i) => {
       const d = box.children[i]; if (!d) return;
       const sec = Math.ceil(b.left);

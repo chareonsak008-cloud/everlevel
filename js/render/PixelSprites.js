@@ -34,7 +34,7 @@ void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); mv.z += uBias; vZ 
 const POST_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
 const POST_FS = `
 uniform sampler2D tA; uniform sampler2D tN; uniform vec2 uSize; uniform vec3 uL;
-uniform vec4 uEye0; uniform vec4 uEye1; uniform vec4 uMouth; uniform vec3 uEyeCol; uniform float uEyeShut; uniform float uFlash; uniform vec3 uFlashCol;
+uniform float uStyle; uniform vec4 uEye0; uniform vec4 uEye1; uniform vec4 uMouth; uniform vec3 uEyeCol; uniform float uEyeShut; uniform float uFlash; uniform vec3 uFlashCol;
 varying vec2 vUv;
 const float TEX = ${SCRATCH.toFixed(1)};
 vec4 A(vec2 p){ if (p.x < 0.0 || p.y < 0.0 || p.x >= uSize.x || p.y >= uSize.y) return vec4(0.0); return texture2D(tA, (p + 0.5) / TEX); }
@@ -66,7 +66,33 @@ float level(vec4 n, float k, vec2 p){
   }
   return step3(t, p, 0.32, 0.52, 0.86, 0.07);
 }
+vec3 ramp1(vec3 c, float k, float m);
+// v0.32 สไตล์ใหม่: คอนทราสต์สูง เงาเข้มอมม่วงน้ำตาล ไฮไลต์ไม่ซีด เส้นขอบเข้มเกือบดำ
 vec3 ramp(vec3 c, float k, float m){
+  if (uStyle < 0.5) return ramp1(c, k, m);
+  float lum = dot(c, vec3(0.299, 0.587, 0.114));
+  if (k > 4.5) return mix(c * 0.24, vec3(0.09, 0.06, 0.08), 0.45);
+  if (m == 3.0) {
+    if (k > 3.5) return c + (vec3(1.0, 0.97, 0.9) - c) * 0.3;
+    if (k > 2.5) return c + (vec3(1.0, 0.95, 0.88) - c) * 0.1;
+    if (k > 1.5) return c * vec3(0.97, 0.93, 0.92);
+    if (k > 0.5) return c * vec3(0.84, 0.66, 0.62);
+    return c * vec3(0.64, 0.45, 0.45);
+  }
+  if (m == 2.0) {
+    if (k > 3.5) return vec3(1.0, 0.99, 0.95);
+    if (k > 2.5) return c + (vec3(1.0) - c) * 0.3;
+    if (k > 1.5) return c * 0.92;
+    if (k > 0.5) return c * vec3(0.58, 0.6, 0.7);
+    return c * vec3(0.32, 0.33, 0.44);
+  }
+  if (k > 3.5) return c + (vec3(1.0, 0.96, 0.84) - c) * 0.32;
+  if (k > 2.5) return c + (vec3(1.0, 0.96, 0.84) - c) * 0.1;
+  if (k > 1.5) return c * 0.94;
+  if (k > 0.5) return mix(c * vec3(0.7, 0.62, 0.72), vec3(lum) * vec3(0.66, 0.6, 0.72), 0.12);
+  return mix(c * vec3(0.44, 0.37, 0.5), vec3(lum) * vec3(0.4, 0.35, 0.48), 0.15);
+}
+vec3 ramp1(vec3 c, float k, float m){
   float lum = dot(c, vec3(0.299, 0.587, 0.114));
   if (m == 3.0) {                                                                    // ผิว: เงาอมชมพูอุ่น
     if (k > 4.5) return c * vec3(0.48, 0.3, 0.32);
@@ -121,7 +147,7 @@ void main(){
     float m = kind(bc.a);
     vec3 base = toS(bc.rgb);
     float lv = m == 4.0 ? 2.0 : level(N(bq), m, bq);
-    vec3 col = lv >= 3.0 ? ramp(base, 0.0, m) * 0.85 : ramp(base, 5.0, m);
+    vec3 col = uStyle > 0.5 ? ramp(base, 5.0, m) : lv >= 3.0 ? ramp(base, 0.0, m) * 0.85 : ramp(base, 5.0, m);
     gl_FragColor = vec4(mix(col, uFlashCol * 0.55, uFlash * 0.5), 1.0);
     return;
   }
@@ -149,7 +175,7 @@ void main(){
       vec4 b = A(q); if (b.a > 0.5 && d - dep(N(q)) > 0.05) occ += 1.0;
     }
     if (occ >= 2.0 && lv > 0.0 && lv < 4.0) lv -= 1.0;
-    col = line > 0.5 ? (lv <= 1.0 ? mix(ramp(base, 5.0, m), ramp(base, 0.0, m), 0.45) : ramp(base, 0.0, m)) : ramp(base, lv, m);
+    col = line > 0.5 && uStyle > 0.5 ? mix(ramp(base, 5.0, m), ramp(base, 0.0, m), 0.35) : line > 0.5 ? (lv <= 1.0 ? mix(ramp(base, 5.0, m), ramp(base, 0.0, m), 0.45) : ramp(base, 0.0, m)) : ramp(base, lv, m);
   }
   // ตา
   vec2 py = vec2(p.x, uSize.y - 1.0 - p.y);
@@ -161,6 +187,14 @@ void main(){
     if (q.x < 0.0 || q.y < 0.0 || q.x > 2.0 || q.y > 4.0) continue;
     if (d < E.z - 0.06) continue;              // ผม/หมวกบังตา
     float k = eyeCode(q, narrow, e == 0 ? -1.0 : 1.0);
+    if (uStyle > 0.5) {                        // ตาเล็กแบบผู้ใหญ่: คิ้ว 1 แถว + ตาดำ 1×2
+      float xi = e == 0 ? q.x : 2.0 - q.x;
+      k = 0.0;
+      if (uEyeShut > 0.5) { if (q.y == 2.0 && xi >= 1.0) col = vec3(0.16, 0.09, 0.1); continue; }
+      if (q.y == 0.0 && xi >= 1.0 && narrow < 0.5) col = col * vec3(0.45, 0.36, 0.36);
+      else if ((q.y == 2.0 || q.y == 3.0) && xi == 1.0) col = q.y == 2.0 ? vec3(0.1, 0.06, 0.09) : uEyeCol * 0.55 + 0.02;
+      continue;
+    }
     if (k == 1.0) col = vec3(0.12, 0.07, 0.12);
     else if (k == 2.0) col = uEyeCol * 0.6;
     else if (k == 3.0) col = vec3(1.0);
@@ -232,7 +266,7 @@ export class PixelSprites {
       uniforms: {
         tA: { value: this.alb.texture }, tN: { value: this.nd.texture }, uSize: { value: new THREE.Vector2() },
         uL: { value: new THREE.Vector3(-0.38, 0.55, 0.74).normalize() },
-        uEye0: { value: new THREE.Vector4() }, uEye1: { value: new THREE.Vector4() }, uMouth: { value: new THREE.Vector4() }, uEyeCol: { value: new THREE.Color() }, uEyeShut: { value: 0 },
+        uEye0: { value: new THREE.Vector4() }, uEye1: { value: new THREE.Vector4() }, uMouth: { value: new THREE.Vector4() }, uEyeCol: { value: new THREE.Color() }, uEyeShut: { value: 0 }, uStyle: { value: 0 },
         uFlash: { value: 0 }, uFlashCol: { value: new THREE.Color(1, 1, 1) },
       },
     });
@@ -516,7 +550,7 @@ export class PixelSprites {
     const hv = s.view;
     const hurt = hv.hurtT > 0 ? Math.min(1, hv.hurtT / 0.22) : 0;
     U.uFlash.value = s.kind === 'mob' ? 0 : hurt * 0.55;   // มอน: กระพริบผ่านสีวัสดุอยู่แล้ว
-    U.uSize.value.set(s.w, s.h);
+    U.uSize.value.set(s.w, s.h); U.uStyle.value = s.view.pxStyle || 0;
     // ลงสีพิกเซลอาร์ตลงภาพของตัวนี้
     r.setRenderTarget(s.rt); r.clear(true, true, false); r.render(this.postScene, this.postCam);
   }

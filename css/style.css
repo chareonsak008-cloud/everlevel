@@ -2068,3 +2068,18 @@ button.cw-card:hover { border-color: rgba(255, 211, 107, 0.8); }
 .cw-card small { font-size: 10.5px; line-height: 1.2; text-align: center; }
 .cw-h { margin: 14px 0 4px; font-size: 14px; color: var(--gold); }
 .cw-h small { color: var(--muted); font-weight: 400; font-size: 11.5px; }
+
+/* v0.31.1: ตั้งค่าการเก็บของ — ระดับอุปกรณ์ ขาว → แดง */
+.pp-eq { margin: 8px 0 4px; padding: 7px 8px; border-radius: 8px; background: rgba(0, 0, 0, 0.18); }
+.pp-eq > span { display: block; margin-bottom: 5px; font-size: 12px; color: var(--muted); }
+.pp-eq small { display: block; margin-top: 5px; font-size: 11.5px; color: var(--muted); }
+.pp-eq.off .pp-grades { opacity: 0.4; }
+.pp-grades { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.pp-g { padding: 5px 0; min-width: 0; font-size: 11.5px; border-radius: 6px; cursor: pointer; color: var(--gc); background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); opacity: 0.45; }
+.pp-g.on { opacity: 1; border-color: color-mix(in srgb, var(--gc) 55%, transparent); background: color-mix(in srgb, var(--gc) 14%, transparent); }
+.pp-g.cur { box-shadow: 0 0 0 2px var(--gc) inset; font-weight: 600; }
+.pp-note { display: block; margin: 4px 0 2px; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+
+/* v0.31.1: ปุ่ม ☰ บนคอม — ย้ายลงแถวปุ่มล่างขวา (เดิมลอยทับกล่องวิธีเล่น) */
+body:not(.touch) .menu-btn { right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); width: 42px; height: 34px; font-size: 20px; border-radius: 10px; }
+body:not(.touch) .tools { right: 62px; }
