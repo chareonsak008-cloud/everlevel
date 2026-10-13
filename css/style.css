@@ -2083,3 +2083,6 @@ button.cw-card:hover { border-color: rgba(255, 211, 107, 0.8); }
 /* v0.31.1: ปุ่ม ☰ บนคอม — ย้ายลงแถวปุ่มล่างขวา (เดิมลอยทับกล่องวิธีเล่น) */
 body:not(.touch) .menu-btn { right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); width: 42px; height: 34px; font-size: 20px; border-radius: 10px; }
 body:not(.touch) .tools { right: 62px; }
+
+/* v0.31.1: คอลัมน์บัฟอยู่ในกรอบตัวละคร → วางชิดขวานอกกรอบเสมอ (เดิมใช้ระยะตายตัว/วัดด้วย JS แล้วคลาดเมื่อย่อขยาย UI) */
+.char > .buffs { position: absolute; left: calc(100% + 8px) !important; top: 0 !important; margin: 0; z-index: 2; }
