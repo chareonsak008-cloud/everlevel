@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Everlevel · เอฟเฟ็กฉายา</title>
+<style>
+:root{--navy:#0e1836;--navy2:#16244d;--navy3:#1f3268;--ink:#070d22;--brass:#d8b45c;--brass2:#f3dc95;--brassD:#8a6a2a;--cream:#f5ecd2;--mute:#a9b8dc;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--cream);font-family:'Kanit','Noto Sans Thai',system-ui,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:18px 16px 28px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+header small{letter-spacing:.14em;color:var(--brass);font-size:11px}
+h1{margin:2px 0 0;font:700 26px Cinzel,Georgia,serif;color:var(--brass2);letter-spacing:.03em}
+header p{margin:0;color:var(--mute);font-size:13px;max-width:520px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.frame{position:relative;background:linear-gradient(180deg,var(--navy3),var(--navy) 55%,var(--ink));border:2px solid var(--brass);border-radius:10px;box-shadow:0 0 0 2px var(--ink),0 0 0 3px var(--brassD),0 10px 26px #0008}
+#stage{height:min(62vh,560px);min-height:340px;overflow:hidden;cursor:grab;touch-action:none}
+#stage canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#labels .name{position:absolute;left:0;top:0;color:#fff;font-size:13px;padding:1px 8px;border-radius:10px;background:rgba(20,14,28,.45);white-space:nowrap}
+.hint{position:absolute;left:12px;bottom:10px;font-size:12px;color:#fff;text-shadow:0 1px 2px #000;pointer-events:none;opacity:.85}
+.side{display:flex;flex-direction:column;gap:12px}
+.card{padding:12px}
+.card h2{margin:0 0 8px;font:600 13px 'Kanit',sans-serif;color:var(--brass2);letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center}
+.card h2 small{color:var(--mute);font-weight:400;letter-spacing:0}
+button{font:inherit;color:var(--cream);background:radial-gradient(circle at 50% 30%,var(--navy3),var(--ink));border:1px solid #d8b45c77;border-radius:8px;padding:6px 11px;cursor:pointer}
+button:hover{border-color:var(--brass2)}
+button[aria-pressed=true]{border-color:var(--brass2);background:linear-gradient(180deg,#2c4590,#16244d);color:var(--brass2);box-shadow:0 0 0 1px var(--brass2) inset}
+button:focus-visible{outline:2px solid var(--brass2);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+#list{display:flex;flex-direction:column;gap:5px;max-height:330px;overflow:auto;padding-right:4px}
+#list button{display:flex;justify-content:space-between;gap:8px;text-align:left;padding:6px 10px;font-size:13px}
+#list button small{color:var(--mute);font-size:11px;white-space:nowrap}
+.info{padding:12px 14px;margin-top:14px}
+.info .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#name{margin:0;font:600 19px 'Kanit',sans-serif}
+#rar{font:700 11px 'Kanit',sans-serif;border:1px solid;border-radius:10px;padding:1px 8px;letter-spacing:.06em}
+#desc{margin:6px 0 0;font-size:13.5px;line-height:1.6;color:#d6def2}
+.ladder{margin-top:18px;padding:16px}
+.ladder h2{margin:0 0 4px;font:600 15px 'Kanit',sans-serif;color:var(--brass2)}
+.ladder p{margin:0 0 10px;color:var(--mute);font-size:12.5px}
+.tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.tiers{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tier.t-divine{grid-column:1/-1;min-height:260px;background:radial-gradient(ellipse at 50% 35%,#3a2c5a,#0a1128 75%)}.tier.t-divine .stage2{height:120px}.tier.t-mythic .stage2{height:80px}
+@media (max-width:520px){.tiers{grid-template-columns:1fr}}
+.tier{border-radius:10px;padding:56px 8px 12px;background:radial-gradient(ellipse at 50% 30%,#1c2a55,#0a1128 75%);border:1px solid #d8b45c44;display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden;min-height:200px}
+.tier b{font-weight:600;font-size:14px}
+.tier ul{margin:0;padding:0 0 0 16px;font-size:11.5px;color:var(--mute);line-height:1.6;align-self:stretch}
+.tier .stage2{height:56px;display:flex;align-items:center;justify-content:center}
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:84px 20px;padding:70px 20px 18px;overflow:hidden}
+.themes figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:30px}.themes figcaption{font-size:11.5px;color:var(--mute)}
+.note{font-size:12px;color:var(--mute);line-height:1.6;margin:0}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div><small>EVERLEVEL · TITLE PREVIEW</small><h1>เอฟเฟ็กฉายา</h1></div>
+    <p>ฉายาเหนือหัวตัวละคร 6 ระดับ ยิ่งหายากยิ่งอลังการ — ใช้โค้ด CSS ชุดเดียวกับที่จะใส่ในเกม (ผู้เล่นคนอื่นเห็นเหมือนกัน)</p>
+  </header>
+  <div class="grid">
+    <div>
+      <div id="stage" class="frame"><div id="labels"></div><span class="hint">ลากเพื่อหมุนกล้อง</span></div>
+      <div class="frame info">
+        <div class="top"><h3 id="name">-</h3><span id="rar"></span></div>
+        <p id="desc"></p>
+      </div>
+    </div>
+    <div class="side">
+      <section class="frame card"><h2>ฉายาทั้งหมด <small id="count"></small></h2><div class="row" id="filters" style="margin-bottom:8px"></div><div id="list"></div></section>
+      <section class="frame card"><h2>พื้นหลัง</h2><div id="grounds" class="row"></div></section>
+      <section class="frame card"><h2>อาชีพ</h2><div id="jobs" class="row"></div></section>
+      <p class="note">95 ฉายา (เพิ่มใหม่ 51) · ยังไม่ได้ใส่ลงไฟล์เกม — อยากปรับสี ความแรง หรือเพิ่มฉายาใหม่ บอกได้เลย แล้วค่อยแพ็กไฟล์</p>
+    </div>
+  </div>
+  <section class="frame ladder">
+    <h2>บันไดความหายาก</h2>
+    <p>ระดับยิ่งสูง ยิ่งมีชั้นเอฟเฟ็กเพิ่มเข้าไป</p>
+    <div class="tiers" id="tiers"></div>
+  </section>
+  <section class="frame ladder">
+    <h2>ธีมสีของ “ในตำนาน” และ “เหนือตำนาน”</h2>
+    <p>แต่ละฉายาระดับสูงมีธีมของตัวเองตามที่มา เช่น ฆ่ามอนสายเลือด สายไฟ สายน้ำแข็ง</p>
+    <div class="themes" id="themes"></div>
+  </section>
+</main>
+<script src="vendor/three.min.js"></script>
+<script type="module" src="js/titlePreview.js"></script>
+</body>
+</html>

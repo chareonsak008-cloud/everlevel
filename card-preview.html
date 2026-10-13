@@ -1,0 +1,326 @@
+<title>การ์ดมอนสเตอร์ Everlevel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Kanit:wght@300;400;500;600&display=swap">
+<style>
+/* Layout: gallery of collectible cards (filters on top) → click opens a large tilting card with full details; below: summary table, combos, JSON */
+:root{
+  --bg:#080b1a; --panel:#10162e; --panel2:#18213f; --line:#2a3560; --text:#f3ecda; --mute:#9ba8cf;
+  --gold:#e6c372; --gold2:#fff0c0; --silver:#cfd8e6; --crimson:#d8324a; --bad:#ff7d86; --good:#9be8a8;
+  --f-title:'Cinzel',Georgia,serif; --f-body:'Kanit','Noto Sans Thai',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#1c2350,transparent),var(--bg);color:var(--text);font-family:var(--f-body)}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.eyebrow{font:600 11px var(--f-body);letter-spacing:.18em;color:var(--gold)}
+h1{margin:4px 0 0;font:900 30px var(--f-title);color:var(--gold2);letter-spacing:.03em;text-wrap:balance}
+.lede{margin:6px 0 0;color:var(--mute);font-size:14px;max-width:640px;line-height:1.6}
+.ranks{display:flex;gap:8px;flex-wrap:wrap}
+.rk{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:4px 10px}
+.rk i{width:12px;height:12px;border-radius:3px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0 14px}
+.bar .grp{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:inherit;font-size:13px;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:5px 12px;cursor:pointer}
+.chip:hover{border-color:var(--gold)}
+.chip[aria-pressed=true]{background:linear-gradient(180deg,#2b3770,#1a2350);border-color:var(--gold);color:var(--gold2)}
+.chip:focus-visible,button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+.count{margin-left:auto;color:var(--mute);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px}
+.slot{cursor:pointer;background:none;border:0;padding:0;color:inherit;text-align:left;transition:transform .2s}
+.slot:hover{transform:translateY(-4px)}
+
+/* ---------- การ์ด ---------- */
+.card{--w:230px;--c1:#cfd8e6;--c2:#7c8aa6;--c3:#e9eef7;--glow:#9fc4ff;--tone1:#9fe07a;--tone2:#3f8a38;--tone3:#1e3a1a;
+  position:relative;width:100%;aspect-ratio:5/7;border-radius:14px;padding:7px;isolation:isolate;
+  background:linear-gradient(145deg,var(--c3),var(--c1) 30%,var(--c2) 55%,var(--c3) 75%,var(--c2));
+  box-shadow:0 0 0 1px #0008,0 14px 30px #0009,0 0 26px -6px var(--glow);container-type:inline-size}
+.card.elite{--c1:#f2d27a;--c2:#9a6a1e;--c3:#fff3c4;--glow:#ffcf6a}
+.card.mvp{--c1:#ffde8a;--c2:#7a1420;--c3:#fff1c8;--glow:#ff3a5a;background:linear-gradient(145deg,#ffe8a8,#c8962e 18%,#5a0c16 40%,#2a0408 60%,#c8962e 82%,#fff0c0)}
+.inner{position:relative;height:100%;border-radius:9px;overflow:hidden;background:#0b0d18;display:flex;flex-direction:column;
+  box-shadow:inset 0 0 0 2px #0009,inset 0 0 0 3px color-mix(in srgb,var(--c1) 70%,transparent)}
+.mvp .inner{box-shadow:inset 0 0 0 2px #000,inset 0 0 0 3px #e6c372}
+.head{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;padding:5cqw 6cqw 0;font:700 3.4cqw var(--f-title);letter-spacing:.12em;color:var(--c3)}
+.head .no{font-family:var(--f-body);font-weight:500;letter-spacing:.04em;opacity:.85}
+.head .tier{padding:.4cqw 2.4cqw;border:1px solid color-mix(in srgb,var(--c1) 70%,transparent);border-radius:20px;background:#0008}
+.mvp .head .tier{color:#fff0c0;background:linear-gradient(90deg,#5a0c16,#a8182c,#5a0c16);border-color:#e6c372}
+.crown{position:absolute;left:50%;top:-1.5cqw;transform:translateX(-50%);width:26cqw;z-index:4;filter:drop-shadow(0 2px 4px #000)}
+.art{position:relative;flex:1;margin:3cqw 4cqw 0;border-radius:6px;overflow:hidden;min-height:0;
+  background:radial-gradient(120% 80% at 50% 70%,var(--tone2),var(--tone3) 70%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c1) 60%,transparent),inset 0 0 30px #000a}
+.art canvas{position:absolute;inset:0;width:100%;height:100%}
+.art img{position:absolute;left:50%;bottom:4%;height:86%;max-width:86%;object-fit:contain;transform:translateX(-50%);image-rendering:pixelated;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--tone1) 60%,transparent)) drop-shadow(0 6px 4px #000a);z-index:2}
+.mvp .art img{height:94%;max-width:94%;bottom:1%}
+.foil{position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:inherit;mix-blend-mode:color-dodge;opacity:0;
+  background:linear-gradient(115deg,transparent 40%,#ff9ad888 46%,#9ae8ff88 50%,#fff2a888 54%,transparent 60%);background-size:300% 300%;background-position:var(--fx,50%) var(--fy,50%)}
+.elite .foil{opacity:.22}
+.mvp .foil{opacity:.32;animation:sweep 5s linear infinite}
+@keyframes sweep{from{background-position:120% 0}to{background-position:-20% 100%}}
+.title{position:relative;z-index:3;text-align:center;margin-top:-6cqw;padding:0 4cqw}
+.title .big{display:block;font:900 9cqw/1 var(--f-title);letter-spacing:.04em;color:var(--c3);text-shadow:0 2px 0 #000,0 0 10px color-mix(in srgb,var(--glow) 70%,transparent)}
+.mvp .title .big{background:linear-gradient(180deg,#fff6d6,#ffcf6a 50%,#b06a12);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #000) drop-shadow(0 0 6px #ff3a5a)}
+.title .th{display:inline-block;margin-top:1.2cqw;font:600 5.2cqw var(--f-body);color:#fff;padding:.4cqw 5cqw;background:linear-gradient(90deg,transparent,#000c 20%,#000c 80%,transparent)}
+.title .quote{display:block;margin-top:1cqw;font:italic 300 3.3cqw/1.35 var(--f-body);color:#d8d0e8;padding:0 2cqw;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.stats{position:relative;z-index:3;display:flex;gap:2.4cqw;margin:2.4cqw 4cqw 4.4cqw;padding:2.4cqw;border-radius:6px;background:linear-gradient(180deg,#141a33ee,#0b0f22ee);border:1px solid color-mix(in srgb,var(--c1) 55%,transparent)}
+.slotic{flex:none;width:12cqw;height:12cqw;border-radius:50%;display:grid;place-items:center;border:1px solid var(--c1);background:radial-gradient(circle at 50% 35%,#2a3260,#0a0d1c);font-size:6cqw}
+.slotic svg{width:62%;height:62%}
+.lines{min-width:0;display:flex;flex-direction:column;gap:.6cqw;font:500 3.5cqw/1.3 var(--f-body)}
+.lines .s{color:var(--gold2);font-size:3cqw;letter-spacing:.04em}
+.lines .e{color:#eef2ff}
+.lines .e.bad{color:var(--bad)}
+
+/* ---------- หน้าต่างการ์ดใหญ่ ---------- */
+.modal[hidden]{display:none}
+.modal{position:fixed;inset:0;z-index:50;background:#03050ee6;display:grid;place-items:center;padding:16px;overflow:auto}
+.modal .box{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;max-width:1040px;width:100%;align-items:center}
+@media (max-width:820px){.modal .box{grid-template-columns:1fr;justify-items:center}}
+.stage3d{perspective:1100px;width:min(420px,88vw)}
+.stage3d .card{transition:transform .08s linear;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+.stage3d .card .foil{opacity:.38;animation:none}
+.stage3d .card.normal .foil{opacity:.18}
+.info{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0;width:100%}
+.info h2{margin:0;font:600 24px var(--f-body)}
+.info .en{color:var(--mute);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.tag{font-size:12px;padding:2px 9px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--mute)}
+.tag b{color:var(--text);font-weight:500}
+.tag.rank-mvp{border-color:var(--crimson);color:#ffb0b8}.tag.rank-elite{border-color:var(--gold);color:var(--gold2)}.tag.rank-normal{border-color:#8fa0c0;color:var(--silver)}
+.info h3{margin:14px 0 6px;font:600 13px var(--f-body);color:var(--gold);letter-spacing:.06em}
+.eff{margin:0;padding:0;list-style:none;display:grid;gap:4px}
+.eff li{background:var(--panel2);border-radius:6px;padding:5px 10px;font-size:14px}
+.eff li.bad{color:var(--bad)}
+.info p{margin:0;font-size:13.5px;line-height:1.65;color:#d6dcf0}
+.info .prompt{color:var(--mute);font-size:12.5px}
+.close{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:14px;width:40px;height:40px;border-radius:50%;border:1px solid var(--gold);background:#5a1420;color:#fff;font-size:18px;cursor:pointer;z-index:60}
+.navbtn{font:inherit;font-size:13px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.navs{display:flex;gap:8px;margin-top:14px}
+
+/* ---------- ตาราง / คอมโบ / JSON ---------- */
+section.block{margin-top:40px}
+section.block h2{font:700 20px var(--f-title);color:var(--gold2);margin:0 0 4px;letter-spacing:.03em}
+section.block .sub{color:var(--mute);font-size:13px;margin:0 0 12px}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:820px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--panel2);color:var(--gold);font-weight:500;position:sticky;top:0}
+tr:hover td{background:#141b38}
+td .bad{color:var(--bad)}
+.rkdot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.combos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.combo{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.combo h3{margin:0;font:600 16px var(--f-body)}
+.combo .en{color:var(--mute);font-size:12px}
+.mini{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+.mini button{width:58px;padding:0;border:0;background:none;cursor:pointer}
+.combo ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.7;color:var(--good)}
+.combo .note{margin:6px 0 0;font-size:12px;color:var(--mute)}
+.balance{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:13.5px;line-height:1.75;color:#d6dcf0}
+.balance ul{margin:0;padding-left:18px}
+.json{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+pre{margin:0;max-height:420px;overflow:auto;background:#060914;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px;line-height:1.5;color:#c8d2f0}
+.copied{color:var(--good);font-size:12px}
+@media (prefers-reduced-motion:reduce){.mvp .foil{animation:none}.slot{transition:none}}
+@media (max-width:480px){h1{font-size:24px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">EVERLEVEL · MONSTER CARD COLLECTION</div>
+      <h1>การ์ดมอนสเตอร์</h1>
+      <p class="lede">การ์ด 30 ใบจากมอนสเตอร์ทุกตัวในเกม ดรอปจากมอนตัวนั้นเท่านั้น ยิ่งหายาก สเตตัสยิ่งมากและแรงขึ้น แต่การ์ดบอสทุกใบมีข้อเสียแลกมา แตะการ์ดเพื่อดูรูปใหญ่</p>
+    </div>
+    <div class="ranks" aria-label="ระดับการ์ด">
+      <span class="rk"><i style="background:linear-gradient(135deg,#e9eef7,#7c8aa6)"></i>Normal · 1 สเตตัส</span>
+      <span class="rk"><i style="background:linear-gradient(135deg,#fff3c4,#9a6a1e)"></i>Elite · 2 สเตตัส</span>
+      <span class="rk"><i style="background:linear-gradient(135deg,#ffde8a,#7a1420)"></i>MVP · 4+ สเตตัส + ข้อเสีย</span>
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="grp" id="fMap" role="group" aria-label="กรองตามแผนที่"></div>
+    <div class="grp" id="fRank" role="group" aria-label="กรองตามระดับ"></div>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+
+  <section class="block">
+    <h2>คอมโบการ์ด</h2>
+    <p class="sub">เสียบครบทุกใบในชุด (ในอุปกรณ์ที่สวมอยู่พร้อมกัน) ได้โบนัสเพิ่ม</p>
+    <div class="combos" id="combos"></div>
+  </section>
+
+  <section class="block">
+    <h2>ตารางสรุป</h2>
+    <p class="sub">อัตราดรอปต่อการกำจัด 1 ตัว · ซ้อนสูงสุด = จำนวนการ์ดใบเดียวกันที่เสียบในอุปกรณ์ชิ้นเดียวได้</p>
+    <div class="tblwrap"><table id="tbl"></table></div>
+  </section>
+
+  <section class="block">
+    <h2>บาลานซ์</h2>
+    <div class="balance">
+      <ul>
+        <li>ดาเมจต่อเผ่า/ธาตุ/ขนาดจากการ์ดทุกใบรวมกันถูกจำกัดที่ +60% ต่อเป้าหมาย · ลดดาเมจจากเผ่า/ธาตุ/ขนาดรวมกันจำกัดที่ 50%</li>
+        <li>ลดดาเมจที่ได้รับทั้งหมด (ออเร็กซ์ + กนาร์ลรูท + คอมโบเพลิง) สูงสุด 21% · ไม่มีชุดไหนทำให้อมตะ</li>
+        <li>ดูดเลือดรวมทุกแหล่งจำกัดที่ 8% ของดาเมจ · ร่ายเร็วจากการ์ดรวมจำกัดที่ 30%</li>
+        <li>การ์ด MVP ทุกใบเสียบซ้ำไม่ได้ (1 ใบต่อชิ้น) และมีข้อเสียชัดเจน · คอมโบช่วยลดข้อเสียได้บางส่วนแต่ไม่ลบทั้งหมด</li>
+        <li>การ์ดต้นเกมยังใช้ได้ตลอด: ดรอปไอเทม% (บล็อบเล็ต) · ดาเมจต่อแมลง (สติงเล็ต ใช้กับแมงมุม/สคารับปลายเกม) · ฟื้น SP เมื่อกำจัด (แคปปลิง) · EXP +5% จากคอมโบ</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>JSON สำหรับเกม</h2>
+    <p class="sub">ใช้ schema ตามเอกสารออกแบบ ใส่ใน Card.js / Item.js ได้ทันที</p>
+    <div class="json"><button class="chip" type="button" id="cpCards">คัดลอก JSON การ์ด</button><button class="chip" type="button" id="cpCombos">คัดลอก JSON คอมโบ</button><span class="copied" id="copied" aria-live="polite"></span></div>
+    <pre id="jsonOut"></pre>
+  </section>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="รายละเอียดการ์ด">
+  <button class="close" id="close" type="button" aria-label="ปิด">✕</button>
+  <div class="box">
+    <div class="stage3d" id="big"></div>
+    <div class="info" id="info"></div>
+  </div>
+</div>
+
+<script type="module">
+import { CARD_CATALOG, CARD_COMBOS, CARD_MAPS, CARD_RANKS, SLOT_TH, CLASS_TH, ROLE_TH, effectText, isDrawback, traitTH, CARD_BY_ID } from './js/data/cardCatalog.js';
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const pct = (r) => (r * 100).toFixed(r * 100 < 0.01 ? 3 : 2).replace(/0+$/, '').replace(/\.$/, '') + '%';
+const ICON = {
+  weapon: '<svg viewBox="0 0 24 24"><path d="M5 19l9-9M14 4l6 0 0 6-8 8-6-6z" fill="none" stroke="#f3dc95" stroke-width="2"/></svg>',
+  body: '<svg viewBox="0 0 24 24"><path d="M8 3l4 2 4-2 4 4-3 3v10H7V10L4 7z" fill="none" stroke="#f3dc95" stroke-width="2"/></svg>',
+  shield: '<svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z" fill="none" stroke="#f3dc95" stroke-width="2"/></svg>',
+  garment: '<svg viewBox="0 0 24 24"><path d="M7 3h10l3 18-8-3-8 3z" fill="none" stroke="#f3dc95" stroke-width="2"/></svg>',
+  shoes: '<svg viewBox="0 0 24 24"><path d="M6 4h5v9l8 3v4H5z" fill="none" stroke="#f3dc95" stroke-width="2"/></svg>',
+  head: '<svg viewBox="0 0 24 24"><path d="M4 16c0-5 4-10 8-10s8 5 8 10zM3 16h18v3H3z" fill="none" stroke="#f3dc95" stroke-width="2"/></svg>',
+  accessory: '<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="6" fill="none" stroke="#f3dc95" stroke-width="2"/><path d="M9 5l3 3 3-3" fill="none" stroke="#f3dc95" stroke-width="2"/></svg>',
+};
+const CROWN = '<svg class="crown" viewBox="0 0 120 50" aria-hidden="true"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff4c8"/><stop offset=".5" stop-color="#e6b24a"/><stop offset="1" stop-color="#7a4a10"/></linearGradient></defs><path d="M8 44 L16 14 L36 32 L60 4 L84 32 L104 14 L112 44 Z" fill="url(#cg)" stroke="#2a0a06" stroke-width="2.5"/><circle cx="60" cy="24" r="6" fill="#ff2a4a" stroke="#2a0a06" stroke-width="2"/><circle cx="34" cy="38" r="3.5" fill="#ff2a4a"/><circle cx="86" cy="38" r="3.5" fill="#ff2a4a"/><path d="M0 44 C20 36 40 42 60 40 C80 42 100 36 120 44" fill="none" stroke="#e6b24a" stroke-width="3"/></svg>';
+const WINGS = '<svg class="crown" viewBox="0 0 120 40" aria-hidden="true" style="width:30cqw;top:-1cqw"><path d="M60 30 C50 10 30 6 6 10 C24 16 30 22 34 30 C26 28 18 30 12 34 C30 36 44 36 60 34 C76 36 90 36 108 34 C102 30 94 28 86 30 C90 22 96 16 114 10 C90 6 70 10 60 30Z" fill="#f2d27a" stroke="#4a2a06" stroke-width="2"/><path d="M54 20 L60 8 L66 20 L60 28Z" fill="#fff3c4" stroke="#4a2a06" stroke-width="2"/></svg>';
+
+// ฉากหลังของการ์ด: ลายตามแผนที่ (คริสตัล/ใบไม้/หิมะ/ลาวา/อักขระ/หมอก) วาดครั้งเดียวด้วย canvas
+function rng(seed) { let s = seed >>> 0 || 1; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+function paintArt(cv, card) {
+  const W = cv.width = 300, H = cv.height = 260, g = cv.getContext('2d'), M = CARD_MAPS[card.monster.map], [t1, t2, t3] = M.tone;
+  const r = rng([...card.id].reduce((a, c) => a * 31 + c.charCodeAt(0), 7));
+  const bg = g.createRadialGradient(W / 2, H * 0.7, 10, W / 2, H * 0.6, W * 0.8); bg.addColorStop(0, t2); bg.addColorStop(1, t3); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  // ลำแสงจากหลังมอนสเตอร์
+  g.save(); g.translate(W / 2, H * 0.62); g.globalCompositeOperation = 'lighter';
+  const rays = card.rank === 'mvp' ? 22 : card.rank === 'elite' ? 14 : 9;
+  for (let i = 0; i < rays; i++) { const a = (i / rays) * Math.PI * 2 + r() * 0.2, w = 0.04 + r() * 0.06; g.fillStyle = `rgba(255,255,255,${card.rank === 'mvp' ? 0.07 : 0.045})`; g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, W, a - w, a + w); g.closePath(); g.fill(); }
+  g.restore();
+  const map = card.monster.map;
+  g.globalCompositeOperation = 'source-over';
+  // ทิวทัศน์ด้านล่าง
+  g.fillStyle = t3; g.beginPath(); g.moveTo(0, H);
+  for (let x = 0; x <= W; x += 20) g.lineTo(x, H * (0.78 + Math.sin(x * 0.03 + r() * 2) * 0.04));
+  g.lineTo(W, H); g.fill();
+  if (map === 'haunted_forest' || map === 'whisper_forest') for (let i = 0; i < 9; i++) { const x = r() * W, h = H * (0.35 + r() * 0.35); g.fillStyle = '#00000088'; g.fillRect(x, H - h, 4 + r() * 5, h); g.beginPath(); g.arc(x + 3, H - h, 14 + r() * 18, 0, 7); g.fill(); }
+  if (map === 'ancient_ruins') for (let i = 0; i < 6; i++) { const x = r() * W, h = H * (0.25 + r() * 0.35); g.fillStyle = '#00000066'; g.fillRect(x, H - h, 14, h); g.fillRect(x - 4, H - h, 22, 6); }
+  if (map === 'frostveil' || map === 'ember_caldera') { g.fillStyle = '#00000066'; g.beginPath(); g.moveTo(0, H * 0.8); for (let x = 0; x <= W; x += 30) g.lineTo(x, H * (0.45 + r() * 0.25)); g.lineTo(W, H); g.lineTo(0, H); g.fill(); }
+  if (card.monster.id === 'nocthar' || card.monster.id === 'bloodmoon_knight') { g.fillStyle = '#ff2a3a'; g.globalAlpha = 0.55; g.beginPath(); g.arc(W * 0.72, H * 0.25, 40, 0, 7); g.fill(); g.globalAlpha = 1; for (let i = 0; i < 5; i++) { const x = W * 0.15 + i * 18; g.fillStyle = '#0a0006'; g.fillRect(x, H * 0.18 + (i % 2) * 14, 10, H * 0.6); g.beginPath(); g.moveTo(x - 2, H * 0.18 + (i % 2) * 14); g.lineTo(x + 5, H * 0.08 + (i % 2) * 14); g.lineTo(x + 12, H * 0.18 + (i % 2) * 14); g.fill(); } }
+  // เศษผลึก/อนุภาคตามธีม
+  const n = card.rank === 'mvp' ? 70 : card.rank === 'elite' ? 45 : 28;
+  for (let i = 0; i < n; i++) {
+    const x = r() * W, y = r() * H, s = 1 + r() * (card.rank === 'mvp' ? 5 : 3);
+    g.globalAlpha = 0.35 + r() * 0.6;
+    if (map === 'frostveil') { g.fillStyle = '#ffffff'; g.fillRect(x, y, s, s); }
+    else if (map === 'ember_caldera') { g.fillStyle = r() < 0.5 ? '#ffb05a' : '#ff5a2a'; g.fillRect(x, y, s, s * 1.6); }
+    else { g.fillStyle = r() < 0.6 ? t1 : '#ffffff'; g.beginPath(); g.moveTo(x, y - s * 2); g.lineTo(x + s, y); g.lineTo(x, y + s * 2); g.lineTo(x - s, y); g.fill(); }
+  }
+  g.globalAlpha = 1;
+  // ผลึกใหญ่สะท้อนแสง (MVP / Elite) แบบในตัวอย่าง
+  if (card.rank !== 'normal') for (let i = 0; i < (card.rank === 'mvp' ? 7 : 4); i++) {
+    const x = r() < 0.5 ? r() * W * 0.25 : W - r() * W * 0.25, y = H * (0.2 + r() * 0.7), s = 14 + r() * 26, a = r() * 3;
+    g.save(); g.translate(x, y); g.rotate(a); g.globalAlpha = 0.75;
+    const cg = g.createLinearGradient(-s, -s, s, s); cg.addColorStop(0, '#ffffff'); cg.addColorStop(0.4, t1); cg.addColorStop(1, t2);
+    g.fillStyle = cg; g.beginPath(); g.moveTo(0, -s * 1.6); g.lineTo(s * 0.55, 0); g.lineTo(0, s * 1.6); g.lineTo(-s * 0.55, 0); g.closePath(); g.fill();
+    g.strokeStyle = '#ffffffaa'; g.lineWidth = 1; g.stroke(); g.restore();
+  }
+  // ขอบมืด
+  const vg = g.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.85); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.65)'); g.fillStyle = vg; g.fillRect(0, 0, W, H);
+}
+
+function cardEl(c) {
+  const M = CARD_MAPS[c.monster.map], R = CARD_RANKS[c.rank];
+  const el = document.createElement('div');
+  el.className = 'card ' + c.rank;
+  el.style.setProperty('--tone1', M.tone[0]); el.style.setProperty('--tone2', M.tone[1]); el.style.setProperty('--tone3', M.tone[2]);
+  const top = c.rank === 'mvp' ? CROWN : c.rank === 'elite' ? WINGS : '';
+  const tier = c.rank === 'mvp' ? 'MVP CARD' : c.rank === 'elite' ? 'ELITE CARD' : 'MONSTER CARD';
+  const big = c.monster.name.split(' ')[0];
+  el.innerHTML = `${top}<div class="inner">
+    <div class="head"><span class="no">${c.no}</span><span class="tier">${tier}</span></div>
+    <div class="art"><canvas></canvas><img alt="" src="assets/monsters/${c.monster.id}.png"></div>
+    <div class="title"><span class="big">${esc(c.name_en.replace(' Card', '').toUpperCase())}</span><span class="th">${esc(big)}</span><span class="quote">“${esc(c.flavor)}”</span></div>
+    <div class="stats"><span class="slotic" title="${SLOT_TH[c.slot]}">${ICON[c.slot]}</span><div class="lines"><span class="s">${SLOT_TH[c.slot]} · ${c.rank === 'mvp' ? 'เสียบได้ 1 ใบ' : 'ซ้อนได้ ' + c.max_stack + ' ใบ'}</span>${c.effects.map((e) => `<span class="e${isDrawback(e) ? ' bad' : ''}">${esc(effectText(e))}</span>`).join('')}</div></div>
+  </div><span class="foil"></span>`;
+  paintArt(el.querySelector('canvas'), c);
+  return el;
+}
+
+// ---------- แกลเลอรี ----------
+const state = { map: 'all', rank: 'all' };
+const chips = (box, list, key) => { for (const [id, label] of list) { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = label; b.dataset.id = id; b.setAttribute('aria-pressed', String(state[key] === id)); b.onclick = () => { state[key] = id; box.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); render(); }; box.append(b); } };
+chips($('#fMap'), [['all', 'ทุกแผนที่'], ...Object.entries(CARD_MAPS).map(([k, v]) => [k, v.th])], 'map');
+chips($('#fRank'), [['all', 'ทุกระดับ'], ['normal', 'Normal'], ['elite', 'Elite'], ['mvp', 'MVP']], 'rank');
+let shown = [];
+function render() {
+  const grid = $('#grid'); grid.textContent = '';
+  shown = CARD_CATALOG.filter((c) => (state.map === 'all' || c.monster.map === state.map) && (state.rank === 'all' || c.rank === state.rank));
+  for (const c of shown) { const b = document.createElement('button'); b.type = 'button'; b.className = 'slot'; b.setAttribute('aria-label', 'ดู ' + c.name_th); b.append(cardEl(c)); b.onclick = () => openCard(c.id); grid.append(b); }
+  $('#count').textContent = `${shown.length} ใบ`;
+}
+render();
+
+// ---------- การ์ดใหญ่ (เอียงตามนิ้ว/เมาส์ + แสงโฮโลไล่ตาม) ----------
+let cur = null;
+function openCard(id) {
+  const c = CARD_BY_ID[id]; cur = id;
+  const big = $('#big'); big.textContent = ''; const el = cardEl(c); big.append(el);
+  const R = CARD_RANKS[c.rank], M = CARD_MAPS[c.monster.map], combo = CARD_COMBOS.find((x) => x.combo_id === c.combo_id);
+  $('#info').innerHTML = `<h2>${esc(c.name_th)}</h2><div class="en">${esc(c.name_en)} · ${c.no}</div>
+    <div class="tags"><span class="tag rank-${c.rank}">${R.th} · ${R.label}</span><span class="tag">ตำแหน่ง <b>${SLOT_TH[c.slot]}</b></span><span class="tag">ดรอป <b>${pct(c.drop_rate)}</b></span><span class="tag">แนว <b>${ROLE_TH[c.role]}</b></span><span class="tag">${c.stackable ? 'ซ้อนได้สูงสุด <b>' + c.max_stack + '</b> ใบ' : '<b>ไม่ซ้อน</b>'}</span></div>
+    <h3>เอฟเฟกต์</h3><ul class="eff">${c.effects.map((e) => `<li class="${isDrawback(e) ? 'bad' : ''}">${esc(effectText(e))}</li>`).join('')}</ul>
+    ${c.condition ? `<p style="margin-top:6px;color:var(--bad);font-size:13px">${esc(c.condition)}</p>` : ''}
+    <h3>มอนสเตอร์ต้นทาง</h3><p>${esc(c.monster.name)} · Lv.${c.monster.level} · เผ่า${traitTH(c.monster.race)} · ธาตุ${traitTH(c.monster.element)} · ขนาด${traitTH(c.monster.size)} · ${M.th}</p>
+    <h3>เหมาะกับ</h3><p>${c.recommended_class.map((k) => CLASS_TH[k]).join(' · ')}</p>
+    ${combo ? `<h3>คอมโบ</h3><p>${esc(combo.name_th)} (${combo.cards.length} ใบ)</p>` : ''}
+    <h3>ตำนาน</h3><p>“${esc(c.flavor)}”</p>
+    <h3>คำอธิบายภาพการ์ด</h3><p class="prompt">${esc(c.art_prompt)}</p>
+    <div class="navs"><button class="navbtn" type="button" id="prev">‹ ใบก่อน</button><button class="navbtn" type="button" id="next">ใบถัดไป ›</button></div>`;
+  const list = shown.length ? shown : CARD_CATALOG, i = list.findIndex((x) => x.id === id);
+  $('#prev').onclick = () => openCard(list[(i - 1 + list.length) % list.length].id);
+  $('#next').onclick = () => openCard(list[(i + 1) % list.length].id);
+  $('#modal').hidden = false; document.body.style.overflow = 'hidden';
+  const tilt = (x, y) => { el.style.setProperty('--ry', (x - 0.5) * 22 + 'deg'); el.style.setProperty('--rx', (0.5 - y) * 18 + 'deg'); el.style.setProperty('--fx', x * 100 + '%'); el.style.setProperty('--fy', y * 100 + '%'); };
+  big.onpointermove = (e) => { const r = el.getBoundingClientRect(); tilt((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height); };
+  big.onpointerleave = () => tilt(0.5, 0.5);
+}
+function closeCard() { $('#modal').hidden = true; document.body.style.overflow = ''; cur = null; }
+$('#close').onclick = closeCard;
+$('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeCard(); });
+addEventListener('keydown', (e) => { if (!cur) return; if (e.key === 'Escape') closeCard(); if (e.key === 'ArrowRight') $('#next').click(); if (e.key === 'ArrowLeft') $('#prev').click(); });
+
+// ---------- คอมโบ ----------
+$('#combos').innerHTML = CARD_COMBOS.map((cb) => `<article class="combo"><h3>${esc(cb.name_th)}</h3><div class="en">${esc(cb.name_en)} · ${cb.cards.length} ใบ</div>
+  <div class="mini">${cb.cards.map((id) => `<button type="button" data-card="${id}" aria-label="ดู ${esc(CARD_BY_ID[id].name_th)}" title="${esc(CARD_BY_ID[id].name_th)}"></button>`).join('')}</div>
+  <ul>${cb.bonus.map((e) => `<li>${esc(effectText(e))}</li>`).join('')}</ul><p class="note">${esc(cb.note)}</p></article>`).join('');
+for (const b of document.querySelectorAll('[data-card]')) { const c = CARD_BY_ID[b.dataset.card]; const el = cardEl(c); el.style.borderRadius = '6px'; el.style.padding = '3px'; b.append(el); b.onclick = () => openCard(c.id); }
+
+// ---------- ตาราง ----------
+const RC = { normal: 'linear-gradient(135deg,#e9eef7,#7c8aa6)', elite: 'linear-gradient(135deg,#fff3c4,#9a6a1e)', mvp: 'linear-gradient(135deg,#ffde8a,#7a1420)' };
+$('#tbl').innerHTML = `<thead><tr><th>ชื่อ</th><th>มอนสเตอร์</th><th>ตำแหน่ง</th><th>ระดับ</th><th>ดรอป</th><th>เอฟเฟกต์ย่อ</th><th>อาชีพ</th><th>ซ้อนสูงสุด</th></tr></thead><tbody>${CARD_CATALOG.map((c) => `<tr><td>${esc(c.name_th)}<br><small style="color:var(--mute)">${c.no}</small></td><td>${esc(c.monster.name)} Lv.${c.monster.level}<br><small style="color:var(--mute)">${CARD_MAPS[c.monster.map].th}</small></td><td>${SLOT_TH[c.slot]}</td><td><span class="rkdot" style="background:${RC[c.rank]}"></span>${CARD_RANKS[c.rank].th}</td><td style="font-variant-numeric:tabular-nums">${pct(c.drop_rate)}</td><td>${c.effects.map((e) => `<span class="${isDrawback(e) ? 'bad' : ''}">${esc(effectText(e))}</span>`).join(' · ')}</td><td>${c.recommended_class.map((k) => CLASS_TH[k]).join(', ')}</td><td>${c.stackable ? c.max_stack : 'ไม่ซ้อน'}</td></tr>`).join('')}</tbody>`;
+
+// ---------- JSON ----------
+const cardsJSON = JSON.stringify(CARD_CATALOG.map(({ no, role, max_stack, ...c }) => ({ ...c, max_stack, map_code: no })), null, 2);
+const combosJSON = JSON.stringify(CARD_COMBOS.map(({ note, name_en, ...c }) => c), null, 2);
+$('#jsonOut').textContent = cardsJSON;
+const copy = async (txt, label) => { $('#jsonOut').textContent = txt; try { await navigator.clipboard.writeText(txt); $('#copied').textContent = 'คัดลอก ' + label + ' แล้ว'; } catch { const s = getSelection(), r = document.createRange(); r.selectNodeContents($('#jsonOut')); s.removeAllRanges(); s.addRange(r); $('#copied').textContent = 'เลือกข้อความไว้แล้ว กด Ctrl+C เพื่อคัดลอก'; } };
+$('#cpCards').onclick = () => copy(cardsJSON, 'JSON การ์ด');
+$('#cpCombos').onclick = () => copy(combosJSON, 'JSON คอมโบ');
+</script>

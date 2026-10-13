@@ -4,10 +4,11 @@ import { Entity } from './Entity.js';
 import { PLAYER_SPEED, TILE } from '../config.js';
 import {
   derive, baseExpToNext, jobExpToNext, statPointsForLevel, statCost,
-  START_STAT_POINTS, MAX_STAT, STAT_KEYS, JOBS, jobStatBonus, JOB_CHANGE_JOB_LEVEL, FIRST_JOBS,
+  START_STAT_POINTS, MAX_STAT, STAT_KEYS, JOBS, jobStatBonus, JOB_CHANGE_JOB_LEVEL, FIRST_JOBS, SECOND_OF, JOB2_JOB_LEVEL, jobTier,
 } from '../data/progression.js';
 import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js';
 import { setInfo } from '../data/affixes.js';
+import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js';
 import { SKILLS, skillTrees } from '../data/skills.js';
 import { Inventory } from '../systems/Inventory.js';
 import { START_ZENY, MAX_ZENY } from '../data/shops.js';
@@ -46,6 +47,11 @@ export const JOB_LOOK = {
   mage: { tunic: '#3e3a8a', pants: '#2e2a4a', belt: '#e8c050', boot: '#2a2238', scarf: '#e8c050', accessory: 'none', jobGear: 'mage' },
   archer: { tunic: '#3f7a3a', pants: '#5a4630', belt: '#7a5232', boot: '#4a3020', scarf: '#c9a24a', accessory: 'quiver', jobGear: 'archer' },
   acolyte: { tunic: '#f2ead8', pants: '#5a4a6a', belt: '#c94a3a', boot: '#3a2a30', scarf: '#c94a3a', accessory: 'none', jobGear: 'acolyte' },
+  // v0.31: อาชีพขั้นที่ 2 (ใช้ชุดเกราะของสายเดิม เปลี่ยนสีให้ดูเลื่อนขั้น)
+  knight: { tunic: '#2e4a8a', pants: '#2e3446', belt: '#d8b45c', boot: '#22283a', scarf: '#eef2ff', accessory: 'none', jobGear: 'swordsman' },
+  wizard: { tunic: '#3a1a5e', pants: '#221838', belt: '#7ad8ff', boot: '#1e1830', scarf: '#7ad8ff', accessory: 'wizard', hatColor: '#3a1a5e', jobGear: 'mage' },
+  hunter: { tunic: '#24503a', pants: '#4a3a24', belt: '#c8743a', boot: '#3a2818', scarf: '#e8c070', accessory: 'quiver', jobGear: 'archer' },
+  priest: { tunic: '#fffaf0', pants: '#3a3a6a', belt: '#e8c050', boot: '#2a2a40', scarf: '#e8c050', accessory: 'none', jobGear: 'acolyte' },
 };
 
 // ช่องปุ่มลัดเก็บได้ทั้งไอเทม (id) และสกิล ('skill:id')
@@ -62,6 +68,7 @@ export class Player extends Entity {
 
     // เลเวลและค่าสถานะ
     this.jobId = 'novice';
+    this.jobLv1 = 0;   // v0.31: Job Lv. ของอาชีพขั้น 1 ตอนเลื่อนขั้น (ได้โบนัสสเตตัสต่อ)
     this.baseLevel = 1;
     this.jobLevel = 1;
     this.baseExp = 0;
@@ -114,6 +121,7 @@ export class Player extends Entity {
   // v0.18: ฉายาที่ใส่อยู่ (แสดงเหนือหัว)
   get honor() { const a = this.col && this.col.title && ACH_BY_ID[this.col.title]; return a ? a.title : ''; }
   get honorTier() { const a = this.col && this.col.title && ACH_BY_ID[this.col.title]; return a ? a.tier : ''; }
+  get honorFx() { const a = this.col && this.col.title && ACH_BY_ID[this.col.title]; return a ? a.fx : ''; }   // v0.30
 
   get jobDef() { return JOBS[this.jobId] || JOBS.novice; }
 
@@ -131,7 +139,7 @@ export class Player extends Entity {
   bonusSources() {
     const bonus = this.equipBonus();
     const add = (o) => { for (const [k, v] of Object.entries(o || {})) bonus[k] = (bonus[k] || 0) + v; };
-    add(jobStatBonus(this.jobId, this.jobLevel));
+    add(jobStatBonus(this.jobId, this.jobLevel, this.jobLv1));
     for (const [id, lv] of Object.entries(this.skills)) {
       const sk = SKILLS[id];
       if (sk && sk.passive && lv > 0) add(sk.passive(lv, this));
@@ -140,16 +148,26 @@ export class Player extends Entity {
     add(this.colBonus);   // v0.18: ระบบสะสม
     const set = setInfo(this.equip.weapon && ITEMS[this.equip.weapon], this.equip);   // v0.25: โบนัสเซ็ตอาวุธแดง
     if (set) add(set.bonus);
+    // v0.29: คอมโบการ์ด — เสียบครบทุกใบในอุปกรณ์ที่สวมพร้อมกัน
+    const worn = new Set();
+    for (const key of Object.values(this.equip)) { const it = key && ITEMS[key]; if (it && it.cards) for (const c of it.cards) worn.add(c); }
+    this.activeCombos = CARD_COMBOS.filter((cb) => cb.cards.every((id) => worn.has(id)));
+    for (const cb of this.activeCombos) add(toBonus(cb.bonus));
     for (const b of Object.values(this.itemBuffs || {})) {
       const u = CONSUMABLES[b.id] && CONSUMABLES[b.id].use.buff;
       if (u) for (const [k, v] of Object.entries(u)) if (!SPECIAL_BUFF_KEYS.has(k)) bonus[k] = (bonus[k] || 0) + v;
     }
+    // v0.29: เพดานกันแรงเกิน (ดูดเลือด 8% · ลดดาเมจรับ 40% · ดาเมจต่อเป้าหมาย/ต้านทานคิดเพดานตอนคำนวณดาเมจ)
+    if (bonus.lifesteal > 8) bonus.lifesteal = 8;
+    if (bonus.dmgReduce > 40) bonus.dmgReduce = 40;
+    if (bonus.dmgReduce < -50) bonus.dmgReduce = -50;
     return bonus;
   }
 
   statInput() {
     const w = this.equip.weapon && ITEMS[this.equip.weapon];
     this.weaponType = w ? w.wtype || 'knife' : 'none';
+    this.weaponForm = w ? w.form || w.wtype || '' : '';   // v0.31: หอก/ดาบสองมือ (สกิลอัศวิน)
     return { baseLevel: this.baseLevel, attr: this.attr, bonus: this.bonusSources(), weaponName: w ? w.name : 'มือเปล่า', weaponType: this.weaponType, job: this.jobId };
   }
 
@@ -529,6 +547,32 @@ export class Player extends Entity {
     };
   }
 
+  // v0.31: เลื่อนขั้นเป็นอาชีพขั้นที่ 2 — Job Lv.40 + ผ่านบททดสอบ (questDone)
+  job2Status(questDone) {
+    const next = SECOND_OF[this.jobId] || null;
+    return { first: jobTier(this.jobId) === 1, second: jobTier(this.jobId) === 2, next, jobLv: this.jobLevel, needJob: JOB2_JOB_LEVEL, quest: !!questDone,
+      ok: !!next && this.jobLevel >= JOB2_JOB_LEVEL && !!questDone };
+  }
+
+  changeJob2(questDone) {
+    const st = this.job2Status(questDone);
+    if (!st.ok) return { error: 'ยังไม่ผ่านเงื่อนไขการเลื่อนขั้นอาชีพ' };
+    const job = st.next;
+    this.jobLv1 = this.jobLevel;
+    this.jobId = job; this.jobLevel = 1; this.jobExp = 0; this.buffs = [];
+    const gift = JOBS[job].gift;
+    let equippedGift = false;
+    if (gift && ITEMS[gift]) {
+      const cur = this.equip.weapon && ITEMS[this.equip.weapon], g = ITEMS[gift];
+      const keep = cur && (cur.bonus.atk || 0) + (cur.bonus.matk || 0) > (g.bonus.atk || 0) + (g.bonus.matk || 0);
+      if (keep || this.baseLevel < (g.reqLevel || 1)) this.inventory.add(gift, 1, true);
+      else { if (cur) this.inventory.add(this.equip.weapon, 1, true); this.equip.weapon = gift; equippedGift = true; }
+    }
+    this.afterEquipChange();
+    this.hp = this.maxHp; this.sp = this.maxSp;
+    return { job, gift, equippedGift };
+  }
+
   // เปลี่ยนอาชีพ: คืนข้อมูล { removed: [ไอเทมที่ถอดออก], gift } หรือข้อความผิดพลาด
   changeJob(job) {
     if (!FIRST_JOBS.includes(job)) return { error: 'ไม่มีอาชีพนี้' };
@@ -564,7 +608,7 @@ export class Player extends Entity {
   toSave() {
     return {
       name: this.name, x: Math.round(this.x), y: Math.round(this.y), dir: this.dir,
-      job: this.jobId, baseLevel: this.baseLevel, jobLevel: this.jobLevel,
+      job: this.jobId, baseLevel: this.baseLevel, jobLevel: this.jobLevel, jobLv1: this.jobLv1,
       baseExp: this.baseExp, jobExp: this.jobExp,
       attr: { ...this.attr }, statPoints: this.statPoints, skillPoints: this.skillPoints,
       inventory: this.inventory.toSave(), equip: { ...this.equip }, hotbar: [...this.hotbar], zeny: this.zeny,
@@ -592,6 +636,7 @@ export class Player extends Entity {
     const int = (v, d, min = 0) => (Number.isFinite(v) ? Math.max(min, Math.floor(v)) : d);
     this.baseLevel = int(p.baseLevel, 1, 1);
     this.jobLevel = int(p.jobLevel, 1, 1);
+    this.jobLv1 = jobTier(this.jobId) === 2 ? Math.min(99, int(p.jobLv1, JOB2_JOB_LEVEL, 1)) : 0;
     this.baseExp = int(p.baseExp, 0);
     this.jobExp = int(p.jobExp, 0);
     if (p.attr) for (const k of STAT_KEYS) this.attr[k] = Math.min(MAX_STAT, int(p.attr[k], 1, 1));

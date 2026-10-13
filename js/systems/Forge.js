@@ -69,7 +69,7 @@ export function replaceGear(player, ref, newKey) {
 export function socketTargets(player, cardId) {
   const c = CARDS[cardId];
   if (!c) return [];
-  return gearList(player, (it, key) => it.slot === c.on && itemMods(key).cards.length < (it.slots || 0));
+  return gearList(player, (it, key) => { const cs = itemMods(key).cards; return it.slot === c.on && cs.length < (it.slots || 0) && cs.filter((x) => x === cardId).length < (c.maxStack || 9); });
 }
 
 export function doSocket(player, ref, cardId) {
@@ -79,6 +79,7 @@ export function doSocket(player, ref, cardId) {
   const { base, refine, cards, roll } = itemMods(ref.key);
   if (it.slot !== c.on) return { error: `การ์ดใบนี้ใส่ได้เฉพาะ${c.on}` };
   if (cards.length >= (it.slots || 0)) return { error: 'อุปกรณ์ชิ้นนี้ไม่มีช่องการ์ดว่าง' };
+  if (cards.filter((x) => x === cardId).length >= (c.maxStack || 9)) return { error: c.maxStack > 1 ? `การ์ดใบนี้เสียบซ้ำในชิ้นเดียวได้สูงสุด ${c.maxStack} ใบ` : 'การ์ดใบนี้ไม่ซ้อน เสียบได้ชิ้นละ 1 ใบ' };
   if (ref.where === 'bag' && player.inventory.count(ref.key) > 1 && player.inventory.stacks.length >= player.inventory.capacity && player.inventory.count(cardId) > 1) return { error: 'กระเป๋าเต็ม ต้องมีช่องว่าง 1 ช่อง' };
   player.inventory.remove(cardId, 1);
   const newKey = itemKey(base, refine, [...cards, cardId], roll);

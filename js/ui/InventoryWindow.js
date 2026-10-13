@@ -174,6 +174,7 @@ export class InventoryWindow {
     } else {
       if (it.type === 'usable') btn(it.use && it.use.hatch ? 'ฟักไข่' : 'ใช้', () => this.act.use(id), 'primary');
       if (it.type === 'card') {
+        if (this.act.viewCard) btn('ดูการ์ด', () => this.act.viewCard(id));   // v0.29
         const targets = socketTargets(p, id);
         btn(this.sockPick === undefined || this.sockPick === null ? `ใส่การ์ด (${targets.length})` : 'ซ่อนรายการ', () => { this.sockPick = this.sockPick == null ? '' : null; this.renderDetail(); }, 'primary').disabled = !targets.length;
         if (this.sockPick != null) {

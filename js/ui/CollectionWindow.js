@@ -2,10 +2,12 @@
 import { MONSTERS } from '../data/monsters.js';
 import { ITEMS, describeBonus } from '../data/items.js';
 import { CARDS } from '../data/cards.js';
+import { CARD_COMBOS, effectText } from '../data/cardCatalog.js';
 import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, CARD_TOTAL, ACHIEVEMENTS, ACH_CATS, TIER_LABEL, loginReward, LOGIN_DAYS } from '../data/collection.js';
 import { iconURL } from '../render/ItemIcons.js';
 import { monsterThumb } from '../render/MonsterThumbs.js';
 import { localDay } from '../systems/Collection.js';
+import { honorInner, injectTitleCss } from './TitleFx.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (n) => Math.floor(n).toLocaleString('en-US');
@@ -28,6 +30,7 @@ export class CollectionWindow {
       <nav class="cw-tabs" role="tablist">${TABS.map(([k, i, n]) => `<button type="button" role="tab" data-tab="${k}"><span aria-hidden="true">${i}</span> ${n}</button>`).join('')}</nav>
       <div class="cw-body"></div>`;
     host.append(el);
+    el.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-card]'); if (!b || !this.g.cardModal) return; const have = new Set((this.g.collection?.c?.cards) || []); this.g.cardModal.show(b.dataset.card, { locked: !have.has(b.dataset.card) }); });
     this.$ = (s) => el.querySelector(s);
     for (const ev of ['pointerdown', 'wheel', 'contextmenu', 'touchstart']) el.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
     this.$('.st-close').addEventListener('click', () => this.toggle(false));
@@ -77,7 +80,7 @@ export class CollectionWindow {
     return `
       <section class="cw-sec"><h3>โบนัสถาวรที่ได้แล้ว</h3>
         ${part('📖 สมุดมอนสเตอร์', P.book)}${part('🏆 ความสำเร็จ', P.ach)}${part('🃏 ชุดการ์ด', P.cards)}
-        <p class="cw-hint">โบนัสทั้งหมดรวมอยู่ในค่าสถานะแล้ว (กด C ดูค่ารวม) · ฉายาที่ใส่: <b class="cw-honor t-${pl.honorTier || 'none'}">${esc(pl.honor || 'ไม่มี')}</b></p></section>
+        <p class="cw-hint">โบนัสทั้งหมดรวมอยู่ในค่าสถานะแล้ว (กด C ดูค่ารวม) · ฉายาที่ใส่: ${pl.honor ? `<span class="th-inline h-${pl.honorTier}${pl.honorFx ? ' hf-' + pl.honorFx : ''}" style="margin:10px 30px">${honorInner(pl.honor, pl.honorTier, pl.honorFx)}</span>` : '<b class="cw-honor">ไม่มี</b>'}</p></section>
       <section class="cw-sec"><h3>เป้าหมายถัดไป <small>เลือกจากแผนที่ที่อยู่และเลเวลของคุณ</small></h3>
         ${goals.map((g) => `<div class="cw-goal"><span class="cw-gi" aria-hidden="true">${g.kind === 'book' ? '📖' : '🏆'}</span><div><b>${esc(g.label)}</b><small>${num(g.cur)} / ${num(g.goal)} · ${esc(g.reward)}</small>${bar(g.cur, g.goal)}</div></div>`).join('') || '<p class="cw-hint">ทำครบทุกอย่างแล้ว! สุดยอดมาก</p>'}
       </section>`;
@@ -119,13 +122,15 @@ export class CollectionWindow {
       const list = ACHIEVEMENTS.filter((a) => a.cat === cat).map((a) => {
         const p = col.progress(a, S), on = cur === a.id;
         return `<div class="cw-ach${p.done ? ' done' : ''}${on ? ' worn' : ''}">
-          <div class="cw-at"><b class="cw-honor t-${a.tier}">${esc(a.title)}</b><small>${esc(a.desc)} · ${TIER_LABEL[a.tier]}</small>
+          <div class="cw-at"><b class="cw-honor t-${a.tier}${a.fx ? ' hf-' + a.fx : ''}">${esc(a.title)}</b><span class="cw-tier t-${a.tier}">${TIER_LABEL[a.tier]}</span><small>${esc(a.desc)}</small>
             <small class="cw-bonus">${esc(describeBonus(a.bonus))}</small>${p.done ? '' : bar(p.cur, p.goal)}</div>
           ${p.done ? (on ? '<span class="cw-on">ใส่อยู่</span>' : `<button type="button" class="ghost" data-title="${a.id}">ใส่ฉายา</button>`) : `<span class="cw-cnt">${num(p.cur)}/${num(p.goal)}</span>`}</div>`;
       }).join('');
       return `<section class="cw-sec"><h3>${name}</h3>${list}</section>`;
     }).join('');
-    return `<p class="cw-hint">ทำครบแล้วได้โบนัสทันที (ทุกอันรวมกัน) · เลือกใส่ฉายาได้ 1 อัน แสดงเหนือหัวให้ผู้เล่นอื่นเห็น${cur ? ` · <button type="button" class="ghost cw-off" data-title="">ถอดฉายา</button>` : ''}</p>${groups}`;
+    injectTitleCss();
+    const pl = this.g.player, live = pl.honor ? `<div class="cw-live"><span class="th-inline h-${pl.honorTier}${pl.honorFx ? ' hf-' + pl.honorFx : ''}">${honorInner(pl.honor, pl.honorTier, pl.honorFx)}</span></div>` : '';
+    return `${live}<p class="cw-hint">ทำครบแล้วได้โบนัสทันที (ทุกอันรวมกัน) · ยิ่งหายาก เอฟเฟ็กยิ่งอลังการ · เลือกใส่ฉายาได้ 1 อัน แสดงเหนือหัวให้ผู้เล่นอื่นเห็น${cur ? ` · <button type="button" class="ghost cw-off" data-title="">ถอดฉายา</button>` : ''}</p>${groups}`;
   }
 
   /* ---------- อัลบั้มการ์ด ---------- */
@@ -133,10 +138,13 @@ export class CollectionWindow {
     const have = new Set(c.cards);
     const sets = CARD_SETS.map((s) => {
       const n = s.cards.filter((id) => have.has(id)).length, full = n === s.cards.length;
-      const cards = s.cards.map((id) => `<span class="cw-card${have.has(id) ? ' got' : ''}" title="${esc(ITEMS[id].name)} · ${esc(describeBonus(CARDS[id].bonus))}"><img alt="" src="${iconURL(id)}"><small>${have.has(id) ? esc(ITEMS[id].name.replace('การ์ด', '')) : '???'}</small></span>`).join('');
+      const cards = s.cards.map((id) => `<button type="button" data-card="${id}" class="cw-card${have.has(id) ? ' got' : ''}" title="${esc(ITEMS[id].name)} · ${esc(describeBonus(CARDS[id].bonus))} · แตะเพื่อดูการ์ดใหญ่"><img alt="" src="${iconURL(id)}"><small>${have.has(id) ? esc(ITEMS[id].name.replace('การ์ด', '')) : '???'}</small></button>`).join('');
       return `<section class="cw-sec${full ? ' full' : ''}"><div class="cw-sh"><h3>${esc(s.name)} <small>${n}/${s.cards.length}</small></h3><span class="cw-bonus${full ? ' on' : ''}">${full ? '✔ ' : ''}${esc(describeBonus(s.bonus))}</span></div><div class="cw-cards">${cards}</div></section>`;
     }).join('');
-    return `<p class="cw-hint">ได้การ์ดมาเมื่อไหร่ (เก็บจากพื้น ซื้อ รับจดหมาย หรือใส่อุปกรณ์อยู่) บันทึกลงอัลบั้มอัตโนมัติ ไม่เสียการ์ด · ครบชุดได้โบนัสชุดถาวร</p>${sets}`;
+    // v0.29: คอมโบการ์ดที่เสียบในอุปกรณ์ที่สวมอยู่
+    const act = new Set((this.g.player.activeCombos || []).map((x) => x.combo_id));
+    const combos = CARD_COMBOS.map((cb) => `<section class="cw-sec${act.has(cb.combo_id) ? ' full' : ''}"><div class="cw-sh"><h3>${esc(cb.name_th)} <small>${act.has(cb.combo_id) ? 'ทำงานอยู่' : cb.cards.length + ' ใบ'}</small></h3><span class="cw-bonus${act.has(cb.combo_id) ? ' on' : ''}">${cb.bonus.map((e) => esc(effectText(e))).join(' · ')}</span></div><div class="cw-cards">${cb.cards.map((id) => `<button type="button" data-card="${id}" class="cw-card${have.has(id) ? ' got' : ''}"><img alt="" src="${iconURL(id)}"><small>${esc(ITEMS[id].name.replace('การ์ด', ''))}</small></button>`).join('')}</div></section>`).join('');
+    return `<p class="cw-hint">ได้การ์ดมาเมื่อไหร่ (เก็บจากพื้น ซื้อ รับจดหมาย หรือใส่อุปกรณ์อยู่) บันทึกลงอัลบั้มอัตโนมัติ ไม่เสียการ์ด · ครบชุดได้โบนัสชุดถาวร · แตะการ์ดเพื่อดูรูปใหญ่</p>${sets}<h3 class="cw-h">คอมโบการ์ด <small>(เสียบครบทุกใบในอุปกรณ์ที่สวมพร้อมกัน)</small></h3>${combos}`;
   }
 
   /* ---------- เช็กอินรายวัน ---------- */

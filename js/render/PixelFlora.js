@@ -67,7 +67,7 @@ export function roundTreePx(seed, { snow = false } = {}) {
   const tilt = (r() - 0.5) * 0.06, cc = V(top.x, cy + 0.12, top.z);
   clumps.forEach(([x, y, z, rad], i) => {
     const s = rad * (0.92 + r() * 0.16);
-    const g = lumpy(new THREE.SphereGeometry(s, 20, 14), 0.13, 5.5, seed * 3 + i, V()).translate(x, y, z);
+    const g = lumpy(new THREE.SphereGeometry(s, 14, 10), 0.13, 5.5, seed * 3 + i, V()).translate(x, y, z);   // v0.27.1: ลดจำนวนเหลี่ยม (เดิม 20×14) ภาพพิกเซลแทบไม่ต่าง
     lumpy(g, 0.05, 13, seed * 5 + i, V(x, y, z));
     const hue = (r() - 0.5) * 0.05 + tilt, sat = (r() - 0.5) * 0.08;
     parts.push(paint(g, (c, px, py, pz) => {

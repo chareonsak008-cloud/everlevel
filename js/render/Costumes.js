@@ -215,6 +215,8 @@ const spriteTex = (kind) => ctex('sp' + kind, 64, 64, (g, s) => {
   else if (kind === 'sprinkle') { g.lineWidth = 12; g.lineCap = 'round'; g.beginPath(); g.moveTo(20, 44); g.lineTo(44, 20); g.stroke(); }
   else if (kind === 'bolt') { g.beginPath(); g.moveTo(38, 0); g.lineTo(18, 30); g.lineTo(31, 30); g.lineTo(20, 64); g.lineTo(47, 23); g.lineTo(34, 23); g.lineTo(46, 0); g.fill(); }
   else if (kind === 'smoke') { g.fillStyle = radial(g, c, c, c, [[0, 'rgba(255,255,255,0.8)'], [1, 'rgba(255,255,255,0)']]); g.fillRect(0, 0, s, s); }
+  else if (kind === 'shard') { g.beginPath(); g.moveTo(c, 2); g.lineTo(c + 13, c); g.lineTo(c, s - 2); g.lineTo(c - 13, c); g.closePath(); g.fill(); g.globalAlpha = 0.5; g.beginPath(); g.moveTo(c, 2); g.lineTo(c + 13, c); g.lineTo(c, c); g.fill(); }
+  else if (kind === 'spark') { g.fillStyle = radial(g, c, c, c * 0.6, [[0, 'rgba(255,255,255,1)'], [0.55, 'rgba(255,255,255,0.95)'], [1, 'rgba(255,255,255,0)']]); g.fillRect(0, 0, s, s); g.fillStyle = '#fff'; g.beginPath(); g.moveTo(c, 0); g.lineTo(c + 9, c); g.lineTo(c, s); g.lineTo(c - 9, c); g.fill(); g.beginPath(); g.moveTo(0, c); g.lineTo(c, c + 9); g.lineTo(s, c); g.lineTo(c, c - 9); g.fill(); }
   else if (kind === 'flame') { g.fillStyle = radial(g, c, s * 0.62, s * 0.4, [[0, 'rgba(255,255,255,1)'], [0.6, 'rgba(255,255,255,0.5)'], [1, 'rgba(255,255,255,0)']]); g.beginPath(); g.moveTo(c, s * 0.04); g.bezierCurveTo(s * 0.86, s * 0.48, s * 0.82, s * 0.96, c, s * 0.96); g.bezierCurveTo(s * 0.18, s * 0.96, s * 0.14, s * 0.48, c, s * 0.04); g.fill(); }
 });
 
@@ -226,7 +228,7 @@ const petFaceTex = (eye = '#2a1830', mouth = true) => ctex('pf' + eye + mouth, 1
 });
 
 /* ---------- อนุภาคของชุด (ปล่อยในพื้นที่โลก ให้ทิ้งร่องรอยตามตัวละคร) ---------- */
-const PTEX = { dot: () => TX.softDot(), star: () => TX.star4(), snow: () => TX.snowflake(), feather: () => TX.feather(), heart: () => spriteTex('heart'), note: () => spriteTex('note'), petal: () => spriteTex('petal'), leaf: () => spriteTex('leaf'), bubble: () => spriteTex('bubble'), coin: () => spriteTex('coin'), smoke: () => spriteTex('smoke'), flame: () => spriteTex('flame'), square: () => spriteTex('square'), sprinkle: () => spriteTex('sprinkle') };
+const PTEX = { dot: () => TX.softDot(), star: () => TX.star4(), snow: () => TX.snowflake(), feather: () => TX.feather(), heart: () => spriteTex('heart'), note: () => spriteTex('note'), petal: () => spriteTex('petal'), leaf: () => spriteTex('leaf'), bubble: () => spriteTex('bubble'), coin: () => spriteTex('coin'), smoke: () => spriteTex('smoke'), flame: () => spriteTex('flame'), square: () => spriteTex('square'), sprinkle: () => spriteTex('sprinkle'), shard: () => spriteTex('shard'), spark: () => spriteTex('spark') };
 
 class Runtime {
   constructor(world) {
@@ -1182,7 +1184,7 @@ function auraEmitter(rig, rt, rate, fn) {
   rt.on((c) => { acc += rate * c.dt; const base = rt.worldPos(rig.root); while (acc >= 1) { acc -= 1; fn(base, c); } });
 }
 // v0.25.2: ทุกออร่ามีแสงวงกลมที่พื้นเต้นเป็นจังหวะ (เห็นชัดขึ้นในโหมดพิกเซล)
-const AURA_TINT = { fire: '#ff8a2a', petals: '#ff9ad0', snow: '#bfeeff', stars: '#ffe08a', hearts: '#ff6a9a', notes: '#9ad8ff', bubbles: '#9ae8ff', sparks: '#7fc8ff', butterflies: '#d8a8ff', magicCircle: '#b48cff', leaves: '#ff9a3a', coins: '#ffd34d', shadow: '#9a5aff', pixels: '#7fffb0', fish: '#6ac8ff', fireworks: '#ff7ab8', sprinkles: '#ffb0e0', lightning: '#9ad8ff', inferno: '#ff5a1a', bloodRing: '#ff3a5a', constellation: '#9ab8ff', heavenLight: '#fff0a3' };
+const AURA_TINT = { fire: '#ff8a2a', petals: '#ff9ad0', snow: '#bfeeff', stars: '#ffe08a', hearts: '#ff6a9a', notes: '#9ad8ff', bubbles: '#9ae8ff', sparks: '#7fc8ff', butterflies: '#d8a8ff', magicCircle: '#b48cff', leaves: '#ff9a3a', coins: '#ffd34d', shadow: '#9a5aff', pixels: '#7fffb0', fish: '#6ac8ff', fireworks: '#ff7ab8', sprinkles: '#ffb0e0', lightning: '#9ad8ff', inferno: '#ff5a1a', bloodRing: '#ff3a5a', constellation: '#9ab8ff', heavenLight: '#fff0a3', supernova: '#ffe9a0', thunderStrike: '#8ad8ff', prismShatter: '#e0c8ff', voidRift: '#b05aff', blossomStorm: '#ff9ad0' };
 function auraGround(rig, it, rt) {
   const p = it.p || {}, c = p.color || (p.colors && p.colors[0]) || AURA_TINT[it.kind] || '#ffffff';
   const ring = mesh(new THREE.RingGeometry(0.42, 0.78, 40), unlit(c, { opacity: 0.55, add: true }), rig.root, 0, 0.03, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false });
@@ -2071,6 +2073,184 @@ Object.assign(AURA, {
     auraEmitter(rig, rt, 10, (b) => rt.ps('dot').emit({ pos: ringPos(b, 0.5, rand(0.05, 0.4)), count: 1, vel: () => V(0, rand(0.2, 0.5), 0), life: [0.3, 0.6], size: [0.04, 0.07], color: [c, '#ffffff'] }));
     const glow = mesh(new THREE.PlaneGeometry(1.5, 1.5), unlit(c, { map: TX.softDot(), opacity: 0.3, add: true }), rig.root, 0, 0.02, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false });
     rt.on(() => { glow.material.opacity = 0.2 + Math.random() * 0.08; });
+  },
+});
+
+
+/* ---------- v0.28: ออร่าระเบิดกระจาย (ชาร์จพลัง → ระเบิด → เศษกระจาย วนเป็นจังหวะ) ---------- */
+// จังหวะรอบ: คืนค่า 0..1 ของรอบปัจจุบัน · เรียก onBurst ตอนครบรอบ
+function burstCycle(rt, period, onBurst, phase = 0) {
+  const st = { t: period * phase, k: 0 };
+  rt.on((c) => { st.t += c.dt; if (st.t >= period) { st.t -= period; onBurst(c); } st.k = st.t / period; });
+  return st;
+}
+// คลื่นกระแทกบนพื้น (แผ่นวงแหวนขยายแล้วจาง) · ใช้ซ้ำได้หลายคลื่น
+function shockwaves(rig, rt, color, { n = 3, r0 = 0.25, r1 = 2.4, dur = 0.65, y = 0.035, opacity = 0.9 } = {}) {
+  const pool = Array.from({ length: n }, (_, i) => {
+    const m = mesh(new THREE.PlaneGeometry(2, 2), unlit(color, { map: TX.softRing(), opacity: 0, add: true }), rig.root, 0, y + i * 0.002, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false });
+    m.renderOrder = 3; m.visible = false; m.userData = { t: -1, r1, dur, op: opacity }; return m;
+  });
+  let next = 0;
+  rt.on(({ dt }) => {
+    for (const m of pool) {
+      const u = m.userData; if (u.t < 0) continue;
+      u.t += dt; const k = u.t / u.dur;
+      if (k >= 1) { u.t = -1; m.visible = false; continue; }
+      const e = 1 - Math.pow(1 - k, 3);
+      m.scale.setScalar(r0 + (u.r1 - r0) * e); m.material.opacity = u.op * (1 - k) * (1 - k);
+    }
+  });
+  return (o = {}) => { const m = pool[next]; next = (next + 1) % n; Object.assign(m.userData, { t: 0, r1: o.r1 ?? r1, dur: o.dur ?? dur, op: o.opacity ?? opacity }); if (o.color) m.material.color.set(lin(o.color)); m.visible = true; m.scale.setScalar(r0); };
+}
+// แสงวาบกลางตัว (สไปรต์ขยายแล้วดับ)
+function flashSprite(rig, rt, color, { y = 1.0, size = 2.2, dur = 0.35, map = null } = {}) {
+  const s = spriteOf(map || TX.softDot(), color, 0.01, 0); s.position.set(0, y, 0); rig.root.add(s);
+  const u = { t: -1 };
+  rt.on(({ dt }) => { if (u.t < 0) return; u.t += dt; const k = u.t / dur; if (k >= 1) { u.t = -1; s.material.opacity = 0; s.visible = false; return; } s.scale.setScalar(size * (0.35 + 0.65 * Math.sqrt(k))); s.material.opacity = (1 - k) * 0.95; });
+  s.visible = false;
+  return () => { u.t = 0; s.visible = true; };
+}
+// กระจายอนุภาครอบทิศ (แนวราบ + เงยขึ้น) จากจุด p
+const scatter = (rt, kind, p, n, o = {}) => {
+  const blend = o.blend ?? THREE.AdditiveBlending;
+  const sp = o.speed || [2, 3.6], up = o.up || [0.2, 1.6];
+  rt.ps(kind, blend, 600).emit({ pos: p, count: n, vel: () => { const a = Math.random() * Math.PI * 2, v = rand(sp[0], sp[1]); return V(Math.cos(a) * v, rand(up[0], up[1]), Math.sin(a) * v); }, drag: o.drag ?? 1.2, gravity: o.gravity ?? -2.4, life: o.life || [0.8, 1.3], size: o.size || [0.07, 0.13], sizeEnd: o.sizeEnd ?? 0.2, color: o.color, colorEnd: o.colorEnd, alpha: o.alpha });
+};
+// ดูดเข้าศูนย์กลาง (ช่วงชาร์จพลัง)
+const implode = (rt, kind, base, n, o = {}) => {
+  const y = o.y ?? 1.0, R = o.r || [0.9, 1.4];
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, r = rand(R[0], R[1]), hy = y + rand(-0.6, 0.7);
+    const P = V(base.x + Math.cos(a) * r, base.y + hy, base.z + Math.sin(a) * r), life = rand(0.45, 0.7);
+    const vel = V((base.x - P.x) / life, (base.y + y - P.y) / life, (base.z - P.z) / life);
+    rt.ps(kind, o.blend ?? THREE.AdditiveBlending, 600).emit({ pos: P, count: 1, vel: () => vel.clone().add(V(-vel.z * 0.35, 0, vel.x * 0.35)), life: [life, life], size: o.size || [0.06, 0.1], sizeEnd: 0.5, color: o.color, alpha: o.alpha });
+  }
+};
+
+Object.assign(AURA, {
+  // ระเบิดซูเปอร์โนวา: ละอองแสงหมุนวนดูดเข้ากลางอก ดาวแกนกลางพองขึ้น → ระเบิดแสงวาบ คลื่นกระแทกสองชั้น ดาวกระจายรอบทิศ แล้วโปรยประกายลงมา
+  supernova(rig, p, rt) {
+    const gold = p.color || '#ffe08a', cyan = p.color2 || '#8ae8ff';
+    const sigil = mesh(new THREE.PlaneGeometry(1.9, 1.9), unlit(gold, { map: TX.runeCircle('star'), opacity: 0.55, add: true }), rig.root, 0, 0.026, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false }); sigil.renderOrder = 2;
+    const core = spriteOf(TX.star4(), '#ffffff', 0.2, 0.9); core.position.set(0, 1.05, 0.05); rig.root.add(core);
+    const halo = spriteOf(TX.softDot(), gold, 0.5, 0.5); halo.position.copy(core.position); rig.root.add(halo);
+    const wave = shockwaves(rig, rt, gold, { n: 4, r1: 2.6 }), flash = flashSprite(rig, rt, '#fff6d8', { y: 1.05, size: 3.2 }), cross = flashSprite(rig, rt, cyan, { y: 1.05, size: 2.4, dur: 0.45, map: TX.crossGlow() });
+    const cyc = burstCycle(rt, 2.6, () => {
+      const P = rt.worldPos(core);
+      flash(); cross(); wave(); setTimeout(() => wave({ color: cyan, r1: 1.9, dur: 0.8 }), 120);
+      scatter(rt, 'spark', P, 34, { color: ['#ffffff', gold, cyan], colorEnd: '#ff9a3a', speed: [2.4, 4.4], up: [-0.6, 2.2], size: [0.22, 0.40] });
+      scatter(rt, 'star', P, 22, { color: ['#ffffff', '#ffe9a0'], speed: [1, 2.2], up: [1, 2.8], gravity: -1.2, life: [1, 1.6], size: [0.18, 0.31] });
+      const b = rt.worldPos(rig.root);
+      scatter(rt, 'dot', V(b.x, b.y + 0.08, b.z), 26, { color: [gold, '#ffffff'], speed: [2.6, 4], up: [0.05, 0.4], gravity: 0, drag: 2.2, life: [0.4, 0.7], size: [0.13, 0.22] });
+    }, 0.3);
+    auraEmitter(rig, rt, 18, (b) => { if (cyc.k > 0.25) implode(rt, 'dot', b, 1, { y: 1.05, color: [gold, cyan, '#ffffff'] }); });
+    auraEmitter(rig, rt, 5, (b) => rt.ps('star').emit({ pos: discPos(b, 1.1, 1.6, 2.6), count: 1, vel: () => V(rand(-0.05, 0.05), rand(-0.6, -0.3), rand(-0.05, 0.05)), life: [1.2, 1.8], size: [0.13, 0.22], color: ['#ffffff', gold] }));
+    rt.on(({ t }) => {
+      const k = cyc.k, charge = k < 0.25 ? 0 : (k - 0.25) / 0.75, pop = k < 0.12 ? 1 - k / 0.12 : 0;
+      core.scale.setScalar(0.16 + charge * charge * 0.34 + pop * 0.5 + Math.sin(t * 20) * 0.015 * charge); core.material.rotation = t * 1.5;
+      halo.scale.setScalar(0.4 + charge * 0.7 + pop * 1.2); halo.material.opacity = 0.25 + charge * 0.45;
+      sigil.rotation.z = t * (0.4 + charge * 1.6); sigil.material.opacity = 0.35 + charge * 0.35 + pop * 0.3;
+    });
+  },
+  // อัสนีเทพพิโรธ: ประกายไฟฟ้าแลบรอบเท้าตลอด → สายฟ้าใหญ่ฟาดลงจากฟ้า แสงวาบ คลื่นไฟฟ้า ประกายกระเด็น เศษหินกระจุย
+  thunderStrike(rig, p, rt) {
+    const c = p.color || '#8ad8ff', white = '#f2fbff';
+    const rune = mesh(new THREE.PlaneGeometry(1.8, 1.8), unlit(c, { map: TX.runeCircle('hex'), opacity: 0.5, add: true }), rig.root, 0, 0.026, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false }); rune.renderOrder = 2;
+    const small = [0, 1, 2, 3].map(() => { const s = boltSprite(rig.root, c, 0.3, 0.55); s.userData = { t: Math.random() * 0.4, f: 0 }; return s; });
+    const pillar = new THREE.Group(); rig.root.add(pillar);
+    const segs = [0, 1, 2, 3].map((i) => { const s = boltSprite(pillar, i % 2 ? white : c, 0.95, 1.25); s.position.set(0, 0.55 + i * 1.05, 0); s.material.rotation = i % 2 ? 0.2 : -0.15; return s; });
+    const beam = mesh(new THREE.CylinderGeometry(0.16, 0.3, 4.6, 16, 1, true), unlit(c, { map: TX.vgrad(), opacity: 0, add: true }), rig.root, 0, 2.3, 0, { keep: true, shadow: false }); beam.renderOrder = 3;
+    const wave = shockwaves(rig, rt, c, { n: 3, r1: 2.8, dur: 0.55 }), flash = flashSprite(rig, rt, white, { y: 0.8, size: 3.6, dur: 0.3 });
+    let strike = 0;
+    burstCycle(rt, 2.2, () => {
+      strike = 0.45; flash(); wave(); setTimeout(() => wave({ r1: 1.7, color: white }), 90);
+      const b = rt.worldPos(rig.root), P = V(b.x, b.y + 0.15, b.z);
+      scatter(rt, 'spark', P, 40, { color: [white, c], colorEnd: '#3a6aff', speed: [2.8, 5], up: [0.6, 3], size: [0.2, 0.34], life: [0.6, 1.0] });
+      scatter(rt, 'square', P, 16, { blend: NB, color: ['#8a8fa0', '#b8bccb', '#5a5f70'], speed: [1.4, 2.8], up: [2, 3.6], gravity: -7, drag: 0.6, life: [0.7, 1.1], size: [0.15, 0.26], sizeEnd: 0.8 });
+      scatter(rt, 'smoke', P, 10, { blend: NB, color: ['#c8d8f0', '#8a9ab8'], speed: [0.8, 1.6], up: [0.1, 0.5], gravity: 0, drag: 2, life: [0.7, 1.1], size: [0.30, 0.45], sizeEnd: 2.2, alpha: 0.45 });
+    }, 0.5);
+    rt.on(({ t, dt }) => {
+      rune.rotation.z = -t * 0.6; rune.material.opacity = 0.4 + Math.random() * 0.12 + strike * 1.5;
+      for (const s of small) { const u = s.userData; u.t -= dt; if (u.t <= 0) { u.t = 0.12 + Math.random() * 0.35; u.f = 0.08; const a = Math.random() * Math.PI * 2, r = 0.45 + Math.random() * 0.4; s.position.set(Math.cos(a) * r, 0.2 + Math.random() * 0.25, Math.sin(a) * r); s.material.rotation = (Math.random() - 0.5) * 1.2; if (Math.random() < 0.6) rt.ps('dot').emit({ pos: rt.worldPos(s), count: 3, speed: 1.2, gravity: -3, life: [0.2, 0.4], size: [0.07, 0.13], color: [white, c] }); } u.f = Math.max(0, u.f - dt); s.material.opacity = u.f > 0 ? 0.65 + Math.random() * 0.35 : 0; }
+      strike = Math.max(0, strike - dt);
+      const on = strike > 0, k = strike / 0.45;
+      segs.forEach((s, i) => { s.material.opacity = on ? Math.min(1, k * 2) * (0.75 + Math.random() * 0.25) : 0; s.position.x = on ? (Math.random() - 0.5) * 0.12 : 0; s.material.rotation = (i % 2 ? 0.2 : -0.15) + (Math.random() - 0.5) * 0.25; });
+      beam.material.opacity = on ? 0.55 * k : 0; beam.scale.set(1 + (1 - k) * 0.8, 1, 1 + (1 - k) * 0.8);
+    });
+  },
+  // ผลึกปริซึมแตกกระจาย: ผลึกสีรุ้งแปดชิ้นโคจรรอบเอว → ระเบิดพุ่งออกพร้อมเศษคริสตัลสีรุ้ง แล้วค่อย ๆ หมุนกลับมาประกอบใหม่
+  prismShatter(rig, p, rt) {
+    const cols = p.colors || ['#ff8ab0', '#ffc86a', '#fff28a', '#8affb8', '#8ad8ff', '#a88aff', '#ff8af0', '#ffffff'];
+    const g = group(rig.root, 0, 0.95, 0);
+    const shards = cols.map((col, i) => {
+      const m = mesh(new THREE.OctahedronGeometry(0.1, 0), G(col, 1.5, { transparent: true, opacity: 0.92 }), g, 0, 0, 0, { s: [0.7, 1.5, 0.7], noOutline: true, shadow: false });
+      m.userData = { a: (i / cols.length) * Math.PI * 2, col, y: Math.sin(i * 1.7) * 0.25 };
+      glowSprite(m, col, 0.6, 0.45); return m;
+    });
+    const floor = mesh(new THREE.PlaneGeometry(1.9, 1.9), unlit('#e8d8ff', { map: TX.hexGrid(), opacity: 0.35, add: true }), rig.root, 0, 0.026, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false }); floor.renderOrder = 2;
+    const wave = shockwaves(rig, rt, '#f0e0ff', { n: 3, r1: 2.3 }), flash = flashSprite(rig, rt, '#ffffff', { y: 0.95, size: 2.6, map: TX.star4() });
+    const cyc = burstCycle(rt, 3.0, () => {
+      flash(); wave(); setTimeout(() => wave({ color: '#ff9ad8', r1: 1.6 }), 140);
+      const P = rt.worldPos(g);
+      scatter(rt, 'shard', P, 36, { color: cols, speed: [2.2, 4], up: [-0.3, 2.4], gravity: -3, size: [0.22, 0.37], life: [0.7, 1.2], sizeEnd: 0.4 });
+      scatter(rt, 'star', P, 18, { color: ['#ffffff'], speed: [1, 2], up: [0.5, 1.8], gravity: -0.6, life: [0.8, 1.3], size: [0.15, 0.26] });
+    }, 0.6);
+    auraEmitter(rig, rt, 8, (b) => rt.ps('shard').emit({ pos: discPos(b, 0.75, 0.1, 1.7), count: 1, vel: () => V(0, rand(0.2, 0.5), 0), life: [0.8, 1.3], size: [0.11, 0.18], color: cols }));
+    rt.on(({ t }) => {
+      const k = cyc.k;   // 0 = เพิ่งระเบิด
+      const out = k < 0.18 ? 1 - Math.pow(1 - k / 0.18, 3) : k < 0.45 ? 1 : Math.max(0, 1 - (k - 0.45) / 0.4);
+      const R = 0.62 + out * 1.1, spin = t * (0.9 + out * 2);
+      for (const m of shards) {
+        const u = m.userData, a = u.a + spin;
+        m.position.set(Math.cos(a) * R, u.y * (1 + out) + Math.sin(t * 2 + u.a) * 0.05, Math.sin(a) * R);
+        m.rotation.y = t * 3 + u.a; m.rotation.z = out * (t * 6 + u.a);
+        m.material.opacity = 0.92 - out * 0.55; m.scale.set(0.7, 1.5 - out * 0.5, 0.7);
+      }
+      floor.rotation.z = t * 0.25; floor.material.opacity = 0.25 + (1 - out) * 0.15 + (k < 0.1 ? (1 - k / 0.1) * 0.4 : 0);
+    });
+  },
+  // รอยแยกห้วงอเวจี: หมอกดำม่วงหมุนวนถูกดูดเข้าแกน วงอักขระมืดหมุนเร็วขึ้น → ระเบิดม่วงบานเย็น เศษความมืดแตกกระจาย
+  voidRift(rig, p, rt) {
+    const v = p.color || '#b05aff', m2 = '#ff4ad8';
+    const r1 = mesh(new THREE.PlaneGeometry(2.0, 2.0), unlit(v, { map: TX.runeCircle('hex'), opacity: 0.6, add: true }), rig.root, 0, 0.025, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false });
+    const r2 = mesh(new THREE.PlaneGeometry(1.2, 1.2), unlit(m2, { map: TX.eyeSigil(), opacity: 0.5, add: true }), rig.root, 0, 0.03, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false });
+        r1.renderOrder = r2.renderOrder = 2;
+    const orb = spriteOf(TX.softDot(), m2, 0.3, 0.7); orb.position.set(0, 1.0, 0); rig.root.add(orb);
+    const wave = shockwaves(rig, rt, v, { n: 4, r1: 2.7 }), flash = flashSprite(rig, rt, m2, { y: 1.0, size: 3.0 });
+    const cyc = burstCycle(rt, 2.8, () => {
+      flash(); wave(); setTimeout(() => wave({ color: m2, r1: 2.0, dur: 0.8 }), 110); setTimeout(() => wave({ color: '#ffffff', r1: 1.2, dur: 0.4, opacity: 0.6 }), 40);
+      const P = rt.worldPos(orb);
+      scatter(rt, 'shard', P, 30, { blend: NB, color: ['#1a0a2a', '#2a1040', '#3a1a5a'], speed: [2.2, 4], up: [-0.5, 2], gravity: -3.5, size: [0.26, 0.44], life: [0.7, 1.1], sizeEnd: 0.5 });
+      scatter(rt, 'spark', P, 30, { color: [v, m2, '#ffffff'], speed: [2.6, 4.6], up: [-0.4, 2.4], size: [0.20, 0.35] });
+      const b = rt.worldPos(rig.root);
+      scatter(rt, 'smoke', V(b.x, b.y + 0.1, b.z), 12, { blend: NB, color: ['#2a0a3a', '#3a1250'], speed: [1.4, 2.4], up: [0, 0.3], gravity: 0, drag: 2, life: [0.8, 1.2], size: [0.35, 0.50], sizeEnd: 2, alpha: 0.55 });
+    }, 0.2);
+    auraEmitter(rig, rt, 14, (b) => { if (cyc.k > 0.3) implode(rt, 'smoke', b, 1, { blend: NB, y: 1.0, r: [0.8, 1.2], color: ['#2a0a3a', '#4a1a6a'], size: [0.40, 0.62], alpha: 0.6 }); });
+    auraEmitter(rig, rt, 16, (b) => { if (cyc.k > 0.3) implode(rt, 'dot', b, 1, { y: 1.0, color: [v, m2] }); });
+    rt.on(({ t }) => {
+      const k = cyc.k, charge = k < 0.3 ? 0 : (k - 0.3) / 0.7;
+      r1.rotation.z = t * (0.5 + charge * 2.5); r2.rotation.z = -t * (0.8 + charge * 3);
+      orb.scale.setScalar(0.15 + charge * 0.45 + Math.sin(t * 25) * 0.02 * charge); orb.material.opacity = 0.3 + charge * 0.6;
+    });
+  },
+  // พายุซากุระสะบั้น: กลีบซากุระหมุนเป็นเกลียวพายุรอบตัว → ระเบิดกลีบบานออกเป็นวงกว้าง คลื่นสีชมพู ประกายขาวระยิบ
+  blossomStorm(rig, p, rt) {
+    const pink = p.color || '#ff9ac8', cols = p.colors || ['#ffd0e4', '#ff9ac8', '#ff6aa8', '#ffffff'];
+    const ring = mesh(new THREE.PlaneGeometry(1.8, 1.8), unlit(pink, { map: TX.runeCircle('star'), opacity: 0.45, add: true }), rig.root, 0, 0.026, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false }); ring.renderOrder = 2;
+    const wave = shockwaves(rig, rt, pink, { n: 3, r1: 2.6, dur: 0.8 }), flash = flashSprite(rig, rt, '#fff0f6', { y: 1.0, size: 2.4 });
+    burstCycle(rt, 2.8, () => {
+      flash(); wave();
+      const b = rt.worldPos(rig.root);
+      for (let i = 0; i < 2; i++) scatter(rt, 'petal', V(b.x, b.y + 0.6 + i * 0.6, b.z), 26, { blend: NB, color: cols, speed: [1.8, 3.4], up: [0.2, 1.4], gravity: -0.6, drag: 1.4, life: [1.2, 1.8], size: [0.22, 0.35], sizeEnd: 0.7 });
+      scatter(rt, 'star', V(b.x, b.y + 1, b.z), 16, { color: ['#ffffff', '#ffe0f0'], speed: [1, 2.2], up: [0.3, 1.5], gravity: -0.4, life: [0.8, 1.2], size: [0.15, 0.26] });
+    }, 0.4);
+    // เกลียวพายุ: ปล่อยกลีบที่ความเร็วสัมผัสวงกลม + ลอยขึ้น
+    auraEmitter(rig, rt, 40, (b, c) => {
+      const a = c.t * 5 + Math.random() * 0.8 + (Math.random() < 0.5 ? Math.PI : 0), r = 0.55 + Math.random() * 0.15;
+      rt.ps('petal', NB, 600).emit({ pos: V(b.x + Math.cos(a) * r, b.y + 0.05 + Math.random() * 0.2, b.z + Math.sin(a) * r), count: 1, vel: () => V(-Math.sin(a) * 1.4 + Math.cos(a) * 0.15, rand(0.9, 1.5), Math.cos(a) * 1.4 + Math.sin(a) * 0.15), drag: 0.4, life: [1.0, 1.5], size: [0.18, 0.26], sizeEnd: 0.5, color: cols });
+    });
+    auraEmitter(rig, rt, 8, (b) => rt.ps('star').emit({ pos: discPos(b, 0.8, 0.2, 2.0), count: 1, speed: 0.1, life: [0.5, 0.9], size: [0.11, 0.20], color: ['#ffffff', '#ffd0e4'] }));
+    rt.on(({ t }) => { ring.rotation.z = t * 0.6; });
   },
 });
 

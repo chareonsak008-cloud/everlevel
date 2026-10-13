@@ -4431,3 +4431,7 @@ export const WEAPON_DEFS = [
   "description": "หน้าไม้รีพีทเตอร์มีดาวเหนือแปดแฉกอยู่หน้าราง ลูกดอกเป็นแสงดาว"
  }
 ];
+
+// v0.31: อาวุธเฉพาะอาชีพขั้นที่ 2
+import { JOB2_WEAPON_DEFS } from './job2Weapons.js';
+WEAPON_DEFS.push(...JOB2_WEAPON_DEFS);

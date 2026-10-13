@@ -7,6 +7,7 @@
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
 import { JOBS } from './progression.js';
+import { JOB2_SKILLS } from './job2Skills.js';   // v0.31: อาชีพขั้นที่ 2
 
 export function healAmount(lv, pl) {
   const int = pl && pl.derived ? pl.derived.total.int : 1;
@@ -247,6 +248,8 @@ export const SKILLS = {
   },
 };
 
+Object.assign(SKILLS, JOB2_SKILLS);
+
 // ตัวช่วยอ่านค่าที่อาจเป็นตัวเลขหรือฟังก์ชัน
 export const sval = (v, lv, pl) => (typeof v === 'function' ? v(lv, pl) : v);
 export const skillSp = (sk, lv) => sval(sk.sp, lv) || 0;
@@ -256,7 +259,7 @@ export const skillCast = (sk, lv) => sval(sk.cast, lv) || 0;
 export const jobSkills = (job) => Object.keys(SKILLS).filter((id) => SKILLS[id].job === job);
 
 // สกิลที่อาชีพนี้เรียนได้ (อาชีพแรกเรียนสกิล Novice ได้ด้วย)
-export const skillTrees = (job) => (job === 'novice' ? ['novice'] : ['novice', job]);
+export const skillTrees = (job) => (job === 'novice' ? ['novice'] : JOBS[job] && JOBS[job].parent ? ['novice', JOBS[job].parent, job] : ['novice', job]);   // v0.31: ขั้น 2 เรียนสกิลขั้น 1 ต่อได้
 
 export const KIND_NAME = { passive: 'ติดตัว', active: 'กดใช้' };
 export const jobName = (job) => (JOBS[job] || JOBS.novice).name;

@@ -22,6 +22,7 @@ export function goalText(g) {
     case 'collect': return `เก็บ${ITEMS[g.item] ? ITEMS[g.item].name : g.item}`;
     case 'visit': return `เดินทางไปยัง ${MAPS[g.map] ? MAPS[g.map].name : g.map}`;
     case 'job': return 'เปลี่ยนเป็นอาชีพขั้นที่ 1';
+    case 'job2': return 'เลื่อนขั้นเป็นอาชีพขั้นที่ 2';
     case 'refine': return 'ตีบวกอุปกรณ์สำเร็จ';
     case 'socket': return 'ใส่การ์ดในอุปกรณ์';
     case 'level': return `ถึง Base Lv.${g.n}`;
@@ -81,6 +82,7 @@ export class QuestLog {
     if (this.isDone(id)) return 'done';
     if ((q.req || []).some((r) => !this.st.done[r])) return 'locked';
     if (this.p.baseLevel < (q.minLevel || 1)) return 'locked';
+    if (q.jobReq && (this.p.jobId !== q.jobReq || this.p.jobLevel < (q.minJobLv || 1))) return 'locked';   // v0.31: บททดสอบเลื่อนขั้น
     return 'available';
   }
 
@@ -90,6 +92,8 @@ export class QuestLog {
     const miss = (q.req || []).filter((r) => !this.st.done[r]);
     if (miss.length) return `ต้องทำเควส "${QUESTS[miss[0]].name}" ก่อน`;
     if (this.p.baseLevel < (q.minLevel || 1)) return `ต้องการ Base Lv.${q.minLevel}`;
+    if (q.jobReq && this.p.jobId !== q.jobReq) return `สำหรับอาชีพ ${q.jobReq}`;
+    if (q.jobReq && this.p.jobLevel < (q.minJobLv || 1)) return `ต้องการ Job Lv.${q.minJobLv}`;
     return '';
   }
 
@@ -100,6 +104,7 @@ export class QuestLog {
       let cur = 0, n = g.n || 1;
       if (g.type === 'collect') cur = p.inventory.count(g.item);
       else if (g.type === 'job') cur = p.jobId !== 'novice' ? 1 : 0;
+      else if (g.type === 'job2') cur = p.jobLv1 > 0 ? 1 : 0;
       else if (g.type === 'level') { cur = p.baseLevel; n = g.n; }
       else if (g.type === 'visit') cur = (a && a.prog[i]) || (this.map === g.map ? 1 : 0);
       else cur = (a && a.prog[i]) || 0;

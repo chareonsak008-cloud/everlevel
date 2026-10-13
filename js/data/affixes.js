@@ -52,11 +52,11 @@ export function elementMul(atk, def, race) {
 }
 // ธาตุของสกิลเวท/สกิลกายภาพ (จากชื่อสกิล)
 export function skillElement(id = '') {
-  if (/flame|fire|meteor|phoenix/.test(id)) return 'fire';
-  if (/frost/.test(id)) return 'water';
-  if (/thunder|gale|wind/.test(id)) return 'wind';
+  if (/flame|fire|meteor|phoenix|inferno|blast_trap/.test(id)) return 'fire';
+  if (/frost|glacial/.test(id)) return 'water';
+  if (/thunder|gale|wind|lightning|talon|falcon/.test(id)) return 'wind';
   if (/ground/.test(id)) return 'earth';
-  if (/holy|divine|sanct/.test(id)) return 'holy';
+  if (/holy|divine|sanct|radiant|purge|seraph|heavens/.test(id)) return 'holy';
   return null;
 }
 

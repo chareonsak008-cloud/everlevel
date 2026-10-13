@@ -12,11 +12,12 @@ import { findPath, smoothPath, nearestWalkable } from './Pathfinder.js';
 import { HUD } from '../ui/HUD.js';
 import { Minimap } from '../ui/Minimap.js';
 import { MapWindow, regionInfo } from '../ui/MapWindow.js';
+import { CardModal } from '../ui/CardView.js';
 import { Renderer3D } from '../render/Renderer3D.js';
 import { MonsterManager } from '../systems/MonsterAI.js';
 import { rollAttack, rollSkill } from '../systems/Combat.js';
 import * as WeaponFx from '../systems/WeaponFx.js';   // v0.25: ธาตุ/เผ่า/ขนาด + พาสซีฟอาวุธ
-import { skillElement } from '../data/affixes.js';
+import { skillElement, mobTraits } from '../data/affixes.js';
 import { StatusWindow } from '../ui/StatusWindow.js';
 import { InventoryWindow } from '../ui/InventoryWindow.js';
 import { Hotbar } from '../ui/Hotbar.js';
@@ -30,6 +31,7 @@ import { StorageWindow } from '../ui/StorageWindow.js';
 import { SHOPS, WARP_ROUTES, STORAGE_CAPACITY, buyPrice, sellPrice, fmtZ } from '../data/shops.js';
 import { SKILLS, skillSp, skillCast, sval } from '../data/skills.js';
 import { JOBS, FIRST_JOBS } from '../data/progression.js';
+import { JOB2_QUEST } from '../data/quests.js';
 import { SkillWindow } from '../ui/SkillWindow.js';
 import { isSkillKey } from '../entities/Player.js';
 import { clamp } from './util.js';
@@ -74,12 +76,15 @@ import { CollectionWindow } from '../ui/CollectionWindow.js';
 
 // เสียงตอนใช้สกิล (เริ่ม) และตอนกระแทก (จังหวะกล้องสั่น)
 const SKILL_SFX = {
+  lance_pierce: 'swing', steel_charge: 'swing', crescent_sweep: 'swing', aegis_aura: 'skill', heavens_lance: 'cast', chain_lightning: 'cast', inferno_pillars: 'cast', glacial_prison: 'iceBlast', arcane_haste: 'cast', starfall_cataclysm: 'cast',
+  falcon_assault: 'skill', blast_trap: 'shoot', split_volley: 'shoot', predator_focus: 'skill', talon_tempest: 'skill', grand_heal: 'heal', sacred_barrier: 'skill', radiant_spears: 'cast', purge_circle: 'cast', seraph_descent: 'cast',
   first_aid: 'heal', power_slash: 'swing', ground_burst: 'skill', blade_cyclone: 'swing', sky_cleave: 'swing', battle_cry: 'skill', iron_will: 'skill',
   flame_bolt: 'cast', frost_lance: 'iceBlast', fire_ball: 'cast', meteor_storm: 'cast', frost_storm: 'cast', thunder_storm: 'cast', arcane_shield: 'cast',
   twin_shot: 'shoot', arrow_rain: 'shoot', gale_arrow: 'shoot', phoenix_shot: 'shoot', frost_trap: 'iceBlast', eagle_focus: 'skill',
   holy_heal: 'heal', blessing: 'heal', swift_wind: 'skill', holy_smite: 'cast', sanctuary: 'heal', divine_judgment: 'cast',
 };
 const IMPACT_SFX = {
+  steel_charge: 'slam', crescent_sweep: 'slam', heavens_lance: 'slam', lance_pierce: 'slam', chain_lightning: 'thunder', inferno_pillars: 'explosion', glacial_prison: 'iceBlast', starfall_cataclysm: 'explosion', blast_trap: 'explosion', talon_tempest: 'slam', seraph_descent: 'explosion', radiant_spears: 'thunder',
   meteor_storm: 'explosion', fire_ball: 'explosion', phoenix_shot: 'explosion', divine_judgment: 'explosion', thunder_storm: 'thunder',
   frost_storm: 'iceBlast', frost_lance: 'iceBlast', frost_trap: 'iceBlast', sky_cleave: 'slam', ground_burst: 'slam', blade_cyclone: 'slam', power_slash: 'slam',
 };
@@ -122,6 +127,12 @@ export class Game {
     this.hud.setPlayer(this.player);
 
     window.addEventListener('resize', () => this.resize());
+    // v0.27.1: หมุนจอ (iOS/Android) — ขนาดจอจริงมาช้ากว่าอีเวนต์ จึงวัดซ้ำหลายจังหวะ + ตามขนาดกล่องเกมจริง
+    const settle = () => { window.scrollTo(0, 0); this.resize(); for (const ms of [80, 200, 450, 900]) setTimeout(() => { window.scrollTo(0, 0); this.resize(); }, ms); this.input && this.input.cancelTouches && this.input.cancelTouches(); };
+    window.addEventListener('orientationchange', settle);
+    if (window.screen && screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', settle);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', () => this.resize());
+    if (window.ResizeObserver) new ResizeObserver(() => this.resize()).observe(root);
     this.resize();
 
     root.querySelector('#btnSave').addEventListener('click', () => this.saveNow(true));
@@ -150,6 +161,7 @@ export class Game {
       assign: (i, id) => this.assignHotkey(i, id),
       open: (id, n) => this.openBox(id, n),
       socket: (cardId, ref) => this.socketCard(cardId, ref),
+      viewCard: (id) => this.cardModal && this.cardModal.show(id),
     });
     this.hotbar = new Hotbar(root, this.player, {
       onUse: (i) => this.useHotkey(i),
@@ -219,6 +231,7 @@ export class Game {
     this.menu = new MenuPanel(root, (act) => this.menuAction(act));
     // v0.27: แผนที่ใหญ่ + แผนที่โลก
     this.mapWin = new MapWindow(root, this);
+    this.cardModal = new CardModal(root);   // v0.29: การ์ดใบใหญ่ + หน้าจอได้รับการ์ด
     for (const [id, tab] of [['#btnMapBig', 'local'], ['#minimap', 'local'], ['#btnWorld', 'world']]) {
       const el = root.querySelector(id);
       if (el) { el.addEventListener('click', (e) => { e.stopPropagation(); this.mapWin.toggle(this.mapWin.open && this.mapWin.tab === tab ? false : true, tab); }); el.addEventListener('pointerdown', (e) => e.stopPropagation()); }
@@ -490,7 +503,12 @@ export class Game {
   }
 
   resize() {
-    this.gfx.resize(this.root.clientWidth, this.root.clientHeight);
+    const w = this.root.clientWidth, h = this.root.clientHeight;
+    if (w === this.lastW && h === this.lastH && (window.devicePixelRatio || 1) === this.lastDpr) return;
+    this.lastW = w; this.lastH = h; this.lastDpr = window.devicePixelRatio || 1;
+    this.gfx.resize(w, h);
+    document.body.classList.toggle('land', w > h);   // v0.27.1: แนวนอน/แนวตั้ง (ใช้จัดปุ่ม)
+    if (this.chat && this.chat.expanded && this.chat.placeOpen) this.chat.placeOpen();
   }
 
   /* ---------- การเดิน ---------- */
@@ -663,8 +681,9 @@ export class Game {
     this.sfx('monsterDie');
     if (this.player.target === m) this.clearTarget();
     this.reward(m);
+    if (this.player.bonus && this.player.bonus.spKill && !this.player.dead) this.player.sp = Math.min(this.player.maxSp, this.player.sp + this.player.bonus.spKill);   // v0.29 การ์ดแคปปลิง
     // v0.13: ใบคูณดรอป/การ์ด + สัตว์เลี้ยง (อบิส/โนวา/เทียนหยุน) · ไอเทมใช้งานและไข่สัตว์เลี้ยงดรอปจากมอนทุกตัว
-    const pl = this.player, dm = pl.itemBuffMul('drop') * this.pets.dropMul() * (this.events?.rate('drop') || 1), cm = pl.itemBuffMul('card') * this.pets.cardMul() * (this.events?.rate('drop') || 1);
+    const pl = this.player, dm = pl.itemBuffMul('drop') * this.pets.dropMul() * (this.events?.rate('drop') || 1) * (1 + ((pl.bonus && pl.bonus.dropPct) || 0) / 100), cm = pl.itemBuffMul('card') * this.pets.cardMul() * (this.events?.rate('drop') || 1);
     const scale = (list, k) => (k === 1 ? list : list.map(([id, c]) => [id, Math.min(1,c * k)]));
     const items = rollDrops([...scale(m.data.drops, dm), ...scale(boxDrops(m.data), dm), ...scale(cardDrops(m.type), cm), ...scale(consumableDrops(m.data), dm)]);   // v0.9 กล่องแฟชั่น · v0.10 การ์ด
     if (this.pets.meteorChance() && Math.random() < this.pets.meteorChance() && m.data.drops.length) {
@@ -735,6 +754,7 @@ export class Game {
     this.gfx.removeDrop(drop);
     this.gfx.floatText(pl, `+ ${it.name}`, 'loot r-' + (it.rarity || 'common'), { h: 2.0, life: 1.4, rise: 0.6, drift: false });
     this.hud.log(`ได้รับ ${it.name} x1`, 'r-' + (it.rarity || 'common'));
+    if (it.type === 'card' && this.cardModal) this.cardModal.show(drop.id, { mode: 'reveal' });   // v0.29: เปิดการ์ดใบใหญ่ตอนเก็บได้
     this.refreshItemsUI();
     this.dirty = true;
   }
@@ -892,7 +912,7 @@ export class Game {
       ...f.available.map((id) => ({ label: `❗ เควสใหม่: ${QUESTS[id].name}`, sub: L.kindName(id), cls: 'q-opt new', keepOpen: true, onSelect: () => this.questOffer(npc, id) })),
       ...f.active.map((id) => ({ label: `… ${QUESTS[id].name}`, sub: L.progress(id).map((g) => `${g.text} ${g.cur}/${g.n}`).join(' · '), keepOpen: true, onSelect: () => this.questMenu(npc, `${QUESTS[id].wait || QUESTS[id].intro}`) })),
     ];
-    if (npc.service) opts.push({ label: npc.service.type === 'shop' ? 'ซื้อขาย / บริการ' : npc.service.type === 'storage' ? 'คลังเก็บของ' : npc.service.type === 'warp' ? 'วาร์ป' : npc.service.type === 'job' ? 'เปลี่ยนอาชีพ' : 'บริการ', onSelect: () => this.openService(npc) });
+    if (npc.service) opts.push({ label: npc.service.type === 'shop' ? 'ซื้อขาย / บริการ' : npc.service.type === 'storage' ? 'คลังเก็บของ' : npc.service.type === 'warp' ? 'วาร์ป' : npc.service.type === 'job' ? 'เปลี่ยน / เลื่อนขั้นอาชีพ' : 'บริการ', onSelect: () => this.openService(npc) });
     else opts.push({ label: 'คุยเล่น', keepOpen: true, onSelect: () => this.questMenu(npc, npc.talk(pl)) });
     opts.push(bye);
     const t = text || (f.ready.length ? 'เจ้ากลับมาแล้ว! เป็นยังไงบ้าง?' : f.available.length ? (npc.greet || npc.lines[0]) : (npc.greet || npc.lines[0]));
@@ -1512,6 +1532,15 @@ export class Game {
       punch: (a) => this.gfx.punch(a),
       lines: (a, dur) => this.gfx.post.speedLines(a, dur),
     };
+    // v0.31: สกิลพุ่งตัว (พุ่งทะยานเหล็กกล้า) — เลื่อนผู้เล่นไปหยุดหน้าเป้าหมาย
+    if (sk.dash && t) {
+      const sx = pl.x, sy = pl.y, dx = t.x - sx, dy = t.y - sy, d = Math.hypot(dx, dy) || 1;
+      const go = Math.max(0, d - TILE * 1.1), ex = sx + (dx / d) * go, ey = sy + (dy / d) * go;
+      if (go > 4) {
+        this.heroAnims.push({ t: 0, dur: 0.2, fn: (k) => { const e = 1 - (1 - k) * (1 - k); pl.x = sx + (ex - sx) * e; pl.y = sy + (ey - sy) * e; }, end: () => { pl.x = ex; pl.y = ey; } });
+        ctx.dashTo = new THREE.Vector3(ex * S, 0, ey * S);
+      }
+    }
     fx.play(sk.vfx, ctx);
     // บัฟเข้าทันที (เอฟเฟกต์เป็นแค่ภาพ)
     if (sk.bonus) {
@@ -1596,10 +1625,7 @@ export class Game {
     const pl = this.player, st = pl.jobChangeStatus();
     const bye = { label: 'ไว้คราวหลัง', cls: 'ghost', onSelect: () => this.endService() };
     const info = { label: 'อาชีพมีอะไรบ้าง?', keepOpen: true, onSelect: () => this.jobInfo(npc, 0) };
-    if (!st.novice) {
-      this.dialog.show(npc, `${pl.job} ${pl.name}! เส้นทางของเจ้ายังอีกยาวไกล ฝึก Job Lv. ให้สูงขึ้นเพื่อปลดล็อกสกิลใหม่ ๆ นะ`, [info, bye]);
-      return;
-    }
+    if (!st.novice) { this.job2Menu(npc); return; }   // v0.31: อาชีพขั้นที่ 2
     if (!st.ok) {
       const mark = (ok) => (ok ? '✓' : '✗');
       this.dialog.show(npc, `${text}\n\nเงื่อนไขเปลี่ยนอาชีพ\n${mark(st.jobLv >= st.needJob)} Job Lv.${st.needJob} (ตอนนี้ ${st.jobLv})\n${mark(st.basic >= st.needBasic)} สกิล ทักษะพื้นฐาน Lv.9 (ตอนนี้ ${st.basic})`, [
@@ -1614,6 +1640,57 @@ export class Game {
       ...FIRST_JOBS.map((j) => ({ label: `${JOBS[j].name} · ${JOBS[j].thai}`, sub: JOBS[j].role, keepOpen: true, onSelect: () => this.confirmJob(npc, j) })),
       bye,
     ]);
+  }
+
+  /* ---------- v0.31: เลื่อนขั้นอาชีพขั้นที่ 2 ---------- */
+  job2Menu(npc) {
+    const pl = this.player, L = this.questLog, bye = { label: 'ไว้คราวหลัง', cls: 'ghost', onSelect: () => this.endService() };
+    const qid = JOB2_QUEST[pl.jobId], st = pl.job2Status(qid && L.isDone(qid));
+    if (st.second || !st.next) {
+      this.dialog.show(npc, `${pl.job} ${pl.name}! เจ้าเดินมาถึงขั้นสูงของเส้นทางแล้ว ฝึก Job Lv. ให้ถึง ${JOBS[pl.jobId].maxJobLevel || 70} เพื่อปลดล็อกสกิลทั้งหมด`, [bye]);
+      return;
+    }
+    const N = JOBS[st.next], mark = (ok) => (ok ? '✓' : '✗');
+    const why = `${mark(st.jobLv >= st.needJob)} Job Lv.${st.needJob} (ตอนนี้ ${st.jobLv})\n${mark(st.quest)} ผ่านเควส "${QUESTS[qid].name}"`;
+    const about = { label: `${N.name} คืออะไร?`, keepOpen: true, onSelect: () => this.dialog.show(npc, `${N.name} (${N.thai}) — ${N.role}\n${N.desc}\n\nได้สกิลใหม่ 7 อย่าง อาวุธเฉพาะอาชีพ และ Job Lv. สูงสุด ${N.maxJobLevel}\nโบนัสสเตตัสจาก Job Lv. ของ ${pl.job} ยังอยู่ครบ`, [{ label: 'กลับ', keepOpen: true, onSelect: () => this.job2Menu(npc) }, bye]) };
+    if (!st.ok) {
+      this.dialog.show(npc, `${pl.job} ${pl.name}! อยากเลื่อนขั้นเป็น ${N.name} (${N.thai}) ใช่ไหม?\n\nเงื่อนไขเลื่อนขั้น\n${why}${st.jobLv >= st.needJob && !st.quest ? '\n\nคุยกับข้าเพื่อรับเควสบททดสอบได้เลย' : ''}`, [about, bye]);
+      return;
+    }
+    this.dialog.show(npc, `เจ้าผ่านบททดสอบแล้ว! พร้อมจะเป็น ${N.name} (${N.thai}) หรือยัง?\nสกิลและแต้มที่มีอยู่จะยังอยู่ครบ — เลื่อนขั้นแล้วย้อนกลับไม่ได้`, [
+      { label: `เลื่อนขั้นเป็น ${N.name}`, cls: 'primary', onSelect: () => this.doJobChange2(npc) }, about, bye]);
+  }
+
+  doJobChange2(npc) {
+    const pl = this.player, qid = JOB2_QUEST[pl.jobId];
+    const res = pl.changeJob2(qid && this.questLog.isDone(qid));
+    if (res.error) { this.hud.log(res.error, 'sys'); return; }
+    const J = JOBS[res.job];
+    this.endService();
+    this.gfx.refreshLook(pl);
+    this.gfx.jobChangeFx(pl, J.color);
+    if (this.gfx.fx && this.gfx.fx.play) this.gfx.fx.play('class_ascend', { ...this.fxCtxSelf(J.color), sigil: res.job });
+    this.hud.levelBanner(`${J.name}!`, `เลื่อนขั้นเป็น${J.thai}แล้ว`);
+    this.hud.log(`ยินดีด้วย! คุณเลื่อนขั้นเป็น ${J.name} (${J.thai}) — อาชีพขั้นที่ 2`, 'lv');
+    if (res.gift) this.hud.log(`ได้รับ ${ITEMS[res.gift].name}${res.equippedGift ? ' และสวมใส่แล้ว' : ' (อยู่ในกระเป๋า)'}`, 'r-epic');
+    if (pl.inventory.add('skill_reset', 1, true) > 0) this.hud.log(`ได้รับ ${ITEMS.skill_reset.name} x1 (ของขวัญเลื่อนขั้น)`, 'r-epic');
+    this.hud.log('กด K เพื่อดูสกิลใหม่ 7 อย่างในแท็บ ' + J.name, 'info');
+    npc.bubble = { text: `ขอให้เกียรติของ ${J.name} อยู่กับเจ้า!`, t: 3 };
+    this.collection && (this.collection.evalT = 1);
+    this.hud.setPlayer(pl); this.hud.setBuffs(pl.buffs); this.refreshItemsUI(); this.status.render(); this.skillWin.render();
+    this.dirty = true;
+    this.saveNow(false);
+  }
+
+  // ctx ขั้นต่ำสำหรับเอฟเฟกต์ที่เล่นรอบตัวผู้เล่น (ไม่มีศัตรู)
+  fxCtxSelf() {
+    const pl = this.player, S = 1 / TILE;
+    return {
+      caster: { pos: new THREE.Vector3(pl.x * S, 0, pl.y * S), facing: new THREE.Vector3(Math.sin(pl.angle), 0, Math.cos(pl.angle)), height: 1.8 },
+      targets: [], main: -1, center: new THREE.Vector3(pl.x * S, 0, pl.y * S), count: 0,
+      hit: () => ({}), heal: () => {}, buff: () => {}, anim: (k, d) => this.heroAnim(k, d), shake: (a) => this.gfx.shake(a), sky: (d, t) => this.gfx.skyFx(d, t),
+      flash: (c, a) => this.gfx.post.flash(c, a), shock: (p, s) => this.gfx.shockAt(p, s),
+    };
   }
 
   // อธิบายอาชีพทีละอาชีพ
@@ -1662,7 +1739,7 @@ export class Game {
   // ได้รับ EXP จากการกำจัดมอนสเตอร์
   reward(m) {
     const pl = this.player;
-    const bm = pl.itemBuffMul('exp') * (this.events?.rate('exp') || 1), jm = pl.itemBuffMul('jexp') * (this.events?.rate('exp') || 1);   // v0.13: ใบคูณ EXP / Job
+    const ek = 1 + ((pl.bonus && pl.bonus.expPct) || 0) / 100, bm = +(pl.itemBuffMul('exp') * (this.events?.rate('exp') || 1) * ek).toFixed(2), jm = +(pl.itemBuffMul('jexp') * (this.events?.rate('exp') || 1) * ek).toFixed(2);   // v0.29: EXP% จากคอมโบการ์ด   // v0.13: ใบคูณ EXP / Job
     const b = Math.round((m.data.baseExp || 0) * bm), j = pl.jobNext === Infinity ? 0 : Math.round((m.data.jobExp || 0) * jm);
     this.hud.log(`กำจัด ${m.name} · ได้รับ Base EXP ${b}${bm > 1 ? ` (×${bm})` : ''} · Job EXP ${j}${jm > 1 && j ? ` (×${jm})` : ''}`, 'exp');
     this.gfx.floatText(pl, `+${b} EXP`, 'exp', { h: 2.1, life: 1.3, rise: 0.7 });
@@ -1714,6 +1791,12 @@ export class Game {
     const red = (pl.bonus && pl.bonus.dmgReduce) || 0;   // ม่านพลังเวทย์ลดดาเมจ
     if (red) amount = Math.max(1, Math.round(amount * (1 - Math.min(80, red) / 100)));
     amount = WeaponFx.incoming(this, amount);   // v0.25: พาสซีฟป้องกันของอาวุธ
+    // v0.29: การ์ดลดดาเมจจากเผ่า/ธาตุ/ขนาดของมอนที่โจมตี (รวมกันสูงสุด 50%)
+    if (src && src.type && pl.bonus) {
+      const tr = mobTraits(src.type, src.data || {}), B = pl.bonus;
+      const rr = Math.min(50, (B['red_' + tr.race] || 0) + (B['red_' + tr.element] || 0) + (B['red_' + tr.size] || 0));
+      if (rr > 0) amount = Math.max(1, Math.round(amount * (1 - rr / 100)));
+    }
     // v0.13: ยาต้านหนาว/ร้อน ลดดาเมจในแผนที่หิมะ/ภูเขาไฟ
     const biome = this.map.id === 'frostveil' ? pl.itemBuffSum('dmgCutSnow') : this.map.id === 'ember_caldera' ? pl.itemBuffSum('dmgCutLava') : 0;
     if (biome) amount = Math.max(1, Math.round(amount * (1 - biome / 100)));
@@ -1836,7 +1919,7 @@ export class Game {
   // ปราบ MVP: ฉลอง + รางวัล MVP เข้ากระเป๋าโดยตรง
   mvpKill(m) {
     const pl = this.player;
-    const reward = (m.data.mvpReward || {})[pl.jobId];
+    const reward = (m.data.mvpReward || {})[pl.jobId] || (m.data.mvpReward || {})[JOBS[pl.jobId] && JOBS[pl.jobId].parent];   // v0.31: ขั้น 2 ได้ของสายเดิม
     this.gfx.mvpFx(pl);
     this.gfx.floatText(pl, 'MVP!', 'mvp', { h: 2.6, life: 2.6, rise: 0.7, drift: false });
     this.hud.levelBanner('MVP!', `ปราบ ${m.name} สำเร็จ`);

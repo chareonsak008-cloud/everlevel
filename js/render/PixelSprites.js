@@ -200,6 +200,23 @@ function texAvg(t) {
   TEX_AVG.set(t, out); return out;
 }
 
+const ALIGN = { r0: new THREE.Matrix4(), rq: new THREE.Matrix4(), rot: new THREE.Matrix4(), t: new THREE.Matrix4(), inv: new THREE.Matrix4(), p: new THREE.Vector3(), eye: new THREE.Vector3(), zero: new THREE.Vector3(), up: new THREE.Vector3(0, 1, 0) };
+const NOOP = THREE.Object3D.prototype.onBeforeRender;
+function alignBefore() {
+  const s = this.userData.pxAlign; if (!s || !s.alignOn || !s.board.visible) return;
+  (this.userData.pxMW || (this.userData.pxMW = new THREE.Matrix4())).copy(this.matrixWorld);
+  this.matrixWorld.premultiply(s.alignM); this.userData.pxMoved = true;
+}
+function alignAfter() { if (this.userData.pxMoved) { this.matrixWorld.copy(this.userData.pxMW); this.userData.pxMoved = false; } }
+function unhook(s) {
+  for (const o of s.free || []) {
+    o.onBeforeRender = NOOP; o.onAfterRender = NOOP; o.userData.pxAlign = null;
+    if (o.userData.pxCast !== undefined) { o.castShadow = o.userData.pxCast; delete o.userData.pxCast; }
+    const m = o.material; if (m && m.userData && m.userData.pxOp !== undefined) { m.opacity = m.userData.pxOp; delete m.userData.pxOp; }
+  }
+  s.free = [];
+}
+
 export class PixelSprites {
   constructor(renderer, scene, camera, { mobile = false } = {}) {
     this.r = renderer; this.scene = scene; this.camera = camera; this.mobile = mobile;
@@ -257,6 +274,8 @@ export class PixelSprites {
   detach(key) {
     const s = this.list.get(key); if (!s) return;
     this.scene.remove(s.board); s.board.geometry.dispose(); s.board.material.dispose(); s.rt.dispose();
+    if (s.xray) { this.scene.remove(s.xray); s.xray.material.dispose(); }
+    unhook(s);
     for (const o of s.hidden) o.visible = true;                 // คืนสภาพโมเดล (กรณีปิดโหมดพิกเซล)
     for (const o of s.moved) o.layers.set(0);
     this.list.delete(key);
@@ -293,16 +312,33 @@ export class PixelSprites {
   scan(s) {
     const meshes = [];
     let n = 0;
+    unhook(s);
+    const free = [];
+    s.root.updateMatrixWorld(true);
+    const rootY = s.root.getWorldPosition(this.tmpV).y, rs = s.root.getWorldScale(this.tmpV2).y || 1;
+    const keep3D = (o) => {   // v0.27.1: ชิ้นที่คงเป็น 3D (ปีกใส/ลายเท็กซ์เจอร์/แสงเรือง) บนตัว → จัดให้ตรงกับสไปรต์
+      if (!(o.isMesh || o.isPoints || o.isSprite) || o.userData.pxSkip) return;
+      if (o.getWorldPosition(this.tmpV).y - rootY < 0.28 * rs) return;   // ของบนพื้น (เงา/วงออร่า) อยู่ที่เดิม
+      free.push(o);
+      // ในโหมดพิกเซล: ไม่ทอดเงาเพี้ยนตำแหน่งบนพื้น · ปีกใสลายเท็กซ์เจอร์ทึบขึ้นให้เห็นชัดบนพื้นสว่าง
+      if (o.userData.pxCast === undefined) o.userData.pxCast = o.castShadow;
+      o.castShadow = false;
+      const m = o.material;
+      if (m && !Array.isArray(m) && m.transparent && m.blending !== THREE.AdditiveBlending && (m.opacity ?? 1) < 1) {
+        if (m.userData.pxOp === undefined) { m.userData.pxOp = m.opacity; m.opacity = Math.min(1, m.opacity * 1.2 + 0.12); }
+      }
+    };
     s.root.traverse((o) => {
       n++;
       if (o.userData.pxSkip) return;
+      if ((o.isPoints || o.isSprite) && !o.userData.outline) { keep3D(o); return; }
       if (o.userData.outline) { if (o.visible) { o.visible = false; s.hidden.push(o); } return; }
       if (!o.isMesh || !o.material || Array.isArray(o.material)) return;
       const m = o.material;
       if (o === s.face || (s.view && o === s.view.face)) { if (o.visible) { o.visible = false; s.hidden.push(o); } return; }   // v0.25.2: ซ่อนเฉพาะลายหน้า (เดิมซ่อนชิ้นแฟชั่นที่มีเท็กซ์เจอร์ทั้งหมด → ปีก/วงเวทย์หาย)   // ใบหน้าเดิม → วาดตาเป็นพิกเซลแทน
-      if (m.transparent && m.map) return;                          // เงาวงกลม/ภาพเรือง → คงเป็น 3D
-      if (m.blending === THREE.AdditiveBlending || m.isShaderMaterial || m.isPointsMaterial) return;
-      if (m.transparent && (m.opacity ?? 1) < 0.45) return;
+      if (m.transparent && m.map) { keep3D(o); return; }           // เงาวงกลม/ภาพเรือง → คงเป็น 3D
+      if (m.blending === THREE.AdditiveBlending || m.isShaderMaterial || m.isPointsMaterial) { keep3D(o); return; }
+      if (m.transparent && (m.opacity ?? 1) < 0.45) { keep3D(o); return; }
       if (m.visible === false) return;
       if (o.layers.mask !== (1 << PX_LAYER)) { o.layers.set(PX_LAYER); s.moved.push(o); }
       if (o.userData.pxTiny === undefined) {               // ชิ้นจิ๋ว (ตา ปุ่ม จุดเงา) → ดันมาข้างหน้าเล็กน้อยตอนวาด
@@ -313,6 +349,8 @@ export class PixelSprites {
       meshes.push(o);
     });
     s.meshes = meshes; s.scanN = n; s.dirty = true;
+    s.free = free; s.alignM = s.alignM || new THREE.Matrix4();
+    for (const o of free) { o.userData.pxAlign = s; o.onBeforeRender = alignBefore; o.onAfterRender = alignAfter; }
   }
 
   albedo(m, tiny) {
@@ -361,7 +399,7 @@ export class PixelSprites {
     for (const s of this.list.values()) {
       // แผ่นป้าย: ตามตำแหน่งเท้า หันหากล้อง ดันเข้าหากล้องเล็กน้อยกันจมพื้น
       const vis = s.root.visible && this.visibleUp(s.root);
-      s.board.visible = vis;
+      s.board.visible = vis; if (s.xray && !vis) s.xray.visible = false;
       if (!vis) continue;
       s.board.material.color.copy(this.tint);
       s.root.getWorldPosition(this.tmpV);
@@ -370,12 +408,23 @@ export class PixelSprites {
       s.board.position.copy(this.tmpV).addScaledVector(toCam, push);
       s.board.quaternion.copy(cam.quaternion);
       s.board.scale.setScalar((dist - push) / dist);
+      if (s.free && s.free.length) this.align(s, yaw); else s.board.updateMatrixWorld();
+      // v0.27.1: ตัวผู้เล่นที่ถูกต้นไม้/บ้านบัง → เห็นเป็นเงาโปร่งทะลุ (วาดเฉพาะส่วนที่อยู่หลังวัตถุ)
+      if (s.key === this.focus) {
+        if (!s.xray) {
+          s.xray = new THREE.Mesh(s.board.geometry, new THREE.MeshBasicMaterial({ map: s.rt.texture, transparent: true, opacity: 0.5, alphaTest: 0.5, depthWrite: false, depthFunc: THREE.GreaterDepth, toneMapped: false, fog: false, color: new THREE.Color(0.75, 0.82, 1.0) }));
+          s.xray.frustumCulled = false; s.xray.renderOrder = 30; this.scene.add(s.xray);
+        }
+        s.xray.visible = true; s.xray.position.copy(s.board.position); s.xray.quaternion.copy(s.board.quaternion); s.xray.scale.copy(s.board.scale); s.xray.updateMatrixWorld();
+      } else if (s.xray) s.xray.visible = false;
       if (!this.frustum.intersectsSphere(new THREE.Sphere(this.tmpV, 2.5))) continue;
       s.t += dt;
       const rel = s.root.rotation.y - yaw;
       const dir = Math.round(rel / DIR);
       if (dir !== s.lastDir || Math.abs(yaw - (s.lastYaw ?? 99)) > 0.02) s.dirty = true;
-      s.interval = s.key === this.focus ? FOCUS_STEP : STEP;
+      // v0.27.1: ตัวไกลกล้อง/เครื่องช้า → อัปเดตท่าทางห่างขึ้น (ตัวผู้เล่นยังลื่น 30 เฟรม)
+      const fp = this.list.get(this.focus), far = fp && s !== fp && fp.board.position.distanceToSquared(s.board.position) > 144 ? 2 : 1, slow = this.slow >= 2 ? 1.5 : 1;
+      s.interval = s.key === this.focus ? FOCUS_STEP : STEP * far * slow;
       if (s.dirty || s.t >= s.interval) due.push(s);
     }
     if (!due.length) return;
@@ -392,6 +441,24 @@ export class PixelSprites {
     }
     r.setRenderTarget(prevRT); r.setClearColor(prevClear, prevAlpha); r.autoClear = prevAuto;
     r.toneMapping = prevTone; r.outputEncoding = prevEnc; r.shadowMap.autoUpdate = prevShadow;
+  }
+
+  // v0.27.1: เมทริกซ์ย้ายชิ้น 3D ที่ติดตัว (ปีกใส ฯลฯ) จากมุมกล้องเกมไปอยู่บนแผ่นสไปรต์ ให้ตรงกับตัวที่วาดจากมุมก้ม 20°
+  //   M = แผ่นป้าย · หมุนกล้องสไปรต์⁻¹ · T(-เท้า) · รากที่หันตามทิศสไปรต์ · ราก⁻¹
+  align(s, yaw) {
+    const root = s.root, b = s.board, A = ALIGN;
+    b.updateMatrixWorld();
+    const dir = s.lastDir ?? Math.round((root.rotation.y - yaw) / DIR);
+    const keepY = root.rotation.y;
+    root.updateMatrix(); A.r0.copy(root.matrix); if (root.parent) A.r0.premultiply(root.parent.matrixWorld);
+    root.rotation.y = yaw + dir * DIR; root.updateMatrix(); A.rq.copy(root.matrix); if (root.parent) A.rq.premultiply(root.parent.matrixWorld);
+    root.rotation.y = keepY; root.updateMatrix();
+    A.p.setFromMatrixPosition(A.r0);
+    A.eye.set(Math.sin(yaw) * Math.cos(PITCH), Math.sin(PITCH), Math.cos(yaw) * Math.cos(PITCH));
+    A.rot.lookAt(A.eye, A.zero, A.up); A.rot.transpose();
+    A.t.makeTranslation(-A.p.x, -A.p.y, -A.p.z);
+    s.alignM.copy(b.matrixWorld).multiply(A.rot).multiply(A.t).multiply(A.rq).multiply(A.inv.copy(A.r0).invert());
+    s.alignOn = PIXEL.on;
   }
 
   visibleUp(o) { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; }

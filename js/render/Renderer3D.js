@@ -23,6 +23,7 @@ import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js';
 import { pixelGround, PixelWater } from './PixelGround.js';
 import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js';
 import { gradientMap } from './Toon.js';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js';
 const PX_BASE = (() => { const a = new THREE.Color('#dcefff'), b = new THREE.Color('#fff0d6'); return { r: a.r * 0.72 + b.r * 1.45 * 0.5, g: a.g * 0.72 + b.g * 1.45 * 0.5, b: a.b * 0.72 + b.b * 1.45 * 0.5 }; })();   // v0.17: สไปรต์พิกเซลอาร์ต   // v0.13: สัตว์เลี้ยงช่วยเก็บของ
 
 // ความแรงแสงเรืองของแฟชั่นระดับล้ำค่าขึ้นไป (ตอนไม่มีเอฟเฟกต์สกิล)
@@ -59,9 +60,10 @@ export class Renderer3D {
   constructor(canvas, labelLayer) {
     this.canvas = canvas;
     this.labelLayer = labelLayer;
+    injectTitleCss();   // v0.30: เอฟเฟ็กฉายา
     this.mobile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 
-    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !this.mobile, powerPreference: 'high-performance' });   // v0.27.1: มือถือไม่ใช้ MSAA (ภาพพิกเซลไม่ต้องใช้ · ประหยัดแบนด์วิดท์)
     r.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2));
     r.outputEncoding = THREE.sRGBEncoding;
     r.toneMapping = THREE.ACESFilmicToneMapping;
@@ -72,6 +74,7 @@ export class Renderer3D {
     r.shadowMap.autoUpdate = !this.mobile; this.frameN = 0;
 
     this.scene = new THREE.Scene();
+    this.scene.autoUpdate = false;   // v0.27.1: อัปเดตเมทริกซ์เองครั้งเดียวต่อเฟรม (เดิมซ้ำ 2 รอบทั้งฉาก)
     this.scene.background = skyTexture();
     this.scene.fog = new THREE.Fog('#d9e4e6', 34, 80);
 
@@ -113,6 +116,7 @@ export class Renderer3D {
 
     // v0.8: เอฟเฟกต์สกิลชุดใหม่ + โพสต์โปรเซส (เรืองแสง · คลื่นกระแทก · แสงวาบ)
     this.fx = new SkillFX(this.scene, { pool: this.mobile ? 0.6 : 1, lights: this.mobile ? 2 : 3 });
+    this.fx.camera = this.camera;   // v0.31.1: ริบบิ้น HD หันหากล้อง
     // v0.16: มือถือไม่ใช้ MSAA บนบัฟเฟอร์โพสต์ และใช้บัฟเฟอร์ 8 บิต sRGB (ไม่ต้องคอมไพล์เชดเดอร์ชุดที่สอง · ประหยัดแบนด์วิดท์)
     this.post = new PostFX(r, { msaa: this.mobile ? 0 : 4, strength: 1.0, linear: !this.mobile });
     this.post.pxOn = this.px.enabled;   // v0.17: ฉากแบบพิกเซลตามโหมดเดียวกัน
@@ -249,7 +253,7 @@ export class Renderer3D {
       const z = side === 2 ? -d : side === 3 ? map.h + d : t * (map.h + 16) - 8;
       (r() < 0.35 ? trees.pine : trees.round).push({ x, z, seed: i });
     }
-    const tm = PXW ? floraMaterial() : treeMaterial(); this.addWind(tm, 0.035, 0.9, true);
+    const tm = PXW ? floraMaterial() : treeMaterial(); this.addWind(tm, 0.035, 0.9, !PXW);   // v0.27.1: โหมดพิกเซลไม่เจาะตาข่ายต้นไม้ (เกิดเส้นขอบดำเป็นลายหมากรุก) → ใช้เงาทะลุของตัวละครแทน
     // v0.11: ต้นไม้ตามธีม — สนหิมะ / ต้นไม้ไหม้เกรียม
     const TT = theme.trees;
     const roundGeos = PXW
@@ -282,7 +286,7 @@ export class Renderer3D {
     }
     this.grass = this.instanced(world, PXW ? grassTuftPx() : grassTuftGeometry(), gm, tufts, { cast: false });
     const fm = PXW ? new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: gradientMap() }) : std('flowerMat', { vertexColors: true, roughness: 0.8 }); this.addWind(fm, 0.25, 0);
-    this.instanced(world, PXW ? flowerPx() : flowerGeometry(), fm, flowers, { cast: false });
+    this.flowers = this.instanced(world, PXW ? flowerPx() : flowerGeometry(), fm, flowers, { cast: false });
 
     // รวม mesh นิ่งทั้งหมด → draw call น้อย ลื่นไหล
     world.add(batchStatic(statics));
@@ -982,7 +986,9 @@ export class Renderer3D {
       this.shadowExt = ext;
     }
     const texel = (ext * 2) / this.sun.shadow.mapSize.x;
-    const sx = Math.round(g.target.x / texel) * texel, sz = Math.round(g.target.z / texel) * texel;
+    // v0.27.1: โหมดพิกเซลขยับจุดเงาเป็นช่วงละ ~1 หน่วย (จำนวนเต็มเท่าของ texel) → วาดแผนที่เงาใหม่เฉพาะตอนขยับ
+    const snap = this.px && this.px.enabled ? texel * Math.max(1, Math.round(1.5 / texel)) : texel;
+    const sx = Math.round(g.target.x / snap) * snap, sz = Math.round(g.target.z / snap) * snap;
     this.sun.target.position.set(sx, 0, sz);
     this.sun.position.set(sx + this.sunOffset.x, this.sunOffset.y, sz + this.sunOffset.z);
   }
@@ -1088,7 +1094,9 @@ export class Renderer3D {
       if (this.sun.shadow.map) { this.sun.shadow.map.dispose(); this.sun.shadow.map = null; }
       this.shadowExt = 0;
     }
-    if (this.grass) for (const g of this.grass) g.visible = level < 3;
+    if (this.grass) for (const g of this.grass) g.visible = level < (this.mobile ? 2 : 3);
+    if (this.flowers) for (const g of this.flowers) g.visible = level < 3;
+    if (this.px) { this.px.budget = Math.max(2, (this.mobile ? 5 : 10) - level * (this.mobile ? 1 : 2)); this.px.slow = level; }   // v0.27.1: งบวาดสไปรต์ตามระดับคุณภาพ
     if (this.motes) this.motes.points.visible = level < 2;
     for (const c of this.characters.values()) this.actorQuality(c);
     for (const v of this.pets.values()) this.actorQuality({ view: v, kind: 'pet' });
@@ -1102,7 +1110,7 @@ export class Renderer3D {
     const noCast = other && (mob || this.quality >= 2);
     c.view.root.traverse((o) => {
       if (o.userData.outline) { o.visible = !noOutline && !(this.px && this.px.enabled); return; }   // v0.17: โหมดพิกเซลวาดเส้นขอบเอง
-      if (o.isMesh) { if (o.userData.cs === undefined) o.userData.cs = o.castShadow; o.castShadow = o.userData.cs && !noCast; }
+      if (o.isMesh) { if (o.userData.cs === undefined) o.userData.cs = o.castShadow; o.castShadow = o.userData.cs && !noCast && !o.userData.pxAlign; }
     });
   }
 
@@ -1141,7 +1149,19 @@ export class Renderer3D {
     for (const s of this.sprays) s.update(dt, t);
     for (const p of this.portals) p.update(t);
     this.updatePropLights(dt);
-    if (this.mobile && this.renderer.shadowMap.enabled) this.renderer.shadowMap.needsUpdate = (this.frameN++ & 1) === 0;
+    const sm = this.renderer.shadowMap;
+    if (sm.enabled) {
+      if (this.px.enabled) {
+        // v0.27.1: ตัวละครเป็นสไปรต์ (ไม่ทอดเงาจริง) → เงาฉากนิ่ง วาดใหม่เมื่อจุดเงาขยับ หรือทุก ~0.5 วินาที
+        sm.autoUpdate = false;
+        const key = this.sun.position.x + ',' + this.sun.position.z + ',' + this.shadowExt;
+        this.shadowAge = (this.shadowAge || 0) + 1;
+        if (key !== this.shadowKey || this.shadowAge > 30) { sm.needsUpdate = true; this.shadowKey = key; this.shadowAge = 0; }
+      } else {
+        sm.autoUpdate = !this.mobile;
+        if (this.mobile) sm.needsUpdate = (this.frameN++ & 1) === 0;
+      }
+    }
     this.motes.update(t, this.rig.target.x, this.rig.target.z);
     this.marker.update(dt);
     this.autoZone.update(dt);
@@ -1200,9 +1220,10 @@ export class Renderer3D {
     const glowOn = !!glowC && this.post.enabled && this.post.bloom;
     const goal = glowOn && !busy ? Math.max(this.baseGlow, COSTUME_GLOW) : this.baseGlow;
     this.post.strength += (goal - this.post.strength) * Math.min(1, dt * 4);
-    const roots = glowOn ? [this.fx.root, this.costumeWorld, glowC.view.root] : this.fx.root;
+    const roots = glowOn ? [this.fx.root, this.costumeWorld, glowC.view.root] : this.fx.hd ? [this.fx.root, this.fx.hd] : this.fx.root;
     const gk = pxi ? pxi.k : 1;   // รอบแสงเรืองวาดที่ครึ่งจอ ส่วนอนุภาคตั้งขนาดไว้สำหรับภาพพิกเซล → คูณกลับ
     this.post.render(this.scene, this.camera, roots, (k) => { const kk = k === 1 ? 1 : k * gk; this.fx.setPixelScale(kk); if (glowOn) glowC.costume.pixelScale(kk); }, busy || glowOn, pxi);
+    this.fx.hdRender(this.renderer, this.camera);   // v0.31.1: เลเยอร์เอฟเฟกต์ HD (อาชีพขั้นที่ 2) วาดทับที่ความละเอียดเต็ม
   }
 
   project(x, y, z) {
@@ -1244,7 +1265,7 @@ export class Renderer3D {
     const honor = !c.npc && !entity.dead ? entity.honor || '' : '';
     if (honor || c.honorEl) {
       if (!c.honorEl) { c.honorEl = document.createElement('div'); c.honorEl.className = 'tag-honor'; c.honorEl.hidden = true; this.labelLayer.append(c.honorEl); }
-      if (c.lastHonor !== honor + (entity.honorTier || '')) { c.honorEl.textContent = honor; c.honorEl.className = 'tag-honor t-' + (entity.honorTier || 'common'); c.lastHonor = honor + (entity.honorTier || ''); }
+      paintHonor(c.honorEl, honor, entity.honorTier || 'common', entity.honorFx || '');   // v0.30: เอฟเฟ็กตามความหายาก
       const hp2 = honor ? this.project(x, (c.head - 0.12) * this.vs, z) : null;
       setH(c.honorEl, !hp2);
       if (hp2) setT(c.honorEl, `translate3d(${hp2[0]}px, ${hp2[1]}px, 0) translate(-50%, -100%)`);
@@ -1280,7 +1301,7 @@ export class Renderer3D {
         if (c.lastText !== b.text) { c.bubble.textContent = this.mobile && !c.npc && b.text.length > 56 ? b.text.slice(0, 54) + '…' : b.text; c.lastText = b.text; }   // v0.13: มือถือย่อข้อความยาวในบอลลูน
         setH(c.bubble, false);
         const op = String(Math.min(1, Math.round(b.t * 20) / 10)); if (c.bubble._o !== op) { c.bubble.style.opacity = op; c.bubble._o = op; }
-        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, (c.head + 0.35) * this.vs, z) || p)[1] - (c.honorEl && !c.honorEl.hidden ? 16 : 0)}px, 0) translate(-50%, -100%)`);
+        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, (c.head + 0.35) * this.vs, z) || p)[1] - (c.honorEl && !c.honorEl.hidden ? (entity.honorTier === 'divine' ? 34 : entity.honorTier === 'mythic' ? 28 : entity.honorTier === 'legend' ? 20 : 16) : 0)}px, 0) translate(-50%, -100%)`);
       } else if (!c.bubble.hidden) { c.bubble.hidden = true; c.lastText = ''; }
     }
   }

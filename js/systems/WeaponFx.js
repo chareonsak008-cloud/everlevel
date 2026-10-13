@@ -12,7 +12,7 @@ export function outgoing(game, m, r, opts = {}) {
   const w = weaponOf(pl), tr = mobTraits(m.type, m.data);
   const ranged = !opts.magic && pl.weaponType === 'bow';
   let pct = (opts.magic ? 0 : ranged ? B.rangedPct || 0 : B.meleePct || 0)
-    + (B['vs_' + tr.race] || 0) + (B['vs_' + tr.element] || 0) + (B['vs_' + tr.size] || 0);
+    + Math.min(60, (B['vs_' + tr.race] || 0) + (B['vs_' + tr.element] || 0) + (B['vs_' + tr.size] || 0));   // v0.29: เพดาน +60%
   const P = w && w.passive;
   if (P && P.kind === 'execute' && m.hp / m.maxHp < P.hp / 100) pct += P.value;
   const el = opts.element || (opts.magic ? null : w && w.element);

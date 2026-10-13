@@ -38,6 +38,7 @@ export class Input {
     // v0.16: สลับแอป/ล็อกจอ → ล้างสถานะนิ้ว จอย ท่าซูม ทั้งหมด (กันค้างเป็นสองนิ้ว/เดินเอง)
     const clearAll = () => { this.keys.clear(); this.pointer.down = false; this.dragRotate = null; this.touches.clear(); this.gesture = null; this.taps = []; this.presses = []; if (this.joyReset) this.joyReset(); };
     window.addEventListener('blur', clearAll);
+    this.cancelTouches = clearAll;   // v0.27.1: เรียกตอนหมุนจอ
     document.addEventListener('visibilitychange', () => { if (document.hidden) clearAll(); });
 
     const pos = (e) => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };

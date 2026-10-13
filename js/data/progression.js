@@ -32,14 +32,45 @@ export const JOBS = {
     jobStats: { int: 0.12, vit: 0.08, luk: 0.06, dex: 0.04 }, weapons: ['none', 'mace', 'staff'], gift: 'chapel_mace',
     role: 'ฟื้นฟู · เสริมพลัง', desc: 'ผู้รับใช้แสงศักดิ์สิทธิ์ รักษาตัวเองได้ เสริมพลังให้แข็งแกร่งขึ้น และลงทัณฑ์ศัตรูด้วยแสง',
   },
+  /* ---------- v0.31: อาชีพขั้นที่ 2 (parent = อาชีพขั้นที่ 1) ---------- */
+  knight: {
+    name: 'Knight', thai: 'อัศวิน', crest: 'K', color: '#7ab4ff', parent: 'swordsman', tier: 2, maxJobLevel: 70, hp: 2.15, sp: 0.95, jobExp: 3.2,
+    jobStats: { str: 0.2, vit: 0.16, dex: 0.08, agi: 0.06 }, weapons: ['none', 'knife', 'sword', 'mace'], gift: 'wpn_knight_lance',
+    role: 'แนวหน้าเกราะหนัก หอกทะลวง ตีหมู่', desc: 'อัศวินผู้ถือหอกและดาบใหญ่ ทนทานที่สุดในเกม ทะลวงแนวศัตรู กวาดทั้งฝูง และปกป้องตัวเองด้วยออร่าโล่',
+  },
+  wizard: {
+    name: 'Wizard', thai: 'จอมเวท', crest: 'W', color: '#b07aff', parent: 'mage', tier: 2, maxJobLevel: 70, hp: 0.95, sp: 3.0, jobExp: 3.2,
+    jobStats: { int: 0.24, dex: 0.12, agi: 0.04 }, weapons: ['none', 'knife', 'staff'], gift: 'wpn_wizard_rod',
+    role: 'เวทวงกว้าง ทำลายล้างทั้งฝูง', desc: 'ผู้ควบคุมธาตุทั้งปวง สายฟ้าโซ่ เสาเพลิง คุกน้ำแข็ง และดาวตกวันสิ้นโลก พลังทำลายล้างวงกว้างสูงสุด',
+  },
+  hunter: {
+    name: 'Hunter', thai: 'นักล่า', crest: 'H', color: '#6ad08a', parent: 'archer', tier: 2, maxJobLevel: 70, hp: 1.35, sp: 1.5, jobExp: 3.2,
+    jobStats: { dex: 0.22, agi: 0.12, luk: 0.06, str: 0.04 }, weapons: ['none', 'knife', 'bow'], gift: 'wpn_hunter_bow',
+    role: 'ยิงไกล กับดัก เหยี่ยววิญญาณ', desc: 'นักล่าผู้มีเหยี่ยววิญญาณเป็นคู่หู วางกับดักระเบิด ยิงศรแยกสาย และเรียกพายุกรงเล็บถล่มศัตรู',
+  },
+  priest: {
+    name: 'Priest', thai: 'นักบวชชั้นสูง', crest: 'P', color: '#ffe9a0', parent: 'acolyte', tier: 2, maxJobLevel: 70, hp: 1.4, sp: 2.5, jobExp: 3.2,
+    jobStats: { int: 0.16, vit: 0.1, luk: 0.08, dex: 0.06 }, weapons: ['none', 'mace', 'staff'], gift: 'wpn_priest_scepter',
+    role: 'ฟื้นฟูมหาศาล ม่านพิทักษ์ แสงพิพากษา', desc: 'ผู้ได้รับพรจากเทวทูต ฟื้นฟูมหาศาล สร้างม่านแสงพิทักษ์ และเรียกหอกแสงลงพิพากษาศัตรู',
+  },
 };
 export const FIRST_JOBS = ['swordsman', 'mage', 'archer', 'acolyte'];
 export const JOB_CHANGE_JOB_LEVEL = 10;
+// v0.31: อาชีพขั้นที่ 2
+export const SECOND_JOBS = ['knight', 'wizard', 'hunter', 'priest'];
+export const SECOND_OF = { swordsman: 'knight', mage: 'wizard', archer: 'hunter', acolyte: 'priest' };
+export const JOB2_JOB_LEVEL = 40;
+export const parentJob = (job) => (JOBS[job] && JOBS[job].parent) || job;          // อาชีพขั้น 1 ของสายนี้
+export const jobTier = (job) => (job === 'novice' || !JOBS[job] ? 0 : JOBS[job].tier || 1);
+export const isJobLine = (job, base) => job === base || parentJob(job) === base;  // อยู่ในสายอาชีพ base ไหม
 
 // โบนัสสเตตัสจาก Job Level
-export function jobStatBonus(job, jobLevel) {
+export function jobStatBonus(job, jobLevel, firstJobLevel = 0) {
   const out = {};
   for (const [k, r] of Object.entries((JOBS[job] || JOBS.novice).jobStats)) out[k] = Math.floor(jobLevel * r);
+  // v0.31: อาชีพขั้น 2 ได้โบนัสจาก Job Lv. ของอาชีพขั้น 1 ที่ฝึกมาแล้วด้วย
+  const par = JOBS[job] && JOBS[job].parent;
+  if (par && firstJobLevel > 0) for (const [k, r] of Object.entries(JOBS[par].jobStats)) out[k] = (out[k] || 0) + Math.floor(firstJobLevel * r);
   return out;
 }
 
@@ -56,6 +87,7 @@ export function baseExpToNext(level) {
 export function jobExpToNext(level, job = 'novice') {
   const J = JOBS[job] || JOBS.novice;
   if (level >= J.maxJobLevel) return Infinity;
+  if (J.tier === 2) return Math.round(KILLS_PER_LEVEL(level + 30) * MOB_EXP(level + 30) * 1.1);   // v0.31: ขั้น 2 ใช้ EXP เทียบเท่า Job Lv.+30
   return Math.round(KILLS_PER_LEVEL(level) * MOB_EXP(level) * (job === 'novice' ? 0.55 : 1.05));
 }
 

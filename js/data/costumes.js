@@ -1,3 +1,4 @@
+import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js';
 // แคตตาล็อกชุดแฟชั่น (v0.9) — ได้จากการเปิดกล่องแฟชั่นสุ่ม (data/fashionBoxes.js) — ชิ้นแฟชั่นเป็น "ชุดทับ" ไม่เพิ่มค่าสถานะ ใส่ทับอุปกรณ์จริงได้
 // slot: wings | outfit | head | face | back | weapon | aura | pet · kind = ชื่อตัวสร้างใน render/Costumes.js · p = ค่าปรับแต่ง
 // rarity: common ธรรมดา | rare หายาก | epic ล้ำค่า | legend ตำนาน | mythic | celestial
@@ -294,10 +295,23 @@ COSTUMES.push(
   W3('pet', 'p_cherub', 'cherub', 'ภูตเทวาสุริยะ', 'Solar Cherub', 'celestial', 'ลูกแสงยิ้มแป้นปีกเล็กสองคู่ วงรัศมีทองหมุนบนหัว ทิ้งประกายดาว'),
 );
 
+COSTUMES.push(...FASHION_COLLECTION);
+
+/* ================= v0.28: ออร่าระเบิดกระจาย (batch: 4) ================= */
+const A4 = (...a) => ({ ...I(...a), batch: 4 });
+COSTUMES.push(
+  A4('aura', 'a_supernova', 'supernova', 'ระเบิดซูเปอร์โนวา', 'Supernova Burst', 'celestial', 'ละอองแสงหมุนวนดูดเข้ากลางอกจนดาวแกนกลางพองโต แล้วระเบิดแสงวาบ คลื่นกระแทกสองชั้น ดาวกระจายรอบทิศ และประกายโปรยลงมาเป็นจังหวะ'),
+  A4('aura', 'a_thunderGod', 'thunderStrike', 'อัสนีเทพพิโรธ', 'Wrath of Thunder', 'mythic', 'ประกายไฟฟ้าแลบรอบเท้าตลอดเวลา สายฟ้าใหญ่ฟาดลงจากฟ้าเป็นระยะ แสงวาบ คลื่นไฟฟ้า ประกายและเศษหินกระจุยรอบตัว'),
+  A4('aura', 'a_prism', 'prismShatter', 'ผลึกปริซึมแตกกระจาย', 'Prism Shatter', 'mythic', 'ผลึกสีรุ้งแปดชิ้นโคจรรอบเอว ระเบิดพุ่งออกพร้อมเศษคริสตัลสีรุ้งกระจาย แล้วหมุนกลับมาประกอบใหม่'),
+  A4('aura', 'a_voidRift', 'voidRift', 'รอยแยกห้วงอเวจี', 'Abyssal Rift', 'mythic', 'หมอกดำม่วงถูกดูดเข้าแกนกลาง วงอักขระมืดหมุนเร็วขึ้นเรื่อย ๆ แล้วระเบิดเป็นแสงบานเย็น เศษความมืดแตกกระจาย'),
+  A4('aura', 'a_blossomStorm', 'blossomStorm', 'พายุซากุระสะบั้น', 'Blossom Tempest', 'celestial', 'กลีบซากุระหมุนเป็นเกลียวพายุรอบตัว แล้วระเบิดบานออกเป็นวงกว้าง คลื่นสีชมพูและประกายขาวระยิบ'),
+);
+
 export const COSTUME_BY_ID = Object.fromEntries(COSTUMES.map((c) => [c.id, c]));
 
 // ชุดเซ็ตแนะนำ (สวมทีเดียวทั้งชุด)
 export const SETS = [
+  ...FASHION_SETS,
   { id: 's_celestial', name: 'เทวาแห่งรุ่งอรุณ', en: 'Celestial Dawn', desc: 'ปีกขนนกสีขาวกับวงแหวนเทวดา ประกายดาวโปรยรอบตัว', items: ['w_seraph', 'h_halo', 'o_priest', 'x_holy', 'a_stars', 'p_star'] },
   { id: 's_fiend', name: 'จอมมารราตรี', en: 'Night Fiend', desc: 'ปีกปีศาจม่วงเข้ม เขาโค้ง และหมอกเงาลอยวนที่เท้า', items: ['w_demon', 'h_horns', 'o_witch', 'f_masq', 'x_shadow', 'a_shadow'] },
   { id: 's_dragonlord', name: 'ราชันย์มังกรเพลิง', en: 'Dragon Lord', desc: 'ปีกและหางมังกรแดง ดาบเปลวไฟ พร้อมลูกมังกรคู่ใจ', items: ['w_dragon', 'h_crown', 'o_royal', 'b_dragon', 'x_flame', 'a_fire', 'p_fireDragon'] },

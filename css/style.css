@@ -558,6 +558,11 @@ body.touch .dlg { z-index: 5; }
 .crest[data-job="mage"] { background: radial-gradient(circle at 35% 30%, #efe0ff, #9a6ae0 60%, #4a2a8a); }
 .crest[data-job="archer"] { background: radial-gradient(circle at 35% 30%, #e6ffd8, #6ac05a 60%, #2a6a2a); }
 .crest[data-job="acolyte"] { background: radial-gradient(circle at 35% 30%, #fffbe8, #f0d070 60%, #a87a1e); }
+/* v0.31: อาชีพขั้นที่ 2 — ขอบทองคู่ */
+.crest[data-job="knight"] { background: radial-gradient(circle at 35% 30%, #e6f0ff, #4a7ad8 60%, #1a2a6a); box-shadow: 0 0 0 2px #ffe08a, 0 0 10px #7ab4ff; }
+.crest[data-job="wizard"] { background: radial-gradient(circle at 35% 30%, #f4e8ff, #8a4ae0 60%, #2a0a5a); box-shadow: 0 0 0 2px #ffe08a, 0 0 10px #b07aff; }
+.crest[data-job="hunter"] { background: radial-gradient(circle at 35% 30%, #eaffea, #3aa05a 60%, #12401e); box-shadow: 0 0 0 2px #ffe08a, 0 0 10px #6ad08a; }
+.crest[data-job="priest"] { background: radial-gradient(circle at 35% 30%, #ffffff, #f8e090 60%, #b08a2a); box-shadow: 0 0 0 2px #ffffff, 0 0 12px #ffe9a0; }
 
 .dlg-text { white-space: pre-line; }
 .dlg-opt.primary { border-color: rgba(255, 233, 176, 0.85); background: linear-gradient(rgba(255, 233, 176, 0.28), rgba(224, 166, 64, 0.22)); }
@@ -1785,6 +1790,7 @@ body.pxmode img[src^="data:"], body.pxmode .slot img { image-rendering: pixelate
 .cw-honor.t-rare, .tag-honor.t-rare { color: #7fc4ff; }
 .cw-honor.t-epic, .tag-honor.t-epic { color: #d49bff; }
 .cw-honor.t-legend, .tag-honor.t-legend { color: #ffb347; }
+.cw-honor.t-mythic { color: #ff9ae6; }
 .cw-ach:not(.done) .cw-honor { color: var(--muted); }
 .cw-sh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .cw-sh h3 { margin: 0; }
@@ -1812,13 +1818,8 @@ body.pxmode img[src^="data:"], body.pxmode .slot img { image-rendering: pixelate
 .cw-stats span { display: grid; justify-items: center; padding: 6px; border-radius: 8px; background: rgba(0, 0, 0, 0.2); font-size: 11px; color: var(--muted); }
 .cw-stats b { font-size: 18px; color: var(--gold); font-weight: 600; }
 .tools #btnBook { padding: 5px 10px; }
-/* ฉายาเหนือหัวตัวละคร */
-.tag-honor { position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap; font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em; padding: 1px 8px; border-radius: 999px;
-  background: rgba(20, 12, 30, 0.62); border: 1px solid rgba(255, 214, 140, 0.25); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); will-change: transform; }
-.tag-honor::before { content: '« '; opacity: 0.7; }
-.tag-honor::after { content: ' »'; opacity: 0.7; }
-.tag-honor.t-legend { border-color: rgba(255, 179, 71, 0.6); box-shadow: 0 0 10px rgba(255, 179, 71, 0.3); }
-.tag-honor.t-epic { border-color: rgba(212, 155, 255, 0.5); }
+/* ฉายาเหนือหัวตัวละคร — v0.30 ย้ายไป js/ui/TitleFx.js (เอฟเฟ็กตามความหายาก) */
+.cw-live { display: flex; justify-content: center; padding: 44px 0 30px; margin-bottom: 4px; border-radius: 10px; background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.06), transparent 70%); overflow: hidden; }
 @media (max-width: 760px) {
   .colw { left: 8px; right: 8px; width: auto; top: auto; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); max-height: 86%; z-index: 4; padding: 10px 12px; }
   .cw-mobs { grid-template-columns: 1fr; }
@@ -2061,3 +2062,9 @@ body.touch #game .mfoot b { font-size: 11.5px; }
   .wm-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .wm-mobs { max-height: 150px; }
 }
+/* v0.29: การ์ดในอัลบั้มเป็นปุ่ม (แตะดูการ์ดใหญ่) */
+button.cw-card { font: inherit; color: inherit; cursor: pointer; }
+button.cw-card:hover { border-color: rgba(255, 211, 107, 0.8); }
+.cw-card small { font-size: 10.5px; line-height: 1.2; text-align: center; }
+.cw-h { margin: 14px 0 4px; font-size: 14px; color: var(--gold); }
+.cw-h small { color: var(--muted); font-weight: 400; font-size: 11.5px; }

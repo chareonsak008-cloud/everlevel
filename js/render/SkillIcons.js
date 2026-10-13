@@ -185,6 +185,61 @@ const DRAW = {
     stroke(g, (g) => { g.ellipse(32, 54, 22, 6, 0, 0, Math.PI * 2); }, '#ffd27a', 3);
     for (const x of [10, 54]) stroke(g, (g) => { g.moveTo(x, 50); g.lineTo(x + (x < 32 ? 8 : -8), 40); }, '#ffffff', 2.5);
   },
+  /* ---------- v0.31: อาชีพขั้นที่ 2 ---------- */
+  lance(g) {
+    stroke(g, (g) => { g.moveTo(12, 54); g.lineTo(44, 22); }, '#e8d2a8', 5);
+    glyph(g, (g) => { g.moveTo(56, 8); g.lineTo(50, 28); g.lineTo(44, 22); g.lineTo(36, 14); g.closePath(); }, '#eef6ff');
+    glyph(g, (g) => { g.moveTo(34, 26); g.lineTo(40, 32); g.lineTo(30, 36); g.lineTo(28, 30); g.closePath(); }, '#9ac8ff', 4);
+  },
+  chain(g) {
+    glyph(g, (g) => { g.moveTo(14, 10); g.lineTo(28, 26); g.lineTo(22, 28); g.lineTo(36, 42); g.lineTo(30, 44); g.lineTo(50, 58); g.lineTo(40, 40); g.lineTo(46, 38); g.lineTo(32, 24); g.lineTo(38, 22); g.closePath(); }, '#fff6c0');
+    for (const [x, y] of [[14, 10], [36, 42], [50, 58]]) glyph(g, (g) => g.arc(x, y, 4, 0, Math.PI * 2), '#ffe24a', 3);
+  },
+  crystal(g) {
+    glyph(g, (g) => { g.moveTo(32, 6); g.lineTo(44, 24); g.lineTo(38, 56); g.lineTo(26, 56); g.lineTo(20, 24); g.closePath(); }, '#e8fbff');
+    glyph(g, (g) => { g.moveTo(14, 30); g.lineTo(20, 38); g.lineTo(18, 54); g.lineTo(10, 46); g.closePath(); }, '#bfeeff', 4);
+    glyph(g, (g) => { g.moveTo(50, 30); g.lineTo(54, 46); g.lineTo(46, 54); g.lineTo(44, 38); g.closePath(); }, '#bfeeff', 4);
+  },
+  comet(g) {
+    stroke(g, (g) => { g.moveTo(8, 8); g.lineTo(34, 34); g.moveTo(8, 22); g.lineTo(28, 40); g.moveTo(22, 8); g.lineTo(40, 28); }, '#e8d8ff', 4);
+    glyph(g, (g) => star(g, 40, 40, 17, 7), '#ffffff');
+  },
+  hawk(g) {
+    glyph(g, (g) => { g.moveTo(32, 22); g.bezierCurveTo(22, 10, 8, 12, 4, 20); g.bezierCurveTo(14, 20, 20, 26, 24, 32); g.lineTo(28, 46); g.lineTo(32, 56); g.lineTo(36, 46); g.lineTo(40, 32); g.bezierCurveTo(44, 26, 50, 20, 60, 20); g.bezierCurveTo(56, 12, 42, 10, 32, 22); }, '#f0fff4');
+    glyph(g, (g) => g.arc(32, 26, 4, 0, Math.PI * 2), '#ffd27a', 3);
+  },
+  bomb(g) {
+    glyph(g, (g) => g.arc(28, 38, 17, 0, Math.PI * 2), '#5a4a3a');
+    stroke(g, (g) => { g.moveTo(38, 24); g.quadraticCurveTo(46, 12, 54, 14); }, '#e8d2a8', 3);
+    glyph(g, (g) => star(g, 54, 12, 8, 3, 6), '#ffd27a', 3);
+    glyph(g, (g) => g.arc(22, 32, 4, 0, Math.PI * 2), '#ffffff', 2);
+  },
+  fan(g) {
+    for (let i = -3; i <= 3; i++) { const a = -Math.PI / 2 + i * 0.28; stroke(g, (g) => { g.moveTo(32, 56); g.lineTo(32 + Math.cos(a) * 46, 56 + Math.sin(a) * 46); }, i % 2 ? '#ffd27a' : '#ffffff', 3); }
+    glyph(g, (g) => g.arc(32, 56, 6, 0, Math.PI * 2), '#ffd27a', 3);
+  },
+  heart(g) {
+    glyph(g, (g) => { g.moveTo(32, 56); g.bezierCurveTo(4, 36, 8, 10, 24, 12); g.bezierCurveTo(30, 13, 32, 18, 32, 20); g.bezierCurveTo(32, 18, 34, 13, 40, 12); g.bezierCurveTo(56, 10, 60, 36, 32, 56); }, '#ffffff');
+    stroke(g, (g) => { g.moveTo(32, 24); g.lineTo(32, 44); g.moveTo(22, 34); g.lineTo(42, 34); }, '#4ae07a', 4);
+  },
+  barrier(g) {
+    glyph(g, (g) => { g.moveTo(6, 52); g.bezierCurveTo(6, 14, 58, 14, 58, 52); g.closePath(); }, 'rgba(255,248,210,0.9)');
+    stroke(g, (g) => { g.moveTo(32, 18); g.lineTo(32, 52); g.moveTo(14, 30); g.lineTo(50, 30); g.moveTo(10, 42); g.lineTo(54, 42); }, '#e8c050', 2.5);
+  },
+  spears(g) {
+    for (const [x, y] of [[18, 12], [32, 4], [46, 12]]) {
+      stroke(g, (g) => { g.moveTo(x, y); g.lineTo(x, y + 36); }, '#fff6c8', 3.5);
+      glyph(g, (g) => { g.moveTo(x - 5, y + 34); g.lineTo(x + 5, y + 34); g.lineTo(x, y + 48); g.closePath(); }, '#ffffff', 3);
+    }
+    stroke(g, (g) => g.ellipse(32, 56, 22, 5, 0, 0, Math.PI * 2), '#ffd27a', 2.5);
+  },
+  angel(g) {
+    glyph(g, (g) => { g.moveTo(30, 30); g.bezierCurveTo(16, 8, 4, 16, 4, 30); g.bezierCurveTo(10, 28, 14, 34, 18, 40); g.bezierCurveTo(22, 40, 26, 38, 30, 36); }, '#fff6dc');
+    glyph(g, (g) => { g.moveTo(34, 30); g.bezierCurveTo(48, 8, 60, 16, 60, 30); g.bezierCurveTo(54, 28, 50, 34, 46, 40); g.bezierCurveTo(42, 40, 38, 38, 34, 36); }, '#fff6dc');
+    glyph(g, (g) => { g.moveTo(32, 22); g.lineTo(38, 56); g.lineTo(26, 56); g.closePath(); }, '#ffffff');
+    glyph(g, (g) => g.arc(32, 20, 5, 0, Math.PI * 2), '#ffffff', 3);
+    stroke(g, (g) => g.ellipse(32, 10, 10, 3, 0, 0, Math.PI * 2), '#ffd27a', 2.5);
+  },
 };
 
 /* ---------- v0.17: ไอคอนแบบภาพพิกเซล 32×32 (ขยาย 2 เท่าแบบ nearest) ---------- */

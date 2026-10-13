@@ -1460,3 +1460,7 @@ export class SkillFX {
     return 3.6;
   }
 }
+
+// v0.31: เอฟเฟกต์สกิลอาชีพขั้นที่ 2
+import { installJob2FX } from './Job2FX.js';
+installJob2FX(SkillFX.prototype, { Particles });

@@ -1,9 +1,10 @@
+import { jobTier } from '../data/progression.js';
 // ระบบสะสมและเป้าหมายระยะยาว (v0.18) — สมุดมอนสเตอร์ · ความสำเร็จ/ฉายา · อัลบั้มการ์ด · เช็กอินรายวัน
 // ข้อมูลอยู่ในเซฟตัวละคร (player.col) → ไม่ต้องตั้งค่าเซิร์ฟเวอร์เพิ่ม · โบนัสรวมอยู่ที่ player.colBonus (คิดรวมในค่าสถานะ)
 import { MONSTERS } from '../data/monsters.js';
 import { CARDS } from '../data/cards.js';
 import { ITEMS, itemMods, describeBonus } from '../data/items.js';
-import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, ACHIEVEMENTS, ACH_BY_ID, loginReward, LOGIN_DAYS } from '../data/collection.js';
+import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, ACHIEVEMENTS, ACH_BY_ID, ACH_COUNTED, MVP_CARDS, loginReward, LOGIN_DAYS } from '../data/collection.js';
 
 const SET_OF = (o) => Object.keys(o);
 const addTo = (out, o) => { for (const [k, v] of Object.entries(o || {})) out[k] = +(((out[k] || 0) + v).toFixed(4)); return out; };
@@ -88,12 +89,16 @@ export class Collection {
     const k = (t) => c.kills[t] || 0;
     return {
       lv: pl.baseLevel, jlv: pl.jobLevel, job: pl.jobId, kills: c.total, quests: c.quests, k,
+      tier: jobTier(pl.jobId), jlv1: jobTier(pl.jobId) === 2 ? pl.jobLv1 : pl.jobId !== 'novice' ? pl.jobLevel : 0,   // v0.31
       mvpKills: BOOK_ORDER.filter((t) => MONSTERS[t].mvp).reduce((a, t) => a + k(t), 0),
       bookAt: (n) => BOOK_ORDER.filter((t) => bookTier(t, k(t)) >= n).length,
       cards: c.cards.length, sets: this.setsDone().length,
       maps: pl.visited ? pl.visited.size : 1, zeny: pl.zeny,
       pets: Object.keys(pl.pets.owned).length, fashion: pl.fashion.owned.size, refine,
       checkins: c.ci.count, bestStreak: c.ci.best,
+      mvpCards: c.cards.filter((id) => MVP_CARDS.includes(id)).length,                     // v0.30
+      achDone: Object.keys(c.ach).filter(ACH_COUNTED).length,
+      bookMvp3: BOOK_ORDER.filter((t) => MONSTERS[t].mvp && bookTier(t, k(t)) >= 3).length,
     };
   }
 

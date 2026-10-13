@@ -7,8 +7,9 @@
 // v0.10: slots = ช่องการ์ด · type card = การ์ดมอนสเตอร์ (data/cards.js) · วัสดุตีบวก (data/refine.js)
 //        อุปกรณ์ที่ตีบวก/ใส่การ์ดแล้วใช้ "คีย์" แทน id เช่น 'iron_blade*7*card_barkwolf' (ดู itemKey ด้านล่าง)
 import { ENDGAME_ITEMS } from './endgameItems.js';
+import { parentJob } from './progression.js';
 import { BOX_ITEMS } from './fashionBoxes.js';
-import { CARD_ITEMS, CARDS } from './cards.js';
+import { CARD_ITEMS, CARDS, cardFits } from './cards.js';
 import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js';
 import { CONSUMABLES } from './consumables.js';
 import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH } from './affixes.js';
@@ -162,10 +163,11 @@ function variant(key) {
   const b = BASE[base];
   const rolled = roll ? decodeRoll(b, roll) : [];
   let v;
-  if (!b || b.type !== 'equip' || !rolled || (roll && !b.rolls) || cards.length > (b.slots || 0) || cards.some((c) => !CARDS[c] || CARDS[c].on !== b.slot) || itemKey(base, refine, cards, roll) !== key) v = undefined;
+  if (!b || b.type !== 'equip' || !rolled || (roll && !b.rolls) || cards.length > (b.slots || 0) || cards.some((c) => !cardFits(c, b.slot, true)) || itemKey(base, refine, cards, roll) !== key) v = undefined;
   else {
     const bonus = addBonus(addBonus(addBonus({ ...(b.bonus || {}) }, rollBonus(rolled)), refineBonus(b, refine)), {});
-    for (const c of cards) addBonus(bonus, CARDS[c].bonus);
+    const seen = {};   // v0.29: การ์ดใบเดียวกันเกินจำนวนซ้อนสูงสุด → ใบที่เกินไม่ให้ผล
+    for (const c of cards) { seen[c] = (seen[c] || 0) + 1; if (seen[c] <= (CARDS[c].maxStack || 9)) addBonus(bonus, CARDS[c].bonus); }
     v = { ...b, baseId: base, refine, cards, roll, rolled, bonus, baseBonus: b.bonus || {}, name: (refine ? `+${refine} ` : '') + b.name };
   }
   variants.set(key, v);
@@ -198,6 +200,7 @@ export const BONUS_LABEL = {
   // v0.25
   critDmgPct: 'CRIT DMG', castPct: 'Cast Time', delayPct: 'After-cast Delay', healPct: 'Heal Power', rangedPct: 'Ranged DMG', meleePct: 'Melee DMG',
   dmgReduce: 'ลดดาเมจรับ', lifesteal: 'ดูดเลือด', spDrain: 'ดูด SP', rangeTiles: 'ระยะยิง', atkFlat: 'ATK',
+  expPct: 'EXP ที่ได้รับ', dropPct: 'โอกาสดรอปไอเทม', spKill: 'ฟื้น SP เมื่อกำจัด',   // v0.29 การ์ด
 };
 const TRAIT = { beast: 'สัตว์', plant: 'พืช', insect: 'แมลง', formless: 'ไร้รูป', undead: 'อันเดด', demon: 'ปีศาจ', dragon: 'มังกร', neutral: 'ไร้ธาตุ', earth: 'ธาตุดิน', water: 'ธาตุน้ำ', fire: 'ธาตุไฟ', wind: 'ธาตุลม', holy: 'ธาตุศักดิ์สิทธิ์', shadow: 'ธาตุมืด', small: 'ขนาดเล็ก', medium: 'ขนาดกลาง', large: 'ขนาดใหญ่' };
 const PCT = new Set(['critDmgPct', 'healPct', 'rangedPct', 'meleePct', 'dmgReduce', 'lifesteal', 'spDrain']);
@@ -207,11 +210,14 @@ export function bonusText(k, v) {
   if (k === 'castPct' || k === 'delayPct') return `${BONUS_LABEL[k]} ${v >= 0 ? '−' + v : '+' + -v}%`;   // ค่าบวก = เร็วขึ้น
   if (k === 'rangeTiles') return `ระยะยิง ${sg(v)} ช่อง`;
   if (k.startsWith('vs_')) return `ดาเมจต่อ${TRAIT[k.slice(3)] || k.slice(3)} ${sg(v)}%`;
+  if (k.startsWith('red_')) return `ลดดาเมจจาก${TRAIT[k.slice(4)] || k.slice(4)} ${v}%`;
+  if (k === 'spKill') return `กำจัดมอน ฟื้น SP ${sg(v)}`;
+  if (k === 'dmgReduce' && v < 0) return `รับดาเมจเพิ่ม +${-v}%`;
   return `${BONUS_LABEL[k] || k} ${sg(v)}${k.endsWith('Pct') || PCT.has(k) ? '%' : ''}`;
 }
 
 // สวมใส่อาวุธ/อุปกรณ์นี้ได้ไหมตามอาชีพ
-export const canJobUse = (it, job) => !it.jobs || it.jobs.includes(job);
+export const canJobUse = (it, job) => !it.jobs || it.jobs.includes(job) || it.jobs.includes(parentJob(job));   // v0.31: อาชีพขั้น 2 ใช้ของอาชีพขั้น 1 ได้
 export const weaponTypeName = (it) => FORM_TH[it.form || it.wtype] || OFFHAND_FORM_TH[it.offhand] || '';
 
 export function describeBonus(bonus = {}) {

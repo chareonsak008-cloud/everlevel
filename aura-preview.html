@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Everlevel · ออร่าระเบิดกระจาย</title>
+<style>
+:root{--navy:#0e1836;--navy2:#16244d;--navy3:#1f3268;--ink:#070d22;--brass:#d8b45c;--brass2:#f3dc95;--brassD:#8a6a2a;--cream:#f5ecd2;--mute:#a9b8dc;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--cream);font-family:'Kanit','Noto Sans Thai',system-ui,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:18px 16px 28px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+header small{letter-spacing:.14em;color:var(--brass);font-size:11px}
+h1{margin:2px 0 0;font:700 26px Cinzel,Georgia,serif;color:var(--brass2);letter-spacing:.03em}
+header p{margin:0;color:var(--mute);font-size:13px;max-width:520px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.frame{position:relative;background:linear-gradient(180deg,var(--navy3),var(--navy) 55%,var(--ink));border:2px solid var(--brass);border-radius:10px;box-shadow:0 0 0 2px var(--ink),0 0 0 3px var(--brassD),0 10px 26px #0008}
+.frame::before,.frame::after{content:"";position:absolute;width:10px;height:10px;background:var(--brass2);transform:rotate(45deg);box-shadow:0 0 6px #f3dc95aa;z-index:2}
+.frame::before{left:-6px;top:-6px}.frame::after{right:-6px;bottom:-6px}
+#stage{height:min(68vh,620px);min-height:340px;overflow:hidden;cursor:grab;touch-action:none;padding:0}
+#stage canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+.hint{position:absolute;left:12px;bottom:10px;font-size:12px;color:#fff;text-shadow:0 1px 2px #000;pointer-events:none;opacity:.85}
+.side{display:flex;flex-direction:column;gap:12px}
+.card{padding:12px}
+.card h2{margin:0 0 8px;font:600 13px 'Kanit',sans-serif;color:var(--brass2);letter-spacing:.06em}
+#auras{display:flex;flex-direction:column;gap:6px}
+#auras button{display:grid;grid-template-columns:12px 1fr;column-gap:8px;align-items:center;text-align:left;padding:8px 10px}
+#auras button i{width:12px;height:12px;border-radius:50%;grid-row:span 2;box-shadow:0 0 8px currentColor}
+#auras button b{font-weight:500;font-size:14px}
+#auras button small{grid-column:2;color:var(--mute);font-size:11px}
+button{font:inherit;color:var(--cream);background:radial-gradient(circle at 50% 30%,var(--navy3),var(--ink));border:1px solid #d8b45c77;border-radius:8px;padding:6px 11px;cursor:pointer}
+button:hover{border-color:var(--brass2)}
+button[aria-pressed=true]{border-color:var(--brass2);background:linear-gradient(180deg,#2c4590,#16244d);color:var(--brass2);box-shadow:0 0 0 1px var(--brass2) inset}
+button:focus-visible{outline:2px solid var(--brass2);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.info{padding:12px 14px}
+.info .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#name{margin:0;font:600 20px 'Kanit',sans-serif}
+#rar{font:700 11px 'Kanit',sans-serif;border:1px solid;border-radius:10px;padding:1px 8px;letter-spacing:.06em}
+#en{color:var(--mute);font-size:12px}
+#desc{margin:6px 0 0;font-size:13.5px;line-height:1.6;color:#d6def2}
+.note{font-size:12px;color:var(--mute);line-height:1.6;margin:0}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div><small>EVERLEVEL · FASHION PREVIEW</small><h1>ออร่าระเบิดกระจาย</h1></div>
+    <p>ตัวอย่างใช้โมเดล สไปรต์พิกเซล และระบบอนุภาคชุดเดียวกับในเกม — ออร่าทุกแบบชาร์จพลังแล้วระเบิดเป็นจังหวะ</p>
+  </header>
+  <div class="grid">
+    <div>
+      <div id="stage" class="frame"><span class="hint">ลากเพื่อหมุนกล้อง</span></div>
+      <div class="frame info" style="margin-top:14px">
+        <div class="top"><h3 id="name">-</h3><span id="rar"></span><span id="en"></span></div>
+        <p id="desc"></p>
+      </div>
+    </div>
+    <div class="side">
+      <section class="frame card"><h2>ออร่าใหม่ 5 แบบ</h2><div id="auras"></div></section>
+      <section class="frame card"><h2>อาชีพ</h2><div id="jobs" class="row"></div></section>
+      <section class="frame card"><h2>พื้นหลัง</h2><div id="grounds" class="row"></div></section>
+      <section class="frame card"><h2>ท่าทาง / กล้อง</h2><div class="row"><button type="button" id="walk" aria-pressed="false">เดินวน</button><button type="button" id="orbit" aria-pressed="true">หมุนกล้องอัตโนมัติ</button></div></section>
+      <section class="frame card"><h2>เทียบกับออร่าระดับสูงเดิม</h2><div id="olds" class="row"></div></section>
+      <p class="note">ยังไม่ได้ใส่ลงไฟล์เกม — ถ้าชอบแบบไหนหรืออยากปรับสี/ความแรง บอกได้เลย แล้วค่อยอัปเดตไฟล์</p>
+    </div>
+  </div>
+</main>
+<script src="vendor/three.min.js"></script>
+<script type="module" src="js/auraPreview.js"></script>
+</body>
+</html>

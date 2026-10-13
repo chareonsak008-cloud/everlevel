@@ -1,3 +1,4 @@
+import { MONSTERS } from '../data/monsters.js';
 import { eventRate, localBossRuns, WORLD_BOSSES, weekKey } from '../data/events.js';
 import { TILE } from '../config.js';
 export class EventService {
@@ -47,6 +48,7 @@ export class EventService {
   // Bounded save metadata; each completed run counts once even after reconnect.
   for(const k of Object.keys(q.worldRuns))if(q.worldRuns[k]!==key)delete q.worldRuns[k];
   if(q.worldRuns[id])return;q.worldRuns[id]=key;
+  { const t=String(id).split(':')[0], col=this.g.collection; if(col&&col.c&&MONSTERS[t]){ col.c.kills[t]=(col.c.kills[t]||0)+1; col.evalT=1; } }   // v0.30: ฉายาบอสโลก
   if(this.online)void this.g.mailbox?.refresh?.();
   if(q.active.w_world&&q.active.w_world.at<=Date.parse(at))this.g.questEvents(this.g.questLog.onWorldBoss());this.g.dirty=true;void this.g.saveNow(false);
  }
