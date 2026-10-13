@@ -548,6 +548,35 @@ function accessory(g, d, P) {
   else { shape(g, [[24, 26], [40, 26], [36, 31], [28, 31]], P.gold, 1.5); gem(g, 32, 21, 4 + r * 0.6, c, r >= 3 ? 'diamond' : 'round'); if (r >= 3) for (const s of [-1, 1]) gem(g, 32 + s * 8, 25, 1.8, P.glow); }
 }
 
+// ================= ซองลูกธนู (มือรองสายธนู) =================
+function quiver(g, d, P) {
+  const r = d.rank, sh = d.shape;
+  g.save(); g.translate(32, 34); g.rotate(0.55);
+  // ลูกธนูโผล่ด้านบน
+  const fc = [P.glow, '#ffffff', shadeHex(P.glow, -0.2), '#ffe8c0'];
+  for (let i = 0; i < 4 + Math.min(2, r); i++) {
+    const x = -7 + i * 3.4, top = -27 - (i % 2) * 3;
+    line(g, [[x, -12], [x, top]], LINE, 2.6); line(g, [[x, -12], [x, top]], '#c8a878', 1.2);
+    shape(g, [[x, top - 1], [x - 2.6, top + 6], [x, top + 4], [x + 2.6, top + 6]], fc[i % 4], 1);
+  }
+  // ตัวซอง
+  const body = sh === 'crystal' ? ['#ffffff', P.c1, shadeHex(P.c1, -0.3)] : sh === 'blood' ? [shadeHex(P.c2, 0.3), P.c2, '#100810'] : [shadeHex(P.c1, 0.3), P.c1, shadeHex(P.c1, -0.4)];
+  draw(g, (g) => { g.moveTo(-10, -14); g.lineTo(10, -14); g.lineTo(8, 24); g.quadraticCurveTo(0, 29, -8, 24); g.closePath(); }, lg(g, -10, 0, 10, 0, body), 2.2);
+  draw(g, (g) => g.rect(-11, -16, 22, 5), r >= 2 ? P.gold : shadeHex(P.c2, 0.2), 1.6);
+  for (const y of [2, 16]) draw(g, (g) => g.rect(-9.5, y, 19, 3), shadeHex(P.c2, 0.15), 1.3);
+  if (sh === 'feather') for (const [x, y] of [[-4, 8], [3, 6]]) draw(g, (g) => g.ellipse(x, y, 2, 4.5, 0.3, 0, TAU), '#e8f4d8', 1);
+  if (sh === 'ember') line(g, [[-3, -8], [1, 0], [-2, 8], [2, 18]], P.glow, 1.6);
+  if (sh === 'rune' || sh === 'moon') { draw(g, circ(0, 7, 4.2), P.gold, 1.3); star(g, 0, 7, 3, P.glow, sh === 'moon' ? 4 : 6, 0.4); }
+  if (sh === 'blood') { g.lineWidth = 1.6; g.strokeStyle = P.glow; g.beginPath(); g.arc(0, 8, 4.5, 0.4, Math.PI * 1.6); g.stroke(); }
+  if (sh === 'crystal') line(g, [[-5, -10], [-5, 20]], 'rgba(255,255,255,0.7)', 1.6);
+  if (r >= 1) gem(g, 0, -13.5, 1.6 + r * 0.25, P.glow, r >= 4 ? 'diamond' : 'round');
+  // สายสะพาย
+  g.strokeStyle = LINE; g.lineWidth = 3.4; g.beginPath(); g.moveTo(10, -10); g.quadraticCurveTo(22, 4, 9, 22); g.stroke();
+  g.strokeStyle = shadeHex(P.c2, 0.3); g.lineWidth = 1.8; g.stroke();
+  if (r >= 4) { wing(g, -9, 0, -1, 9 + r, '#ffffff', P.gold, 3); }
+  g.restore();
+}
+
 const SPECIAL = new Set(['flower', 'bandana', 'lantern', 'brooch', 'clover']);
 const DIAG = { sword_1h: 1, sword_2h: 1, knife: 1, spear: 1, rod: 1, staff: 1, mace: 1, scepter: 1, shortbow: 1, longbow: 1, crossbow: 1 };
 
@@ -570,8 +599,9 @@ export function drawEquipmentIcon(g, id, item, fallback) {
   }, f === 'longbow' ? 1.05 : f === 'crossbow' ? 1.1 : 1.16);
   else {
     g.save(); g.translate(32, 33); g.scale(1.06, 1.06); g.translate(-32, -33);
-    if (f === 'orb') orb(g, d, P);
-    else if (f === 'book') book(g, d, P);
+    if (f === 'orb' || f === 'orbOff') orb(g, d, P);
+    else if (f === 'book' || f === 'tome') book(g, d, P);
+    else if (f === 'quiver') quiver(g, d, P);
     else if (f === 'body') body(g, d, P);
     else if (f === 'head') helm(g, d, P);
     else if (f === 'garment') cape(g, d, P);

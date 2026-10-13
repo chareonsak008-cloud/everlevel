@@ -6,6 +6,7 @@
 import { ENDGAME_MONSTERS } from './endgameMonsters.js';
 import { BASE_ITEMS } from './items.js';
 import { WEAPON_DEFS } from './weapons.js';
+import { OFFHAND_DROPS } from './offhand.js';
 export const MONSTERS = {
   ...ENDGAME_MONSTERS,
   bloblet: {
@@ -159,3 +160,4 @@ MONSTERS.capling.drops.push(['hunter_bow', .06], ['chapel_mace', .05]);
 
 // v0.25: อาวุธใหม่ 48 ชิ้น — ดรอปตามตาราง drop ใน data/weapons.js
 for (const d of WEAPON_DEFS) for (const x of d.drop) if (MONSTERS[x.monster]) MONSTERS[x.monster].drops.push([d.id, x.rate]);
+for (const [mob, id, rate] of OFFHAND_DROPS) if (MONSTERS[mob]) MONSTERS[mob].drops.push([id, rate]);   // v0.25.2

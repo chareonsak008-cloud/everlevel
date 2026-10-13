@@ -299,7 +299,7 @@ export class PixelSprites {
       if (o.userData.outline) { if (o.visible) { o.visible = false; s.hidden.push(o); } return; }
       if (!o.isMesh || !o.material || Array.isArray(o.material)) return;
       const m = o.material;
-      if (o === s.face || (m.map && m.map.isTexture && o.userData.keep)) { if (o.visible) { o.visible = false; s.hidden.push(o); } return; }   // ใบหน้าเดิม → วาดตาเป็นพิกเซลแทน
+      if (o === s.face || (s.view && o === s.view.face)) { if (o.visible) { o.visible = false; s.hidden.push(o); } return; }   // v0.25.2: ซ่อนเฉพาะลายหน้า (เดิมซ่อนชิ้นแฟชั่นที่มีเท็กซ์เจอร์ทั้งหมด → ปีก/วงเวทย์หาย)   // ใบหน้าเดิม → วาดตาเป็นพิกเซลแทน
       if (m.transparent && m.map) return;                          // เงาวงกลม/ภาพเรือง → คงเป็น 3D
       if (m.blending === THREE.AdditiveBlending || m.isShaderMaterial || m.isPointsMaterial) return;
       if (m.transparent && (m.opacity ?? 1) < 0.45) return;

@@ -161,6 +161,7 @@ export class Player extends Entity {
       if (it && it.visual) Object.assign(L, it.visual);
       if (it?.type === 'equip') L.equipment[sl.id] = equipmentDesign(this.equip[sl.id], it);
     }
+    if (L.equipment.shield && L.equipment.shield.form === 'quiver') L.accessory = 'none';   // v0.25.2: ซองลูกธนูจริงแทนซองของชุดอาชีพ
     return L;
   }
 
@@ -552,9 +553,12 @@ export class Player extends Entity {
       if (keep) this.inventory.add(gift, 1, true);
       else { if (cur) this.inventory.add(this.equip.weapon, 1, true); this.equip.weapon = gift; equippedGift = true; }
     }
+    // v0.25.2: ของมือรองเริ่มต้นตามอาชีพ (ซองลูกธนู / สมุดเวท / ลูกแก้วเวท)
+    const offGift = { archer: 'qv_a', acolyte: 'tm_a', mage: 'ob_a' }[job];
+    if (offGift && ITEMS[offGift]) { if (!this.equip.shield) this.equip.shield = offGift; else this.inventory.add(offGift, 1, true); }
     this.afterEquipChange();
     this.hp = this.maxHp; this.sp = this.maxSp;
-    return { removed, gift, equippedGift };
+    return { removed, gift, equippedGift, offGift };
   }
 
   toSave() {
@@ -621,6 +625,9 @@ export class Player extends Entity {
     if (Array.isArray(p.inventory)) { this.inventory.capacity = 999; this.inventory.fromSave(p.inventory); }
     this.updateBagCap();
     if (p.equip) for (const sl of EQUIP_SLOTS) this.equip[sl.id] = ITEMS[p.equip[sl.id]] ? p.equip[sl.id] : null;
+    // v0.25.2: โล่ใช้ได้เฉพาะสายดาบ — เซฟเก่าที่สวมโล่อยู่ (เช่นนักธนู) ย้ายกลับเข้ากระเป๋า
+    const off = this.equip.shield && ITEMS[this.equip.shield];
+    if (off && !canJobUse(off, this.jobId)) { this.inventory.add(this.equip.shield, 1, true); this.equip.shield = null; }
     this.zeny = Math.min(MAX_ZENY, int(p.zeny, START_ZENY));
     if (Array.isArray(p.hotbar)) this.hotbar = Array.from({ length: 9 }, (_, i) => (validHotkey(p.hotbar[i]) ? p.hotbar[i] : null));
     this.skills = { first_aid: 1 };

@@ -111,6 +111,26 @@ export function makeEquipmentModel(d){
    }
    if(r>=4)wings(0,0,.14);
   }
+  }else if(form==='quiver'){
+  // v0.25.2: ซองลูกธนูสะพายหลัง (แกน y = ตามแนวซอง)
+  const leather=toon(sh==='blood'?(d.c2||'#2a1424'):mainHex);
+  cyl(.065,.055,.4,leather,0,0,0,8);
+  for(const y of [.17,-.05])add(new THREE.TorusGeometry(.066,.01,4,10),r>=2?gold:dark,0,y,0).rotation.x=Math.PI/2;
+  const fm=toon(d.glow||'#ffffff');
+  for(let i=0;i<4+Math.min(2,r);i++){const a=i/5*Math.PI*2,x=Math.cos(a)*.03,z=Math.sin(a)*.03;cyl(.006,.006,.22,toon('#c8a878'),x,.3,z,4);const f=box(.04,.06,.004,fm,x,.39,z);f.rotation.y=a;}
+  if(r>=1)stone(.025+r*.003,0,.05,.065);
+  if(sh==='ember'||sh==='blood'||sh==='moon'||sh==='rune')add(new THREE.TorusGeometry(.03,.006,4,10),glowM,0,-.05,.064);
+  }else if(form==='tome'){
+  const cover=toon(sh==='codex'?'#4a6a3a':sh==='tome'?'#2a3a6a':sh==='grimoire'?(r>=6?'#5a1424':'#e8c060'):(d.c1||'#8a5a32'));
+  box(.17,.22,.055,cover,0,0,0);box(.155,.205,.045,toon('#f4ead2'),.012,0,0);box(.03,.22,.058,gold,-.075,0,0);
+  add(new THREE.OctahedronGeometry(.032),gem,0,0,.032);
+  if(r>=3)for(const s2 of [-1,1])box(.02,.02,.06,gold,.07,s2*.095,0);
+  if(r>=4||sh==='grimoire')wings(0,-.01,.1);
+  }else if(form==='orbOff'){
+  add(new THREE.SphereGeometry(.09+r*.005,10,8),toon(sh==='galaxy'?'#2a1a5a':sh==='sandstorm'?'#e8c88a':mainHex,{emissive:d.glow||gemHex,emissiveIntensity:.55}),0,0,0);
+  const rr=add(new THREE.TorusGeometry(.14,.007,4,18),gold,0,0,0);rr.rotation.x=1.2;
+  if(r>=3){const r2=add(new THREE.TorusGeometry(.17,.006,4,18),glowM,0,0,0);r2.rotation.set(.4,.9,0);}
+  if(sh==='wisp')for(let i=0;i<3;i++){const a=i/3*Math.PI*2;add(new THREE.SphereGeometry(.022,5,4),glowM,Math.cos(a)*.16,Math.sin(a)*.03,Math.sin(a)*.16);}
   }else if(type==='body'){
   const torso=add(new THREE.CylinderGeometry(.19,.215,.43,6+v*2),b<2?cloth:metal,0,.16,0);torso.scale.z=.84;
   box(.31,.10,.035,dark,0,.07,.168);
@@ -185,7 +205,13 @@ export function mountEquipment(view,designs){
     if(grip==='book'){g.rotation.set(0,0,0);g.position.set(0,-.06,.02);}
    }
    view.wMount=M;view.grip=grip;
-  }else if(slot==='shield'){view.armInner[1].add(g);g.position.set(.07,-.25,.03);g.rotation.y=Math.PI/2-.25;}
+  }else if(slot==='shield'&&d.form==='quiver'){view.torso.add(g);g.position.set(.1,.24,-.2);g.rotation.set(.25,0,-.55);}
+  else if(slot==='shield'&&(d.form==='tome'||d.form==='orbOff')){
+   // v0.25.2: สมุดเวท/ลูกแก้วเวทลอยข้างไหล่ซ้าย ขยับขึ้นลงช้า ๆ (อนิเมชันใน Characters.update)
+   view.torso.add(g);const base=d.form==='tome'?[.36,.42,.06]:[.34,.28,.14];g.position.set(...base);
+   (view.floaters||(view.floaters=[])).push({g,base,spin:d.form==='orbOff'?1.2:.35,ph:Math.random()*6});
+  }
+  else if(slot==='shield'){view.armInner[1].add(g);g.position.set(.07,-.25,.03);g.rotation.y=Math.PI/2-.25;}
   else if(slot==='head')view.head.add(g);
   else if(slot==='shoes'){view.legInner[0].add(g);const other=makeEquipmentModel(d);view.legInner[1].add(other);models.push(other);}
   else if(slot==='garment'){view.torso.add(g);g.position.set(0,.38,-.06);view.cape=g;}

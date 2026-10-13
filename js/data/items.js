@@ -11,13 +11,14 @@ import { BOX_ITEMS } from './fashionBoxes.js';
 import { CARD_ITEMS, CARDS } from './cards.js';
 import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js';
 import { CONSUMABLES } from './consumables.js';
-import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH } from './affixes.js';   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
+import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH } from './affixes.js';
+import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
 
 export const EQUIP_SLOTS = [
   { id: 'head', name: 'หัว' },
   { id: 'body', name: 'ชุด' },
   { id: 'weapon', name: 'อาวุธ' },
-  { id: 'shield', name: 'โล่' },
+  { id: 'shield', name: 'มือรอง' },
   { id: 'garment', name: 'ผ้าคลุม' },
   { id: 'shoes', name: 'รองเท้า' },
   { id: 'accessory', name: 'เครื่องประดับ' },
@@ -120,6 +121,7 @@ const BASE = {
   /* ---------- กล่องแฟชั่นสุ่ม (v0.9) ---------- */
   ...ENDGAME_ITEMS,
   ...WEAPON_ITEMS,
+  ...OFFHAND_ITEMS,
   ...BOX_ITEMS,
 
   /* ---------- การ์ด + วัสดุตีบวก (v0.10) ---------- */
@@ -131,6 +133,8 @@ const BASE = {
 /* ---------- อุปกรณ์ตีบวก/ใส่การ์ด (v0.10) ----------
    คีย์ = 'base*ระดับตีบวก*การ์ด1,การ์ด2' (ไม่มีการตีบวกหรือการ์ด = id เดิม) — เก็บในกระเป๋า/คลัง/ช่องสวมใส่ได้เหมือนไอเทมปกติ
    ITEMS[คีย์] คืนข้อมูลไอเทมที่รวมชื่อ (+7 ...) และโบนัส (ฐาน + ตีบวก + การ์ด) ไว้แล้ว โค้ดเดิมทั้งหมดใช้ได้ทันที */
+// v0.25.2: โล่ใช้ได้เฉพาะสายดาบ (และเด็กฝึกหัด) — สายอื่นใช้ของมือรองของตัวเอง
+for (const it of Object.values(BASE)) if (it.slot === 'shield' && !it.offhand && !it.jobs) it.jobs = ['novice', 'swordsman'];
 export const BASE_ITEMS = BASE;
 
 export function splitKey(key) {
@@ -208,7 +212,7 @@ export function bonusText(k, v) {
 
 // สวมใส่อาวุธ/อุปกรณ์นี้ได้ไหมตามอาชีพ
 export const canJobUse = (it, job) => !it.jobs || it.jobs.includes(job);
-export const weaponTypeName = (it) => FORM_TH[it.form || it.wtype] || '';
+export const weaponTypeName = (it) => FORM_TH[it.form || it.wtype] || OFFHAND_FORM_TH[it.offhand] || '';
 
 export function describeBonus(bonus = {}) {
   return Object.entries(bonus).filter(([, v]) => v).map(([k, v]) => bonusText(k, v)).join(' · ');

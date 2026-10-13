@@ -1,5 +1,6 @@
 // v0.25.0: สเตตัสรอง (ค่าสุ่ม) · ธาตุ/เผ่า/ขนาดมอนสเตอร์ · แปลงอาวุธจาก weapons.js เป็นไอเทมในเกม
 import { WEAPON_DEFS, WEAPON_FORMS } from './weapons.js';
+import { OFFHAND_BLOODMOON } from './offhand.js';
 
 // ชื่อสเตตัสในสเปก → คีย์โบนัสในเกม (scale = ตัวคูณตอนแปลง)
 export const STAT_DEF = {
@@ -64,6 +65,7 @@ const ICON = { sword_1h: 'sword', sword_2h: 'sword', spear: 'sword', rod: 'staff
 export const FORM_TH = { sword_1h: 'ดาบมือเดียว', sword_2h: 'ดาบสองมือ', spear: 'หอก', rod: 'คทา', staff: 'ไม้เท้า', orb: 'ออร์บ', mace: 'กระบอง', scepter: 'คทาศักดิ์สิทธิ์', book: 'หนังสือ', shortbow: 'ธนูสั้น', longbow: 'ธนูยาว', crossbow: 'หน้าไม้', knife: 'มีด', sword: 'ดาบ', bow: 'ธนู' };
 const TIERMUL = { common: 1, uncommon: 1.15, rare: 1.35, epic: 1.6, legend: 1.8, mythic: 2, celestial: 2.5 };
 export const WEAPON_ITEMS = {};
+for (const d of WEAPON_DEFS) if (d.set && d.set.id === 'bloodmoon') for (const id of OFFHAND_BLOODMOON) if (!d.set.pieces.includes(id)) d.set.pieces.push(id);   // v0.25.2: ของมือรองจันทร์โลหิตนับเป็นชิ้นเซ็ต
 for (const d of WEAPON_DEFS) {
   const F = WEAPON_FORMS[d.type];
   const bonus = statsToBonus(d.fixed_stats, { atk: d.base.atk, ...(d.base.matk ? { matk: d.base.matk } : {}) });

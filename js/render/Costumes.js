@@ -1,3 +1,4 @@
+import { FASHION_BUILDERS } from './FashionCollection.js';
 // ชุดแฟชั่น (v0.9 preview): ปีก · ชุด · หมวก · หน้า · หลัง/หาง · อาวุธ · ออร่า · ผู้ติดตาม
 // ทุกชิ้นสร้างจากโค้ด (ไม่มีไฟล์โมเดล) แล้วติดเข้ากับโครงของ CharacterView
 // ใช้:  const look = costumeLook(baseLook, items);  const view = new CharacterView(look);
@@ -109,7 +110,8 @@ const cosmicTex = () => ctex('cosmic', 256, 256, (g, s) => {
 });
 const holoTex = (c = '#7ff8ff') => ctex('holo' + c, 256, 256, (g, s) => {
   g.fillStyle = 'rgba(0,0,0,0)'; g.clearRect(0, 0, s, s);
-  g.strokeStyle = c; g.globalAlpha = 0.35; g.lineWidth = 1.5;
+  g.fillStyle = c; g.globalAlpha = 0.22; g.fillRect(0, 0, s, s);   // v0.26: พื้นปีกจาง ๆ ให้เห็นบนพื้นสว่าง
+  g.strokeStyle = c; g.globalAlpha = 0.7; g.lineWidth = 2;
   for (let i = 0; i <= s; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, s); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(s, i); g.stroke(); }
   g.globalAlpha = 1; g.lineWidth = 10; g.strokeRect(0, 0, s, s);
   g.fillStyle = radial(g, s * 0.2, s * 0.8, s, [[0, 'rgba(255,255,255,0.35)'], [1, 'rgba(255,255,255,0)']]); g.fillRect(0, 0, s, s);
@@ -233,7 +235,7 @@ class Runtime {
   ps(kind, blending = THREE.AdditiveBlending, max = 400) {
     const key = kind + blending;
     if (!this.systems.has(key)) {
-      const p = new Particles(this.world, max, PTEX[kind](), blending);
+      const p = new Particles(this.world, Math.round(max * 1.8), PTEX[kind](), blending, { boost: 1.8, sizeBoost: 1.3 });   // v0.25.2: เอฟเฟกต์แฟชั่นเยอะขึ้นและใหญ่ขึ้น
       p.mat.uniforms.scale.value = this.scale;
       p.points.renderOrder = 6;
       this.systems.set(key, p);
@@ -344,7 +346,7 @@ function wingMembrane(rig, p, rt) {
 function wingShape(rig, p, rt) {
   const size = p.size || 1;
   const texFor = () => (p.tex === 'cosmic' ? cosmicTex() : p.tex === 'holo' ? holoTex(p.color) : p.tex === 'candy' ? candyTex(p.c1, p.c2) : butterflyTex(p.key, p.c1, p.c2, p.edge, p.dots));
-  const mat = unlit(p.tex === 'holo' ? p.color : '#ffffff', { map: texFor(), opacity: p.opacity ?? 0.95, add: p.tex === 'holo' });
+  const mat = unlit(p.tex === 'holo' ? '#ffffff' : '#ffffff', { map: texFor(), opacity: p.opacity ?? 0.95, add: false });   // v0.26: โฮโลแกรมใช้ผสมปกติ (แบบบวกแสงจางหายบนพื้นสว่าง)
   const glow = p.glowColor ? unlit(p.glowColor, { map: TX.softDot(), opacity: 0.5, add: true }) : null;
   const lobes = p.lobes || 'butterfly';
   for (const { s, pivot } of wingRoot(rig, rt, { spread: p.spread ?? 0.35, flap: p.flap ?? 2.6, speed: p.speed ?? 1.6 })) {
@@ -1176,7 +1178,17 @@ const WEAPON = {
 const NB = THREE.NormalBlending;
 function auraEmitter(rig, rt, rate, fn) {
   let acc = 0;
+  rate *= 1.5;   // v0.25.2: ออร่าถี่ขึ้น
   rt.on((c) => { acc += rate * c.dt; const base = rt.worldPos(rig.root); while (acc >= 1) { acc -= 1; fn(base, c); } });
+}
+// v0.25.2: ทุกออร่ามีแสงวงกลมที่พื้นเต้นเป็นจังหวะ (เห็นชัดขึ้นในโหมดพิกเซล)
+const AURA_TINT = { fire: '#ff8a2a', petals: '#ff9ad0', snow: '#bfeeff', stars: '#ffe08a', hearts: '#ff6a9a', notes: '#9ad8ff', bubbles: '#9ae8ff', sparks: '#7fc8ff', butterflies: '#d8a8ff', magicCircle: '#b48cff', leaves: '#ff9a3a', coins: '#ffd34d', shadow: '#9a5aff', pixels: '#7fffb0', fish: '#6ac8ff', fireworks: '#ff7ab8', sprinkles: '#ffb0e0', lightning: '#9ad8ff', inferno: '#ff5a1a', bloodRing: '#ff3a5a', constellation: '#9ab8ff', heavenLight: '#fff0a3' };
+function auraGround(rig, it, rt) {
+  const p = it.p || {}, c = p.color || (p.colors && p.colors[0]) || AURA_TINT[it.kind] || '#ffffff';
+  const ring = mesh(new THREE.RingGeometry(0.42, 0.78, 40), unlit(c, { opacity: 0.55, add: true }), rig.root, 0, 0.03, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false });
+  const core = mesh(new THREE.CircleGeometry(0.42, 32), unlit(c, { opacity: 0.22, add: true }), rig.root, 0, 0.028, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false });
+  ring.renderOrder = core.renderOrder = 2; ring.userData.noOutline = core.userData.noOutline = true;
+  rt.on(({ t }) => { const k = 0.5 + 0.5 * Math.sin(t * 2.4); ring.material.opacity = 0.35 + 0.3 * k; ring.scale.setScalar(0.95 + 0.08 * k); core.material.opacity = 0.14 + 0.12 * k; });
 }
 const ringPos = (base, r, y = 0.05) => { const a = Math.random() * Math.PI * 2, rr = r * (0.75 + Math.random() * 0.25); return V(base.x + Math.cos(a) * rr, base.y + y, base.z + Math.sin(a) * rr); };
 const discPos = (base, r, y0, y1) => { const a = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * r; return V(base.x + Math.cos(a) * rr, base.y + rand(y0, y1), base.z + Math.sin(a) * rr); };
@@ -3088,6 +3100,9 @@ Object.assign(PET, {
 });
 
 Object.assign(PET, COSTUME_PETS);
+HEAD.fashion24 = FASHION_BUILDERS.head;
+BACK.fashion24 = FASHION_BUILDERS.back;
+WING_BUILDERS.fashion24 = FASHION_BUILDERS.back;
 
 /* ================= API ================= */
 export const SLOT_INFO = {
@@ -3098,11 +3113,16 @@ const BUILD = {
   wings: (rig, it, rt, L) => WING_BUILDERS[it.kind](rig, it.p || {}, rt, L),
   head: (rig, it, rt, L) => HEAD[it.kind](rig, it.p || {}, rt, L),
   face: (rig, it, rt, L) => FACE[it.kind](rig, it.p || {}, rt, L),
-  back: (rig, it, rt, L) => BACK[it.kind](rig, it.p || {}, rt, L),
+  back: (rig, it, rt, L) => {   // v0.26: ของประดับหลังชิ้นเล็ก (ตุ๊กตา กระเป๋า) ถูกตัวบังจนมองไม่เห็นจากด้านหน้า → ขยายและยกให้โผล่พ้นไหล่
+    const g = new THREE.Group(); rig.torso.add(g);
+    BACK[it.kind]({ ...rig, torso: g }, it.p || {}, rt, L);
+    const box = new THREE.Box3().setFromObject(g), sz = box.getSize(new THREE.Vector3());
+    if (!/tail|cape|ring|halo|wing|mandorla|orbs|sword|scarf|parasol|fashion24/i.test(it.kind) && Math.max(sz.x, sz.y) < 0.8 && !box.isEmpty()) { g.scale.setScalar(1.5); g.position.set(0.1, 0.2, -0.06); g.rotation.z = -0.25; }
+  },
   weapon: (rig, it, rt, L) => WEAPON[it.kind](rig, it.p || {}, rt, L),
-  aura: (rig, it, rt, L) => AURA[it.kind](rig, it.p || {}, rt, L),
+  aura: (rig, it, rt, L) => { AURA[it.kind](rig, it.p || {}, rt, L); auraGround(rig, it, rt); },
   pet: (rig, it, rt, L) => PET[it.kind](rig, it.p || {}, rt, L),
-  outfit: (rig, it, rt, L) => outfitParts(rig, it.p || {}, rt, L),
+  outfit: (rig, it, rt, L) => it.kind === 'fashion24' ? FASHION_BUILDERS.outfit(rig, it.p || {}, rt, L) : outfitParts(rig, it.p || {}, rt, L),
 };
 const DICT = { wings: WING_BUILDERS, head: HEAD, face: FACE, back: BACK, weapon: WEAPON, aura: AURA, pet: PET };
 export const hasBuilder = (it) => it.slot === 'outfit' || !!(DICT[it.slot] && DICT[it.slot][it.kind]);

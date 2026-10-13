@@ -454,10 +454,10 @@ export class CharacterView {
     this.root.add(blob);
   }
 
-  attack(kind = 'melee') { this.attackT = 0.34; this.attackKind = kind; }
+  attack(kind = 'melee') { this.drawn = this.time - (this.lastAttackAt ?? -9) < 1.2; this.attackT = 0.34; this.attackKind = kind; this.lastAttackAt = this.time; }
 
   // v0.25.1: ท่าถืออาวุธตามประเภท — p = ความคืบหน้าท่าโจมตี (0..1) หรือ −1 เมื่อไม่ได้โจมตี
-  gripPose(p, casting, wb, swing) {
+  gripPose(p, casting, wb, swing, dt = 1 / 60) {
     const [R, Lf] = this.arms, M = this.wMount, g = this.grip, t = this.time;
     const ease = (x) => 1 - (1 - x) * (1 - x), lerp = (a, b, k) => a + (b - a) * k;
     const sw = swing * 0.35;   // แขนแกว่งน้อยลงเมื่อถืออาวุธ
@@ -508,22 +508,37 @@ export class CharacterView {
     } else if (g === 'bow') {
       // มือซ้ายถือคันธนู · มือขวาถือลูกศร → ง้างยิง
       Lf.rotation.x = -0.35 - sw * 0.3; Lf.rotation.z = 0.12; R.rotation.x = -0.2 - sw; R.rotation.z = -0.18;
+      M.rotation.x = 0.3;   // ยืน: คันธนูตั้งตรงข้างตัว
+      const aiming = p < 0 && this.time - (this.lastAttackAt ?? -9) < 1.2;
+      if (aiming) { Lf.rotation.x = -1.45; Lf.rotation.z = -0.02; R.rotation.x = -1.3; R.rotation.z = 0.5; M.rotation.x = 0; this.torso.rotation.y = -0.42; }
       if (p >= 0) {
-        const up = ease(Math.min(1, p / 0.35)), rel = p > 0.72 ? (p - 0.72) / 0.28 : 0;
+        M.rotation.x = 0;
+        const up = this.drawn ? 1 : ease(Math.min(1, p / 0.35)), rel = p > 0.72 ? (p - 0.72) / 0.28 : 0;   // ยิงต่อเนื่อง: ค้างท่าง้าง ไม่ลดคันลงทุกดอก
         Lf.rotation.x = lerp(-0.35, -1.52, up); Lf.rotation.z = lerp(0.12, -0.05, up);
         R.rotation.x = lerp(-0.2, -1.42, up); R.rotation.z = lerp(-0.18, 0.62, up) - 0.35 * rel;
         this.torso.rotation.y = -0.5 * up * (1 - rel * 0.5);
         if (this.arrow) this.arrow.visible = rel === 0;
       }
-      if (this.wInner && this.bowQ) { const k = p >= 0 ? ease(Math.min(1, p / 0.35)) : 0; this.wInner.quaternion.identity().slerp(this.bowQ, k); }
+      if (this.wInner && this.bowQ) {
+        const want = p >= 0 ? (this.drawn ? 1 : ease(Math.min(1, p / 0.35))) : aiming ? 1 : 0;
+        this.bowK = (this.bowK ?? want) + (want - (this.bowK ?? want)) * (1 - Math.exp(-dt * (p >= 0 ? 30 : 10)));
+        this.wInner.quaternion.identity().slerp(this.bowQ, this.bowK);
+      }
     } else if (g === 'xbow') {
       R.rotation.x = -0.62 - sw * 0.3; R.rotation.z = 0.12; M.rotation.x = 0.62 + sw * 0.3; Lf.rotation.x = -0.6 - sw * 0.3; Lf.rotation.z = -0.42;
+      if (p < 0 && this.time - (this.lastAttackAt ?? -9) < 1.2) { R.rotation.x = -1.35; M.rotation.x = 1.35; Lf.rotation.x = -1.3; this.torso.rotation.y = -0.15; }
       if (p >= 0) {
         const up = ease(Math.min(1, p / 0.3)), kick = p > 0.6 ? Math.sin((p - 0.6) / 0.4 * Math.PI) : 0;
         R.rotation.x = lerp(-0.62, -1.35, up) + 0.18 * kick; M.rotation.x = lerp(0.62, 1.35, up) - 0.1 * kick; Lf.rotation.x = lerp(-0.6, -1.3, up) + 0.15 * kick;
         this.torso.rotation.y = -0.15 * up;
       }
     }
+    // ทำให้ท่าเปลี่ยนนุ่มนวล: ไล่ค่าจากเฟรมก่อน (โจมตีไวกว่า ท่ายืน/เดินช้ากว่า)
+    const k = 1 - Math.exp(-dt * (p >= 0 ? 32 : 13)), S = this.gs || (this.gs = {});
+    const sm = (key, obj, prop) => { const v = obj[prop]; S[key] = S[key] === undefined ? v : S[key] + (v - S[key]) * k; obj[prop] = S[key]; };
+    sm('rx', R.rotation, 'x'); sm('rz', R.rotation, 'z'); sm('lx', Lf.rotation, 'x'); sm('lz', Lf.rotation, 'z');
+    sm('mx', M.rotation, 'x'); sm('my', M.rotation, 'y'); sm('mz', M.rotation, 'z'); sm('ty', this.torso.rotation, 'y');
+    sm('px', M.position, 'y'); sm('pz', M.position, 'z');
   }
   hurt() { this.hurtT = 0.25; }
 
@@ -595,7 +610,8 @@ export class CharacterView {
       this.torso.rotation.y = Math.sin(p * Math.PI) * 0.35;
       this.arms[1].rotation.x = 0.4 * Math.sin(p * Math.PI);
     } else this.torso.rotation.y *= 1 - damp(12, dt);
-    if (this.grip && this.wMount) this.gripPose(wasAtk ? 1 - this.attackT / 0.34 : -1, casting, wb, swing);
+    if (this.floaters) for (const f of this.floaters) { f.g.position.y = f.base[1] + Math.sin(this.time * 2 + f.ph) * 0.035; f.g.rotation.y = Math.sin(this.time * f.spin + f.ph) * 0.6; }   // v0.25.2: สมุด/ลูกแก้วลอย
+    if (this.grip && this.wMount) this.gripPose(wasAtk ? 1 - this.attackT / 0.34 : -1, casting, wb, swing, dt);
     // โดนตี: สั่น + หลับตาปี๋
     if (this.hurtT > 0) {
       this.hurtT = Math.max(0, this.hurtT - dt);

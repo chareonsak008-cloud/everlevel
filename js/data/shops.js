@@ -29,7 +29,7 @@ export const SHOPS = {
   },
   arms: {
     name: 'โรงตีเหล็กการ์ธ',
-    items: ['knife', 'cutter', 'trainee_blade', 'oak_staff', 'hunter_bow', 'chapel_mace', 'cotton_shirt', 'leather_vest', 'bandana', 'wooden_shield', 'sandals', 'refine_w', 'refine_a', 'refine_guard'],
+    items: ['knife', 'cutter', 'trainee_blade', 'oak_staff', 'hunter_bow', 'chapel_mace', 'cotton_shirt', 'leather_vest', 'bandana', 'wooden_shield', 'qv_a', 'tm_a', 'ob_a', 'sandals', 'refine_w', 'refine_a', 'refine_guard'],
   },
 };
 
