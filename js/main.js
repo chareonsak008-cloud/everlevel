@@ -18,6 +18,20 @@ function fatal(msg) {
   root.classList.add('ready');
 }
 
+// v0.31.1: อัปเดตเกมแล้วเบราว์เซอร์ยังจำไฟล์เก่าบางไฟล์ (แคช ~10 นาทีของ GitHub Pages) → ไฟล์เก่า/ใหม่ปนกันจนเริ่มเกมไม่ได้
+// เริ่มไม่สำเร็จครั้งแรก: โหลดไฟล์ .js/.css ของเกมใหม่จากเซิร์ฟเวอร์ (ข้ามแคช) แล้วรีเฟรชหน้า 1 ครั้ง
+async function healCache() {
+  try {
+    if (sessionStorage.getItem('everlevel.heal')) return false;
+    sessionStorage.setItem('everlevel.heal', '1');
+  } catch (e) { return false; }
+  const urls = [...new Set(performance.getEntriesByType('resource').map((e) => e.name)
+    .filter((u) => u.startsWith(location.origin) && /\.(js|css)(\?|$)/.test(u)))];
+  await Promise.all(urls.map((u) => fetch(u, { cache: 'reload' }).catch(() => null)));
+  location.reload();
+  return true;
+}
+
 function loadScript(src, ms = 15000) {
   return new Promise((resolve) => {
     const s = document.createElement('script');
@@ -73,5 +87,10 @@ if (!window.THREE) {
       void root.offsetWidth;
       return game.start(choice);
     })
-    .catch((err) => { console.error(err); fatal('เริ่มเกมไม่สำเร็จ: ' + (err && err.message ? err.message : err)); });
+    .then(() => { try { sessionStorage.removeItem('everlevel.heal'); } catch (e) { /* ไม่มีที่เก็บ */ } })
+    .catch(async (err) => {
+      console.error(err);
+      if (await healCache()) return;   // กำลังโหลดไฟล์ใหม่แล้วรีเฟรช
+      fatal('เริ่มเกมไม่สำเร็จ: ' + (err && err.message ? err.message : err) + ' — ลองกด Ctrl+Shift+R (มือถือ: ล้างแคชเบราว์เซอร์) แล้วเปิดใหม่');
+    });
 }
