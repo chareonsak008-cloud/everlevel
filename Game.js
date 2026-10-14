@@ -136,7 +136,7 @@ export class Game {
     if (window.ResizeObserver) new ResizeObserver(() => this.resize()).observe(root);
     this.resize();
 
-    root.querySelector('#btnSave').addEventListener('click', () => this.saveNow(true));
+    root.querySelector('#btnSave')?.addEventListener('click', () => this.saveNow(true));
     root.querySelector('#btnSettings').addEventListener('click', () => this.toggleSettings());
     root.querySelector('#btnOnline').addEventListener('click', () => this.toggleOnline());
     root.querySelector('#rotL').addEventListener('click', () => this.gfx.rotateCamera(-Math.PI / 4));
