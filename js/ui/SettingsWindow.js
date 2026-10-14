@@ -78,14 +78,7 @@ export class SettingsWindow {
     box.querySelector('small').textContent = a.detail;
     const btns = this.$('setBtns'); btns.innerHTML = '';
     const btn = (label, fn, cls = '') => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.className = cls; b.addEventListener('click', fn); btns.append(b); return b; };
-    btn('บันทึกตอนนี้', () => this.act.save(), 'primary');
     btn('เปลี่ยนตัวละคร', () => this.act.switchChar());
-    btn('ส่งออกไฟล์เซฟ', () => this.act.exportSave());
-    if (a.canLogout && this.act.logout) btn('ออกจากระบบ', () => this.act.logout(), 'danger');
-    const imp = btn('นำเข้าไฟล์เซฟ', () => file.click());
-    const file = document.createElement('input'); file.type = 'file'; file.accept = '.json,application/json'; file.hidden = true;
-    file.addEventListener('change', () => { if (file.files[0]) this.act.importSave(file.files[0]); file.value = ''; });
-    btns.append(file);
-    imp.title = 'โหลดตัวละครจากไฟล์ .json ที่ส่งออกไว้ (จะแทนที่ตัวละครปัจจุบัน)';
+    if (a.canLogout && this.act.logout) btn('ออกจากระบบ', () => this.act.logout(), 'danger');   // v0.33: เอาปุ่มบันทึก/ส่งออก/นำเข้าเซฟออก (เซฟอัตโนมัติอยู่แล้ว)
   }
 }

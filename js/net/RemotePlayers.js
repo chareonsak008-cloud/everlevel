@@ -48,6 +48,7 @@ class RemotePlayer {
     this.hp = clampNum(P.h, 0, 1, 1) * 100;
     const lv = clampNum(Math.floor(P.lv), 1, 99, 1);
     const job = JOBS[P.j] ? JOBS[P.j].name : 'Novice';
+    this.jobId = JOBS[P.j] ? P.j : 'novice';
     this.name = `${cleanText(P.n, 16) || 'นักผจญภัย'}`;
     this.title = `Lv.${lv} ${job}`;
     const lookSig = JSON.stringify(P.lk || {}) + '|' + (Array.isArray(P.fw) ? P.fw.join(',') : '');

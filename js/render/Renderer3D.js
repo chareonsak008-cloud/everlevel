@@ -1,4 +1,5 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
+import { SheetSprite, liveSheet } from './SheetChars.js';
 import { THREE } from './three.js';
 import { TILE } from '../config.js';
 import { T } from '../data/tileTypes.js';
@@ -598,8 +599,22 @@ export class Renderer3D {
     view.update(0, mob);
   }
 
+  // v0.33: ตัวละครพิกเซล 8 ทิศ (สไปรต์ชีต) แทนโมเดล สำหรับอาชีพที่มีภาพแล้ว
+  sheetChar(c, entity, dt) {
+    const job = this.spriteChars !== false ? liveSheet(entity.jobId) : null;
+    if (!job) {
+      if (c.sheet) { c.sheet.dispose(); c.sheet = null; c.view.root.visible = true; if (c.costume) c.costume.setHidden?.(false); }
+      return;
+    }
+    if (!c.sheet) c.sheet = new SheetSprite(this.scene, job); else c.sheet.setJob(job);
+    c.view.root.visible = false;
+    c.sheet.pivot.visible = !entity.hidden;
+    c.sheet.update(dt, entity, c.view, this.camera, this.px && this.px.tint);
+  }
+
   removeActor(entity) {
     const c = this.characters.get(entity); if (!c) return;
+    if (c.sheet) { c.sheet.dispose(); c.sheet = null; }
     this.px.detach(entity);
     this.scene.remove(c.view.root);
     c.view.root.traverse((o) => {
@@ -1225,7 +1240,8 @@ export class Renderer3D {
     let glowC = null;
     for (const [entity, c] of this.characters) {
       c.view.update(simDt, entity);
-      if (c.costume) { c.costume.update(simDt, c.view); if (c.glow && c.kind === 'player') glowC = c; }
+      if (c.kind === 'player' || c.kind === 'remote') this.sheetChar(c, entity, simDt);
+      if (c.costume && !c.sheet) { c.costume.update(simDt, c.view); if (c.glow && c.kind === 'player') glowC = c; }
       this.placeLabel(entity, c);
     }
     this.updateFloats(dt);
