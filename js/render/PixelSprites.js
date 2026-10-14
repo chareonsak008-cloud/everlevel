@@ -438,13 +438,13 @@ export class PixelSprites {
       s.board.material.color.copy(this.tint);
       s.root.getWorldPosition(this.tmpV);
       const toCam = this.tmpV2.copy(cam.position).sub(this.tmpV); const dist = toCam.length(); toCam.multiplyScalar(1 / dist);
-      const push = 0.45;
+      const push = s.push ?? 0.45;   // v0.33: ชิ้นแฟชั่นของตัวละครพิกเซล 8 ทิศ ดันน้อยกว่า → อยู่หลังตัวสไปรต์
       s.board.position.copy(this.tmpV).addScaledVector(toCam, push);
       s.board.quaternion.copy(cam.quaternion);
       s.board.scale.setScalar((dist - push) / dist);
       if (s.free && s.free.length) this.align(s, yaw); else s.board.updateMatrixWorld();
       // v0.27.1: ตัวผู้เล่นที่ถูกต้นไม้/บ้านบัง → เห็นเป็นเงาโปร่งทะลุ (วาดเฉพาะส่วนที่อยู่หลังวัตถุ)
-      if (s.key === this.focus) {
+      if (s.key === this.focus && !s.push) {
         if (!s.xray) {
           s.xray = new THREE.Mesh(s.board.geometry, new THREE.MeshBasicMaterial({ map: s.rt.texture, transparent: true, opacity: 0.5, alphaTest: 0.5, depthWrite: false, depthFunc: THREE.GreaterDepth, toneMapped: false, fog: false, color: new THREE.Color(0.75, 0.82, 1.0) }));
           s.xray.frustumCulled = false; s.xray.renderOrder = 30; this.scene.add(s.xray);

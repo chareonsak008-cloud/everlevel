@@ -3331,11 +3331,14 @@ const ORDER = ['outfit', 'wings', 'back', 'head', 'face', 'weapon', 'aura', 'pet
 export function wearCostume(view, items = {}, { world, look = {}, rt = null } = {}) {
   rt = rt || new Runtime(world || view.root);
   const rig = { root: view.root, body: view.body, torso: view.torso, head: view.head, arms: view.arms, legs: view.legs };
+  const before = new Set(); view.root.traverse((o) => before.add(o));
   for (const slot of ORDER) {
     const it = items[slot];
     if (!it) continue;
     try { BUILD[slot](rig, it, rt, look); } catch (e) { console.warn('สร้างชิ้นแฟชั่นไม่สำเร็จ', it.id, e); }
   }
+  // v0.33: ทำเครื่องหมายชิ้นแฟชั่น (ตัวละครพิกเซล 8 ทิศ แสดงเฉพาะชิ้นแฟชั่นจากโมเดล)
+  view.root.traverse((o) => { if (!before.has(o)) o.traverse((k) => { k.userData.costume = true; }); });
   return rt;
 }
 

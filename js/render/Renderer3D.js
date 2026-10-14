@@ -602,14 +602,25 @@ export class Renderer3D {
   // v0.33: ตัวละครพิกเซล 8 ทิศ (สไปรต์ชีต) แทนโมเดล สำหรับอาชีพที่มีภาพแล้ว
   sheetChar(c, entity, dt) {
     const job = this.spriteChars !== false ? liveSheet(entity.jobId) : null;
+    const root = c.view.root;
     if (!job) {
-      if (c.sheet) { c.sheet.dispose(); c.sheet = null; c.view.root.visible = true; if (c.costume) c.costume.setHidden?.(false); }
+      if (c.sheet) { c.sheet.dispose(); c.sheet = null; c.ent = entity; this.sheetBody(c, false); }
       return;
     }
-    if (!c.sheet) c.sheet = new SheetSprite(this.scene, job); else c.sheet.setJob(job);
-    c.view.root.visible = false;
-    c.sheet.pivot.visible = !entity.hidden;
+    if (!c.sheet) { c.sheet = new SheetSprite(this.scene, job); c.sheetScale = root.scale.x; } else c.sheet.setJob(job);
+    // ตัวโมเดลซ่อน · เหลือเฉพาะชิ้นแฟชั่น (ปีก/หมวก/ออร่า) ขยายให้เข้ากับความสูงสไปรต์
+    c.ent = entity; this.sheetBody(c, true);
+    c.sheet.pivot.visible = !entity.hidden && root.visible;
     c.sheet.update(dt, entity, c.view, this.camera, this.px && this.px.tint);
+  }
+
+  sheetBody(c, on) {
+    const root = c.view.root;
+    root.traverse((o) => { if (o.isMesh || o.isPoints || o.isLine || o.isSprite) o.visible = !on || !!o.userData.costume; });
+    if (c.sheetScale) root.scale.setScalar(on ? c.sheetScale * 1.22 : c.sheetScale);
+    const ps = this.px && this.px.list && this.px.list.get(c.ent || null);
+    if (ps) ps.push = on ? 0.12 : undefined;
+    if (!on) c.sheetScale = null;
   }
 
   removeActor(entity) {
@@ -1241,7 +1252,7 @@ export class Renderer3D {
     for (const [entity, c] of this.characters) {
       c.view.update(simDt, entity);
       if (c.kind === 'player' || c.kind === 'remote') this.sheetChar(c, entity, simDt);
-      if (c.costume && !c.sheet) { c.costume.update(simDt, c.view); if (c.glow && c.kind === 'player') glowC = c; }
+      if (c.costume) { c.costume.update(simDt, c.view); if (c.glow && c.kind === 'player' && !c.sheet) glowC = c; }
       this.placeLabel(entity, c);
     }
     this.updateFloats(dt);
@@ -1304,7 +1315,7 @@ export class Renderer3D {
     if (honor || c.honorEl) {
       if (!c.honorEl) { c.honorEl = document.createElement('div'); c.honorEl.className = 'tag-honor'; c.honorEl.hidden = true; this.labelLayer.append(c.honorEl); }
       paintHonor(c.honorEl, honor, entity.honorTier || 'common', entity.honorFx || '');   // v0.30: เอฟเฟ็กตามความหายาก
-      const hp2 = honor ? this.project(x, (c.head - 0.12) * this.vs, z) : null;
+      const hp2 = honor ? this.project(x, ((c.sheet ? c.sheet.headH : c.head) - 0.12) * this.vs, z) : null;
       setH(c.honorEl, !hp2);
       if (hp2) setT(c.honorEl, `translate3d(${hp2[0]}px, ${hp2[1]}px, 0) translate(-50%, -100%)`);
     }

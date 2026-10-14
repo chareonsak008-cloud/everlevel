@@ -38,9 +38,13 @@ export class SheetSprite {
   constructor(scene, job) {
     this.scene = scene; this.job = null; this.tex = null;
     const geo = new THREE.PlaneGeometry(1, 1);
-    this.mat = new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.04, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
-    this.mesh = new THREE.Mesh(geo, this.mat); this.mesh.renderOrder = 3; this.mesh.frustumCulled = false;
-    this.pivot = new THREE.Group(); this.pivot.add(this.mesh); scene.add(this.pivot);
+    this.mat = new THREE.MeshBasicMaterial({ transparent: false, alphaTest: 0.5, toneMapped: false, side: THREE.DoubleSide });
+    this.mesh = new THREE.Mesh(geo, this.mat); this.mesh.renderOrder = 2; this.mesh.frustumCulled = false;
+    // ส่วนที่ถูกต้นไม้/บ้านบัง → เงาโปร่งทะลุ (แบบเดียวกับสไปรต์ตัวละครเดิม)
+    this.xmat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.5, alphaTest: 0.5, depthWrite: false, depthFunc: THREE.GreaterDepth, toneMapped: false, color: new THREE.Color(0.75, 0.82, 1.0), side: THREE.DoubleSide });
+    this.xray = new THREE.Mesh(geo, this.xmat); this.xray.renderOrder = 30; this.xray.frustumCulled = false;
+    this.pivot = new THREE.Group(); this.pivot.add(this.mesh, this.xray); scene.add(this.pivot);
+    this._c = new THREE.Vector3();
     this.anim = 'idle'; this.t = 0; this.life = 0; this.lastAtk = 0; this.dir = 0;
     this._r = new THREE.Vector3(); this._b = new THREE.Vector3();
     this.setJob(job);
@@ -52,7 +56,8 @@ export class SheetSprite {
     if (this.tex) this.tex.dispose();
     this.S = SHEETS[k];
     this.tex = sheetTexture(this.S);
-    this.mat.map = this.tex; this.mat.needsUpdate = true;
+    this.mat.map = this.tex; this.mat.needsUpdate = true; this.xmat.map = this.tex; this.xmat.needsUpdate = true;
+    this.headH = this.S.size * (this.S.foot - 12 / 96) + 0.6;   // ความสูงถึงปลายผม (วางป้ายฉายา)
     return true;
   }
 
@@ -86,15 +91,22 @@ export class SheetSprite {
     this.tex.offset.set(col / S.cols, 1 - (row + 1) / 8);
     // วางตำแหน่ง · หันหากล้อง
     const bob = this.anim === 'idle' && !ent.dead ? 1 + Math.sin(this.life * 2.6) * 0.012 : 1;
-    this.pivot.position.set(ent.x / 16, ent.lift || 0, ent.y / 16);
+    // แผ่นป้าย: ตามตำแหน่งเท้า หันหากล้อง ดันเข้าหากล้องเล็กน้อยกันจมพื้น/สะพาน/รั้ว (ย่อชดเชยให้ขนาดบนจอเท่าเดิม)
+    const foot = this._c.set(ent.x / 16, ent.lift || 0, ent.y / 16);
+    const toCam = this._b.copy(camera.position).sub(foot); const dist = toCam.length(); toCam.multiplyScalar(1 / dist);
+    const push = 0.5, k = (dist - push) / dist;
+    this.pivot.position.copy(foot).addScaledVector(toCam, push);
     this.pivot.quaternion.copy(camera.quaternion);
+    this.pivot.scale.setScalar(k);
     this.mesh.scale.set(S.size, S.size * bob, 1);
     this.mesh.position.y = S.size * (S.foot - 0.5) * bob;
     this.mesh.rotation.z = ent.dead ? (sx < 0 ? -1 : 1) * Math.PI / 2 : 0;
+    this.xray.scale.copy(this.mesh.scale); this.xray.position.copy(this.mesh.position); this.xray.rotation.z = this.mesh.rotation.z;
+    this.xray.visible = !!ent.isPlayer || ent === (globalThis.asteria && globalThis.asteria.player);
     this.mat.color.copy(tint || new THREE.Color(1, 1, 1));
     if (view && view.hurtT > 0) this.mat.color.setRGB(1, 0.45, 0.45);
     this.info = { dir: d, anim: this.anim, col };
   }
 
-  dispose() { this.scene.remove(this.pivot); this.mesh.geometry.dispose(); this.mat.dispose(); if (this.tex) this.tex.dispose(); }
+  dispose() { this.scene.remove(this.pivot); this.mesh.geometry.dispose(); this.mat.dispose(); this.xmat.dispose(); if (this.tex) this.tex.dispose(); }
 }
