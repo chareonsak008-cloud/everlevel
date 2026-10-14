@@ -61,7 +61,7 @@ const A = (id, cat, title, desc, tier, bonus, need, fx, only) => ({ id, cat, tit
 const kN = (t, n) => (S) => [Math.min(S.k(t), n), n];
 const jobN = (job, n) => (S) => [S.job === job ? Math.min(S.jlv, n) : 0, n];
 const maxOf = (n) => (S) => [Math.min(S.lv, n), n];
-export const ACH_CATS = [['legend', 'ฉายาสูงสุด'], ['level', 'เลเวลและอาชีพ'], ['hunt', 'การล่า'], ['nemesis', 'ศัตรูคู่แค้น'], ['mvp', 'บอส MVP'], ['book', 'สมุดมอนสเตอร์'], ['card', 'การ์ด'], ['life', 'การผจญภัย'], ['daily', 'เช็กอิน']];
+export const ACH_CATS = [['legend', 'ฉายาสูงสุด'], ['level', 'เลเวลและอาชีพ'], ['hunt', 'การล่า'], ['nemesis', 'ศัตรูคู่แค้น'], ['mvp', 'บอส MVP'], ['dungeon', 'ดันเจี้ยน/หอคอย'], ['book', 'สมุดมอนสเตอร์'], ['card', 'การ์ด'], ['life', 'การผจญภัย'], ['daily', 'เช็กอิน']];
 export const ACHIEVEMENTS = [
   A('lv10', 'level', 'นักผจญภัยหน้าใหม่', 'Base Lv. 10', 'common', { maxHp: 20 }, maxOf(10)),
   A('lv30', 'level', 'นักผจญภัยผู้ช่ำชอง', 'Base Lv. 30', 'common', { maxHp: 40, maxSp: 10 }, maxOf(30)),
@@ -176,6 +176,14 @@ export const ACHIEVEMENTS = [
   A('streak100', 'daily', 'หัวใจเหล็กกล้า', 'เช็กอินติดต่อกัน 100 วัน', 'legend', { vit: 3, regenPct: 15 }, (S) => [Math.min(S.bestStreak, 100), 100], 'flame'),
   A('ci365', 'daily', 'ผู้ภักดีชั่วนิรันดร์', 'เช็กอินรวม 365 วัน', 'mythic', { str: 2, agi: 2, vit: 2, int: 2, dex: 2, luk: 2 }, (S) => [Math.min(S.checkins, 365), 365], 'sakura'),
 
+  // v0.32: ดันเจี้ยนถ้ำ + หอคอยนิรันดร์
+  A('cave1', 'dungeon', 'นักสำรวจถ้ำ', 'พิชิตถ้ำผลึกก้องลึกครบทุกชั้น 1 ครั้ง', 'rare', { vit: 1 }, (S) => [Math.min(S.caveClears, 1), 1], 'frost'),
+  A('cave10', 'dungeon', 'นักล่าใต้พิภพ', 'พิชิตถ้ำผลึกก้องลึก 10 ครั้ง', 'epic', { maxHp: 150, def: 3 }, (S) => [Math.min(S.caveClears, 10), 10], 'arcane'),
+  A('cave50', 'dungeon', 'จ้าวแห่งถ้ำผลึก', 'พิชิตถ้ำผลึกก้องลึก 50 ครั้ง', 'legend', { atk: 6, matk: 6, maxHpPct: 2 }, (S) => [Math.min(S.caveClears, 50), 50], 'abyss'),
+  A('tower10', 'dungeon', 'ผู้ไต่หอคอย', 'ผ่านหอคอยนิรันดร์ถึงชั้น 10', 'rare', { agi: 1 }, (S) => [Math.min(S.towerBest, 10), 10], 'storm'),
+  A('tower30', 'dungeon', 'ผู้ทะลวงเมฆา', 'ผ่านหอคอยนิรันดร์ถึงชั้น 30', 'epic', { dex: 2, hit: 5 }, (S) => [Math.min(S.towerBest, 30), 30], 'storm'),
+  A('tower60', 'dungeon', 'ผู้ท้าทายนิรันดร์', 'ผ่านหอคอยนิรันดร์ถึงชั้น 60', 'legend', { atkPct: 2, matkPct: 2 }, (S) => [Math.min(S.towerBest, 60), 60], 'celestial'),
+  A('tower100', 'dungeon', 'ราชันหอคอยนิรันดร์', 'ผ่านหอคอยนิรันดร์ถึงชั้น 100', 'mythic', { str: 2, agi: 2, vit: 2, int: 2, dex: 2, luk: 2, atkPct: 2, matkPct: 2 }, (S) => [Math.min(S.towerBest, 100), 100], 'astral'),
   A('ach_all', 'legend', 'นิรันดร์แห่งเอเวอร์เลเวล', 'ปลดล็อกความสำเร็จอื่นครบทุกอัน (ไม่นับฉายาเฉพาะอาชีพ)', 'divine', { str: 5, agi: 5, vit: 5, int: 5, dex: 5, luk: 5, atkPct: 3, matkPct: 3 }, (S) => [S.achDone, ACH_OTHERS], 'genesis'),
 ];
 const ACH_OTHERS = ACHIEVEMENTS.filter((a) => a.id !== 'ach_all' && !a.only).length;

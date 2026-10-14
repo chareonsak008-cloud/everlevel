@@ -98,6 +98,7 @@ export class Collection {
       checkins: c.ci.count, bestStreak: c.ci.best,
       mvpCards: c.cards.filter((id) => MVP_CARDS.includes(id)).length,                     // v0.30
       achDone: Object.keys(c.ach).filter(ACH_COUNTED).length,
+      caveClears: (pl.dg && pl.dg.clears) || 0, towerBest: (pl.dg && pl.dg.best) || 0,   // v0.32
       bookMvp3: BOOK_ORDER.filter((t) => MONSTERS[t].mvp && bookTier(t, k(t)) >= 3).length,
     };
   }

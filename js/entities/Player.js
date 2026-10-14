@@ -17,6 +17,7 @@ import { CONSUMABLES } from '../data/consumables.js';
 import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js';
 import { normAuto } from '../systems/AutoHunt.js';
 import { normPick } from '../systems/PetPick.js';
+import { normDungeon } from '../data/dungeons.js';
 import { normCol } from '../systems/Collection.js';
 import { ACH_BY_ID } from '../data/collection.js';
 import { normMail } from '../data/mail.js';
@@ -95,6 +96,7 @@ export class Player extends Entity {
     this.skills = { first_aid: 1 };   // id → เลเวล
     this.buffs = [];                  // { id, lv, left, total, bonus }
     this.itemBuffs = {};              // v0.13: บัฟจากไอเทม group → { id, left }
+    this.dg = null;   // v0.32: สถิติดันเจี้ยน/หอคอย (สร้างเมื่อใช้ครั้งแรก)
     this.pets = { owned: {}, active: null, filter: 'all', pick: normPick() };   // v0.24.1: pick = ตั้งค่าการเก็บของละเอียด   // v0.13: สัตว์เลี้ยง id → ดาว
     this.bagUps = 0;                  // v0.13: ใช้กระเป๋าขยายไปแล้วกี่ใบ
     this.visited = new Set(['asteria_town']);   // v0.13: แผนที่ที่เคยไป (ใบวาร์ปเลือกแผนที่)
@@ -633,6 +635,7 @@ export class Player extends Entity {
       auto: JSON.parse(JSON.stringify(this.auto)),   // v0.14
       cid: this.cid, mail: { welcome: !!this.mail.welcome, box: this.mail.box.map((m) => ({ ...m })) },   // v0.15 · v0.18 จดหมายระบบ
       col: JSON.parse(JSON.stringify(this.col)),   // v0.18
+      dg: this.dg ? { ...this.dg } : undefined,      // v0.32: ดันเจี้ยน/หอคอย
     };
   }
 
@@ -673,6 +676,7 @@ export class Player extends Entity {
     const PT = p.pets && typeof p.pets === 'object' ? p.pets : {};
     this.pets = { owned: {}, active: null, filter: ['all', 'skipCommon', 'rare'].includes(PT.filter) ? PT.filter : 'all' };
     this.pets.pick = normPick(PT.pick, this.pets.filter);   // v0.24.1
+    this.dg = p.dg ? normDungeon(p.dg) : null;   // v0.32
     if (PT.owned && typeof PT.owned === 'object') for (const [id, st] of Object.entries(PT.owned)) if (PETS[id]) this.pets.owned[id] = Math.max(0, Math.min(STAR_MAX, Math.floor(st) || 0));
     if (PT.active && this.pets.owned[PT.active] != null) this.pets.active = PT.active;
     if (Array.isArray(p.inventory)) { this.inventory.capacity = 999; this.inventory.fromSave(p.inventory); }

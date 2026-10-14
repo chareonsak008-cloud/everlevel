@@ -147,6 +147,17 @@ export class Online {
     }
   }
 
+  // v0.32: อันดับหอคอย (โหมดบัญชี Claude) — towers/<id> ทุกคนอ่านได้
+  async towerSubmit(floor, pl) {
+    if (!this.db || !this.uid) return false;
+    await this.db.doc('towers/' + this.uid).set({ name: pl.name, job: pl.jobId, floor: Math.floor(floor), t: Date.now() });
+    return true;
+  }
+  async towerBoard(n = 50) {
+    const snap = await this.db.collection('towers').orderBy('floor', 'desc').limit(n).get();
+    return snap.docs.map((d) => ({ ...d.data(), mine: d.id === this.uid }));
+  }
+
   async leaderboard(n = 20) {
     try {
       const snap = await this.db.collection('players').orderBy('lv', 'desc').limit(n).get();

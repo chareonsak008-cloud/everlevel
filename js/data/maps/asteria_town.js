@@ -11,6 +11,8 @@ const LOOK = {
   celes: { hair: '#b8c8ff', skin: '#f3d3bb', eye: '#4a3a8a', tunic: '#4a3a8a', pants: '#2e2a4a', boot: '#2a2238', belt: '#e8c050', hairStyle: 'short', accessory: 'wizard', hatColor: '#4a3a8a', orbColor: '#7fe0ff', scarf: '#e8c050' },
   aurel: { hair: '#ece6da', skin: '#efc8a4', eye: '#3a2a4a', tunic: '#5a3a7a', pants: '#3a2a4a', boot: '#2a1e2a', belt: '#e8c050', hairStyle: 'short', accessory: 'none', jobGear: 'acolyte', scarf: '#e8c050' },
   nina:  { hair: '#9a5a3a', skin: '#f6d6b8', eye: '#3a2a20', tunic: '#a8423a', pants: '#3a2a3a', boot: '#2e2024', belt: '#e8c050', hairStyle: 'ponytail', accessory: 'clerk', hatColor: '#a8423a' },
+  brom:  { hair: '#6a4a30', skin: '#d9a87e', eye: '#2a2030', tunic: '#5a6a7a', pants: '#3a3a44', boot: '#2a2420', belt: '#8a6a3a', hairStyle: 'short', accessory: 'backpack', headgear: 'bandana', headColor: '#4a8ab8' },   // v0.32
+  selva: { hair: '#e8e0f8', skin: '#f0d0c0', eye: '#5a3a9a', tunic: '#3a2e6a', pants: '#26203e', boot: '#1e1a30', belt: '#d8b45c', hairStyle: 'long', accessory: 'wizard', hatColor: '#3a2e6a', orbColor: '#c8a8ff', scarf: '#d8b45c' },
   pip:   { hair: '#2e2a33', skin: '#f0c49a', eye: '#2a2030', tunic: '#e0a040', pants: '#3f6a8a', boot: '#2e2420', belt: '#7a5232', hairStyle: 'spiky', accessory: 'none', scale: 0.82 },
 };
 
@@ -95,6 +97,7 @@ export const ASTERIA_TOWN = {
     { kind: 'pillar', x: 43, y: 14, seed: 1 }, { kind: 'pillar', x: 43, y: 20, seed: 2 },
     { kind: 'pillar', x: 60, y: 14, seed: 3 }, { kind: 'pillar', x: 60, y: 20, seed: 4 },
     { kind: 'bench', x: 46, y: 18 }, { kind: 'bench', x: 56, y: 18 },
+    { kind: 'sign', x: 44, y: 16, text: 'Crystal Cave' }, { kind: 'sign', x: 59, y: 16, text: 'Endless Spire' },   // v0.32
     // ลานน้ำพุ (กลางเมือง)
     { kind: 'warpstone', x: 30, y: 24 },
     { kind: 'lamp', x: 30, y: 21 }, { kind: 'lamp', x: 41, y: 21 }, { kind: 'lamp', x: 30, y: 34 }, { kind: 'lamp', x: 41, y: 34 },
@@ -159,6 +162,15 @@ export const ASTERIA_TOWN = {
       service: { type: 'job' },
       greet: 'ข้าคือออเรล ผู้ดูแลการเปลี่ยนอาชีพของ Asteria เจ้าพร้อมจะเลือกเส้นทางของตัวเองแล้วหรือยัง?',
       lines: ['นักดาบ นักเวทย์ นักธนู นักบวช ทุกเส้นทางล้วนมีคุณค่า'] },
+    // v0.32: ดันเจี้ยนถ้ำ + หอคอยไต่ชั้น
+    { id: 'brom', name: 'บรอม', title: 'หัวหน้าหน่วยสำรวจถ้ำ', x: 46, y: 16, dir: 'down', look: LOOK.brom,
+      service: { type: 'dungeon' },
+      greet: 'ถ้ำผลึกก้องลึกเปิดให้สำรวจแล้ว! ลงไปทีละชั้น ปราบบอสท้ายชั้นให้ได้ แล้วหีบสมบัติก้นถ้ำเป็นของเจ้า',
+      lines: ['ในถ้ำมอนแรงกว่าข้างนอก แต่ผลึกตีบวกก็ตกบ่อยกว่าเยอะ', 'เข้าได้วันละ 3 รอบ พรุ่งนี้ค่อยมาใหม่'] },
+    { id: 'selva', name: 'เซลวา', title: 'ผู้เฝ้าหอคอยนิรันดร์', x: 57, y: 16, dir: 'down', look: LOOK.selva,
+      service: { type: 'tower' },
+      greet: 'หอคอยนี้ไม่มีชั้นบนสุด... ยิ่งขึ้นสูง ศัตรูยิ่งแข็งแกร่ง เจ้าจะไปได้ไกลแค่ไหนกัน?',
+      lines: ['ชื่อของผู้ที่ไต่ได้สูงที่สุดจะถูกจารึกไว้บนกระดานอันดับ', 'ทุกสิบชั้นข้าจะจำทางให้ เริ่มใหม่จากตรงนั้นได้'] },
     { id: 'nina', name: 'นีน่า', title: 'กระดานเควสรายวัน', x: 53, y: 11, dir: 'down', look: LOOK.nina, lines: [
       'กระดานเควสมีงานใหม่ทุกวันนะคะ ทำได้วันละครั้ง รีเซ็ตตอนเที่ยงคืน',
       'เควสที่เลเวลยังไม่ถึงจะยังไม่แสดงนะคะ ฝึกเพิ่มอีกนิดแล้วกลับมาค่ะ',

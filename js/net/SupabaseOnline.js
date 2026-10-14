@@ -248,6 +248,19 @@ export class SupabaseOnline extends Online {
   setEventRate(kind,rate,minutes){return this.eventRPC('gm_event_rate',{p_kind:kind,p_rate:rate,p_minutes:minutes});}
   hitWorldBoss(id,damage,slot){return this.eventRPC('world_boss_hit',{p_id:id,p_damage:damage,p_slot:slot});}
 
+  // v0.32: อันดับหอคอยนิรันดร์ (ต้องรัน supabase/tower.sql) — ชื่อ/อาชีพอ่านจากแถวตัวละครฝั่งเซิร์ฟเวอร์ ปลอมชื่อไม่ได้
+  async towerSubmit(floor) {
+    if (!this.slot) return false;
+    const { error } = await this.sb.rpc('tower_submit', { p_slot: this.slot, p_floor: Math.max(0, Math.floor(floor)) });
+    if (error) throw error;
+    return true;
+  }
+  async towerBoard(n = 50) {
+    const { data, error } = await this.sb.rpc('tower_board', { n });
+    if (error) throw error;
+    return (data || []).map((d) => ({ name: d.name, job: d.job, floor: d.best_floor, mine: !!d.mine }));
+  }
+
   async leaderboard(n = 20) {
     const { data, error } = await this.sb.rpc('leaderboard', { n });
     if (error || !Array.isArray(data)) return [];

@@ -73,6 +73,7 @@ import { Mailbox } from '../systems/Mailbox.js';
 import { MailWindow } from '../ui/MailWindow.js';
 import { Collection } from '../systems/Collection.js';          // v0.18: ระบบสะสม
 import { CollectionWindow } from '../ui/CollectionWindow.js';
+import { Dungeons } from '../systems/Dungeons.js';              // v0.32: ดันเจี้ยนถ้ำ + หอคอย
 
 // เสียงตอนใช้สกิล (เริ่ม) และตอนกระแทก (จังหวะกล้องสั่น)
 const SKILL_SFX = {
@@ -280,6 +281,7 @@ export class Game {
     this.mailbox.onChange = () => { this.mailWin.render(); this.updateMailBadge(); };
     const bm = root.querySelector('#btnMail'); if (bm) bm.addEventListener('click', () => this.mailWin.toggle());
     this.events = new EventService(this);
+    this.dungeon = new Dungeons(this);               // v0.32
     this.eventWin = new EventWindow(root, this);
     this.questLog.now = () => this.events.online && !this.events.fresh ? null : this.events.now();
     this.applySettings();
@@ -321,7 +323,8 @@ export class Game {
 
   // โหลดแผนที่ แล้ววางผู้เล่นที่ arrive {x, y, angle} (หน่วยช่อง) หรือจุดเกิดของแผนที่
   loadMap(id, arrive) {
-    const def = MAPS[id] || MAPS[START_MAP];
+    const def = (id && typeof id === 'object' ? id : MAPS[id]) || MAPS[START_MAP];   // v0.32: ดันเจี้ยนส่ง def ของชั้นมาตรง ๆ (ไม่ลงทะเบียนใน MAPS)
+    if (typeof id === 'object') id = def.id;
     const t0 = performance.now();
     if (this.remote) this.remote.clear();   // ผู้เล่นคนอื่นของแผนที่เก่า
     if (this.pets) this.pets.clearRemote();
@@ -352,13 +355,13 @@ export class Game {
     for (const p of this.map.portals) p.inside = this.inRect(pl, p.rect);
 
     this.minimap = new Minimap(this.root.querySelector('#minimap'), this.map, this.npcs);
-    pl.visited.add(def.id || id);           // v0.13: ใบวาร์ปเลือกแผนที่จำแผนที่ที่เคยไป
+    if (!def.instance) pl.visited.add(def.id || id);           // v0.13: ใบวาร์ปเลือกแผนที่จำแผนที่ที่เคยไป (ไม่นับแผนที่ดันเจี้ยน)
     this.friendSeek = null;
     if (this.pets) this.pets.onMapLoaded();
     if (this.auto) { this.auto.onMapLoaded(); this.autoWin.sync(); if (this.autoWin.open) this.autoWin.render(); }
     this.questEvents(this.questLog.onMap(def.id || id));
     this.hud.setMap(this.map);
-    { const ri = regionInfo(def.id || id), chip = this.root.querySelector('#mapChip'); if (chip && ri) chip.textContent = def.safe ? 'เมือง' : `Lv.${ri.min}–${ri.max}`; }
+    { const ri = regionInfo(def.id || id), chip = this.root.querySelector('#mapChip'); if (chip && ri) chip.textContent = def.safe ? 'เมือง' : `Lv.${ri.min}–${ri.max}`; else if (chip && def.instance) chip.textContent = def.instance === 'cave' ? 'ดันเจี้ยน' : 'หอคอย'; }
     if (this.mapWin && this.mapWin.open) this.mapWin.show(this.mapWin.tab);
     this.gfx.snapCamera(pl);
     if (this.started) this.gfx.warpIn(pl, def.safe ? '#ffe08a' : '#8fd8ff');
@@ -366,6 +369,7 @@ export class Game {
     this.bossMusic = false;
     if (this.started) { this.sfx('warp'); this.syncRemote(); this.netTimer = 0; }
     this.dirty = true;
+    if (this.dungeon) this.dungeon.onMapLoaded(def);
     console.info(`[Everlevel] โหลดแผนที่ ${def.name} ใน ${Math.round(performance.now() - t0)} ms`);
   }
 
@@ -685,14 +689,15 @@ export class Game {
     // v0.13: ใบคูณดรอป/การ์ด + สัตว์เลี้ยง (อบิส/โนวา/เทียนหยุน) · ไอเทมใช้งานและไข่สัตว์เลี้ยงดรอปจากมอนทุกตัว
     const pl = this.player, dm = pl.itemBuffMul('drop') * this.pets.dropMul() * (this.events?.rate('drop') || 1) * (1 + ((pl.bonus && pl.bonus.dropPct) || 0) / 100), cm = pl.itemBuffMul('card') * this.pets.cardMul() * (this.events?.rate('drop') || 1);
     const scale = (list, k) => (k === 1 ? list : list.map(([id, c]) => [id, Math.min(1,c * k)]));
-    const items = rollDrops([...scale(m.data.drops, dm), ...scale(boxDrops(m.data), dm), ...scale(cardDrops(m.type), cm), ...scale(consumableDrops(m.data), dm)]);   // v0.9 กล่องแฟชั่น · v0.10 การ์ด
+    const items = rollDrops([...scale(m.data.drops, dm), ...scale(boxDrops(m.data), dm), ...(m.noCard ? [] : scale(cardDrops(m.type), cm)), ...scale(consumableDrops(m.data), dm)]);   // v0.9 กล่องแฟชั่น · v0.10 การ์ด
     if (this.pets.meteorChance() && Math.random() < this.pets.meteorChance() && m.data.drops.length) {
       const extra = m.data.drops[Math.floor(Math.random() * m.data.drops.length)][0];
       this.gfx.meteorFall(m.x, m.y);
       this.schedule(0.55, () => { this.spawnDrop(extra, m.x, m.y); this.gfx.floatText({ x: m.x, y: m.y }, 'ดาวตก!', 'loot r-rare', { h: 1.6, life: 1.6, rise: 0.6, drift: false }); });
     }
     this.questEvents(this.questLog.onKill(m.type));
-    this.collection.onKill(m.type);   // v0.18: สมุดมอนสเตอร์ · ความสำเร็จ
+    if (!m.noBook) this.collection.onKill(m.type);   // v0.18: สมุดมอนสเตอร์ · ความสำเร็จ (บอสดันเจี้ยนไม่นับเป็น MVP)
+    this.dungeon.onKill(m);   // v0.32
     items.forEach((id, i) => this.schedule(0.2 + i * 0.12, () => this.spawnDrop(id, m.x, m.y)));
     if (m.summoned) this.schedule(1.0, () => { if (this.mobs) this.mobs.remove(m); this.gfx.removeActor(m); });
     if (m.data.mvp) this.mvpKill(m);
@@ -1149,6 +1154,10 @@ export class Game {
       this.storageMenu(npc, greet);
     } else if (sv.type === 'job') {
       this.jobMenu(npc, greet);
+    } else if (sv.type === 'dungeon') {
+      this.dungeon.caveMenu(npc, greet);
+    } else if (sv.type === 'tower') {
+      this.dungeon.towerMenu(npc, greet);
     } else if (sv.type === 'warp') {
       const routes = WARP_ROUTES[sv.routes] || [];
       this.dialog.show(npc, `${greet}  (Zeny ของเจ้า ${fmtZ(pl.zeny)})`, [
@@ -2156,13 +2165,15 @@ export class Game {
     }
     this.hud.updateTarget();
     this.updateBosses(dt);
+    this.dungeon.update(dt);
 
     // ประตูมิติ
     if (!pl.dead) {
       for (const p of this.map.portals) {
         const inside = this.inRect(pl, p.rect);
         if (inside && !p.inside) {
-          if (p.locked || !p.to) this.hud.log(p.message || 'ประตูมิตินี้ยังใช้ไม่ได้', 'sys');
+          if (p.locked || (!p.to && !p.onEnter)) this.hud.log(p.message || 'ประตูมิตินี้ยังใช้ไม่ได้', 'sys');
+          else if (p.onEnter) { p.inside = true; p.onEnter(); return; }   // v0.32: ประตูในดันเจี้ยน (ลงชั้น/ออก)
           else { p.inside = true; this.warp(p.to, p.arrive); return; }
         }
         p.inside = inside;
@@ -2182,7 +2193,7 @@ export class Game {
 
   saveState() {
     return {
-      player: { ...this.player.toSave(), angle: +this.player.angle.toFixed(3), map: this.map.id },
+      player: { ...this.player.toSave(), angle: +this.player.angle.toFixed(3), map: this.map.id, ...(this.map.def.instance ? { map: START_MAP, x: Math.round(MAPS[START_MAP].spawn.x * TILE), y: Math.round(MAPS[START_MAP].spawn.y * TILE) } : {}) },   // v0.32: เซฟในดันเจี้ยน = กลับมาที่เมือง
       camera: { yaw: +this.gfx.rig.targetYaw.toFixed(3), dist: +this.gfx.rig.targetDist.toFixed(2), v: 2 },   // v: 2 = ระยะกล้องแบบ RO (v0.17.1)
       storage: [...this.storage.toSave(), ...(this.storageUps ? [['_cap', this.storageUps]] : [])],   // คลังของบัญชี (ใช้ร่วมทุกตัวละคร) + v0.13 จำนวนครั้งที่ขยาย
     };

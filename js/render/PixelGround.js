@@ -121,8 +121,8 @@ function bedTile(p, r, lava) {
   for (let i = 0; i < 6; i++) p.blob(r() * TP, r() * TP, 3 + r() * 5, sh(base, r() < 0.5 ? -0.15 : 0.12));
   for (let i = 0; i < 20; i++) p.P(r() * TP, r() * TP, sh(base, 0.2));
 }
-function wallTile(p, r) {
-  const base = hex('#5a5560'); p.fill(base);
+function wallTile(p, r, col) {
+  const base = hex(col || '#5a5560'); p.fill(base);
   for (let i = 0; i < 30; i++) p.P(r() * TP, r() * TP, sh(base, (r() - 0.5) * 0.3));
 }
 
@@ -144,7 +144,7 @@ function buildAtlas(map) {
     plazaTile(at(T.PLAZA), R(T.PLAZA), gray);
     bedTile(at(T.WATER), R(T.WATER), lava);
     bedTile(at(T.BRIDGE), R(T.BRIDGE), lava);
-    wallTile(at(T.WALL), R(T.WALL));
+    wallTile(at(T.WALL), R(T.WALL), th.wallColor);
   }
   g.putImageData(img, 0, 0);
   const t = new THREE.CanvasTexture(c);

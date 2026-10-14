@@ -194,7 +194,7 @@ export class Renderer3D {
     this.makeGround(map);
 
     const statics = new THREE.Group();
-    statics.add(cityWalls(map, T.WALL));
+    if (!theme.rockWall) statics.add(cityWalls(map, T.WALL));   // v0.32: ถ้ำใช้ผนังหินขรุขระแทนกำแพงเมือง
     statics.add(bridges(map, T.BRIDGE, T.WATER));
 
     this.water = this.px.enabled ? new PixelWater(theme.water || 'water') : new Water(theme.water || 'water');
@@ -242,12 +242,30 @@ export class Renderer3D {
       }
     }
     if (waterQuads.length) this.water.add(world, mergeGeometries(waterQuads), 0.06, 4);
-    const rockTint = theme.water === 'lava' ? (c) => c.setRGB(0.32, 0.26, 0.26) : theme.water === 'ice' ? (c) => c.setRGB(1.05, 1.1, 1.18) : null;
+    const rockTint = theme.water === 'lava' ? (c) => c.setRGB(0.32, 0.26, 0.26) : theme.water === 'ice' ? (c) => c.setRGB(1.05, 1.1, 1.18) : (c) => c.setRGB(1, 1, 1);   // v0.32: ย้อมสีเสมอ (วัสดุหินใช้ร่วมกันทุกแผนที่ — มี/ไม่มี instanceColor สลับกันทำให้เรนเดอร์ค้าง)
     const PXW = this.px.enabled;   // v0.17: โหมดพิกเซลใช้ต้นไม้/หิน/หญ้าชุดใหม่
     this.instanced(world, PXW ? rockPx(3) : rockGeometry(3), PXW ? vcToon() : std('rock', { vertexColors: true, roughness: 0.9 }), rockSpots.map((p) => ({ ...p, s: 0.8 + r() * 0.9, rot: r() * 6 })), { cast: true, tint: rockTint });
 
+    // v0.32: ผนังถ้ำ — หินแหลมสูงเรียงตามขอบช่องผนังที่ติดพื้นเดินได้
+    if (theme.rockWall) {
+      const rr = rng(map.w * 31 + map.h), spots = [];
+      for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) {
+        if (map.tileAt(x, y) !== T.WALL) continue;
+        let edge = 0;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const t = map.tileAt(x + dx, y + dy); if (t !== -1 && t !== T.WALL) edge++; }
+        if (!edge) { if (rr() < 0.06) spots.push({ x: x + rr(), z: y + rr(), s: 3 + rr() * 2, rot: rr() * 6 }); continue; }
+        spots.push({ x: x + 0.5 + (rr() - 0.5) * 0.3, z: y + 0.5 + (rr() - 0.5) * 0.3, s: 4.2 + rr() * 2.2, rot: rr() * 6 });
+        if (rr() < 0.5) spots.push({ x: x + rr(), z: y + rr(), s: 2.6 + rr() * 1.6, rot: rr() * 6 });
+      }
+      const g0 = PXW ? rockPx(7) : rockGeometry(7), cg = g0.clone(); cg.scale(1, 3.4, 1); cg.computeBoundingSphere();
+      const wc = new THREE.Color(theme.wallColor || '#2a2430').convertSRGBToLinear();
+      // วัสดุแยกจากหินริมน้ำ: หินผนังถ้ำย้อมสีรายก้อน (instanceColor) — ใช้วัสดุร่วมกับหินที่ไม่ย้อมสีแล้ว three.js สลับโปรแกรมผิดจนค้าง
+      const cmat = PXW ? (this._caveMat || (this._caveMat = vcToon().clone())) : std('caveRock', { vertexColors: true, roughness: 0.95 });
+      this.instanced(world, cg, cmat, spots, { cast: true, tint: (c, v) => c.setRGB(wc.r * 3.2 + v * 0.12, wc.g * 3.2 + v * 0.12, wc.b * 3.2 + v * 0.14) });
+    }
+
     // ต้นไม้ (รวมป่ารอบนอกแผนที่เพื่อความลึก)
-    for (let i = 0; i < 170; i++) {
+    for (let i = 0; i < (theme.noOuterTrees ? 0 : 170); i++) {
       const side = i % 4; const t = r(); const d = 1 + r() * 9;
       const x = side === 0 ? -d : side === 1 ? map.w + d : t * (map.w + 16) - 8;
       const z = side === 2 ? -d : side === 3 ? map.h + d : t * (map.h + 16) - 8;
@@ -559,17 +577,21 @@ export class Renderer3D {
     this.px.attach(entity, view, 'char', { eyes: PixelSprites.eyeMarkers(view), eyeColor: eye, face: view.face });
   }
 
+  // v0.32: ประตูมิติที่เกิดกลางเกม (บันไดลงชั้นถัดไปในดันเจี้ยน) — คืนตัวที่สร้างไว้ลบภายหลัง
+  addPortalFx(x, z, locked = false) { const p = new Portal(this.world, x, z, locked); this.portals.push(p); return p; }
+
   addMonster(mob) {
     const view = new MonsterView(mob);
     view.root.rotation.y = mob.angle;
+    if (mob.data.viewScale) view.root.scale.setScalar(mob.data.viewScale);   // v0.32.1: บอสหอคอยย่อขนาด
     this.scene.add(view.root);
     if (this.px.enabled) this.px.attach(mob, view, 'mob');
     const h = mob.data.height;
     const rad = mob.data.radius || 0.55;
     const hb = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, h + 0.4, 8), new THREE.MeshBasicMaterial({ visible: false }));
     hb.position.y = (h + 0.4) / 2; hb.userData.actor = mob; view.root.add(hb); this.hitboxes.push(hb);
-    const label = document.createElement('div'); label.className = 'tag tag-mob' + (mob.data.mvp ? ' tag-mvp' : ''); label.textContent = `${mob.data.mvp ? 'MVP · ' : ''}${mob.name} Lv.${mob.level}`; label.hidden = true;
-    const hpbar = document.createElement('div'); hpbar.className = 'hpbar' + (mob.data.mvp ? ' hpbar-mvp' : ''); hpbar.innerHTML = '<i></i>'; hpbar.hidden = true;
+    const label = document.createElement('div'); label.className = 'tag tag-mob' + (mob.data.mvp || mob.data.dgBoss ? ' tag-mvp' : ''); label.textContent = `${mob.data.mvp ? 'MVP · ' : mob.data.dgBoss ? 'BOSS · ' : ''}${mob.name} Lv.${mob.level}`; label.hidden = true;
+    const hpbar = document.createElement('div'); hpbar.className = 'hpbar' + (mob.data.mvp || mob.data.dgBoss ? ' hpbar-mvp' : ''); hpbar.innerHTML = '<i></i>'; hpbar.hidden = true;
     this.labelLayer.append(label, hpbar);
     this.characters.set(mob, { view, label, hpbar, kind: 'mob', head: h, lastHp: -1 });
     this.actorQuality(this.characters.get(mob));
