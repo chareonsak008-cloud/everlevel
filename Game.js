@@ -2459,7 +2459,7 @@ export class Game {
       if (this.online.kind === 'supabase') return { mode: 'online', canLogout: true, label: `ออนไลน์ · ${this.player.name}`, detail: `บัญชี ${me.name || ''} · ตัวละครช่องที่ ${this.slot} · เซฟอัตโนมัติบนเซิร์ฟเวอร์ทุก ${AUTOSAVE_SECONDS} วินาที เล่นต่อได้ทุกเครื่อง` };
       return { mode: 'online', label: `ออนไลน์ · ${this.player.name}`, detail: `บัญชี ${me.name || 'Claude'} · ตัวละครช่องที่ ${this.slot} · เซฟอัตโนมัติบนคลาวด์ทุก ${AUTOSAVE_SECONDS} วินาที${this.online.canWrite === false ? ' (บัญชีนี้ดูได้อย่างเดียว เซฟบนคลาวด์ไม่ได้)' : ''}` };
     }
-    return { mode: 'offline', label: `ออฟไลน์ · ${this.player.name}`, detail: `เซฟในเบราว์เซอร์เครื่องนี้ทุก ${AUTOSAVE_SECONDS} วินาที · ส่งออกไฟล์เซฟไว้ย้ายเครื่องได้` };
+    return { mode: 'offline', label: `ออฟไลน์ · ${this.player.name}`, detail: `เซฟในเบราว์เซอร์เครื่องนี้ทุก ${AUTOSAVE_SECONDS} วินาที` };
   }
 
   toggleSettings(force) {
