@@ -95,7 +95,7 @@ export class HUD {
     if (m !== this.bossMob) {
       this.bossMob = m; this.bossHp = -1;
       el.boss.hidden = !m;
-      if (m) { el.bossName.textContent = m.name; el.bossLv.textContent = `Lv.${m.level}`; }
+      if (m) { el.bossName.textContent = m.name; el.bossLv.textContent = `Lv.${m.level}`; const tg = el.boss.querySelector('.bb-tag'); if (tg) tg.textContent = m.data && m.data.dgBoss ? 'BOSS' : 'MVP'; }   // v0.32: บอสดันเจี้ยน
     }
     // ถ้าเลือกบอสเป็นเป้าหมายอยู่ ใช้แถบบอสแทนกรอบเป้าหมายปกติ
     if (this.targetMob) el.target.hidden = !!m && this.targetMob === m;
