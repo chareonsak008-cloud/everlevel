@@ -37,6 +37,8 @@ export class PixelWingSprite {
     // และใช้เฉพาะแถวฝั่งตะวันออก (E·NE·SE) แล้วกลับด้านสำหรับฝั่งตะวันตก → ปีกซ้าย/ขวาสมมาตรกัน ไม่เพี้ยนตามภาพแต่ละมุม
     let od = DIR8[(dirIdx + 4) % 8] || 'n', flip = false;
     if (od === 'w' || od === 'sw' || od === 'nw') { od = od === 'w' ? 'e' : od === 'sw' ? 'se' : 'ne'; flip = true; }
+    // มุมด้านข้างแท้ ๆ ภาพของ PixelLab เป็นขอบปีกบาง ๆ ดูเป็นก้อน → ใช้ภาพมุมเฉียงแทน (ปีกกางไปด้านหลัง)
+    if (od === 'e') od = 'se';
     this.t += dt;
     const F = p.frames || 1, f = Math.floor(this.t * (p.fps || 8)) % F;
     this.tex.offset.set(f / F, 1 - (ROW[od] + 1) / 8);
