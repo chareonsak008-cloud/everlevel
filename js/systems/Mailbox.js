@@ -6,7 +6,7 @@ import { ITEMS } from '../data/items.js';
 import { PETS } from '../data/pets.js';
 import { MAX_ZENY } from '../data/shops.js';
 import { normMail, setById, hasGift } from '../data/mail.js';
-import { COSTUMES } from '../data/costumes.js';
+import { COSTUMES, COSTUME_BY_ID } from '../data/costumes.js';
 
 const REFRESH_SEC = 180;
 
@@ -109,7 +109,7 @@ export class Mailbox {
     if (!m) return { ok: false, msg: 'ไม่พบจดหมายนี้ (อาจหมดอายุแล้ว)' };
     if (this.isClaimed(m)) return { ok: false, msg: 'รับของในจดหมายนี้ไปแล้ว' };
     if (m.expires && m.expires < Date.now()) return { ok: false, msg: 'จดหมายหมดอายุแล้ว' };
-    for (const p of m.picks) if (!p.options.includes(choice[p.kind])) return { ok: false, msg: p.kind === 'set' ? 'เลือกชุดแฟชั่นก่อน 1 เซ็ต' : 'เลือกสัตว์เลี้ยงก่อน 1 ตัว' };
+    for (const p of m.picks) if (!p.options.includes(choice[p.kind])) return { ok: false, msg: p.kind === 'set' ? 'เลือกชุดแฟชั่นก่อน 1 เซ็ต' : p.kind === 'fashion' ? 'เลือกชิ้นแฟชั่นก่อน 1 ชิ้น' : 'เลือกสัตว์เลี้ยงก่อน 1 ตัว' };
     if (m.items.length && !pl.inventory.fits(m.items)) return { ok: false, msg: 'กระเป๋าไม่พอ — ทิ้งหรือฝากของก่อนแล้วกดรับใหม่' };
     if (!m.local) {
       const o = this.online;
@@ -131,6 +131,11 @@ export class Mailbox {
       setIds = s.items;
       let n = 0; for (const cid of s.items) if (pl.addFashion(cid)) n++;
       got.push(`ชุดแฟชั่นเซ็ต "${s.name}"${n < s.items.length ? ` (ชิ้นใหม่ ${n}/${s.items.length})` : ''}`);
+    }
+    if (choice.fashion && m.picks.some((p) => p.kind === 'fashion')) {
+      const c = COSTUME_BY_ID[choice.fashion], isNew = pl.addFashion(c.id);
+      setIds = setIds || [c.id];
+      got.push(`แฟชั่น "${c.name}"${isNew ? '' : ' (มีแล้ว)'}`);
     }
     if (choice.pet && m.picks.some((p) => p.kind === 'pet')) {
       petId = choice.pet;

@@ -17,7 +17,7 @@ export const WELCOME_MAIL = {
   picks: [{ kind: 'set', options: WELCOME_SETS }, { kind: 'pet', options: WELCOME_PETS }],
 };
 
-export const PICK_LABEL = { set: 'เลือกชุดแฟชั่น 1 เซ็ต', pet: 'เลือกสัตว์เลี้ยง 1 ตัว' };
+export const PICK_LABEL = { set: 'เลือกชุดแฟชั่น 1 เซ็ต', pet: 'เลือกสัตว์เลี้ยง 1 ตัว', fashion: 'เลือกชิ้นแฟชั่น 1 ชิ้น' };   // v0.35.4: fashion = ชิ้นเดี่ยว (ปีก/ออร่า)
 export const MAIL_MAX_ITEMS = 10;
 export const MAIL_MAX_ZENY = 100000000;
 export const setById = (id) => SETS.find((s) => s.id === id) || null;
@@ -38,8 +38,8 @@ export function normMail(r) {
   }
   const picks = [];
   for (const p of Array.isArray(r.picks) ? r.picks : []) {
-    if (!p || !['set', 'pet'].includes(p.kind) || picks.some((x) => x.kind === p.kind)) continue;
-    const ok = (id) => (p.kind === 'set' ? !!setById(id) : !!PETS[id]);
+    if (!p || !['set', 'pet', 'fashion'].includes(p.kind) || picks.some((x) => x.kind === p.kind)) continue;
+    const ok = (id) => (p.kind === 'set' ? !!setById(id) : p.kind === 'fashion' ? !!COSTUME_BY_ID[id] : !!PETS[id]);
     const options = [...new Set(Array.isArray(p.options) ? p.options.filter(ok) : [])].slice(0, 40);
     if (options.length) picks.push({ kind: p.kind, options });
   }

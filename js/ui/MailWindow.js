@@ -1,7 +1,8 @@
 // หน้าต่างจดหมาย (v0.15 · ปุ่ม M / 📬) — อ่านจดหมาย · รับของ · เลือกชุดแฟชั่น/สัตว์เลี้ยง
 // แอดมิน: แท็บ "ส่งจดหมาย (GM)" ส่งไอเทม/Zeny/ตัวเลือกถึงทุกคนหรือระบุชื่อตัวละคร
 import { ITEMS } from '../data/items.js';
-import { SETS } from '../data/costumes.js';
+import { SETS, COSTUMES, COSTUME_BY_ID } from '../data/costumes.js';
+import { TIER_RANK } from '../data/fashionBoxes.js';
 import { PETS, PET_ORDER, PET_RARITY } from '../data/pets.js';
 import { FASHION_RARITY } from '../data/fashionBoxes.js';
 import { PICK_LABEL, MAIL_MAX_ITEMS, MAIL_MAX_ZENY, setById, setTier, hasGift } from '../data/mail.js';
@@ -156,6 +157,14 @@ export class MailWindow {
           b.title = s.desc;
           const img = b.querySelector('img');
           setTimeout(() => requestThumb({ ...s, rarity: tier }, img), 0);
+        } else if (p.kind === 'fashion') {
+          const c = COSTUME_BY_ID[id], R = FASHION_RARITY[c.rarity], own = this.g.player.fashion.owned.has(id);
+          b.style.setProperty('--rc', R.color);
+          b.innerHTML = `<span class="ml-pic"><img alt=""></span><b></b><small>${R.name}${own ? ' · มีแล้ว' : ''}</small>`;
+          b.querySelector('b').textContent = c.name;
+          b.title = c.desc;
+          const img = b.querySelector('img');
+          setTimeout(() => requestThumb(c, img), 0);
         } else {
           const P = PETS[id], R = PET_RARITY[P.tier], own = this.g.player.pets.owned[id] != null;
           b.style.setProperty('--rc', R.color);
@@ -176,13 +185,13 @@ export class MailWindow {
     const acts = d.querySelector('.ml-acts'), msg = d.querySelector('.ml-msg');
     if (got) {
       msg.textContent = hasGift(m) ? '✔ รับของในจดหมายนี้แล้ว' : '✔ อ่านแล้ว';
-      if (m.picks.some((p) => p.kind === 'set')) this.btn(acts, 'เปิดตู้แฟชั่น', () => { this.toggle(false); this.g.toggleWardrobe(true); });
+      if (m.picks.some((p) => p.kind === 'set' || p.kind === 'fashion')) this.btn(acts, 'เปิดตู้แฟชั่น', () => { this.toggle(false); this.g.toggleWardrobe(true); });
       if (m.picks.some((p) => p.kind === 'pet')) this.btn(acts, 'หน้าต่างสัตว์เลี้ยง', () => { this.toggle(false); this.g.togglePets(true); });
       return;
     }
     if (!hasGift(m)) { msg.textContent = ''; return; }
     const missing = m.picks.filter((p) => !ch[p.kind]);
-    msg.textContent = missing.length ? `เลือก${missing.map((p) => ({ set: 'ชุดแฟชั่น', pet: 'สัตว์เลี้ยง' }[p.kind])).join('และ')}ก่อน แล้วกดรับของ` : '';
+    msg.textContent = missing.length ? `เลือก${missing.map((p) => ({ set: 'ชุดแฟชั่น', pet: 'สัตว์เลี้ยง', fashion: 'ชิ้นแฟชั่น' }[p.kind])).join('และ')}ก่อน แล้วกดรับของ` : '';
     const b = this.btn(acts, '🎁 รับของ', async () => {
       b.disabled = true;
       const r = await this.box.claim(m.id, ch);
@@ -211,6 +220,8 @@ export class MailWindow {
     pane.dataset.built = '1';
     const itemOpts = Object.entries(ITEMS).map(([id, it]) => `<option value="${esc(it.name)} [${id}]"></option>`).join('');
     const setOpts = SETS.map((s) => `<label class="gm-ck"><input type="checkbox" name="gmSet" value="${s.id}"><span>${esc(s.name)} <small>${FASHION_RARITY[setTier(s)].name}</small></span></label>`).join('');
+    const SLOT_TH = { wings: 'ปีก', aura: 'ออร่า', weapon: 'อาวุธ', outfit: 'ชุด', head: 'หมวก', face: 'หน้า', back: 'หลัง', pet: 'ผู้ติดตาม' };
+    const fashOpts = [...COSTUMES].sort((a, b) => (a.slot === b.slot ? TIER_RANK[b.rarity] - TIER_RANK[a.rarity] : a.slot.localeCompare(b.slot))).map((c) => `<label class="gm-ck"><input type="checkbox" name="gmFash" value="${c.id}"><span>${SLOT_TH[c.slot] || c.slot} · ${esc(c.name)} <small style="color:${FASHION_RARITY[c.rarity].color}">${FASHION_RARITY[c.rarity].name}</small></span></label>`).join('');
     const petOpts = PET_ORDER.map((id) => `<label class="gm-ck"><input type="checkbox" name="gmPet" value="${id}"><span>${esc(PETS[id].name)} <small>${PET_RARITY[PETS[id].tier].name}</small></span></label>`).join('');
     pane.innerHTML = `
       <p class="gm-note">ส่งได้เฉพาะบัญชีแอดมิน (ตรวจสิทธิ์ที่เซิร์ฟเวอร์) · ผู้เล่นจะเห็นจดหมายภายใน 3 นาที หรือทันทีเมื่อเปิดกล่องจดหมาย</p>
@@ -228,6 +239,7 @@ export class MailWindow {
       <div class="gm-chips"></div>
       <label class="gm-zeny">Zeny<input name="zeny" type="number" min="0" max="${MAIL_MAX_ZENY}" value="0"></label>
       <details class="gm-det"><summary>ให้ผู้เล่นเลือกชุดแฟชั่น 1 เซ็ต (ติ๊กเซ็ตที่เป็นตัวเลือก)</summary><div class="gm-cks">${setOpts}</div></details>
+      <details class="gm-det"><summary>ให้ชิ้นแฟชั่น — ปีก/ออร่า (ติ๊ก 1 ชิ้น = ให้ชิ้นนั้นเลย · ติ๊กหลายชิ้น = ผู้เล่นเลือก 1)</summary><div class="gm-cks">${fashOpts}</div></details>
       <details class="gm-det"><summary>ให้ผู้เล่นเลือกสัตว์เลี้ยง 1 ตัว (ติ๊กตัวที่เป็นตัวเลือก)</summary><div class="gm-cks">${petOpts}</div></details>
       <div class="gm-send"><button type="button" class="primary gm-go">ส่งจดหมาย</button><p class="gm-msg" aria-live="polite"></p></div>
       <h4>จดหมายที่ส่งแล้ว</h4><div class="gm-sent"></div>`;
@@ -274,9 +286,11 @@ export class MailWindow {
     const zeny = Math.max(0, Math.min(MAIL_MAX_ZENY, Math.floor(+$('[name=zeny]').value) || 0));
     const sets = [...pane.querySelectorAll('[name=gmSet]:checked')].map((x) => x.value);
     const pets = [...pane.querySelectorAll('[name=gmPet]:checked')].map((x) => x.value);
+    const fash = [...pane.querySelectorAll('[name=gmFash]:checked')].map((x) => x.value);
     const picks = [];
     if (sets.length) picks.push({ kind: 'set', options: sets });
     if (pets.length) picks.push({ kind: 'pet', options: pets });
+    if (fash.length) picks.push({ kind: 'fashion', options: fash });
     if (!title) { msg.textContent = 'ใส่หัวข้อจดหมายก่อน'; return; }
     if (!toAll && (!to || to.length < 2)) { msg.textContent = 'ใส่ชื่อตัวละครผู้รับ'; return; }
     // กดครั้งแรก = ถามยืนยัน (ส่งถึงทุกคนแล้วลบได้ แต่คนที่รับไปแล้วจะไม่ถูกดึงของคืน)
