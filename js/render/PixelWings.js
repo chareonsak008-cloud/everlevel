@@ -28,12 +28,15 @@ export class PixelWingSprite {
     this._c = new THREE.Vector3(); this._d = new THREE.Vector3();
   }
 
-  // dir = ดัชนีทิศของตัวละคร (ตาม DIR8 ใน SheetChars) · foot = จุดเท้าตัวละคร (โลก)
+  // dirIdx = ดัชนีทิศของตัวละคร (ตาม DIR8 ใน SheetChars)
   update(dt, ent, dirIdx, camera, visible) {
     this.mesh.visible = !!visible && !ent.dead;
     if (!this.mesh.visible) return;
-    // ภาพปีกจาก PixelLab "หัน" ออกจากตัวผู้สวม (ปลายปีกชี้ไปทางทิศของภาพ) → ใช้แถวทิศตรงข้ามกับทิศที่ตัวละครหัน
-    const p = this.p, d = DIR8[dirIdx] || 's', behind = !!BEHIND[d], od = DIR8[(dirIdx + 4) % 8] || 'n';
+    const p = this.p, d = DIR8[dirIdx] || 's', behind = !!BEHIND[d];
+    // ภาพปีกจาก PixelLab "หัน" ออกจากตัวผู้สวม → ใช้แถวทิศตรงข้ามกับทิศที่ตัวละครหัน
+    // และใช้เฉพาะแถวฝั่งตะวันออก (E·NE·SE) แล้วกลับด้านสำหรับฝั่งตะวันตก → ปีกซ้าย/ขวาสมมาตรกัน ไม่เพี้ยนตามภาพแต่ละมุม
+    let od = DIR8[(dirIdx + 4) % 8] || 'n', flip = false;
+    if (od === 'w' || od === 'sw' || od === 'nw') { od = od === 'w' ? 'e' : od === 'sw' ? 'se' : 'ne'; flip = true; }
     this.t += dt;
     const F = p.frames || 1, f = Math.floor(this.t * (p.fps || 8)) % F;
     this.tex.offset.set(f / F, 1 - (ROW[od] + 1) / 8);
@@ -42,12 +45,14 @@ export class PixelWingSprite {
     // ตัวสไปรต์ถูกดันเข้าหากล้อง 0.5 → ปีกหลังตัว 0.3 · ปีกหน้าตัว (หันหลังให้กล้อง) 0.7
     const push = behind ? 0.3 : 0.7, k = (dist - push) / dist;
     this.mesh.renderOrder = behind ? 38 : 42;
-    const lift = (p.lift ?? 1.45) * (p.scale || 1);
+    const lift = (p.lift ?? 1.2) * (p.scale || 1);
+    // หันข้าง/เฉียง: เลื่อนปีกไปทางหลังตัว (ภาพด้านข้างของ PixelLab อยู่กลางช่อง ไม่ได้ติดที่หลัง)
+    const side = d === 'e' ? -1 : d === 'w' ? 1 : d === 'ne' || d === 'se' ? -0.55 : d === 'nw' || d === 'sw' ? 0.55 : 0;
     this.mesh.position.copy(foot).addScaledVector(toCam, push);
     this.mesh.quaternion.copy(camera.quaternion);
-    // ยกขึ้นไปที่ระดับไหล่ตามแกนตั้งของจอ (ชดเชยการดันเข้าหากล้อง)
     this.mesh.translateY(lift * k);
-    this.mesh.scale.setScalar(k);
+    this.mesh.translateX(side * (p.back ?? 0.5) * k);
+    this.mesh.scale.set(flip ? -k : k, k, 1);
   }
 
   dispose() { this.scene.remove(this.mesh); this.mesh.geometry.dispose(); this.mat.dispose(); this.tex.dispose(); }
