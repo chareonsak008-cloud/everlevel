@@ -11,12 +11,12 @@ const PXLAB = { cols: 13, size: 3.55, pixel: true, anim: { idle: [0], walk: [1, 
 export const SHEETS = {
   swordsman: { ...PXLAB, src: 'assets/sprites/swordsman_px.png', foot: 75.5 / 96 },
   archer: { ...PXLAB, src: 'assets/sprites/archer_px.png', foot: 75.5 / 96 },
-  mage: { ...HAND, src: 'assets/sprites/mage8.png', foot: 121.5 / 128 },
-  acolyte: { ...HAND, src: 'assets/sprites/acolyte8.png', foot: 121.5 / 128 },
+  mage: { ...PXLAB, src: 'assets/sprites/mage_px.png', foot: 75.5 / 96 },
+  acolyte: { ...PXLAB, src: 'assets/sprites/acolyte_px.png', foot: 75.5 / 96 },
 };
 const LINE = { knight: 'swordsman', wizard: 'mage', hunter: 'archer', priest: 'acolyte' };
 export const sheetOf = (job) => (SHEETS[job] ? job : LINE[job] || null);
-// อาชีพที่ใช้ตัวละครพิกเซลในเกมจริงแล้ว (ที่เหลือยังเป็นโมเดลเดิม)
+// อาชีพที่ใช้ตัวละครพิกเซลในเกมจริงแล้ว (Novice ยังเป็นโมเดลเดิม)
 export const liveSheet = (job) => { const k = sheetOf(job); return k && SHEETS[k].pixel ? k : null; };
 
 // 8 ทิศเทียบจอ (0 = หันหน้าเข้าหากล้อง หมุนตามเข็มไปทางขวา) → แถวในแผ่น
@@ -38,8 +38,9 @@ export class SheetSprite {
   constructor(scene, job) {
     this.scene = scene; this.job = null; this.tex = null;
     const geo = new THREE.PlaneGeometry(1, 1);
-    this.mat = new THREE.MeshBasicMaterial({ transparent: false, alphaTest: 0.5, toneMapped: false, side: THREE.DoubleSide });
-    this.mesh = new THREE.Mesh(geo, this.mat); this.mesh.renderOrder = 2; this.mesh.frustumCulled = false;
+    // วาดหลังชิ้นแฟชั่นโปร่ง (ปีกไฟ/ออร่า) เสมอ → ตัวละครอยู่หน้าปีก ไม่โดนปีกบังจนจาง
+    this.mat = new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.5, depthWrite: true, toneMapped: false, side: THREE.DoubleSide });
+    this.mesh = new THREE.Mesh(geo, this.mat); this.mesh.renderOrder = 40; this.mesh.frustumCulled = false;
     // ส่วนที่ถูกต้นไม้/บ้านบัง → เงาโปร่งทะลุ (แบบเดียวกับสไปรต์ตัวละครเดิม)
     this.xmat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.5, alphaTest: 0.5, depthWrite: false, depthFunc: THREE.GreaterDepth, toneMapped: false, color: new THREE.Color(0.75, 0.82, 1.0), side: THREE.DoubleSide });
     this.xray = new THREE.Mesh(geo, this.xmat); this.xray.renderOrder = 30; this.xray.frustumCulled = false;

@@ -1,0 +1,281 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Everlevel Sky Cleave",
+ "fps": 12,
+ "frame_ms": 83,
+ "frames": 14,
+ "loop": false,
+ "canvas": {
+  "w": 171,
+  "h": 171
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 85,
+  "y": 136
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 11,
+   "frame": {
+    "w": 165,
+    "h": 165
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 11,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -82,
+    "y": -133
+   }
+  },
+  {
+   "name": "whole-with-sprite",
+   "title": "the whole effect with the sprite in it",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 14,
+   "frame": {
+    "w": 165,
+    "h": 165
+   },
+   "sheets": [
+    {
+     "file": "whole-with-sprite.png",
+     "first_frame": 0,
+     "frames": 14,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -82,
+    "y": -133
+   }
+  },
+  {
+   "name": "behind",
+   "title": "everything behind the sprite",
+   "depth": "behind",
+   "loop": false,
+   "start_frame": 4,
+   "frames": 8,
+   "frame": {
+    "w": 165,
+    "h": 165
+   },
+   "sheets": [
+    {
+     "file": "behind.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -82,
+    "y": -133
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 9,
+   "frame": {
+    "w": 121,
+    "h": 83
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -60,
+    "y": -63
+   }
+  },
+  {
+   "name": "part-charge_up",
+   "title": "the charge up part",
+   "role": "cast",
+   "part": "charge_up",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 3,
+   "frame": {
+    "w": 61,
+    "h": 61
+   },
+   "sheets": [
+    {
+     "file": "part-charge_up.png",
+     "first_frame": 0,
+     "frames": 3,
+     "columns": 2,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -30,
+    "y": -60
+   }
+  },
+  {
+   "name": "part-sky_beam",
+   "title": "the sky beam part",
+   "role": "impact",
+   "part": "sky_beam",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 4,
+   "frames": 5,
+   "frame": {
+    "w": 85,
+    "h": 150
+   },
+   "sheets": [
+    {
+     "file": "part-sky_beam.png",
+     "first_frame": 0,
+     "frames": 5,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -42,
+    "y": -133
+   }
+  },
+  {
+   "name": "part-slash_trail",
+   "title": "the slash trail part",
+   "role": "impact",
+   "part": "slash_trail",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 4,
+   "frames": 3,
+   "frame": {
+    "w": 40,
+    "h": 68
+   },
+   "sheets": [
+    {
+     "file": "part-slash_trail.png",
+     "first_frame": 0,
+     "frames": 3,
+     "columns": 2,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -1,
+    "y": -63
+   }
+  },
+  {
+   "name": "part-shockwave_ring",
+   "title": "the shockwave ring part",
+   "role": "impact",
+   "part": "shockwave_ring",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 5,
+   "frames": 6,
+   "frame": {
+    "w": 165,
+    "h": 64
+   },
+   "sheets": [
+    {
+     "file": "part-shockwave_ring.png",
+     "first_frame": 0,
+     "frames": 6,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -82,
+    "y": -32
+   }
+  },
+  {
+   "name": "part-ground_cracks",
+   "title": "the ground cracks part",
+   "role": "linger",
+   "part": "ground_cracks",
+   "depth": "behind",
+   "loop": false,
+   "start_frame": 5,
+   "frames": 7,
+   "frame": {
+    "w": 84,
+    "h": 31
+   },
+   "sheets": [
+    {
+     "file": "part-ground_cracks.png",
+     "first_frame": 0,
+     "frames": 7,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -41,
+    "y": -15
+   }
+  },
+  {
+   "name": "part-spark_burst",
+   "title": "the spark burst part",
+   "role": "impact",
+   "part": "spark_burst",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 5,
+   "frames": 5,
+   "frame": {
+    "w": 61,
+    "h": 58
+   },
+   "sheets": [
+    {
+     "file": "part-spark_burst.png",
+     "first_frame": 0,
+     "frames": 5,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -30,
+    "y": -59
+   }
+  }
+ ]
+}

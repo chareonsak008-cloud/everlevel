@@ -1,4 +1,5 @@
 // ตัวควบคุมหลักของเกม: ลูป, แผนที่/วาร์ป, การเดิน, การต่อสู้ → ส่งต่อให้ Renderer3D วาด
+import { SKILL_VFX } from '../render/PixelVfx.js';
 import { EventService } from '../systems/EventService.js';
 import { EventWindow } from '../ui/EventWindow.js';
 import { TILE, AUTOSAVE_SECONDS, SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js';
@@ -1551,6 +1552,9 @@ export class Game {
       }
     }
     fx.play(sk.vfx, ctx);
+    // v0.34: ซ้อนเอฟเฟกต์ภาพพิกเซล (PixelLab) ถ้าสกิลนี้มี
+    const pv = SKILL_VFX[id];
+    if (pv) { const at = pv.at === 'self' || !t ? casterPos : new THREE.Vector3(t.x * S, 0, t.y * S); this.gfx.pixelVfx().play(pv.name, at, pv); }
     // บัฟเข้าทันที (เอฟเฟกต์เป็นแค่ภาพ)
     if (sk.bonus) {
       pl.addBuff(id, lv, sk.bonus(lv), sk.duration(lv));

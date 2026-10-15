@@ -1,5 +1,6 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
 import { SheetSprite, liveSheet } from './SheetChars.js';
+import { PixelVfx } from './PixelVfx.js';
 import { THREE } from './three.js';
 import { TILE } from '../config.js';
 import { T } from '../data/tileTypes.js';
@@ -98,6 +99,7 @@ export class Renderer3D {
 
     this.windTime = { value: 0 };
     this.characters = new Map();
+    this.pxvfx = null;   // v0.34: เอฟเฟกต์สกิลพิกเซล (สร้างเมื่อใช้ครั้งแรก)
     // v0.17: สไปรต์พิกเซลอาร์ต (โมเดลจริงอยู่เลเยอร์ 1 ไม่วาดลงฉากหลัก แต่ยังทอดเงา)
     this.px = new PixelSprites(r, this.scene, this.camera, { mobile: this.mobile });
     this.sun.shadow.camera.layers.enable(PX_LAYER);
@@ -599,6 +601,8 @@ export class Renderer3D {
     view.update(0, mob);
   }
 
+  pixelVfx() { return this.pxvfx || (this.pxvfx = new PixelVfx(this.scene, this.camera)); }
+
   // v0.33: ตัวละครพิกเซล 8 ทิศ (สไปรต์ชีต) แทนโมเดล สำหรับอาชีพที่มีภาพแล้ว
   sheetChar(c, entity, dt) {
     const job = this.spriteChars !== false ? liveSheet(entity.jobId) : null;
@@ -616,7 +620,14 @@ export class Renderer3D {
 
   sheetBody(c, on) {
     const root = c.view.root;
-    root.traverse((o) => { if (o.isMesh || o.isPoints || o.isLine || o.isSprite) o.visible = !on || !!o.userData.costume; });
+    root.traverse((o) => {
+      if (!(o.isMesh || o.isPoints || o.isLine || o.isSprite)) return;
+      o.visible = !on || !!o.userData.costume;
+      // ชิ้นแฟชั่นโปร่ง/เรืองแสง (วาดเป็น 3 มิติ) → ไม่เขียนความลึก และวาดก่อนตัวสไปรต์ → อยู่หลังตัวละคร
+      const m = o.material; if (!o.userData.costume || !m || Array.isArray(m) || !m.transparent) return;
+      if (on && m.userData.shDW === undefined) { m.userData.shDW = m.depthWrite; m.depthWrite = false; o.userData.shRO = o.renderOrder; o.renderOrder = Math.min(o.renderOrder, 5); }
+      else if (!on && m.userData.shDW !== undefined) { m.depthWrite = m.userData.shDW; delete m.userData.shDW; o.renderOrder = o.userData.shRO || 0; }
+    });
     if (c.sheetScale) root.scale.setScalar(on ? c.sheetScale * 1.22 : c.sheetScale);
     const ps = this.px && this.px.list && this.px.list.get(c.ent || null);
     if (ps) ps.push = on ? 0.12 : undefined;
@@ -1260,6 +1271,7 @@ export class Renderer3D {
     this.updateDrops(dt, t);
     this.updateFlyDrops(dt);
     this.updatePets(simDt);
+    if (this.pxvfx) this.pxvfx.update(simDt);
     this.scene.updateMatrixWorld();
     this.pxTint();
     this.px.setFocus(focus);

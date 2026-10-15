@@ -1,0 +1,44 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Impact burst",
+ "fps": 16,
+ "frame_ms": 63,
+ "frames": 7,
+ "loop": false,
+ "canvas": {
+  "w": 64,
+  "h": 64
+ },
+ "anchor": {
+  "kind": "origin",
+  "x": 32,
+  "y": 32
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 5,
+   "frame": {
+    "w": 42,
+    "h": 44
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 5,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -21,
+    "y": -24
+   }
+  }
+ ]
+}
