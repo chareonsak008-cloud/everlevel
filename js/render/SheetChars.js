@@ -23,6 +23,16 @@ export const liveSheet = (job) => { const k = sheetOf(job); return k && SHEETS[k
 export const DIR8 = ['s', 'se', 'e', 'ne', 'n', 'nw', 'w', 'sw'];
 const ROW = { n: 0, ne: 1, e: 2, se: 3, s: 4, sw: 5, w: 6, nw: 7 };
 
+// ทิศหันของตัวละครเทียบจอ → ดัชนี DIR8 (ใช้ร่วมกับปีกพิกเซลของตัวละครที่ยังเป็นโมเดล)
+const _r = new THREE.Vector3(), _b = new THREE.Vector3();
+export function screenDir(angle, camera) {
+  const right = _r.setFromMatrixColumn(camera.matrixWorld, 0);
+  const back = _b.setFromMatrixColumn(camera.matrixWorld, 2); back.y = 0; back.normalize();
+  const fx = Math.sin(angle), fz = Math.cos(angle);
+  const ang = Math.atan2(fx * right.x + fz * right.z, fx * back.x + fz * back.z);
+  return ((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8;
+}
+
 const FPS = { idle: { fps: 1, loop: true }, walk: { fps: 8, loop: true }, attack: { fps: 11, loop: false }, skill: { fps: 9, loop: false } };
 const framesOf = (S, name) => S.anim[name] || S.anim.attack;
 

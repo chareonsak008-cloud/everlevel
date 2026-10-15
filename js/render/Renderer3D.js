@@ -1,5 +1,6 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet } from './SheetChars.js';
+import { SheetSprite, liveSheet, screenDir } from './SheetChars.js';
+import { PixelWingSprite } from './PixelWings.js';
 import { PixelVfx } from './PixelVfx.js';
 import { THREE } from './three.js';
 import { TILE } from '../config.js';
@@ -466,17 +467,20 @@ export class Renderer3D {
     const look = has ? costumeLook(entity.look, items) : entity.look;
     const view = new CharacterView(look);
     let costume = null, glow = false;
+    // v0.35: ชิ้นแฟชั่นภาพพิกเซล (ปีก/ออร่าจาก PixelLab) วาดแยกจากโมเดล
+    const pk = (it) => (it && it.kind === 'pixel' ? it : null);
+    const pxw = has ? { wings: pk(items.wings), aura: pk(items.aura), weapon: pk(items.weapon) } : null;
     if (has) {
       costume = wearCostume(view, items, { world: this.costumeWorld, look });
       if (this.ch) costume.setViewport(this.fxVH || this.ch * this.renderer.getPixelRatio(), this.camera.fov);
       glow = Object.values(items).some((it) => (TIER_RANK[it.rarity] || 0) >= 3);
     }
-    return { view, costume, glow };
+    return { view, costume, glow, pxw };
   }
 
   // remote = ผู้เล่นคนอื่นในโหมดออนไลน์ (v0.11): ป้ายชื่อ + เลเวล/อาชีพ + แถบ HP + ข้อความแชต
   addCharacter(entity, { npc = false, remote = false } = {}) {
-    const { view, costume, glow } = this.buildView(entity, npc);
+    const { view, costume, glow, pxw } = this.buildView(entity, npc);
     view.root.rotation.y = entity.angle;
     this.scene.add(view.root);
     const scale = (entity.look && entity.look.scale) || 1;
@@ -499,7 +503,7 @@ export class Renderer3D {
     if (!npc && !remote) {
       castbar = document.createElement('div'); castbar.className = 'castbar'; castbar.innerHTML = '<span></span><b><i></i></b>'; castbar.hidden = true; this.labelLayer.append(castbar);
     }
-    this.characters.set(entity, { view, costume, glow, label, bubble, hpbar, castbar, npc, kind: npc ? 'npc' : remote ? 'remote' : 'player', head: CHAR_HEAD * 1.3 * scale, lastText: '', lastHp: -1 });
+    this.characters.set(entity, { view, costume, glow, pxw, label, bubble, hpbar, castbar, npc, kind: npc ? 'npc' : remote ? 'remote' : 'player', head: CHAR_HEAD * 1.3 * scale, lastText: '', lastHp: -1 });
     this.actorQuality(this.characters.get(entity));
     this.pxChar(entity, view);
     view.update(0, entity);
@@ -618,6 +622,21 @@ export class Renderer3D {
     c.sheet.update(dt, entity, c.view, this.camera, this.px && this.px.tint);
   }
 
+  // v0.35: ปีก/ออร่าภาพพิกเซลจากชุดแฟชั่น — สร้าง/ถอดตามชิ้นที่สวม · ตามตำแหน่งและทิศของตัวละครทุกเฟรม
+  pixelWear(c, entity, dt, off = false) {
+    const W = !off && c.pxw ? c.pxw.wings : null, A = !off && c.pxw ? c.pxw.aura : null;
+    if (c.pwing && (!W || c.pwing.p !== W.p)) { c.pwing.dispose(); c.pwing = null; }
+    if (W && !c.pwing) c.pwing = new PixelWingSprite(this.scene, W.p);
+    if (c.paura && (!A || c.paura.name !== A.p.vfx)) { c.paura.stop(); c.paura = null; }
+    if (A && !c.paura) c.paura = this.pixelVfx().play(A.p.vfx, null, { scale: A.p.scale || 1, follow: entity });
+    const X = !off && c.pxw ? c.pxw.weapon : null;
+    if (X && c.pxwLoaded !== X.p.vfx) { c.pxwLoaded = X.p.vfx; this.pixelVfx().load(X.p.vfx); }   // โหลดภาพเอฟเฟกต์อาวุธล่วงหน้า
+    if (!c.pwing && !c.paura) return;
+    const vis = !entity.hidden && c.view.root.visible;
+    if (c.pwing) c.pwing.update(dt, entity, c.sheet ? c.sheet.dir : screenDir(entity.angle, this.camera), this.camera, vis);
+    if (c.paura && c.paura.e) c.paura.e.hidden = !vis;
+  }
+
   sheetBody(c, on) {
     const root = c.view.root;
     root.traverse((o) => {
@@ -637,6 +656,7 @@ export class Renderer3D {
   removeActor(entity) {
     const c = this.characters.get(entity); if (!c) return;
     if (c.sheet) { c.sheet.dispose(); c.sheet = null; }
+    this.pixelWear(c, entity, 0, true);
     this.px.detach(entity);
     this.scene.remove(c.view.root);
     c.view.root.traverse((o) => {
@@ -651,7 +671,13 @@ export class Renderer3D {
   }
 
   /* ---------- เอฟเฟกต์การต่อสู้ ---------- */
-  playAttack(entity, kind) { const c = this.characters.get(entity); if (c) c.view.attack(kind); }
+  playAttack(entity, kind) {
+    const c = this.characters.get(entity); if (!c) return;
+    c.view.attack(kind);
+    // v0.35: อาวุธแฟชั่นภาพพิกเซล = เอฟเฟกต์ฟันประจำตัวทุกครั้งที่โจมตี (กลับด้านเมื่อหันซ้าย)
+    const W = c.pxw && c.pxw.weapon;
+    if (W) { const d = c.sheet ? c.sheet.dir : screenDir(entity.angle, this.camera); this.pixelVfx().play(W.p.vfx, null, { scale: W.p.scale || 1, follow: entity, once: true, flip: d >= 5, delay: W.p.delay || 0 }); }
+  }
 
   /* ---------- บอส (v0.7) ---------- */
   telegraph(x, y, radiusTiles, dur, color = '#ff3a3a') { this.telegraphs.spawn(x * S, y * S, radiusTiles, dur, color); }
@@ -977,11 +1003,11 @@ export class Renderer3D {
     old.root.traverse((o) => { if (o.geometry && !o.userData.outline) o.geometry.dispose(); });
     disposeOwned(old.root);
     if (c.costume) { c.costume.dispose(); c.costume = null; }
-    const { view, costume, glow } = this.buildView(entity, c.kind === 'npc');
+    const { view, costume, glow, pxw } = this.buildView(entity, c.kind === 'npc');
     view.root.rotation.y = entity.angle;
     this.scene.add(view.root);
     if (c.hitbox) view.root.add(c.hitbox);
-    c.view = view; c.costume = costume; c.glow = glow;
+    c.view = view; c.costume = costume; c.glow = glow; c.pxw = pxw;
     this.actorQuality(c);
     this.pxChar(entity, view);
     view.update(0, entity);
@@ -1262,7 +1288,7 @@ export class Renderer3D {
     let glowC = null;
     for (const [entity, c] of this.characters) {
       c.view.update(simDt, entity);
-      if (c.kind === 'player' || c.kind === 'remote') this.sheetChar(c, entity, simDt);
+      if (c.kind === 'player' || c.kind === 'remote') { this.sheetChar(c, entity, simDt); this.pixelWear(c, entity, simDt); }
       if (c.costume) { c.costume.update(simDt, c.view); if (c.glow && c.kind === 'player' && !c.sheet) glowC = c; }
       this.placeLabel(entity, c);
     }

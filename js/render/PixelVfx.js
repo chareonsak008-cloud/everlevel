@@ -35,9 +35,11 @@ export class PixelVfx {
   }
 
   // เล่นเอฟเฟกต์ที่จุด pos (Vector3 โลก, ที่ระดับพื้น) · scale ขยายทั้งเอฟเฟกต์ · delay วินาที
-  play(name, pos, { scale = 1, delay = 0, life = 3, lift = 0 } = {}) {
-    return this.load(name).then((d) => {
-      if (!d) return false;
+  // follow = ตัวละคร (มี x,y เป็นพิกัดโลก/16) → เอฟเฟกต์วนตามตัวไม่จบจนกว่าจะ stop() (ออร่าแฟชั่น)
+  play(name, pos, { scale = 1, delay = 0, life = 3, lift = 0, follow = null, flip = false, once = false } = {}) {
+    const h = { name, stopped: false, e: null, stop() { this.stopped = true; if (this.e) this.e.dead = true; } };
+    h.ready = this.load(name).then((d) => {
+      if (!d || h.stopped) return false;
       const meshes = d.layers.map((L) => {
         const c = L.clip, w = c.frame.w * PXW * scale, h = c.frame.h * PXW * scale;
         const geo = new THREE.PlaneGeometry(w, h);
@@ -51,10 +53,13 @@ export class PixelVfx {
         this.scene.add(mesh);
         return { mesh, tex, L };
       });
-      const at = pos.clone(); at.y += d.m.anchor && d.m.anchor.kind === 'origin' ? (lift || 1.0) : lift;
-      this.live.push({ d, meshes, pos: at, t: -delay, life });
+      const up = d.m.anchor && d.m.anchor.kind === 'origin' ? (lift || 1.0) : lift;
+      const at = (pos || new THREE.Vector3()).clone(); at.y += up;
+      h.e = { d, meshes, pos: at, t: -delay, life: follow && !once ? Infinity : life, follow, up, hidden: false, flip };
+      this.live.push(h.e);
       return true;
     });
+    return follow && !once ? h : h.ready;
   }
 
   update(dt) {
@@ -63,18 +68,19 @@ export class PixelVfx {
     for (let i = this.live.length - 1; i >= 0; i--) {
       const e = this.live[i], m = e.d.m; e.t += dt;
       const f0 = Math.floor(e.t * m.fps), f = m.loop ? ((f0 % m.frames) + m.frames) % m.frames : f0;
-      if ((m.loop ? e.t > (e.life || 3) : f >= m.frames)) { for (const o of e.meshes) { this.scene.remove(o.mesh); o.mesh.geometry.dispose(); o.mesh.material.dispose(); o.tex.dispose(); } this.live.splice(i, 1); continue; }
+      if (e.dead || (m.loop ? e.t > (e.life || 3) : f >= m.frames)) { for (const o of e.meshes) { this.scene.remove(o.mesh); o.mesh.geometry.dispose(); o.mesh.material.dispose(); o.tex.dispose(); } this.live.splice(i, 1); continue; }
+      if (e.follow) { const F = e.follow; e.pos.set(F.x / 16, (F.lift || 0) + e.up, F.y / 16); }
       const toCam = this._v.copy(cam.position).sub(e.pos); const dist = toCam.length(); toCam.multiplyScalar(1 / dist);
       for (const o of e.meshes) {
         const c = o.L.clip, sh = o.L.sh, lf = f - (c.start_frame || 0);
-        const on = e.t >= 0 && lf >= 0 && lf < c.frames;
+        const on = !e.hidden && e.t >= 0 && lf >= 0 && lf < c.frames;
         o.mesh.visible = on; if (!on) continue;
         const col = lf % sh.columns, row = Math.floor(lf / sh.columns);
         o.tex.offset.set(col / sh.columns, 1 - (row + 1) / sh.rows);
         const push = o.L.push;
         o.mesh.position.copy(e.pos).addScaledVector(toCam, push);
         o.mesh.quaternion.copy(cam.quaternion);
-        o.mesh.scale.setScalar((dist - push) / dist);
+        const k = (dist - push) / dist; o.mesh.scale.set(e.flip ? -k : k, k, 1);
       }
     }
   }

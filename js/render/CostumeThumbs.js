@@ -4,7 +4,7 @@ import { THREE } from './three.js';
 import { CharacterView } from './Characters.js';
 import { PLAYER_LOOK, JOB_LOOK } from '../entities/Player.js';
 import { costumeLook, wearCostume, makeRig, buildOnRig, CostumeRuntime } from './Costumes.js';
-import { COSTUME_BY_ID } from '../data/costumes.js';
+import { COSTUME_BY_ID, COSTUMES } from '../data/costumes.js';
 import { PixelSprites, PIXEL } from './PixelSprites.js';   // v0.17: ไอคอนแฟชั่นแบบพิกเซล
 
 let R = null, tScene = null, tCam = null, BG = null;
@@ -51,7 +51,25 @@ function frameTo(box, dir, pad) {
 function disposeTree(o) { o.traverse((m) => { if (m.geometry && !m.isSprite) m.geometry.dispose(); }); }
 
 // it = ชิ้นแฟชั่น หรือชุดเซ็ต ({ items:[id] }) · size = ขนาดพิกเซล
+// v0.35: ชิ้นภาพพิกเซล (PixelLab) — ไอคอนสำเร็จรูป assets/fashion/icons/<id>.png วางบนพื้นหลังตามระดับ (ขยายแบบคม)
+const pxIcons = new Map();
+// โหลดไอคอนชิ้นพิกเซลล่วงหน้าตั้งแต่เปิดเกม (มีไม่กี่ชิ้น) จะได้โชว์ทันทีตอนเปิดกล่อง
+setTimeout(() => { for (const it of COSTUMES) if (it.kind === 'pixel' && !pxIcons.has(it.id)) { const im = new Image(); im.src = `assets/fashion/icons/${it.id}.png`; pxIcons.set(it.id, im); } }, 3000);
+function renderPixel(it, size) {
+  let im = pxIcons.get(it.id);
+  if (!im) { im = new Image(); im.src = `assets/fashion/icons/${it.id}.png`; im.onload = () => { for (const k of [...cache.keys()]) if (k.includes(it.id + '@')) cache.delete(k); }; pxIcons.set(it.id, im); }
+  if (!im.complete || !im.naturalWidth) return '';
+  const c = document.createElement('canvas'); c.width = c.height = size; const g = c.getContext('2d');
+  g.drawImage((BG[it.rarity] || BG.base).image, 0, 0, size, size);
+  g.imageSmoothingEnabled = false;
+  const k = Math.max(1, Math.floor(size * 0.86 / Math.max(im.naturalWidth, im.naturalHeight)));
+  const w = im.naturalWidth * k, h = im.naturalHeight * k;
+  g.drawImage(im, Math.round((size - w) / 2), Math.round((size - h) / 2), w, h);
+  return c.toDataURL();
+}
+
 function render(it, size) {
+  if (it.kind === 'pixel') return renderPixel(it, size);
   const slot = it.items ? 'set' : it.slot;
   R.setSize(size, size, false);
   const holder = new THREE.Group(); tScene.add(holder);
@@ -99,6 +117,7 @@ export function thumbNow(it, size = 128) {
   if (cache.has(k)) return cache.get(k);
   let url = '';
   if (init()) { try { url = render(it, size); } catch (e) { console.warn('ไอคอนแฟชั่น', it.id, e); } }
+  if (!url && it.kind === 'pixel') return '';   // ภาพไอคอนยังโหลดไม่เสร็จ → ยังไม่จำผล
   cache.set(k, url);
   return url;
 }
@@ -118,9 +137,10 @@ function pump() {
   const t0 = performance.now();
   while (queue.length && performance.now() - t0 < 12) {
     const job = queue.shift();
-    if (!job.img.isConnected) continue;
+    if (job.img && !job.img.isConnected) continue;
     const url = thumbNow(job.it, job.size);
-    if (url) job.img.src = url;
+    if (url) { if (job.img) job.img.src = url; }
+    else if (job.it.kind === 'pixel' && job.img && (job.retry = (job.retry || 0) + 1) < 60) { queue.push(job); if (queue.every((j) => j.it.kind === 'pixel' && j.retry)) { setTimeout(pump, 120); return; } }   // ภาพยังไม่มา → รอแล้วลองใหม่
   }
   if (queue.length) setTimeout(pump, 16); else busy = false;
 }

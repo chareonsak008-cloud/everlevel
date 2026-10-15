@@ -447,7 +447,7 @@ export class Game {
     this.autoWin.sync();
     this.collection.start();   // v0.18: ปลดล็อกความสำเร็จที่ทำครบแล้ว · บันทึกการ์ดที่มี · เช็กอินวันนี้
     // v0.15: จดหมาย — ตัวละครใหม่เปิดกล่องจดหมายให้เลือกของขวัญต้อนรับ
-    this.mailbox.refresh().then(() => { if (opts.create && !this.player.mail.welcome) setTimeout(() => this.mailWin.openMail('welcome'), 1200); });
+    this.mailbox.refresh();   // v0.35: ไม่มีจดหมายต้อนรับแล้ว
     this.root.classList.toggle('online', this.mode === 'online');
     this.gfx.refreshLook(this.player);
     this.hud.setPlayer(this.player);

@@ -6,7 +6,8 @@ import { SLOT_INFO } from '../render/Costumes.js';
 import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js';
 import { FASHION_SLOTS } from '../entities/Player.js';
 
-const TABS = [...FASHION_SLOTS.map((s) => [s, SLOT_INFO[s].name]), ['set', 'ชุดเซ็ต']];
+// v0.35: แสดงเฉพาะช่องที่มีชิ้นแฟชั่นในเกม (ชิ้น 3 มิติถูกถอดออก รอออกแบบใหม่) · แท็บชุดเซ็ตซ่อนเมื่อไม่มีเซ็ต
+const TABS = [...FASHION_SLOTS.filter((s) => COSTUMES.some((c) => c.slot === s)).map((s) => [s, SLOT_INFO[s].name]), ...(SETS.length ? [['set', 'ชุดเซ็ต']] : [])];
 const WTYPE = { sword: 'ดาบ/มีด', dual: 'มีดคู่ (มีด/ดาบ)', staff: 'ไม้เท้า', mace: 'คทา/กระบอง', bow: 'ธนู' };
 const byTier = (a, b) => (TIER_RANK[b.rarity] || 0) - (TIER_RANK[a.rarity] || 0);
 const setTier = (s) => s.rarity || s.items.map((id) => COSTUME_BY_ID[id]).reduce((t, c) => (c && TIER_RANK[c.rarity] > TIER_RANK[t] ? c.rarity : t), 'common');

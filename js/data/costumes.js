@@ -297,6 +297,37 @@ COSTUMES.push(
 
 COSTUMES.push(...FASHION_COLLECTION);
 
+/* ================= v0.35: ชุดแฟชั่นภาพพิกเซล (PixelLab) — ปีก 8 ทิศ + ออร่า ไล่ 6 ระดับความหายาก (batch: 5) ================= */
+// kind 'pixel' = ไม่มีโมเดล 3 มิติ · ปีก: assets/fashion/wings/<px>.png (8 แถว × frames) · ออร่า: assets/vfx/<vfx>/ (PixelVfx)
+const PX = (slot, id, name, en, rarity, desc, p) => I(slot, id, 'pixel', name, en, rarity, desc, p, { batch: 5, px: true });
+COSTUMES.push(
+  /* ---------- ปีกพิกเซล ---------- */
+  PX('wings', 'w_px_feather', 'ปีกขนนกนักเดินทาง', 'Wayfarer Feather Wings', 'common', 'ปีกขนนกสีครีมคู่เล็ก กระพือเบา ๆ · ปีกภาพพิกเซล 8 ทิศ', { px: 'feather', cell: 97, frames: 6, fps: 7 }),
+  PX('wings', 'w_px_sylvan', 'ปีกภูตพงไพร', 'Sylvan Sprite Wings', 'rare', 'ปีกใบไม้โปร่งแสงพันด้วยเถาวัลย์เรืองแสง หยดน้ำค้างระยิบ · ปีกภาพพิกเซล 8 ทิศ', { px: 'sylvan', cell: 97, frames: 6, fps: 9 }),
+  PX('wings', 'w_px_angel', 'ปีกเทวทูตปลายทอง', 'Gilded Angel Wings', 'epic', 'ปีกขนนกขาวใหญ่ ปลายขนเรืองแสงทอง กระพือช้า ๆ อย่างสง่า · ปีกภาพพิกเซล 8 ทิศ', { px: 'angel', cell: 97, frames: 6, fps: 6 }),
+  PX('wings', 'w_px_crystal', 'ปีกผลึกน้ำแข็งนิรันดร์', 'Eternal Crystal Wings', 'legend', 'ปีกผลึกใสสีฟ้าเรียงเป็นแผง เกล็ดผลึกระยิบตลอดเวลา · ปีกภาพพิกเซล 8 ทิศ', { px: 'crystal', cell: 97, frames: 6, fps: 7 }),
+  PX('wings', 'w_px_phoenix', 'ปีกวิหคเพลิงพิกเซล', 'Pixel Phoenix Wings', 'legend', 'ปีกไฟลุกโชนไล่สีทองถึงแดง สะเก็ดไฟปลิวจากปลายปีก · ปีกภาพพิกเซล 8 ทิศ', { px: 'phoenix', cell: 97, frames: 6, fps: 8 }),
+  PX('wings', 'w_px_void', 'ปีกห้วงเงาสายฟ้า', 'Voidstorm Wings', 'mythic', 'ปีกเงาม่วงหมุนวนพร้อมสายฟ้าสีม่วง อักขระเรืองแสงตามขอบปีก · ปีกภาพพิกเซล 8 ทิศ', { px: 'void', cell: 113, frames: 6, fps: 8 }),
+  PX('wings', 'w_px_seraph', 'ปีกเซราฟทองหกปีก', 'Golden Seraph Wings', 'celestial', 'ปีกทองสามคู่พร้อมรัศมีทองเหนือศีรษะ กระพือช้า ๆ อย่างศักดิ์สิทธิ์ · ปีกภาพพิกเซล 8 ทิศ', { px: 'seraph', cell: 124, frames: 6, fps: 6, lift: 1.5 }),
+);
+// ออร่า/อาวุธพิกเซล — ออกแบบเสร็จแล้ว รอไฟล์ภาพ (assets/vfx/aura_* · slash_*) ค่อยเปิดใช้
+export const PX_PENDING = [
+  /* ---------- ออร่าพิกเซล ---------- */
+  PX('aura', 'a_px_glow', 'แสงนวลใต้เท้า', 'Soft Glow', 'common', 'วงแสงฟ้านวลที่พื้นเต้นเป็นจังหวะ มีประกายดาวเล็ก ๆ · ออร่าภาพพิกเซล', { vfx: 'aura_glow', scale: 1 }),
+  PX('aura', 'a_px_sylvan', 'ออร่าพงไพร', 'Sylvan Aura', 'rare', 'แสงเขียวที่พื้น จุดแสงเขียววนรอบตัว ใบไม้ปลิวร่วง · ออร่าภาพพิกเซล', { vfx: 'aura_sylvan', scale: 1 }),
+  PX('aura', 'a_px_flame', 'ออร่าเพลิงคลั่ง', 'Blazing Aura', 'epic', 'เปลวไฟลุกโชนหลังตัว วงไฟที่พื้น สะเก็ดไฟลอยขึ้น · ออร่าภาพพิกเซล', { vfx: 'aura_flame', scale: 1 }),
+  PX('aura', 'a_px_crystal', 'ออร่าผลึกน้ำแข็ง', 'Frostrune Aura', 'legend', 'อักขระน้ำแข็งวนรอบเอว ตราเวทย์ฟ้าที่พื้น เกล็ดน้ำแข็งระยิบ · ออร่าภาพพิกเซล', { vfx: 'aura_crystal', scale: 1 }),
+  PX('aura', 'a_px_void', 'ออร่าห้วงเงา', 'Voidstorm Aura', 'mythic', 'เปลวเงาม่วงลุกท่วมตัว สายฟ้าม่วงแล่นรอบกาย จุดแสงวนไม่หยุด · ออร่าภาพพิกเซล', { vfx: 'aura_void', scale: 1 }),
+  /* ---------- อาวุธพิกเซล (เอฟเฟกต์ฟันติดตัว · ไม่เปลี่ยนรูปอาวุธ) ---------- */
+  PX('weapon', 'x_px_steel', 'คมดาบเหล็กกล้า', 'Steel Edge', 'common', 'รอยฟันสีเงินวาบตามแนวดาบทุกครั้งที่โจมตี · เอฟเฟกต์อาวุธพิกเซล', { vfx: 'slash_steel', scale: 1 }),
+  PX('weapon', 'x_px_sylvan', 'คมดาบพงไพร', 'Sylvan Edge', 'rare', 'รอยฟันสีเขียวพร้อมใบไม้ปลิว · เอฟเฟกต์อาวุธพิกเซล', { vfx: 'slash_sylvan', scale: 1 }),
+  PX('weapon', 'x_px_flame', 'คมดาบเพลิงคลั่ง', 'Blazing Edge', 'epic', 'รอยฟันเปลวไฟส้มแดง สะเก็ดไฟกระจาย · เอฟเฟกต์อาวุธพิกเซล', { vfx: 'slash_flame', scale: 1 }),
+  PX('weapon', 'x_px_frost', 'คมดาบน้ำแข็งนิรันดร์', 'Eternal Frost Edge', 'legend', 'รอยฟันน้ำแข็งสีฟ้า แตกเป็นเกล็ดผลึกระยิบ · เอฟเฟกต์อาวุธพิกเซล', { vfx: 'slash_frost', scale: 1 }),
+  PX('weapon', 'x_px_void', 'คมดาบห้วงเงา', 'Voidstorm Edge', 'mythic', 'รอยฟันซิกแซ็กสีม่วงพร้อมสายฟ้าเงา · เอฟเฟกต์อาวุธพิกเซล', { vfx: 'slash_void', scale: 1 }),
+  PX('weapon', 'x_px_seraph', 'คมดาบเซราฟทอง', 'Seraphic Edge', 'celestial', 'รอยฟันทองเรืองรอง ระเบิดแสงศักดิ์สิทธิ์ ประกายทองโปรย · เอฟเฟกต์อาวุธพิกเซล', { vfx: 'slash_seraph', scale: 1 }),
+  PX('aura', 'a_px_seraph', 'ออร่าเซราฟทอง', 'Seraphic Radiance', 'celestial', 'รัศมีทองแผ่หลังตัว ตราศักดิ์สิทธิ์ที่พื้น ประกายทองวนและระยิบทั่วกาย · ออร่าภาพพิกเซล', { vfx: 'aura_seraph', scale: 1 }),
+];
+
 /* ================= v0.28: ออร่าระเบิดกระจาย (batch: 4) ================= */
 const A4 = (...a) => ({ ...I(...a), batch: 4 });
 COSTUMES.push(
@@ -307,6 +338,12 @@ COSTUMES.push(
   A4('aura', 'a_blossomStorm', 'blossomStorm', 'พายุซากุระสะบั้น', 'Blossom Tempest', 'celestial', 'กลีบซากุระหมุนเป็นเกลียวพายุรอบตัว แล้วระเบิดบานออกเป็นวงกว้าง คลื่นสีชมพูและประกายขาวระยิบ'),
 );
 
+// v0.35: ตัวละครเป็นภาพพิกเซล 8 ทิศแล้ว → ชิ้นแฟชั่นโมเดล 3 มิติ (ปีก/ชุด/หมวก/หน้า/หลัง/อาวุธ/ผู้ติดตาม) ถอดออกจากเกมทั้งหมด
+// เหลือออร่า (อนุภาค ใช้ได้กับทุกตัวละคร) + ชิ้นภาพพิกเซลจาก PixelLab · ชิ้นที่ถอดออกจะออกแบบใหม่ให้เข้ากับตัวละครใหม่ภายหลัง
+{
+  const keep = COSTUMES.filter((c) => c.slot === 'aura' || c.kind === 'pixel');
+  COSTUMES.length = 0; COSTUMES.push(...keep);
+}
 export const COSTUME_BY_ID = Object.fromEntries(COSTUMES.map((c) => [c.id, c]));
 
 // ชุดเซ็ตแนะนำ (สวมทีเดียวทั้งชุด)
@@ -347,3 +384,5 @@ export const SETS = [
   { id: 's_astralEmperor', batch: 3, rarity: 'celestial', name: 'จักรพรรดิดารา', en: 'Astral Emperor', desc: 'ปีกห้วงจักรวาล มงกุฎดาวโคจร ฉลองพระองค์ดารา ผ้าคลุมเนบิวลา ดาบจักรพรรดิดารา กลุ่มดาวนิรันดร์ และวาฬดารา', items: ['w_galaxy', 'h_astralCrown', 'f_starMark', 'o_astralRobe', 'b_nebulaCape', 'x_astral', 'a_constellation', 'p_starWhale'] },
   { id: 's_solarSeraph', batch: 3, rarity: 'celestial', name: 'เทวาสุริยะ', en: 'Solar Seraph', desc: 'ปีกเซราฟหกปีก รัศมีสุริยะ หน้ากากเทวา ชุดเทวาสุริยะ จานแสงอาทิตย์ ค้อนพิพากษา ลำแสงสวรรค์ และภูตเทวา', items: ['w_seraph6', 'h_sunHalo', 'f_seraphMask', 'o_seraphGown', 'b_mandorla', 'x_seraphHammer', 'a_heavenLight', 'p_cherub'] },
 ];
+// ชุดเซ็ตที่ยังมีชิ้นครบเท่านั้น (v0.35 — ชิ้น 3 มิติถูกถอดออก)
+for (let k = SETS.length - 1; k >= 0; k--) if (!SETS[k].items.every((id) => COSTUME_BY_ID[id])) SETS.splice(k, 1);

@@ -3300,10 +3300,12 @@ const BUILD = {
     if (!/tail|cape|ring|halo|wing|mandorla|orbs|sword|scarf|parasol|fashion24/i.test(it.kind) && Math.max(sz.x, sz.y) < 0.8 && !box.isEmpty()) { g.scale.setScalar(1.5); g.position.set(0.1, 0.2, -0.06); g.rotation.z = -0.25; }
   },
   weapon: (rig, it, rt, L) => WEAPON[it.kind](rig, it.p || {}, rt, L),
-  aura: (rig, it, rt, L) => { AURA[it.kind](rig, it.p || {}, rt, L); auraGround(rig, it, rt); },
+  aura: (rig, it, rt, L) => { if (it.kind === 'pixel') return; AURA[it.kind](rig, it.p || {}, rt, L); auraGround(rig, it, rt); },
   pet: (rig, it, rt, L) => PET[it.kind](rig, it.p || {}, rt, L),
   outfit: (rig, it, rt, L) => it.kind === 'fashion24' ? FASHION_BUILDERS.outfit(rig, it.p || {}, rt, L) : outfitParts(rig, it.p || {}, rt, L),
 };
+// v0.35: ชิ้นภาพพิกเซล (PixelLab) — ไม่มีโมเดล 3 มิติ · Renderer3D วาดแยก (PixelWings / PixelVfx)
+WING_BUILDERS.pixel = () => {}; AURA.pixel = () => {}; WEAPON.pixel = () => {};
 const DICT = { wings: WING_BUILDERS, head: HEAD, face: FACE, back: BACK, weapon: WEAPON, aura: AURA, pet: PET };
 export const hasBuilder = (it) => it.slot === 'outfit' || !!(DICT[it.slot] && DICT[it.slot][it.kind]);
 
@@ -3311,13 +3313,13 @@ export const hasBuilder = (it) => it.slot === 'outfit' || !!(DICT[it.slot] && DI
 export function costumeLook(base, items = {}) {
   const L = { ...base, equipment: { ...(base.equipment || {}) } };
   if (items.outfit) for (const slot of ['body','shoes','accessory','garment']) delete L.equipment[slot];
-  if (items.weapon) delete L.equipment.weapon;
+  if (items.weapon && items.weapon.kind !== 'pixel') delete L.equipment.weapon;   // อาวุธแฟชั่นพิกเซล = เอฟเฟกต์ฟัน ไม่ซ่อนอาวุธจริง
   if (items.head) delete L.equipment.head;
   if (items.wings || items.back) delete L.equipment.garment;
   if (items.weapon?.wtype === 'dual') delete L.equipment.shield;
   const o = items.outfit;
   if (o) { Object.assign(L, (o.p && o.p.look) || {}); L.jobGear = 'none'; if (L.accessory === 'quiver' || L.accessory === 'backpack') L.accessory = 'none'; if (!(o.p && o.p.look && 'scarf' in o.p.look)) L.scarf = null; L.cape = null; }
-  if (items.weapon) L.weapon = 'none';
+  if (items.weapon && items.weapon.kind !== 'pixel') L.weapon = 'none';
   if (items.head) { L.hideJobHat = true; L.hideAhoge = true; if (items.head.tight) L.hatTight = true; }
   if ((items.wings || items.back) && (L.accessory === 'backpack' || L.accessory === 'quiver')) L.accessory = 'none';
   // ในเกม (v0.9): แฟชั่นทับอุปกรณ์จริง → ซ่อนหมวก/ผ้าคลุม/โล่ที่จะทะลุกัน

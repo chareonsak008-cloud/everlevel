@@ -102,7 +102,7 @@ export class Player extends Entity {
     this.visited = new Set(['asteria_town']);   // v0.13: แผนที่ที่เคยไป (ใบวาร์ปเลือกแผนที่)
     this.auto = normAuto();           // v0.14: ตั้งค่าตีมอนออโต้ (แยกตามตัวละคร)
     this.cid = newCid();              // v0.15: รหัสตัวละคร (ใช้กันรับจดหมายซ้ำ)
-    this.mail = { welcome: false, box: [] };   // v0.15: รับของขวัญต้อนรับแล้วหรือยัง · v0.18: box = จดหมายจากระบบเกม (เช็กอิน)
+    this.mail = { welcome: false, box: [], hidden: new Set() };   // v0.35: hidden = จดหมายเซิร์ฟเวอร์ที่ลบแล้ว   // v0.15: รับของขวัญต้อนรับแล้วหรือยัง · v0.18: box = จดหมายจากระบบเกม (เช็กอิน)
     this.col = normCol();             // v0.18: สมุดมอนสเตอร์ · ความสำเร็จ/ฉายา · อัลบั้มการ์ด · เช็กอิน
     this.colBonus = {};               // v0.18: โบนัสถาวรจากระบบสะสม (คำนวณโดย systems/Collection.js)
     this.cooldowns = {};              // id → เวลาเกมที่ใช้ได้อีกครั้ง
@@ -204,7 +204,7 @@ export class Player extends Entity {
   }
 
   /* ---------- แฟชั่น (v0.9) ---------- */
-  fashionFits(it) { return it.slot !== 'weapon' || (FASHION_WEAPON_FIT[it.wtype] || []).includes(this.weaponType); }
+  fashionFits(it) { return it.slot !== 'weapon' || it.kind === 'pixel' || (FASHION_WEAPON_FIT[it.wtype] || []).includes(this.weaponType); }
 
   // ชิ้นแฟชั่นที่แสดงบนตัวจริง (slot → ข้อมูลชิ้น) — อาวุธแฟชั่นที่ไม่เข้ากับอาวุธที่ถือจะถูกซ่อน
   fashionItems() {
@@ -633,7 +633,7 @@ export class Player extends Entity {
       bagUps: this.bagUps,
       visited: [...this.visited],
       auto: JSON.parse(JSON.stringify(this.auto)),   // v0.14
-      cid: this.cid, mail: { welcome: !!this.mail.welcome, box: this.mail.box.map((m) => ({ ...m })) },   // v0.15 · v0.18 จดหมายระบบ
+      cid: this.cid, mail: { welcome: !!this.mail.welcome, box: this.mail.box.map((m) => ({ ...m })), hidden: [...this.mail.hidden].slice(-300) },   // v0.15 · v0.18 จดหมายระบบ
       col: JSON.parse(JSON.stringify(this.col)),   // v0.18
       dg: this.dg ? { ...this.dg } : undefined,      // v0.32: ดันเจี้ยน/หอคอย
     };
@@ -658,7 +658,7 @@ export class Player extends Entity {
     this.visited = new Set(['asteria_town', ...(Array.isArray(p.visited) ? p.visited.filter((m) => typeof m === 'string' && m.length < 40).slice(0, 50) : [])]);
     this.auto = normAuto(p.auto);     // v0.14: ตั้งค่าออโต้
     this.cid = typeof p.cid === 'string' && /^[a-z0-9]{8,24}$/.test(p.cid) ? p.cid : newCid();   // v0.15
-    this.mail = { welcome: !!(p.mail && p.mail.welcome), box: [] };
+    this.mail = { welcome: !!(p.mail && p.mail.welcome), box: [], hidden: new Set(p.mail && Array.isArray(p.mail.hidden) ? p.mail.hidden.filter((k) => typeof k === 'string' && k.length < 80).slice(-300) : []) };
     // v0.18: จดหมายจากระบบเกม (ตรวจของ/จำนวนเหมือนจดหมายเซิร์ฟเวอร์)
     if (p.mail && Array.isArray(p.mail.box)) for (const m of p.mail.box.slice(0, 20)) {
       if (!m || typeof m.id !== 'string' || !/^[a-z0-9-]{1,40}$/.test(m.id) || this.mail.box.some((x) => x.id === m.id)) continue;

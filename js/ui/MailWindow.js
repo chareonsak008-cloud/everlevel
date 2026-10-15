@@ -34,7 +34,7 @@ export class MailWindow {
     el.setAttribute('aria-labelledby', 'mlTitle');
     el.innerHTML = `
       <header class="st-head"><div><h2 id="mlTitle">จดหมาย</h2><p class="ml-sub"></p></div>
-        <div class="ml-hbtns"><button type="button" class="ml-gm" hidden>✉ ส่งจดหมาย (GM)</button>
+        <div class="ml-hbtns"><button type="button" class="ml-del" title="ลบจดหมายที่อ่านหรือรับของแล้วทั้งหมด">🗑 ลบที่อ่านแล้ว</button><button type="button" class="ml-gm" hidden>✉ ส่งจดหมาย (GM)</button>
         <button type="button" class="st-close ml-close" aria-label="ปิดหน้าต่างจดหมาย">✕</button></div></header>
       <div class="ml-body"><div class="ml-list" role="list"></div><div class="ml-detail"></div></div>
       <div class="ml-gmpane" hidden></div>`;
@@ -43,6 +43,13 @@ export class MailWindow {
     for (const ev of ['pointerdown', 'wheel', 'contextmenu', 'touchstart']) el.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
     this.$('.ml-close').addEventListener('click', () => this.toggle(false));
     this.$('.ml-gm').addEventListener('click', () => { this.view = this.view === 'gm' ? 'mail' : 'gm'; this.render(); });
+    // v0.35: ลบจดหมายที่อ่าน/รับของแล้ว
+    this.$('.ml-del').addEventListener('click', () => {
+      const n = this.box.deleteRead();
+      if (this.sel != null && !this.box.find(this.sel)) { this.sel = null; this.showDetail = false; }
+      this.g.hud.log(n ? `ลบจดหมายที่อ่านแล้ว ${n} ฉบับ` : 'ไม่มีจดหมายที่อ่านแล้ว', 'info');
+      this.render();
+    });
   }
 
   get box() { return this.g.mailbox; }
@@ -71,6 +78,7 @@ export class MailWindow {
     this.$('.ml-sub').textContent = n ? `ยังไม่ได้เปิดรับ ${n} ฉบับ` : list.length ? 'อ่านครบทุกฉบับแล้ว' : 'ยังไม่มีจดหมาย';
     const gmBtn = this.$('.ml-gm');
     gmBtn.hidden = !box.admin;
+    const delBtn = this.$('.ml-del'); delBtn.hidden = this.view === 'gm'; delBtn.disabled = !list.some((m) => box.isClaimed(m));
     gmBtn.textContent = this.view === 'gm' ? '← กล่องจดหมาย' : '✉ ส่งจดหมาย (GM)';
     this.$('.ml-body').hidden = this.view === 'gm';
     this.$('.ml-gmpane').hidden = this.view !== 'gm';

@@ -1605,6 +1605,9 @@ body.touch .ad-st { max-width: min(46vw, 190px); font-size: 11px; padding: 3px 8
 .ml-hbtns { display: flex; gap: 6px; align-items: center; }
 .ml-gm { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 8px; cursor: pointer; color: #ffe9b0; background: rgba(255, 214, 140, 0.12); border: 1px solid var(--edge-strong); }
 .ml-gm[hidden] { display: none; }
+.ml-del { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 8px; cursor: pointer; color: #ffd0d0; background: rgba(255, 120, 120, 0.12); border: 1px solid var(--edge-strong); }
+.ml-del:disabled { opacity: 0.45; cursor: default; }
+.ml-del[hidden] { display: none; }
 .ml-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; margin-top: 10px; flex: 1 1 auto; min-height: 0; }
 .ml-body[hidden] { display: none; }
 .ml-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; align-content: start; overflow: auto; min-height: 0; }

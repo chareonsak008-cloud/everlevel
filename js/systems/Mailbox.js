@@ -5,7 +5,8 @@
 import { ITEMS } from '../data/items.js';
 import { PETS } from '../data/pets.js';
 import { MAX_ZENY } from '../data/shops.js';
-import { WELCOME_MAIL, normMail, setById, hasGift } from '../data/mail.js';
+import { normMail, setById, hasGift } from '../data/mail.js';
+import { COSTUMES } from '../data/costumes.js';
 
 const REFRESH_SEC = 180;
 
@@ -44,17 +45,17 @@ export class Mailbox {
   // รายการจดหมายของตัวละครนี้ (ใหม่สุดก่อน · ของขวัญต้อนรับอยู่บนสุดจนกว่าจะรับ)
   list() {
     const pl = this.g.player, now = Date.now(), name = pl.name.trim().toLowerCase();
-    const out = [], welcome = this.welcome || (this.welcome = normMail(WELCOME_MAIL));
-    if (!pl.mail.welcome) out.push(welcome);
+    // v0.35: ไม่มีจดหมายต้อนรับแจกของแล้ว (ของแจกส่งผ่านเมนู GM แทน) · จดหมายที่ลบแล้ว (อ่าน/รับของแล้ว) ซ่อน
+    const out = [], hid = pl.mail.hidden;
     const sys = this.sysMails();
     for (const m of sys) if (!this.isClaimed(m)) out.push(m);
     for (const m of this.server) {
       if (m.to && m.to.trim().toLowerCase() !== name) continue;
       if (m.expires && m.expires < now && !this.isClaimed(m)) continue;
+      if (hid.has(this.key(m))) continue;
       out.push(m);
     }
     for (const m of sys) if (this.isClaimed(m)) out.push(m);
-    if (pl.mail.welcome) out.push(welcome);   // รับแล้ว: เก็บไว้ท้ายรายการ
     return out;
   }
 
@@ -75,6 +76,7 @@ export class Mailbox {
         this.server = (r.mails || []).map(normMail).filter(Boolean);
         this.claimed = new Set((r.claims || []).map((c) => `${c.mail_id}:${c.cid}`));
         this.admin = !!r.admin; this.serverOk = true;
+        if (this.admin) this.unlockAllFashion();
       } catch (e) {
         this.serverOk = false;
         if (!this.warnedSql) { this.warnedSql = true; console.warn('[Everlevel] ระบบจดหมายบนเซิร์ฟเวอร์ยังไม่พร้อม (รัน supabase/mail.sql หรือยัง?)', e && (e.message || e.code)); }
@@ -148,6 +150,22 @@ export class Mailbox {
   }
 
   // จดหมายที่ไม่มีของแนบ: กดอ่านแล้วนับเป็นอ่านแล้ว
+  // v0.35: บัญชี GM ได้แฟชั่นครบทุกชิ้นอัตโนมัติ (ไว้ทดสอบ/โชว์)
+  unlockAllFashion() {
+    const pl = this.g.player; let n = 0;
+    for (const c of COSTUMES) if (!pl.fashion.owned.has(c.id)) { pl.fashion.owned.add(c.id); n++; }
+    if (n) { this.g.hud.log(`🛡️ GM: ปลดล็อกแฟชั่นทั้งหมด ${n} ชิ้น`, 'info'); if (this.g.ward && this.g.ward.open) this.g.ward.render(); }
+  }
+
+  // v0.35: ลบจดหมายที่อ่าน/รับของแล้วออกจากกล่อง (จดหมายระบบลบจากเซฟ · จดหมายเซิร์ฟเวอร์จำไว้ว่าซ่อน) · คืนจำนวนที่ลบ
+  deleteRead() {
+    const pl = this.g.player; let n = 0;
+    const before = pl.mail.box.length; pl.mail.box = pl.mail.box.filter((b) => !b.got); n += before - pl.mail.box.length;
+    for (const m of this.list()) if (!m.local && this.isClaimed(m)) { pl.mail.hidden.add(this.key(m)); n++; }
+    if (n) this.changed();
+    return n;
+  }
+
   async markRead(id) {
     const m = this.find(id);
     if (!m || hasGift(m) || this.isClaimed(m) || m.local) return;
