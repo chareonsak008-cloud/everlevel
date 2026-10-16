@@ -17,7 +17,7 @@ export class TitleScreen {
     el.innerHTML = `
       <div class="tt-sky" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="tt-box">
-        <h1 class="tt-logo">Everlevel</h1>
+        <h1 class="tt-logo"><img src="assets/brand/logo.png" alt="Everlevel" draggable="false"></h1>
         <p class="tt-sub">MMORPG แฟนตาซี — ผจญภัยไปกับเพื่อน ๆ</p>
         <div class="tt-panel" aria-live="polite"></div>
         <p class="tt-foot">v${VERSION} · เสียงจะเริ่มเล่นเมื่อแตะหน้าจอครั้งแรก · <a href="equipment.html" target="_blank" rel="noopener">ลองอุปกรณ์ใหม่</a> · <a href="content.html" target="_blank" rel="noopener">ดูเนื้อหา Lv.60–99</a></p>

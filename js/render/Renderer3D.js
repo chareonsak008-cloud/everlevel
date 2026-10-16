@@ -1,6 +1,7 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
 import { SheetSprite, liveSheet, screenDir } from './SheetChars.js';
 import { PixelWingSprite } from './PixelWings.js';
+import { paintPlate } from '../ui/Nameplates.js';
 import { PixelVfx } from './PixelVfx.js';
 import { THREE } from './three.js';
 import { TILE } from '../config.js';
@@ -493,6 +494,7 @@ export class Renderer3D {
     label.textContent = entity.name;
     if (npc && entity.title) { const s = document.createElement('small'); s.textContent = entity.title; label.prepend(s); }
     if (remote) { const s = document.createElement('small'); s.className = 'rt'; s.textContent = entity.title || ''; label.append(s); }
+    if (!npc) paintPlate(label, entity.name, entity.baseLevel || 1, entity.guildTag, entity.inParty);   // v0.36: กรอบป้ายชื่อตามเลเวล
     this.labelLayer.append(label);
     const bubble = document.createElement('div'); bubble.className = 'bubble' + (npc ? '' : ' bubble-pc'); bubble.hidden = true; this.labelLayer.append(bubble);
     let hpbar = null;
@@ -606,6 +608,23 @@ export class Renderer3D {
   }
 
   pixelVfx() { return this.pxvfx || (this.pxvfx = new PixelVfx(this.scene, this.camera)); }
+
+  // v0.35: เงาตกค้างของตัวละครพิกเซล (ท่าสกิลแบบอนิเมะ) — สำเนาสไปรต์เฟรมปัจจุบัน ย้อมสี จางหายใน life วินาที
+  afterimage(entity, { color = '#5aa8ff', life = 0.4, at = null, opacity = 0.75, grow = 0.08 } = {}) {
+    const c = this.characters.get(entity), sh = c && c.sheet;
+    if (!sh || !sh.tex || !this.fx) return;
+    const tex = sh.tex.clone(); tex.needsUpdate = true; tex.offset.copy(sh.tex.offset); tex.repeat.copy(sh.tex.repeat);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity, color, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide, alphaTest: 0.3 });
+    const m = new THREE.Mesh(sh.mesh.geometry, mat); m.renderOrder = 38; m.frustumCulled = false;
+    m.scale.copy(sh.mesh.scale); m.position.copy(sh.mesh.position);
+    const piv = new THREE.Group(); piv.add(m); this.scene.add(piv);
+    piv.position.copy(sh.pivot.position); piv.quaternion.copy(sh.pivot.quaternion); piv.scale.copy(sh.pivot.scale);
+    if (at) piv.position.add(new THREE.Vector3(at.x - entity.x / 16, (at.y || 0) - (entity.lift || 0), at.z - entity.y / 16));
+    const s0 = m.scale.clone();
+    this.fx.anim(life, (k) => { mat.opacity = opacity * (1 - k * k); m.scale.set(s0.x * (1 + grow * k), s0.y * (1 + grow * k), 1); }, () => { this.scene.remove(piv); mat.dispose(); tex.dispose(); });
+    return piv;
+  }
+
 
   // v0.33: ตัวละครพิกเซล 8 ทิศ (สไปรต์ชีต) แทนโมเดล สำหรับอาชีพที่มีภาพแล้ว
   sheetChar(c, entity, dt) {
@@ -914,7 +933,7 @@ export class Renderer3D {
   }
 
   // เปลี่ยนป้ายชื่อเหนือหัว (ใบเปลี่ยนชื่อ)
-  setName(entity, name) { const c = this.characters.get(entity); if (c && c.label) c.label.textContent = name; }
+  setName(entity, name) { const c = this.characters.get(entity); if (!c || !c.label) return; if (c.npc) c.label.textContent = name; else paintPlate(c.label, name, entity.baseLevel || 1, entity.guildTag, entity.inParty); }
 
   /* ---------- สัตว์เลี้ยง (v0.13) ---------- */
   // ent = { x, y, angle, moving, speedK } (พิกัดพิกเซลโลกเหมือนตัวละคร)
@@ -1359,10 +1378,10 @@ export class Renderer3D {
     }
     if (c.npc) setT(c.label, `translate3d(${sx}px, ${sy}px, 0) translate(-50%, -100%)`);
     else {
-      setT(c.label, `translate3d(${sx}px, ${sy + 6}px, 0) translate(-50%, 0)`);
-      setT(c.hpbar, `translate3d(${sx}px, ${sy + (c.kind === 'remote' ? 37 : 26)}px, 0) translate(-50%, 0)`);
-      if (c.kind === 'player' && c.lastName !== entity.name) { c.label.textContent = entity.name; c.lastName = entity.name; }   // ชื่อตัวละครที่ตั้งตอนสร้าง
-      if (c.kind === 'remote' && c.lastTitle !== entity.title) { const t = c.label.querySelector('.rt'); if (t) t.textContent = entity.title; c.lastTitle = entity.title; }
+      // v0.36: กรอบป้ายชื่อตามเลเวล — ช่องข้อความของกรอบอยู่ใต้เท้า · แถบ HP ใต้กรอบ (ปีก/มงกุฎของกรอบยื่นรอบ ๆ ได้)
+      const g = paintPlate(c.label, entity.name, entity.baseLevel || 1, entity.guildTag, entity.inParty);
+      setT(c.label, `translate3d(${sx}px, ${sy + 6 - g.top}px, 0) translate(-50%, 0)`);
+      setT(c.hpbar, `translate3d(${sx}px, ${sy + 6 + g.h + 4}px, 0) translate(-50%, 0)`);
       // แถบร่ายสกิลเหนือหัว
       const cs = entity.cast;
       if (!c.castbar) { /* ผู้เล่นคนอื่น: ไม่มีแถบร่าย */ }

@@ -4,10 +4,11 @@
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
 import { Online, MAX_CHARS } from './Online.js';
+import { SideChannel } from './SideChannel.js';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
-const SLOW_KEYS = ['n', 'j', 'lv', 'm', 'u', 'lk', 'fw', 'pt', 'ps', 'tt'];   // v0.18: tt = ฉายา (รหัสความสำเร็จ) // ข้อมูลเต็มของตัวละคร (ส่งตอนเข้าห้อง/เปลี่ยน/ทุกครั้งที่เต้นหัวใจ)
+const SLOW_KEYS = ['n', 'j', 'lv', 'm', 'u', 'lk', 'fw', 'pt', 'ps', 'tt', 'gd'];   // v0.37: gd = รหัสกิลด์ (ชื่อ/ตรากิลด์อ่านจากเซิร์ฟเวอร์ ปลอมไม่ได้)   // v0.18: tt = ฉายา (รหัสความสำเร็จ) // ข้อมูลเต็มของตัวละคร (ส่งตอนเข้าห้อง/เปลี่ยน/ทุกครั้งที่เต้นหัวใจ)
 const FAST_KEYS = ['x', 'y', 'a', 'mv', 'h', 'dead', 'at', 'ak'];     // ตำแหน่ง/ท่าทาง (ส่งเมื่อเปลี่ยน)
 const PEER_TTL = 20000;     // ไม่ได้ยินจากผู้เล่นเกินนี้ (มิลลิวินาที) = ถือว่าออกจากแมพไปแล้ว
 const WATCHDOG_MS = 7000;   // ช่องที่ไม่พร้อมเกินนี้ → สร้างใหม่
@@ -26,7 +27,7 @@ function pickState(p, full) {
   set('vx', clampN(p.vx, -400, 400)); set('vy', clampN(p.vy, -400, 400)); set('tp', clampN(p.tp, 0, 65535)); set('e', clampN(p.e, 0, 20000));   // ความเร็ว (px/วินาที) — ฝั่งรับเดินต่อเองระหว่างแพ็กเก็ต
   if (full) {
     set('n', cutS(p.n, 16)); set('j', cutS(p.j, 16)); set('lv', clampN(p.lv, 1, 999)); set('m', cutS(p.m, 40)); set('u', cutS(p.u, 8));
-    set('pt', cutS(p.pt, 24)); set('ps', clampN(p.ps, 0, 9)); set('tt', cutS(p.tt, 24));
+    set('pt', cutS(p.pt, 24)); set('ps', clampN(p.ps, 0, 9)); set('tt', cutS(p.tt, 24)); set('gd', clampN(Math.floor(p.gd), 0, 1e9));
     if (p.lk && typeof p.lk === 'object' && !Array.isArray(p.lk) && JSON.stringify(p.lk).length < 1200) o.lk = p.lk;
     if (Array.isArray(p.fw)) o.fw = p.fw.filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40));
   }
@@ -70,6 +71,7 @@ export class SupabaseOnline extends Online {
     this.lastAny = 0; this.lastFast = 0; this.lastHi = 0; this.fastPending = false; this.fullTimer = null;
     this.vel = { vx: 0, vy: 0 }; this.sentK = null; this.tp = 0; this.dupTimer = null; this.lobbyNext = 0; this.hbJit = 1 + Math.random() * 0.5;   // ความเร็ว · สถานะที่ส่งล่าสุด (ไว้เทียบว่าต้องส่งใหม่ไหม) · ตัวนับวาร์ปในแมพ
     this.sayQ = []; this.shQ = []; this.seenMsg = new Set();
+    this.lobbyEv = {};                  // v0.37: เหตุการณ์ในห้องรวมที่ระบบอื่นขอฟัง (คำเชิญปาร์ตี้/กิลด์) · event → fn(payload)
     this.lastStorage = null;
     this.status = 'idle';
     this.sb.auth.onAuthStateChange((event) => {
@@ -267,6 +269,37 @@ export class SupabaseOnline extends Online {
     return data.map((d, i) => ({ id: d.mine ? this.uid : 'r' + i, name: d.name, job: d.job, lv: d.lv, jlv: d.jlv }));
   }
 
+  /* ---------- v0.37: ปาร์ตี้ + กิลด์ ---------- */
+  get social() { return true; }
+  // ฟังเหตุการณ์ที่ส่งถึงเรา (payload.to = key ของเรา) ในห้องรวม — ลงทะเบียนก่อนเชื่อมต่อ (หรือเปิดห้องรวมใหม่ให้)
+  onLobby(event, fn) { const had = event in this.lobbyEv; this.lobbyEv[event] = fn; if (!had && this.lobby) this.reopenLobby(true); }
+  lobbySend(event, payload) { if (!this.lobbyReady || !this.lobby) return Promise.resolve('error'); return this.raw(this.lobby, event, { ...payload, k: this.key }); }
+  sideChannel(name, opts) { return new SideChannel(this.sb, 'everlevel-' + name, this.key, opts); }
+
+  async guildRPC(name, args = {}) {
+    const { data, error } = await this.sb.rpc(name, { p_slot: this.slot || 1, ...args });
+    if (error) {
+      const m = String(error.message || '');
+      if (error.code === 'PGRST202' || /could not find the function/i.test(m)) throw new Error('ยังไม่ได้เปิดระบบกิลด์บนเซิร์ฟเวอร์ (ต้องรัน supabase/guild.sql)');
+      if (error.code === '23505') throw new Error('ชื่อกิลด์นี้มีคนใช้แล้ว');
+      throw new Error(m || error.code || 'ผิดพลาด');
+    }
+    return data;
+  }
+  guildMine() { return this.guildRPC('guild_mine'); }
+  guildCreate(name, emblem) { return this.guildRPC('guild_create', { p_name: name, p_emblem: emblem }); }
+  guildInvite(name) { return this.guildRPC('guild_invite', { p_name: name }); }
+  guildJoin(id) { return this.guildRPC('guild_join', { p_guild: id }); }
+  guildDecline(id) { return this.guildRPC('guild_decline', { p_guild: id }); }
+  guildLeave() { return this.guildRPC('guild_leave'); }
+  guildKick(name) { return this.guildRPC('guild_kick', { p_name: name }); }
+  guildSetEmblem(emblem) { return this.guildRPC('guild_set_emblem', { p_emblem: emblem }); }
+  async guildPublic(ids) {
+    const { data, error } = await this.sb.rpc('guild_public', { p_ids: ids });
+    if (error) throw error;
+    return data || [];
+  }
+
   /* ---------- ผู้เล่นพร้อมกัน (Realtime) · เขียนใหม่ v0.16.1 ----------
      · ห้องรวม "lobby" ใช้ presence: ใครออนไลน์ · แผนที่ไหน (เปลี่ยนนาน ๆ ครั้ง) + โทรโข่ง
      · ห้องแผนที่ ใช้ broadcast ล้วน (ไม่ใช้ presence): m = ตำแหน่ง (ถี่) · f = ข้อมูลเต็ม (เต้นหัวใจ/ตอนเปลี่ยน/ตอบ hi)
@@ -362,6 +395,7 @@ export class SupabaseOnline extends Online {
     this.lobby = ch; this.lobbyReady = false; this.lobbyAt = Date.now(); this.lobbySig = '';
     try {
       ch.on('broadcast', { event: 'sh' }, ({ payload }) => { if (ch === this.lobby) this.onShout(payload); });
+      for (const ev of Object.keys(this.lobbyEv)) ch.on('broadcast', { event: ev }, ({ payload }) => { if (ch === this.lobby && payload && typeof payload.k === 'string' && payload.k !== this.key && payload.to === this.key) this.lobbyEv[ev](payload); });
       ch.on('presence', { event: 'sync' }, () => { if (ch !== this.lobby) return; this.lobbyState = this.readPresence(ch); this.prune(); this.emitPeers(); });
       ch.subscribe((status) => {
         if (ch !== this.lobby) return;

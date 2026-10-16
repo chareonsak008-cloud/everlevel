@@ -2122,3 +2122,92 @@ body.in-dg .bossbar { display: none !important; }
 .dg-hud .dg-hp[hidden] { display: none; }
 .dg-hud .dg-hp i { display: block; height: 100%; width: 100%; background: linear-gradient(#ff8a7a, #c8243a); transition: width 0.2s; }
 .dg-hud .dg-x { grid-row: 1 / span 4; }
+
+/* v0.35.5: ฉากหลังหน้าไตเติล = ภาพปกพิกเซลอาร์ต (เมือง Asteria ยามเย็น + 4 อาชีพ) · โลโก้เป็นภาพฟอนต์พิกเซล */
+.title-screen::before { content: ''; position: absolute; inset: 0; background: #1a1026 url('../assets/brand/title_bg.jpg') center bottom / cover no-repeat; image-rendering: auto; }
+.title-screen::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 10, 32, 0.35) 0%, rgba(20, 10, 32, 0.55) 45%, rgba(20, 10, 32, 0.78) 100%); }
+.title-screen > * { position: relative; z-index: 1; }
+.tt-logo img { display: block; width: min(560px, 96vw); height: auto; margin: 0 auto -10px; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.55)); }
+.tt-sub { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8); color: #f6efe2; }
+.tt-panel { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); background: rgba(28, 20, 38, 0.8); }
+
+/* ---------- v0.37 ปาร์ตี้ + กิลด์ ---------- */
+.chat .party { color: #8ff0ff; }
+.chat .party.me { color: #c4f8ff; }
+.chat .guild { color: #c6a8ff; }
+.chat .guild.me { color: #e0d0ff; }
+.chat .exp.party-exp { color: #9fe8b0; }
+.chat-form .chat-ch { flex: none; padding: 4px 8px; font-size: 12px; min-width: 52px; }
+.chat-form .chat-ch[data-ch="p"] { color: #8ff0ff; border-color: rgba(143, 240, 255, 0.5); }
+.chat-form .chat-ch[data-ch="g"] { color: #c6a8ff; border-color: rgba(198, 168, 255, 0.5); }
+
+.party-frame { position: absolute; left: 0; top: calc(100% + 8px); width: 100%; display: grid; gap: 4px; pointer-events: auto; }
+.party-frame[hidden] { display: none; }
+.pf-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding: 3px 8px; border-radius: 8px; background: rgba(20, 14, 28, 0.7); font-size: 11.5px; }
+.pf-head b { color: #8ff0ff; font-weight: 600; }
+.pf-head small { color: var(--muted); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-row { display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 9px; background: rgba(20, 14, 28, 0.72); box-shadow: inset 0 0 0 1px rgba(143, 240, 255, 0.16); }
+.pf-crest { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 700 11px/1 var(--display); color: #1c1222; background: var(--jc, var(--gold)); }
+.pf-info { flex: 1; min-width: 0; }
+.pf-top { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; }
+.pf-top b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-lv { color: var(--muted); font-size: 11px; flex: none; }
+.pf-hp { height: 5px; margin-top: 3px; }
+.pf-hp i { transition: width 0.25s; }
+.pf-map { display: block; font-size: 10px; color: var(--muted); line-height: 1.2; }
+.pf-map:empty { display: none; }
+.pf-row.away { opacity: 0.62; }
+.pf-row.low .pf-hp i { background: linear-gradient(90deg, #ff4a4a, #ff8a5a); }
+.pf-row.dead { opacity: 0.45; filter: grayscale(0.8); }
+body.touch .party-frame { gap: 3px; }
+body.touch .pf-row { padding: 3px 6px; }
+
+.social-prompts { position: absolute; left: 50%; top: calc(76px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); display: grid; gap: 6px; z-index: 30; pointer-events: auto; width: min(340px, calc(100% - 24px)); }
+.sp-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(24, 16, 34, 0.94); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(143, 240, 255, 0.35); animation: sp-in 0.25s ease-out; }
+.sp-card.guild { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(198, 168, 255, 0.45); }
+.sp-ic { font-size: 22px; }
+.sp-card p { flex: 1; margin: 0; font-size: 13px; line-height: 1.4; }
+.sp-btns { display: flex; gap: 6px; }
+.sp-btns button { font: inherit; font-size: 12.5px; padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(255, 214, 140, 0.3); background: rgba(255, 255, 255, 0.06); color: var(--text); cursor: pointer; }
+.sp-btns .yes { background: linear-gradient(#5fd38a, #2f9a5a); color: #08160d; border-color: transparent; font-weight: 600; }
+@keyframes sp-in { from { opacity: 0; transform: translateY(-8px); } }
+
+.on-tabs button { padding-left: 8px; padding-right: 8px; }
+.on-acts { display: flex; gap: 4px; flex: none; }
+.online-win .on-act { flex: none; padding: 3px 8px; font-size: 11.5px; border-radius: 8px; color: #8ff0ff; border-color: rgba(143, 240, 255, 0.35); }
+.online-win .on-act.g { color: #c6a8ff; border-color: rgba(198, 168, 255, 0.4); }
+.online-win .on-act.no, .online-win .on-wide.no { color: #ffb0a0; border-color: rgba(255, 140, 120, 0.35); }
+.online-win .on-act:disabled { opacity: 0.5; }
+.online-win .on-wide { width: 100%; padding: 8px; margin-top: 4px; }
+.on-row.off { opacity: 0.6; }
+.on-row.inv { box-shadow: inset 0 0 0 1px rgba(198, 168, 255, 0.4); }
+.g-emb { flex: none; width: 30px; height: 30px; display: block; }
+.g-emb.big { width: 46px; height: 46px; }
+.g-emb svg, .g-opt svg { width: 100%; height: 100%; display: block; }
+.g-head { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; background: linear-gradient(135deg, rgba(198, 168, 255, 0.14), rgba(255, 214, 140, 0.08)); }
+.g-head b { display: block; font-family: var(--display); font-size: 17px; color: var(--gold); }
+.g-head small { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.g-create { display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); }
+.g-create > p { margin: 0; font-size: 12px; color: var(--muted); }
+.g-preview { display: flex; align-items: center; gap: 10px; }
+.g-name { flex: 1; min-width: 0; font: inherit; font-size: 14px; color: var(--text); padding: 7px 10px; border-radius: 9px; background: rgba(20, 14, 28, 0.6); border: 1px solid rgba(255, 214, 140, 0.25); }
+.g-name:focus { outline: none; border-color: var(--gold); }
+.g-ed { display: grid; gap: 5px; }
+.g-ed-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.g-ed-row > span { width: 62px; font-size: 11.5px; color: var(--muted); }
+.online-win .g-opt { width: 30px; height: 30px; padding: 2px; border-radius: 7px; }
+.online-win .g-opt.col { width: 22px; height: 22px; padding: 0; background: var(--c) !important; border: 2px solid rgba(0, 0, 0, 0.4); }
+.online-win .g-opt[aria-pressed="true"] { border-color: var(--gold) !important; box-shadow: 0 0 0 2px rgba(255, 214, 140, 0.45); }
+.online-win .g-rnd { justify-self: start; padding: 4px 10px; font-size: 12px; }
+.g-msg { margin: 0; min-height: 1em; font-size: 12px; color: #ffb0a0; }
+.g-edit summary { cursor: pointer; font-size: 12.5px; color: var(--gold); padding: 4px 2px; }
+.g-edit[open] { display: grid; gap: 6px; padding: 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); }
+.chat-wrap:not(.typing) .chat-form .chat-ch { display: inline-block; opacity: 0.8; }
+/* มือถือ: กรอบปาร์ตี้ไปอยู่ขวาของแผงตัวละคร (ใต้แผงมีปุ่มเมนู) · บัฟย้ายไปใต้แผงแทน */
+body.touch #game .char > .party-frame { left: calc(100% + 6px); top: 0; width: 138px; gap: 3px; }
+body.touch #game .char.pf-on > .buffs { left: 0 !important; top: calc(100% + 6px) !important; flex-direction: row; }
+body.touch .pf-head { padding: 2px 6px; font-size: 10.5px; }
+body.touch .pf-head small { font-size: 9.5px; }
+body.touch .pf-crest { width: 18px; height: 18px; font-size: 9.5px; }
+body.touch .pf-top { font-size: 11px; }
+body.touch .pf-map { font-size: 9px; }

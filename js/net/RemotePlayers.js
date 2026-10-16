@@ -47,6 +47,8 @@ class RemotePlayer {
     this.dead = !!P.dead;
     this.hp = clampNum(P.h, 0, 1, 1) * 100;
     const lv = clampNum(Math.floor(P.lv), 1, 99, 1);
+    this.baseLevel = lv;   // v0.36: กรอบป้ายชื่อตามเลเวล
+    this.guildId = clampNum(Math.floor(P.gd), 0, 1e9, 0);   // v0.37: ป้ายกิลด์ (ชื่อ/ตราดึงจากเซิร์ฟเวอร์)
     const job = JOBS[P.j] ? JOBS[P.j].name : 'Novice';
     this.jobId = JOBS[P.j] ? P.j : 'novice';
     this.name = `${cleanText(P.n, 16) || 'นักผจญภัย'}`;

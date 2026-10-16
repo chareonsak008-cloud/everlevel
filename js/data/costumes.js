@@ -308,7 +308,7 @@ COSTUMES.push(
   PX('wings', 'w_px_crystal', 'ปีกผลึกน้ำแข็งนิรันดร์', 'Eternal Crystal Wings', 'legend', 'ปีกผลึกใสสีฟ้าเรียงเป็นแผง เกล็ดผลึกระยิบตลอดเวลา · ปีกภาพพิกเซล 8 ทิศ', { px: 'crystal', cell: 97, frames: 6, fps: 7 }),
   PX('wings', 'w_px_phoenix', 'ปีกวิหคเพลิงพิกเซล', 'Pixel Phoenix Wings', 'legend', 'ปีกไฟลุกโชนไล่สีทองถึงแดง สะเก็ดไฟปลิวจากปลายปีก · ปีกภาพพิกเซล 8 ทิศ', { px: 'phoenix', cell: 97, frames: 6, fps: 8 }),
   PX('wings', 'w_px_void', 'ปีกห้วงเงาสายฟ้า', 'Voidstorm Wings', 'mythic', 'ปีกเงาม่วงหมุนวนพร้อมสายฟ้าสีม่วง อักขระเรืองแสงตามขอบปีก · ปีกภาพพิกเซล 8 ทิศ', { px: 'void', cell: 113, frames: 6, fps: 8 }),
-  PX('wings', 'w_px_seraph', 'ปีกเซราฟทองหกปีก', 'Golden Seraph Wings', 'celestial', 'ปีกทองสามคู่พร้อมรัศมีทองเหนือศีรษะ กระพือช้า ๆ อย่างศักดิ์สิทธิ์ · ปีกภาพพิกเซล 8 ทิศ', { px: 'seraph', cell: 124, frames: 6, fps: 6, lift: 1.25, back: 0.2 }),
+  PX('wings', 'w_px_seraph', 'ปีกเซราฟทองหกปีก', 'Golden Seraph Wings', 'celestial', 'ปีกทองสามคู่พร้อมรัศมีทองเหนือศีรษะ กระพือช้า ๆ อย่างศักดิ์สิทธิ์ · ปีกภาพพิกเซล 8 ทิศ', { px: 'seraph', cell: 124, frames: 6, fps: 6, lift: 1.25 }),
 );
 // ออร่า/อาวุธพิกเซล — ออกแบบเสร็จแล้ว รอไฟล์ภาพ (assets/vfx/aura_* · slash_*) ค่อยเปิดใช้
 export const PX_PENDING = [

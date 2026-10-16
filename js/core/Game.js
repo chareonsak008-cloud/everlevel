@@ -36,6 +36,8 @@ import { JOB2_QUEST } from '../data/quests.js';
 import { SkillWindow } from '../ui/SkillWindow.js';
 import { isSkillKey } from '../entities/Player.js';
 import { clamp } from './util.js';
+import { Social } from '../systems/Social.js';
+import { PartyFrame } from '../ui/PartyFrame.js';
 import { MONSTERS } from '../data/monsters.js';
 import { THREE } from '../render/three.js';
 import { WardrobeWindow } from '../ui/WardrobeWindow.js';
@@ -78,7 +80,7 @@ import { Dungeons } from '../systems/Dungeons.js';              // v0.32: ดั
 
 // เสียงตอนใช้สกิล (เริ่ม) และตอนกระแทก (จังหวะกล้องสั่น)
 const SKILL_SFX = {
-  lance_pierce: 'swing', steel_charge: 'swing', crescent_sweep: 'swing', aegis_aura: 'skill', heavens_lance: 'cast', chain_lightning: 'cast', inferno_pillars: 'cast', glacial_prison: 'iceBlast', arcane_haste: 'cast', starfall_cataclysm: 'cast',
+  lance_pierce: 'swing', steel_charge: 'swing', crescent_sweep: 'swing', aegis_aura: 'skill', heavens_lance: 'cast', arcane_blades: 'cast', gravity_well: 'cast', chrono_rift: 'iceBlast', astral_form: 'cast', supernova: 'cast',
   falcon_assault: 'skill', blast_trap: 'shoot', split_volley: 'shoot', predator_focus: 'skill', talon_tempest: 'skill', grand_heal: 'heal', sacred_barrier: 'skill', radiant_spears: 'cast', purge_circle: 'cast', seraph_descent: 'cast',
   first_aid: 'heal', power_slash: 'swing', ground_burst: 'skill', blade_cyclone: 'swing', sky_cleave: 'swing', battle_cry: 'skill', iron_will: 'skill',
   flame_bolt: 'cast', frost_lance: 'iceBlast', fire_ball: 'cast', meteor_storm: 'cast', frost_storm: 'cast', thunder_storm: 'cast', arcane_shield: 'cast',
@@ -86,7 +88,7 @@ const SKILL_SFX = {
   holy_heal: 'heal', blessing: 'heal', swift_wind: 'skill', holy_smite: 'cast', sanctuary: 'heal', divine_judgment: 'cast',
 };
 const IMPACT_SFX = {
-  steel_charge: 'slam', crescent_sweep: 'slam', heavens_lance: 'slam', lance_pierce: 'slam', chain_lightning: 'thunder', inferno_pillars: 'explosion', glacial_prison: 'iceBlast', starfall_cataclysm: 'explosion', blast_trap: 'explosion', talon_tempest: 'slam', seraph_descent: 'explosion', radiant_spears: 'thunder',
+  steel_charge: 'slam', crescent_sweep: 'slam', heavens_lance: 'slam', lance_pierce: 'slam', arcane_blades: 'slam', gravity_well: 'explosion', chrono_rift: 'iceBlast', supernova: 'explosion', blast_trap: 'explosion', talon_tempest: 'slam', seraph_descent: 'explosion', radiant_spears: 'thunder',
   meteor_storm: 'explosion', fire_ball: 'explosion', phoenix_shot: 'explosion', divine_judgment: 'explosion', thunder_storm: 'thunder',
   frost_storm: 'iceBlast', frost_lance: 'iceBlast', frost_trap: 'iceBlast', sky_cleave: 'slam', ground_burst: 'slam', blade_cyclone: 'slam', power_slash: 'slam',
 };
@@ -226,10 +228,12 @@ export class Game {
       importSave: (f) => this.importSave(f),
       logout: () => this.logout(),
     });
+    this.social = new Social(this);           // v0.37: ปาร์ตี้ + กิลด์
+    this.partyUi = new PartyFrame(root, this);
     this.onWin = new OnlineWindow(root, this);
     this.remote = new RemotePlayers(this);
     this.netTimer = 0; this.lastPres = {}; this.netSay = null; this.netRefresh = 0;
-    this.chat = new ChatBox(root, { onSend: (t) => this.sendChat(t) });
+    this.chat = new ChatBox(root, { onSend: (t) => this.sendChat(t), onChannel: (c) => { this.chatChannel = c; } });
     this.menu = new MenuPanel(root, (act) => this.menuAction(act));
     // v0.27: แผนที่ใหญ่ + แผนที่โลก
     this.mapWin = new MapWindow(root, this);
@@ -1507,9 +1511,18 @@ export class Game {
   }
 
   // v0.8: เล่นเอฟเฟกต์สกิลชุดใหม่ — ดาเมจ/สถานะเข้าตามจังหวะภาพ (SkillFX เรียก ctx.hit ตอนลูกไฟตก ดาบฟาด ฯลฯ)
-  playSkillFx(id, lv, t) {
+  playSkillFx(id, lv, t, opts = {}) {
     const pl = this.player, sk = SKILLS[id], S = 1 / TILE, fx = this.gfx.fx;
     if (t) pl.faceToward(t);
+    // v0.35: วาร์ปไปหลังเป้าก่อนเริ่มท่า (ก้าวเงาสังหาร) — ทิ้งเงาไว้ที่จุดเดิม
+    let blinkFrom = null;
+    if (sk.blink === 'behind' && t) {
+      blinkFrom = new THREE.Vector3(pl.x * S, 0, pl.y * S);
+      const dx = t.x - pl.x, dy = t.y - pl.y, d = Math.hypot(dx, dy) || 1, gx = t.x + (dx / d) * TILE * 1.1, gy = t.y + (dy / d) * TILE * 1.1;
+      const sx = gx - pl.x, sy = gy - pl.y;
+      for (let i = 0; i < 12; i++) if (!pl.moveBy(sx / 12, sy / 12, this.map)) break;
+      pl.path = []; pl.faceToward(t);
+    }
     const facing = new THREE.Vector3(Math.sin(pl.angle), 0, Math.cos(pl.angle));
     const casterPos = new THREE.Vector3(pl.x * S, 0, pl.y * S);
     // เป้าหมายที่เอฟเฟกต์รู้จัก: มอนที่ยังไม่ตายรอบจุดใช้สกิล (ตำแหน่งอ่านสด ๆ ทุกครั้ง เพราะมอนเดินได้)
@@ -1521,8 +1534,8 @@ export class Game {
     const center = sk.target === 'self' ? casterPos.clone() : t ? new THREE.Vector3(t.x * S, 0, t.y * S) : null;
     const origin = sk.target === 'self' || !t || id === 'gale_arrow' ? { x: pl.x, y: pl.y } : { x: t.x, y: t.y };   // จุดที่ผลักศัตรูออก
     const ctx = {
-      caster: { pos: casterPos, facing, height: 1.8 },
-      targets: list, main, center, count: sval(sk.count, lv, pl) || 0,
+      caster: { get pos() { return new THREE.Vector3(pl.x * S, pl.lift || 0, pl.y * S); }, facing, height: 1.8, start: casterPos },
+      targets: list, main, center, count: sval(sk.count, lv, pl) || 0, blinkFrom,
       hit: (i, info = {}) => this.skillHit(sk, lv, list[i] && list[i].m, info, origin),
       heal: () => {
         if (pl.dead) return;
@@ -1541,6 +1554,15 @@ export class Game {
       aberrate: (a) => this.gfx.post.aberrate(a),
       punch: (a) => this.gfx.punch(a),
       lines: (a, dur) => this.gfx.post.speedLines(a, dur),
+      // v0.35: ท่าทางแบบอนิเมะ — เลื่อนตัว / กระโดด-ลอย / เงาตกค้าง / ดูดศัตรู / ยกเลิกท่า
+      move: (to, dur = 0.25, ease = 'out') => this.heroMove(to.x / S, to.z / S, dur, ease),
+      lift: (h, dur = 0.5, hold = 0) => this.heroLift(h, dur, hold),
+      ghost: (opts) => this.gfx.afterimage(pl, opts),
+      pull: (c, r, step) => this.pullMobs(c.x / S, c.z / S, r * TILE, step * TILE),
+      slow: (i, pct, secs) => { const m = list[i] && list[i].m; if (m && !m.dead && !m.data.mvp) { m.slowUntil = this.time + secs; m.slowMul = 1 - pct; } },
+      done: () => { pl.lockUntil = Math.min(pl.lockUntil, this.time); },
+      freeze: (i) => { const m = list[i] && list[i].m; if (!m || m.dead) return; const ch = sk.freeze != null ? sval(sk.freeze, lv) : 1; if (Math.random() < ch) this.freezeMob(m, (sval(sk.freezeSecs, lv) || 2) * (m.data.mvp ? 0.4 : 1)); },
+      shieldLeft: () => (pl.shield && pl.shield.id === id ? pl.shield.charges : 0),
     };
     // v0.31: สกิลพุ่งตัว (พุ่งทะยานเหล็กกล้า) — เลื่อนผู้เล่นไปหยุดหน้าเป้าหมาย
     if (sk.dash && t) {
@@ -1551,10 +1573,13 @@ export class Game {
         ctx.dashTo = new THREE.Vector3(ex * S, 0, ey * S);
       }
     }
-    fx.play(sk.vfx, ctx);
+    fx.play(opts.vfx || sk.vfx, ctx);
+    if (opts.vfx) { this.dirty = true; return; }   // v0.35: เอฟเฟกต์เสริม (ขนนกแตก / ปาฏิหาริย์) ไม่ล็อกท่า ไม่ให้บัฟ
     // v0.34: ซ้อนเอฟเฟกต์ภาพพิกเซล (PixelLab) ถ้าสกิลนี้มี
     const pv = SKILL_VFX[id];
     if (pv) { const at = pv.at === 'self' || !t ? casterPos : new THREE.Vector3(t.x * S, 0, t.y * S); this.gfx.pixelVfx().play(pv.name, at, pv); }
+    // v0.35: โล่นับจำนวนฮิต (คำสัตย์ขนนก)
+    if (sk.shield) { const sh = sk.shield(lv); pl.shield = { id, lv, charges: sh.charges, until: this.time + sh.secs }; pl.addBuff(id, lv, {}, sh.secs); this.hud.setBuffs(pl.buffs); }
     // บัฟเข้าทันที (เอฟเฟกต์เป็นแค่ภาพ)
     if (sk.bonus) {
       pl.addBuff(id, lv, sk.bonus(lv), sk.duration(lv));
@@ -1576,10 +1601,11 @@ export class Game {
     if (!m || m.dead || pl.dead || this.warping || !this.mobs || !this.mobs.list.includes(m)) return { stun: 0, freeze: 0 };
     const magic = !!(sk.magic || info.magic);
     const mult = ((info.mult ?? 1) / (sk.ref || 1)) * (sval(sk.mult, lv, pl) || 1);
-    const r = rollSkill(pl.stats, m.stats, { mult, magic, hitBonus: sval(sk.hitBonus, lv) || 0 });
+    const r = rollSkill(pl.stats, m.stats, { mult, magic, hitBonus: sval(sk.hitBonus, lv) || 0, crit: !!info.crit });
     this.damageMonster(m, r, { magic, element: skillElement(Object.keys(SKILLS).find((k) => SKILLS[k] === sk)) });
     const out = { stun: 0, freeze: 0 };
     if (r.miss || m.dead) return out;
+    if (info.slow && !m.data.mvp) { m.slowUntil = this.time + (info.slow.secs || 2); m.slowMul = 1 - Math.min(0.8, info.slow.pct || 0.3); }
     const boss = m.data.mvp ? 0.4 : 1;   // บอส MVP ติดสถานะสั้นลง
     if (info.freeze) {
       const ch = sk.freeze != null ? sval(sk.freeze, lv) : 1;
@@ -1606,6 +1632,31 @@ export class Game {
       this.gfx.playAttack(pl);
     } else if (kind === 'jump') {
       this.heroAnims.push({ t: 0, dur, fn: (k) => { pl.lift = Math.sin(k * Math.PI) * 1.1; }, end: () => { pl.lift = 0; } });
+    }
+  }
+
+  // v0.35: เลื่อนผู้เล่นไปยัง (tx, ty) หน่วยพิกเซลโลกภายใน dur วินาที (หยุดถ้าชนกำแพง)
+  heroMove(tx, ty, dur = 0.25, ease = 'out') {
+    const pl = this.player, sx = pl.x, sy = pl.y;
+    let lx = sx, ly = sy;
+    const E = ease === 'in' ? (k) => k * k : ease === 'linear' ? (k) => k : (k) => 1 - (1 - k) * (1 - k);
+    this.heroAnims.push({ t: 0, dur, fn: (k) => { const e = E(k), nx = sx + (tx - sx) * e, ny = sy + (ty - sy) * e; if (pl.moveBy(nx - lx, ny - ly, this.map)) { lx = nx; ly = ny; } else { lx = pl.x; ly = pl.y; } }, end: () => { pl.path = []; } });
+    this.dirty = true;
+  }
+  // v0.35: กระโดด/ลอยตัว สูง h ช่วง dur (ค้างไว้ hold วินาทีก่อนลง)
+  heroLift(h, dur = 0.5, hold = 0) {
+    const pl = this.player, up = dur * 0.4, down = dur - up;
+    this.heroAnims.push({ t: 0, dur: dur + hold, fn: (k) => { const t = k * (dur + hold); pl.lift = t < up ? h * (1 - Math.pow(1 - t / up, 2)) : t < up + hold ? h : h * (1 - Math.pow((t - up - hold) / down, 2)); }, end: () => { pl.lift = 0; } });
+  }
+  // v0.35: ดูดมอนในรัศมี r (พิกเซล) เข้าหาจุด (cx, cy) ทีละ step
+  pullMobs(cx, cy, r, step) {
+    if (!this.mobs) return;
+    for (const m of this.mobs.list) {
+      if (m.dead || m.data.mvp) continue;
+      const dx = cx - m.x, dy = cy - m.y, d = Math.hypot(dx, dy);
+      if (d > r || d < TILE * 0.6) continue;
+      const s = Math.min(step, d - TILE * 0.5);
+      m.moveBy((dx / d) * s, (dy / d) * s, this.map); m.path = []; m.repath = 0.3; m.pulledUntil = this.time + 0.4;
     }
   }
 
@@ -1750,13 +1801,33 @@ export class Game {
   }
 
   // ได้รับ EXP จากการกำจัดมอนสเตอร์
-  reward(m) {
+  expMul() {
     const pl = this.player;
     const ek = 1 + ((pl.bonus && pl.bonus.expPct) || 0) / 100, bm = +(pl.itemBuffMul('exp') * (this.events?.rate('exp') || 1) * ek).toFixed(2), jm = +(pl.itemBuffMul('jexp') * (this.events?.rate('exp') || 1) * ek).toFixed(2);   // v0.29: EXP% จากคอมโบการ์ด   // v0.13: ใบคูณ EXP / Job
-    const b = Math.round((m.data.baseExp || 0) * bm), j = pl.jobNext === Infinity ? 0 : Math.round((m.data.jobExp || 0) * jm);
-    this.hud.log(`กำจัด ${m.name} · ได้รับ Base EXP ${b}${bm > 1 ? ` (×${bm})` : ''} · Job EXP ${j}${jm > 1 && j ? ` (×${jm})` : ''}`, 'exp');
+    return { bm, jm };
+  }
+
+  reward(m) {
+    const pl = this.player, { bm, jm } = this.expMul();
+    let rb = m.data.baseExp || 0, rj = m.data.jobExp || 0;
+    const share = this.social ? this.social.shareKill(rb, rj, m.name) : null;   // v0.37: ปาร์ตี้ในแมพเดียวกันแบ่ง EXP (+20% ต่อคน)
+    if (share) { rb = share.b; rj = share.j; }
+    const b = Math.round(rb * bm), j = pl.jobNext === Infinity ? 0 : Math.round(rj * jm);
+    this.hud.log(`กำจัด ${m.name} · ได้รับ Base EXP ${b}${bm > 1 ? ` (×${bm})` : ''} · Job EXP ${j}${jm > 1 && j ? ` (×${jm})` : ''}${share ? ` · แบ่งปาร์ตี้ ${share.n} คน` : ''}`, 'exp');
     this.gfx.floatText(pl, `+${b} EXP`, 'exp', { h: 2.1, life: 1.3, rise: 0.7 });
     this.applyExp(b, j);
+  }
+
+  // v0.37: ส่วนแบ่ง EXP จากเพื่อนในปาร์ตี้ที่กำจัดมอนในแมพเดียวกัน (ค่าดิบ → คูณบัฟ/อีเวนต์ของเราเอง)
+  partyExp(rb, rj, from, mob) {
+    if (!this.started || this.player.dead) return;
+    const pl = this.player, { bm, jm } = this.expMul();
+    const b = Math.round(rb * bm), j = pl.jobNext === Infinity ? 0 : Math.round(rj * jm);
+    if (!b && !j) return;
+    this.hud.log(`[ปาร์ตี้] ${from} กำจัด ${mob || 'มอนสเตอร์'} · ได้รับ Base EXP ${b} · Job EXP ${j}`, 'exp party-exp');
+    this.gfx.floatText(pl, `+${b} EXP`, 'exp', { h: 2.1, life: 1.3, rise: 0.7 });
+    this.applyExp(b, j);
+    this.dirty = true;
   }
 
   // ให้ EXP + จัดการเลเวลอัป (ใช้ทั้งการกำจัดมอนและรางวัลเควส)
@@ -1814,6 +1885,21 @@ export class Game {
     const biome = this.map.id === 'frostveil' ? pl.itemBuffSum('dmgCutSnow') : this.map.id === 'ember_caldera' ? pl.itemBuffSum('dmgCutLava') : 0;
     if (biome) amount = Math.max(1, Math.round(amount * (1 - biome / 100)));
     if (pl.cast && pl.cast.item) { this.hud.log(`ถูกโจมตี! ยกเลิกการร่าย ${pl.cast.name}`, 'sys'); pl.cast = null; }
+    // v0.35: คำสัตย์ขนนก — ขนนก 1 อันแตกแทน (ดาเมจ 0) ฟื้น HP + ระเบิดแสงใส่ศัตรูข้างตัว
+    if (pl.shield && pl.shield.charges > 0 && pl.shield.until > this.time) {
+      pl.shield.charges--;
+      this.gfx.floatText(pl, 'กัน!', 'buff', { h: 2.2, life: 0.9, rise: 0.4, drift: false });
+      this.featherBreak(pl.shield);
+      if (pl.shield.charges <= 0) { pl.shield = null; this.hud.log('ขนนกคำสัตย์หมดแล้ว', 'info'); }
+      return;
+    }
+    // v0.35: เกราะเกล็ดมังกร — สะท้อนดาเมจส่วนหนึ่งกลับใส่ผู้โจมตี
+    const refl = (pl.bonus && pl.bonus.reflectPct) || 0;
+    if (refl && src && src.isMonster && !src.dead && this.mobs && this.mobs.list.includes(src)) {
+      const back = Math.max(1, Math.round(amount * Math.min(60, refl) / 100));
+      this.gfx.bursts.spawn(src.x / TILE, 0.8, src.y / TILE, '#7ab4ff', 10, 1.2, 1.4);
+      this.damageMonster(src, { miss: false, crit: false, amount: back }, {});
+    }
     pl.hp = Math.max(0, pl.hp - amount);
     pl.lastHitAt = this.time;
     this.sfx('hurt');
@@ -1953,6 +2039,7 @@ export class Game {
 
   playerDown() {
     const pl = this.player;
+    if (this.tryMiracle()) return;
     this.closeServices();
     pl.cast = null; pl.pendingSkill = null;
     pl.lockUntil = 0; pl.castPose = false; pl.lift = 0; this.heroAnims = [];
@@ -1973,6 +2060,35 @@ export class Game {
     this.hud.log(feathers ? `คุณหมดสติ... ใช้ขนนกคืนชีพเพื่อฟื้นตรงนี้ (มี ${feathers} ชิ้น) หรือรอ 8 วินาทีเพื่อฟื้นที่ Asteria Town` : 'คุณหมดสติ... จะฟื้นขึ้นที่ Asteria Town ใน 3 วินาที', 'sys');
     this.reviveAt = this.time + (feathers ? 8 : 3);
     if (feathers) this.showReviveButton(feathers);
+  }
+
+  // v0.35: ปาฏิหาริย์ฟื้นคืน (Priest ติดตัว) — HP หมดแล้วฟื้นทันที มีคูลดาวน์
+  tryMiracle() {
+    const pl = this.player, sk = SKILLS.miracle, lv = pl.skillLv('miracle');
+    if (!sk || !lv || (pl.miracleAt || 0) > this.time) return false;
+    const R = sk.revive(lv);
+    pl.miracleAt = this.time + R.cd; pl.cooldowns.miracle = pl.miracleAt;
+    pl.hp = Math.max(1, Math.round(pl.maxHp * R.hpPct / 100));
+    pl.cast = null; pl.pendingSkill = null;
+    this.hitstop = Math.max(this.hitstop, 0.4);
+    this.gfx.post.flash('#fff6d0', 0.5);
+    this.gfx.floatText(pl, 'ปาฏิหาริย์!', 'loot r-legend', { h: 2.4, life: 1.8, rise: 0.7, drift: false });
+    this.hud.log(`✨ ปาฏิหาริย์ฟื้นคืน! ฟื้น HP ${R.hpPct}% (คูลดาวน์ ${R.cd / 60} นาที)`, 'f-mythic');
+    this.sfx('levelUp', { gap: 0 });
+    this.playSkillFx('miracle', lv, null, { vfx: 'miracle' });
+    // ผลักศัตรูรอบตัวกระเด็น
+    if (this.mobs) for (const m of this.mobs.list) if (!m.dead && !m.data.mvp && Math.hypot(m.x - pl.x, m.y - pl.y) <= 2.5 * TILE) this.knockback(m, pl, 2);
+    this.hud.setPlayer(pl); this.hotbar.render(); this.dirty = true;
+    return true;
+  }
+  // v0.35: ขนนกคำสัตย์แตก — ฟื้น HP และระเบิดแสงใส่ศัตรูรอบตัว
+  featherBreak(sh) {
+    const pl = this.player, sk = SKILLS.feather_vow, lv = sh.lv || 1;
+    const amt = Math.max(0, Math.min(pl.maxHp - pl.hp, Math.round((sval(sk.heal, lv, pl) || 0) * (1 + ((pl.bonus && pl.bonus.healPct) || 0) / 100))));
+    pl.hp += amt;
+    if (amt > 0) this.gfx.floatText(pl, `+${amt}`, 'heal', { h: 1.6, drift: false });
+    this.hud.setPlayer(pl);
+    this.playSkillFx('feather_vow', lv, null, { vfx: 'feather_break' });
   }
 
   // ปุ่มกลางจอตอนหมดสติ (มีขนนกคืนชีพ)
@@ -2086,6 +2202,13 @@ export class Game {
       if (k >= 1) { this.heroAnims.splice(i, 1); if (a.end) a.end(); }
     }
     if (pl.castPose && pl.castPoseUntil <= this.time) pl.castPose = false;
+    // v0.35: ร่างดารา — ลอยตัวตลอดบัฟ · สายเลือดมังกร — คำนวณค่าใหม่เมื่อข้ามเส้น HP 30%
+    if (!this.heroAnims.length && !pl.dead) {
+      if (pl.bonus && pl.bonus.hover) { pl.lift = 0.28 + Math.sin(this.time * 2.4) * 0.08; pl.hovering = true; }
+      else if (pl.hovering) { pl.lift = 0; pl.hovering = false; }
+    }
+    if (pl.skillLv('dragon_vein')) { const low = pl.hp < pl.maxHp * 0.3; if (low !== !!pl.lowHp) { pl.lowHp = low; pl.afterEquipChange(); this.hud.setPlayer(pl); if (low) this.gfx.floatText(pl, 'มังกรตื่น!', 'buff', { h: 2.4, life: 1.4, rise: 0.5, drift: false }); } }
+    if (pl.shield && pl.shield.until <= this.time) pl.shield = null;
     const locked = pl.lockUntil > this.time;   // ระหว่างท่าสกิลยืนนิ่ง (เส้นทางที่แตะไว้จะเดินต่อเมื่อท่าจบ)
 
     // หมุนทิศการเดินตามมุมกล้อง (ปุ่ม "ขึ้น" = เดินเข้าหาจอเสมอ)
@@ -2584,7 +2707,7 @@ export class Game {
       this.setNet(this.netStatus.dataset.s === 'error' ? 'error' : 'online');
     }, { onSay: (m) => this.onNetSay(m), onShout: (m) => this.onNetShout(m) });
     if (!ok) this.hud.log('เชื่อมต่อห้องผู้เล่นไม่ได้ — ยังเล่นและเซฟออนไลน์ได้ แต่จะไม่เห็นผู้เล่นคนอื่น', 'sys');
-    else this.hud.log('เชื่อมต่อออนไลน์แล้ว · ผู้เล่นในแผนที่เดียวกันจะเห็นกันและคุยแชตได้ (กด Enter เพื่อพิมพ์)', 'net');
+    else { this.hud.log('เชื่อมต่อออนไลน์แล้ว · ผู้เล่นในแผนที่เดียวกันจะเห็นกันและคุยแชตได้ (กด Enter เพื่อพิมพ์)', 'net'); this.social.start(); }
     this.netTimer = 0;
   }
 
@@ -2611,6 +2734,7 @@ export class Game {
   updateNet(dt) {
     if (this.mode !== 'online') return;
     this.remote.update(dt);
+    this.social.update(dt);
     this.netTimer -= dt;
     if (this.netTimer > 0) return;
     this.netTimer = 0.12;
@@ -2624,6 +2748,7 @@ export class Game {
       h: +(pl.hp / pl.maxHp).toFixed(2), dead: !!pl.dead, at: this.atkSeq, ak: this.atkKind,
       pt: pl.pets.active || '', ps: pl.pets.active ? pl.pets.owned[pl.pets.active] || 0 : 0,   // v0.13: สัตว์เลี้ยง
       tt: pl.col.title || '',                                                                  // v0.18: ฉายา
+      gd: this.social.guildId,                                                                 // v0.37: กิลด์
       sp: Math.round(pl.speed),                                                                // v0.16.1: ความเร็วเดิน (ไว้บอกคนอื่นให้เดินต่อเองระหว่างแพ็กเก็ต)
     };
     const patch = {};
@@ -2651,6 +2776,12 @@ export class Game {
 
   sendChat(text) {
     const pl = this.player;
+    // v0.37: /p ข้อความ = ปาร์ตี้ · /g ข้อความ = กิลด์ · ช่องแชตที่เลือกไว้ (ปุ่มหน้าช่องพิมพ์)
+    const m = /^\/(p|g|s)\s+(.+)$/i.exec(text);
+    const ch = m ? m[1].toLowerCase() : this.chatChannel || 's';
+    if (m) text = m[2];
+    if (ch === 'p') { this.social.sendPartyChat(text); this.sfx('chat'); return; }
+    if (ch === 'g') { this.social.sendGuildChat(text); this.sfx('chat'); return; }
     pl.bubble = { text, t: 5 };
     this.hud.log(text, 'pc me', pl.name);
     this.sfx('chat');

@@ -1,0 +1,38 @@
+/* v0.36 กรอบป้ายชื่อตัวละคร 7 ระดับตามเลเวล — ภาพพิกเซลจาก PixelLab (assets/ui/nameplate/tN.png) · โครงสร้างสร้างโดย js/ui/Nameplates.js
+   t1 ไม้ 1–19 · t2 เหล็ก 20–39 · t3 เงินขัดเงา 40–59 · t4 ทองคำ 60–74 · t5 อเมทิสต์ 75–89 · t6 เพลิงมังกร 90–98 · t7 นิรันดร์ 99 */
+.tag.np { position: absolute; display: block; padding: 0 !important; border-radius: 0 !important; background: none no-repeat 0 0 / 100% 100% !important; box-shadow: none !important; text-shadow: none !important; color: #fff !important; }
+.tag.np.np-t1 { background-image: url('../assets/ui/nameplate/t1.png') !important; }
+.tag.np.np-t2 { background-image: url('../assets/ui/nameplate/t2.png') !important; }
+.tag.np.np-t3 { background-image: url('../assets/ui/nameplate/t3.png') !important; }
+.tag.np.np-t4 { background-image: url('../assets/ui/nameplate/t4.png') !important; filter: drop-shadow(0 0 4px rgba(255, 200, 90, 0.35)); }
+.tag.np.np-t5 { background-image: url('../assets/ui/nameplate/t5.png') !important; animation: np-glow5 2.4s ease-in-out infinite; }
+.tag.np.np-t6 { background-image: url('../assets/ui/nameplate/t6.png') !important; animation: np-glow6 0.9s ease-in-out infinite alternate; }
+.tag.np.np-t7 { background-image: url('../assets/ui/nameplate/t7.png') !important; animation: np-glow7 3s ease-in-out infinite; }
+.np-in { position: absolute; display: flex; align-items: center; justify-content: center; gap: 4px; overflow: hidden; white-space: nowrap; }
+.np-lv { flex: none; display: inline-grid; place-items: center; min-width: 14px; height: 12px; padding: 0 3px; border-radius: 2px; font: 700 9.5px/1 'Pixelify Sans', var(--font, sans-serif);
+  color: #1e1408; background: linear-gradient(#ffe9b0, #d8a24a); box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.3); }
+.np-name { font-family: Kanit, var(--font, sans-serif); font-weight: 600; line-height: 1; letter-spacing: 0.01em; color: #fbf3e4; text-shadow: 0 1px 0 #000, 0 0 3px rgba(0, 0, 0, 0.8); }
+.np-t1 .np-lv { background: linear-gradient(#e2bf8c, #9b6b3a); }
+.np-t2 .np-lv { color: #10141c; background: linear-gradient(#eef3fa, #8f9aac); }
+.np-t3 .np-lv { color: #fff; background: linear-gradient(#8fd2ff, #2f6fd0); }
+.np-t3 .np-name { color: #eef7ff; }
+.np-t4 .np-name { color: #fff1c4; }
+.np-t5 .np-lv { color: #fff; background: linear-gradient(#e8c8ff, #8a4ad8); }
+.np-t5 .np-name { color: #f4e6ff; text-shadow: 0 1px 0 #000, 0 0 5px rgba(196, 139, 255, 0.9); }
+.np-t6 .np-lv { color: #2a0800; background: linear-gradient(#ffd27a, #ff5a1a); }
+.np-t6 .np-name { color: #ffe2c0; text-shadow: 0 1px 0 #000, 0 0 5px rgba(255, 90, 26, 0.9); }
+.np-t7 .np-lv { color: #1a1030; background: linear-gradient(90deg, #ff9ad0, #ffe28a, #9af0ff, #d8b0ff, #ff9ad0); background-size: 300% 100%; animation: np-hue 4s linear infinite; }
+.np-t7 .np-name { background: linear-gradient(90deg, #fff 0%, #ffe9a0 25%, #fff 50%, #c8f4ff 75%, #fff 100%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 3px rgba(255, 240, 180, 0.7)); animation: np-text 3s linear infinite; }
+.np-star { position: absolute; width: 3px; height: 3px; background: #fff; pointer-events: none; transform: rotate(45deg); box-shadow: 0 0 4px #fff, 0 0 8px #ffe9a0; animation: np-twinkle 1.8s ease-in-out infinite; }
+@keyframes np-glow5 { 0%, 100% { filter: drop-shadow(0 0 2px rgba(196, 139, 255, 0.4)); } 50% { filter: drop-shadow(0 0 7px rgba(196, 139, 255, 0.95)); } }
+@keyframes np-glow6 { from { filter: drop-shadow(0 0 3px rgba(255, 90, 26, 0.5)); } to { filter: drop-shadow(0 -2px 8px rgba(255, 140, 40, 0.95)); } }
+@keyframes np-glow7 { 0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 240, 180, 0.6)); } 50% { filter: drop-shadow(0 0 10px rgba(255, 240, 180, 1)); } }
+@keyframes np-text { to { background-position: -200% 0; } }
+@keyframes np-hue { to { background-position: -300% 0; } }
+@keyframes np-twinkle { 0%, 100% { opacity: 0; transform: scale(0.4) rotate(45deg); } 50% { opacity: 1; transform: scale(1.2) rotate(45deg); } }
+@media (prefers-reduced-motion: reduce) { .np, .np *, .np-star { animation: none !important; } }
+/* v0.37 ป้ายกิลด์ใต้แถบ HP · เพื่อนร่วมปาร์ตี้ชื่อสีเขียว */
+.np-guild { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 3px; white-space: nowrap; padding: 1px 6px 1px 2px; border-radius: 8px; background: rgba(14, 10, 20, 0.62); box-shadow: inset 0 0 0 1px rgba(255, 214, 140, 0.22); font: 600 10.5px/1.2 Kanit, var(--font, sans-serif); color: #e8dcff; text-shadow: 0 1px 0 #000; }
+.np-guild > i { width: 13px; height: 13px; display: block; }
+.np-guild svg { width: 100%; height: 100%; display: block; }
+.tag.np.np-party .np-name { color: #9dffb4 !important; -webkit-text-fill-color: #9dffb4; text-shadow: 0 1px 0 #000, 0 0 5px rgba(80, 255, 140, 0.7); }

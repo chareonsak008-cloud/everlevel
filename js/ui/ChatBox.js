@@ -1,8 +1,14 @@
 // ช่องพิมพ์แชต (v0.11): พิมพ์คุยกับผู้เล่นในแผนที่เดียวกัน · Enter เพื่อเริ่มพิมพ์ · มือถือย่อ/ขยายกล่องแชตได้
 export class ChatBox {
-  constructor(root, { onSend, onOpen }) {
+  constructor(root, { onSend, onOpen, onChannel }) {
     this.root = root;
-    this.onSend = onSend; this.onOpen = onOpen || (() => {});
+    this.onSend = onSend; this.onOpen = onOpen || (() => {}); this.onChannel = onChannel || (() => {});
+    // v0.37: ปุ่มเลือกช่องแชต ทั่วไป → ปาร์ตี้ → กิลด์
+    this.chBtn = root.querySelector('#chatCh');
+    if (this.chBtn) {
+      this.chBtn.addEventListener('pointerdown', (e) => e.preventDefault());   // ไม่ให้ช่องพิมพ์หลุดโฟกัส
+      this.chBtn.addEventListener('click', () => { this.setChannel({ s: 'p', p: 'g', g: 's' }[this.chBtn.dataset.ch] || 's'); this.input.focus(); });
+    }
     this.box = root.querySelector('#chat');
     this.wrap = root.querySelector('#chatWrap');
     this.form = root.querySelector('#chatForm');
@@ -57,6 +63,14 @@ export class ChatBox {
     this.wrap.classList.toggle('open', this.expanded);
     this.toggleBtn.setAttribute('aria-expanded', String(this.expanded));
     if (this.expanded) this.box.scrollTop = this.box.scrollHeight;
+  }
+
+  setChannel(c) {
+    if (!this.chBtn) return;
+    this.chBtn.dataset.ch = c;
+    this.chBtn.textContent = { s: 'ทั่วไป', p: 'ปาร์ตี้', g: 'กิลด์' }[c];
+    this.input.placeholder = { s: 'พิมพ์ข้อความ… (กด Enter)', p: 'คุยในปาร์ตี้…', g: 'คุยในกิลด์…' }[c];
+    this.onChannel(c);
   }
 
   focus() {
