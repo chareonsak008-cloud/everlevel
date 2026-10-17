@@ -1,9 +1,9 @@
 // ระบบเควส (v0.10): สถานะ ความคืบหน้า รับ/ส่ง/ยกเลิก — ข้อมูลเก็บใน player.quests (เซฟพร้อมตัวละคร)
-import { weekKey } from '../data/events.js';
-import { QUESTS, QUEST_KIND } from '../data/quests.js';
-import { MONSTERS } from '../data/monsters.js';
-import { ITEMS } from '../data/items.js';
-import { MAPS } from '../data/maps/index.js';
+import { weekKey } from '../data/events.js?v=0.40.2';
+import { QUESTS, QUEST_KIND } from '../data/quests.js?v=0.40.2';
+import { MONSTERS } from '../data/monsters.js?v=0.40.2';
+import { ITEMS } from '../data/items.js?v=0.40.2';
+import { MAPS } from '../data/maps/index.js?v=0.40.2';
 
 // NPC ทุกตัวในทุกแผนที่ (ไว้บอกว่าเควสรับ/ส่งที่ไหน)
 export const NPC_INDEX = {};
