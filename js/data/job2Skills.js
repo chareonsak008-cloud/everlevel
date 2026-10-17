@@ -1,4 +1,4 @@
-// v0.31 สกิลอาชีพขั้นที่ 2 — Knight · Wizard · Hunter · Priest (รูปแบบเดียวกับ skills.js)
+// v0.35 สกิลอาชีพขั้นที่ 2 — Wizard ชุดใหม่ (สไตล์อนิเมะ) · Knight/Hunter/Priest ชุด v0.31 (รูปแบบเดียวกับ skills.js)
 // เอฟเฟกต์อยู่ใน render/Job2FX.js (vfx = ชื่อฟังก์ชัน fx_<ชื่อ>) · ดาเมจต่อฮิต = (ตัวคูณในเอฟเฟกต์ / ref) × mult(lv)
 const pct = (x) => Math.round(x * 100);
 const span = (lv, max, a, b) => Math.round(a + ((b - a) * (lv - 1)) / (max - 1));
@@ -58,53 +58,53 @@ export const JOB2_SKILLS = {
     effect: (lv) => `${pct(4.6 + lv * 0.9)}% รัศมี 3 ช่อง + คลื่นตาม ${pct(((4.6 + lv * 0.9) * 1.5) / 4.5)}% · คูลดาวน์ 10 วิ`,
   },
 
-  /* ================= Wizard · จอมเวท ================= */
-  elemental_mastery: {
-    job: 'wizard', name: 'ปรมาจารย์ธาตุ', maxLv: 10, kind: 'passive', icon: ['orb', '#c89aff'],
-    desc: 'เข้าใจธาตุทั้งห้าอย่างลึกซึ้ง เวทแรงขึ้นและร่ายเร็วขึ้น',
-    effect: (lv) => `MATK +${lv * 1.5}% · เวลาร่าย -${lv * 2}%`,
-    passive: (lv) => ({ matkPct: lv * 1.5, castPct: lv * 2 }),
+  /* ================= Wizard · จอมเวทดารา ================= */
+  astral_insight: {
+    job: 'wizard', name: 'ญาณแห่งดวงดาว', maxLv: 10, kind: 'passive', icon: ['orb', '#c89aff'],
+    desc: 'อ่านการโคจรของดวงดาว เวทแรงขึ้น ร่ายเร็วขึ้น และต้านเวทได้ดีขึ้น',
+    effect: (lv) => `MATK +${lv * 1.5}% · เวลาร่าย -${lv * 2}% · MDEF +${lv}`,
+    passive: (lv) => ({ matkPct: lv * 1.5, castPct: lv * 2, mdef: lv }),
   },
-  mana_tide: {
-    job: 'wizard', name: 'กระแสมานา', maxLv: 10, kind: 'passive', icon: ['orb', '#7ad8ff'],
-    desc: 'ดึงมานาจากรอบตัวเข้ามาไม่ขาดสาย',
+  mana_wellspring: {
+    job: 'wizard', name: 'บ่อน้ำมานา', maxLv: 10, kind: 'passive', icon: ['orb', '#7ad8ff'],
+    desc: 'มานาไหลเข้าร่างไม่ขาดสาย',
     effect: (lv) => `Max SP +${lv * 3}% · ฟื้น SP +${lv * 10}% · ดีเลย์หลังร่าย -${lv}%`,
     passive: (lv) => ({ maxSpPct: lv * 3, spRegenPct: lv * 10, delayPct: lv }),
   },
-  chain_lightning: {
-    job: 'wizard', name: 'สายฟ้าโซ่ทวีคูณ', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['chain', '#ffe24a'], req: { elemental_mastery: 1 },
-    sp: (lv) => 18 + lv * 3, cast: (lv) => 0.5 + lv * 0.06, cd: 0.8, range: 9, color: '#ffe680', vfx: 'chain_lightning', ref: 1, lock: 0.45, delay: 0.4,
-    mult: (lv) => 1.2 + lv * 0.12, count: (lv) => 3 + Math.floor(lv / 2),
-    desc: 'ยิงสายฟ้าที่กระโดดต่อจากศัตรูตัวหนึ่งไปอีกตัว แรงลดลงทีละน้อยทุกครั้งที่กระโดด',
-    effect: (lv) => `${pct(1.2 + lv * 0.12)}% MATK · กระโดด ${3 + Math.floor(lv / 2)} ตัว (ลดทีละ 10%)`,
+  arcane_blades: {
+    job: 'wizard', name: 'ดาบเวทโคจร', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['spears', '#b090ff'], req: { astral_insight: 1 },
+    sp: (lv) => 20 + lv * 2, cast: 0.4, cd: 1, range: 9, color: '#c8a8ff', vfx: 'arcane_blades', ref: 1, lock: 0.9, delay: 0.4,
+    mult: (lv) => 0.45 + lv * 0.055,
+    desc: 'วงเวทเปิดด้านหลัง 6 วง ดาบแสงโผล่ออกมาโคจรรอบตัว แล้วชี้ไม้เท้าสั่งให้พุ่งใส่เป้าทีละเล่ม ทะลุศัตรูในแนว',
+    effect: (lv) => `6 เล่ม × ${pct(0.45 + lv * 0.055)}% MATK ทะลุแนวถึงเป้า`,
   },
-  inferno_pillars: {
-    job: 'wizard', name: 'เสาเพลิงนรกันต์', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['flame', '#ff5a2a'], req: { chain_lightning: 3 },
-    sp: (lv) => 34 + lv * 3, cast: 1.2, cd: 3, range: 9, color: '#ff7a2a', vfx: 'inferno_pillars', ref: 1, lock: 0.8, delay: 0.8,
-    mult: (lv) => 0.75 + lv * 0.08,
-    desc: 'วงเวทเพลิงใต้เท้าศัตรู เสาไฟ 8 ต้นพุ่งขึ้นสามระลอกแล้วระเบิดใจกลาง',
-    effect: (lv) => `3 ระลอก × ${pct(0.75 + lv * 0.08)}% + ระเบิดกลาง ${pct((0.75 + lv * 0.08) * 1.8)}% รัศมี 3 ช่อง`,
+  gravity_well: {
+    job: 'wizard', name: 'หลุมแรงโน้มถ่วง', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['comet', '#8050e0'], req: { arcane_blades: 3 },
+    sp: (lv) => 34 + lv * 3, cast: 0.8, cd: 4, range: 9, color: '#a070ff', vfx: 'gravity_well', ref: 1, lock: 0.8, delay: 0.7,
+    mult: (lv) => 0.5 + lv * 0.044,
+    desc: 'ทรงกลมมืดขอบแสงเปิดเหนือเป้า ดูดศัตรูรอบ ๆ เข้าหาจุดกลางพร้อมบดขยี้ 4 ระลอก แล้วยุบตัวแผ่คลื่นกระแทก',
+    effect: (lv) => `ดูด 4 ระลอก × ${pct(0.5 + lv * 0.044)}% + ยุบตัว ${pct((0.5 + lv * 0.044) * 3.3)}% MATK รัศมี 3 ช่อง · ช้า -40% 3 วิ`,
   },
-  glacial_prison: {
-    job: 'wizard', name: 'คุกธารน้ำแข็ง', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['crystal', '#7fd8ff'], req: { chain_lightning: 3 },
-    sp: (lv) => 36 + lv * 3, cast: 1.0, cd: 4, range: 9, color: '#9ae8ff', vfx: 'glacial_prison', ref: 1.8, lock: 0.8, delay: 0.8,
-    mult: (lv) => 1.6 + lv * 0.14, freeze: (lv) => 0.5 + lv * 0.05, freezeSecs: (lv) => 2.5 + lv * 0.2,
-    desc: 'ผลึกน้ำแข็งงอกขังศัตรูทุกตัวในวง แช่แข็งแล้วระเบิดเป็นเศษน้ำแข็ง',
-    effect: (lv) => `${pct(1.6 + lv * 0.14)}% MATK รัศมี 2.8 ช่อง · แช่แข็ง ${50 + lv * 5}% นาน ${(2.5 + lv * 0.2).toFixed(1)} วิ`,
+  chrono_rift: {
+    job: 'wizard', name: 'รอยแยกกาลเวลา', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['crystal', '#7fd8ff'], req: { arcane_blades: 3 },
+    sp: (lv) => 36 + lv * 3, cast: 1.0, cd: 5, range: 9, color: '#9ae8ff', vfx: 'chrono_rift', ref: 2.2, lock: 0.9, delay: 0.7,
+    mult: (lv) => 2.2 + lv * 0.2, freeze: (lv) => 0.6 + lv * 0.04, freezeSecs: (lv) => 2 + lv * 0.2,
+    desc: 'ดีดนิ้ว นาฬิกาแสงปรากฏใต้ศัตรู เวลาในวงหยุดนิ่ง แล้วดีดนิ้วอีกครั้ง รอยร้าวแตกทั่ววงพร้อมดาเมจ',
+    effect: (lv) => `แตกสลาย ${pct(2.2 + lv * 0.2)}% MATK รัศมี 2.8 ช่อง · หยุดเวลา ${60 + lv * 4}% นาน ${(2 + lv * 0.2).toFixed(1)} วิ`,
   },
-  arcane_haste: {
-    job: 'wizard', name: 'ร่ายเวทพริบตา', maxLv: 10, kind: 'active', target: 'self', icon: ['hexshield', '#c89aff'], req: { mana_tide: 3 },
-    sp: 45, cast: 0, cd: 1, vfx: 'arcane_haste', lock: 0.6, delay: 0.4,
-    duration: (lv) => 60 + lv * 12, bonus: (lv) => ({ castPct: 10 + lv * 3, delayPct: 5 + lv * 2, matkPct: lv }),
-    desc: 'วงเวทนาฬิกาหมุนรอบตัว เร่งจังหวะการร่ายเวท',
-    effect: (lv) => `ร่าย -${10 + lv * 3}% · ดีเลย์ -${5 + lv * 2}% · MATK +${lv}% นาน ${60 + lv * 12} วิ`,
+  astral_form: {
+    job: 'wizard', name: 'ร่างดารา', maxLv: 10, kind: 'active', target: 'self', icon: ['hexshield', '#c89aff'], req: { mana_wellspring: 3 },
+    sp: 45, cast: 0, cd: 1, vfx: 'astral_form', lock: 0.7, delay: 0.4,
+    duration: (lv) => 60 + lv * 12, bonus: (lv) => ({ castPct: 10 + lv * 3, matkPct: 2 + lv, dmgReduce: 3 + lv, hover: 1 }),
+    desc: 'วงเวทซ้อน 3 ชั้นลอยผ่านร่าง ตัวลอยเหนือพื้นตลอดบัฟ ดาวระยิบรอบตัว ร่ายเร็วและเวทแรงขึ้น',
+    effect: (lv) => `ร่าย -${10 + lv * 3}% · MATK +${2 + lv}% · ดาเมจที่ได้รับ -${3 + lv}% · ลอยตัว นาน ${60 + lv * 12} วิ`,
   },
-  starfall_cataclysm: {
-    job: 'wizard', name: 'ดาวตกวันสิ้นโลก', maxLv: 5, kind: 'active', target: 'enemy', magic: true, icon: ['comet', '#b07aff'], req: { inferno_pillars: 5, glacial_prison: 5 },
-    sp: (lv) => 90 + lv * 6, cast: (lv) => 2.6 - lv * 0.2, cd: 12, range: 9, color: '#c89aff', vfx: 'starfall_cataclysm', ref: 1, lock: 1.2, delay: 1.5,
-    mult: (lv) => 0.9 + lv * 0.12,
-    desc: 'ฟ้าเปิดเป็นห้วงดารา ดาวตก 16 ดวงถล่มรอบเป้า แล้วดาวหางยักษ์ปิดฉาก (ไม้ตาย)',
-    effect: (lv) => `16 ลูก × ${pct(0.9 + lv * 0.12)}% + ดาวหาง ${pct((0.9 + lv * 0.12) * 4)}% รัศมี 3.5 ช่อง · คูลดาวน์ 12 วิ`,
+  supernova: {
+    job: 'wizard', name: 'มหานวดารา', maxLv: 5, kind: 'active', target: 'enemy', magic: true, icon: ['meteor', '#b07aff'], req: { gravity_well: 5, chrono_rift: 5 },
+    sp: (lv) => 95 + lv * 6, cast: (lv) => 2.2 - lv * 0.2, cd: 12, range: 9, color: '#d0b0ff', vfx: 'supernova', ref: 5, lock: 1.8, delay: 1.5, knock: 2,
+    mult: (lv) => 5 + lv * 0.6,
+    desc: 'ฟ้ามืด จอมเวทลอยขึ้น ดาวดวงเล็กก่อตัวเหนือเป้าแล้วโตขึ้น ดูดศัตรูเข้าหา ยุบเป็นจุดดำ แล้วระเบิดเป็นแสงขาว-ม่วงเต็มจอ (ไม้ตาย)',
+    effect: (lv) => `ดูด 6 ระลอก × ${pct((5 + lv * 0.6) * (0.65 / 5))}% + ระเบิด ${pct(5 + lv * 0.6)}% MATK รัศมี 4.5 ช่อง · คูลดาวน์ 12 วิ`,
   },
 
   /* ================= Hunter · นักล่า ================= */
@@ -206,3 +206,6 @@ export const JOB2_SKILLS = {
     effect: (lv, pl) => `5 ครั้ง × ${pct(1.2 + lv * 0.2)}% + ปิดท้าย ${pct((1.2 + lv * 0.2) * 3.5)}% รัศมี 4 ช่อง · ฟื้น HP ${Math.round(healBase(10, pl) * (1.5 + lv * 0.3))} · STR/INT/DEX +${4 + lv} 60 วิ`,
   },
 };
+
+// สกิล Wizard ชุด v0.31 ที่ถูกแทนที่ — ตอนโหลดเซฟจะคืนแต้มสกิลให้
+export const LEGACY_JOB2 = ['elemental_mastery', 'mana_tide', 'chain_lightning', 'inferno_pillars', 'glacial_prison', 'arcane_haste', 'starfall_cataclysm'];

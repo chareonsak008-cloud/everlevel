@@ -7,7 +7,8 @@
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
 import { JOBS } from './progression.js';
-import { JOB2_SKILLS } from './job2Skills.js';   // v0.31: อาชีพขั้นที่ 2
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
   const int = pl && pl.derived ? pl.derived.total.int : 1;

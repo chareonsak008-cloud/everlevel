@@ -26,7 +26,7 @@ function init(g) {
 @media(max-width:700px){#jobTrial{top:auto;bottom:calc(96px + env(safe-area-inset-bottom));left:10px;transform:none;width:min(300px,calc(100vw - 20px));font-size:12px}#jobTrial details{max-height:42vh}}`;
   document.head.append(css);
   const panel = document.createElement('section'); panel.id = 'jobTrial';
-  panel.innerHTML = `<details open><summary>⚔ ทดลองอาชีพขั้นที่ 2 · v0.31 ▾</summary>
+  panel.innerHTML = `<details open><summary>⚔ ทดลองอาชีพขั้นที่ 2 · v0.35 (Wizard ชุดใหม่) ▾</summary>
     <h4>1 · เลือกสายอาชีพ (Base Lv.60 · Job Lv.40)</h4><div class="row" data-g="jobs"></div>
     <h4>2 · บททดสอบเลื่อนขั้น (คุยกับออเรล ประมุขสมาคม)</h4><div class="row" data-g="quest"></div>
     <h4>3 · หลังเลื่อนขั้น</h4><div class="row" data-g="after"></div>

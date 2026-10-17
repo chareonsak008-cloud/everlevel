@@ -1,4 +1,4 @@
-// v0.31.1 เอฟเฟกต์สกิลอาชีพขั้นที่ 2 (ชุดใหม่ทั้งหมด) — ติดตั้งเป็นเมธอดของ SkillFX
+// v0.35 เอฟเฟกต์สกิลอาชีพขั้นที่ 2 — Wizard ชุดใหม่ (สไตล์อนิเมะ) · อาชีพอื่นชุด v0.31.1 — ติดตั้งเป็นเมธอดของ SkillFX
 // ภาษาภาพใหม่ต่างจากขั้น 1: วาดบนเลเยอร์ HD ความละเอียดเต็มจอ · ริบบิ้นแสงนุ่ม · วงเวทเฉพาะอาชีพที่วาดตัวเอง
 // · เปลวไฟ/โล่/ลำแสงแบบเชดเดอร์ · อนุภาคขอบนุ่ม — ดาเมจยังเข้าตามจังหวะเดิมผ่าน c.hit()
 import { THREE } from './three.js';
@@ -294,130 +294,187 @@ const FX = {
     return 2.3;
   },
 
-  /* ================= Wizard · ม่วงอาร์เคน + ธาตุ ================= */
-  fx_chain_lightning(c) {
+
+  /* ================= ชิ้นส่วนใหม่ v0.35 (ใช้โดย Wizard) ================= */
+  // หอก/ดาบแสง: แกนลำแสง + ปลายเพชร + ออร่า — คืน group (แกน +Y ชี้ปลาย)
+  lance2(color, core = '#ffffff', len = 2.2, r = 0.1) {
+    if (!this.geo.beamCyl) this.geo.beamCyl = new THREE.CylinderGeometry(1, 1, 1, 28, 6, true).translate(0, 0.5, 0);
+    const g = new THREE.Group();
+    const shaft = new THREE.Mesh(this.geo.beamCyl, beamMat(core, this.gain)); shaft.scale.set(r, len, r); shaft.material.uniforms.speed.value = -3;
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(r * 2.2, len * 0.3, 4), this.hdMat('#ffffff', { map: null })); tip.position.y = len + len * 0.12; tip.userData.own = true;
+    const glow = new THREE.Sprite(this.hdSpriteMat(T.dot(), color, 0.8)); glow.scale.set(r * 9, len * 1.3, 1); glow.position.y = len * 0.55;
+    g.add(shaft, tip, glow); this.hdAdd(g);
+    g.userData.tick = (t) => { shaft.material.uniforms.time.value = t; };
+    g.userData.fade = (k) => { shaft.material.uniforms.opacity.value = 1 - k; tip.material.opacity = 1 - k; glow.material.opacity = 0.8 * (1 - k); };
+    return g;
+  },
+  // หันแกน +Y ของ group ไปตามทิศ dir
+  aim(g, dir) { g.quaternion.setFromUnitVectors(V(0, 1, 0), dir.clone().normalize()); },
+  /* ================= Wizard · จอมเวทดารา ================= */
+  // ดาบเวทโคจร: วงเวท 6 วงเปิดด้านหลัง ดาบแสงโผล่โคจร → ชี้ไม้เท้า ดาบพุ่งทีละเล่ม
+  fx_arcane_blades(c) {
     const t = c.targets[c.main]; if (!t) return 0.5;
+    const W = PAL.wizard, p = c.caster.pos.clone(), f = c.caster.facing.clone(), side = V(f.z, 0, -f.x), ch = V(p.x, 1.2 * this.vs, p.z);
+    c.anim('castHold');
+    const blades = [];
+    for (let n = 0; n < 6; n++) {
+      const sp = ch.clone().addScaledVector(f, -1.3).addScaledVector(side, (n - 2.5) * 0.7).add(V(0, (n % 2) * 0.6 - 0.2, 0));
+      this.sigil2(sp, 'wizard', W.a, W.b, 1.1, 0.9, { draw: 0.15, spin: 3, face: f, y: sp.y, opacity: 0.9 });
+      const B = this.lance2(W.a, W.c, 1.4, 0.07); B.position.copy(sp); this.aim(B, f); B.visible = false; blades.push({ B, sp, hit: false });
+      this.after(0.1 + n * 0.05, () => { B.visible = true; this.hdFlash(sp, W.c, 1, 0.25, T.star()); });
+    }
+    this.anim(1.2, (k, dt, tt) => { blades.forEach((b, n) => { if (b.hit) return; b.B.position.copy(b.sp).add(V(0, Math.sin(tt * 4 + n) * 0.08, 0)).addScaledVector(f, Math.min(0.5, tt)); b.B.userData.tick(tt); }); });
+    for (let n = 0; n < 6; n++) this.after(0.4 + n * 0.11, () => {
+      const b = blades[n]; b.hit = true; c.anim('cast');
+      const tp = this.hitPos(t), a = b.B.position.clone(), d = tp.clone().sub(a), dir = d.clone().setY(0).normalize(), len = d.length();
+      this.aim(b.B, d); const cur = a.clone();
+      this.trail(() => cur, { color: W.a, width: 0.35, dur: 0.35, n: 16 });
+      this.anim(0.12, (k, dt, tt) => { cur.copy(a).lerp(tp, easeIn(k)); b.B.position.copy(cur); b.B.userData.tick(tt); });
+      this.after(0.12, () => {
+        this.hdFlash(tp, n === 5 ? '#ffffff' : W.c, n === 5 ? 3 : 1.6, 0.3, T.star()); this.hdFlash(tp, W.a, 2.2, 0.35);
+        this.hdBurst(tp, ['#ffffff', W.c, W.a], 16 + n * 3, [2, 6], { gravity: -4, life: [0.2, 0.45] });
+        for (const [tt, i] of this.lineTargets(c, a, dir, len + 0.6, 0.8)) c.hit(i, { mult: 1, hitIndex: n, total: 6 });
+        if (n === 5) { this.sigil2(t.pos, 'wizard', W.b, W.a, 3, 0.6, { draw: 0.1, spin: 4 }); this.hdRing(t.pos, W.a, 0.3, 2.6, 0.45); if (c.flash) c.flash('#e8d8ff', 0.08); }
+        this.impact(c, tp, n === 5 ? 2 : 1, W.c);
+        this.anim(0.2, (k) => b.B.userData.fade(k), () => this.hdRemove(b.B));
+      });
+    });
+    this.light(ch, W.a, 5, 1.0, 7);
+    return 1.4;
+  },
+
+  // หลุมแรงโน้มถ่วง: ทรงกลมมืดขอบแสง ดูดศัตรูเข้าหาจุดกลาง 4 ระลอก → ยุบตัวแผ่คลื่น
+  fx_gravity_well(c) {
+    const t = c.targets[c.main]; if (!t) return 0.5;
+    const W = PAL.wizard, gp = V(t.pos.x, 0, t.pos.z), ip = V(gp.x, 1.3, gp.z);
     c.anim('cast');
-    let from = this.hand(c);
-    this.sigil2(c.caster.pos, 'wizard', '#ffe680', PAL.wizard.a, 2.8, 0.9, { draw: 0.2, spin: 2 });
-    this.hdFlash(from, '#fff6c0', 1.8, 0.3); this.hdBurst(from, ['#ffffff', '#ffe680'], 18, [2, 5], { gravity: 0 });
-    const used = new Set([c.main]), chain = [c.main], n = Math.max(1, c.count || 4);
-    while (chain.length < n) { const last = c.targets[chain[chain.length - 1]]; let best = -1, bd = 5.2; c.targets.forEach((tt, i) => { if (used.has(i)) return; const d = Math.hypot(tt.pos.x - last.pos.x, tt.pos.z - last.pos.z); if (d < bd) { bd = d; best = i; } }); if (best < 0) break; used.add(best); chain.push(best); }
-    chain.forEach((idx, k) => this.after(0.05 + k * 0.1, () => {
-      const tp = this.hitPos(c.targets[idx]);
-      this.bolt(from, tp, { color: '#ffe680', width: 0.28, dur: 0.32, jag: 0.55 });
-      this.bolt(from, tp, { color: '#9ad8ff', core: '#ffffff', width: 0.1, dur: 0.24, jag: 0.35 });
-      this.dome(tp, '#ffe680', 0.55, 0.45, { half: false, y: tp.y, grow: 0.08, rep: [4, 2] });   // ลูกบอลไฟฟ้าที่จุดโดน
-      this.hdFlash(tp, '#fff6c0', 2.4, 0.3); this.hdFlash(tp, '#ffffff', 1.4, 0.2, T.star());
-      this.hdBurst(tp, ['#ffffff', '#ffe680', '#9ad8ff'], 22, [3, 7], { gravity: -5, life: [0.2, 0.45] });
-      this.light(tp, '#ffe680', 5, 0.25, 6); this.impact(c, tp, 1, '#ffe680');
-      c.hit(idx, { mult: Math.pow(0.9, k) });
-      from = tp;
-    }));
-    return 1.0;
+    this.sigil2(gp, 'wizard', W.a, '#4a2a8a', 6.5, 2.0, { draw: 0.3, spin: -1.2 });
+    const core = this.hdAdd(new THREE.Mesh(this.geo.sphere, new THREE.MeshBasicMaterial({ color: '#06030f', transparent: true, opacity: 0, depthTest: false, depthWrite: false }))); core.position.copy(ip); core.renderOrder = 25;
+    const rim = this.hdAdd(new THREE.Sprite(this.hdSpriteMat(T.ring(), W.b, 1))); rim.position.copy(ip); rim.renderOrder = 26;
+    const glow = this.hdAdd(new THREE.Sprite(this.hdSpriteMat(T.dot(), W.a, 0.6))); glow.position.copy(ip); glow.renderOrder = 24;
+    this.anim(1.55, (k, dt, tt) => {
+      const g = easeOut(Math.min(1, tt / 0.3)), r = 0.9 * g * (1 + 0.06 * Math.sin(tt * 18));
+      core.scale.setScalar(r); core.material.opacity = 0.95 * g; rim.scale.setScalar(r * 2.6); rim.material.rotation += dt * 2; glow.scale.setScalar(r * 4.5);
+      if (tt > 0.3) { c.pull && c.pull(gp, 3, 5 * dt); if (c.aberrate && Math.random() < 0.3) c.aberrate(0.25); }
+      if (Math.random() < 0.8) { const a = rand(0, TAU), rr = rand(2.5, 3.5); this.streak((u) => V(gp.x + Math.cos(a) * rr * (1 - u), 0.2 + u * 1.1, gp.z + Math.sin(a) * rr * (1 - u)), { color: Math.random() < 0.5 ? W.a : W.b, width: 0.12, sweep: 0.25, len: 0.5, n: 10, opacity: 0.8 }); }
+    });
+    for (let n = 0; n < 4; n++) this.after(0.5 + n * 0.3, () => {
+      this.hdRing(gp, W.a, 3.2, 0.4, 0.3, { opacity: 0.7 });
+      for (const [tt, i] of this.inRadius(c, gp, 3)) { this.hdFlash(this.hitPos(tt), W.c, 0.9, 0.2); c.hit(i, { mult: 1, hitIndex: n, total: 5 }); }
+      this.impact(c, ip, 1, W.c);
+    });
+    // ยุบตัว → ระเบิดคลื่น
+    this.after(1.55, () => {
+      this.anim(0.12, (k) => { const r = 0.9 * (1 - easeIn(k)); core.scale.setScalar(Math.max(0.01, r)); rim.scale.setScalar(r * 2.6 + 0.1); glow.scale.setScalar(r * 4.5 + 0.1); }, () => { this.hdRemove(core); this.hdRemove(rim); this.hdRemove(glow); });
+      if (c.hitstop) c.hitstop(0.12);
+    });
+    this.after(1.68, () => {
+      this.hdFlash(ip, '#ffffff', 5, 0.3); this.hdFlash(ip, W.a, 9, 0.7, T.dot(), 0.6); this.hdFlash(ip, W.b, 4, 0.4, T.star());
+      for (let i = 0; i < 3; i++) this.hdRing(gp, i % 2 ? W.b : W.c, 0.3, 3.4 + i, 0.45 + i * 0.1, { opacity: 0.9 - i * 0.2 });
+      this.hdRing(gp, W.a, 0.3, 3, 0.5, { y: 1.3, face: V(0, 1, 0) });
+      this.hdBurst(ip, ['#ffffff', W.c, W.a, W.b], 90, [4, 10], { gravity: -5 });
+      this.cracks(gp, W.a, 5, 2.4); if (c.flash) c.flash('#e0d0ff', 0.14);
+      this.light(ip, W.a, 8, 0.5, 9); this.impact(c, ip, 3, W.c);
+      for (const [tt, i] of this.inRadius(c, gp, 3)) c.hit(i, { mult: 3.3, slow: { pct: 0.4, secs: 3 }, hitIndex: 4, total: 5 });
+    });
+    return 2.0;
   },
 
-  fx_inferno_pillars(c) {
+  // รอยแยกกาลเวลา: ดีดนิ้ว นาฬิกาแสงใต้ศัตรู เวลาหยุด → ดีดอีกครั้ง รอยร้าวแตกทั่ววง
+  fx_chrono_rift(c) {
     const t = c.targets[c.main]; if (!t) return 0.5;
-    const gp = V(t.pos.x, 0, t.pos.z); c.anim('cast');
-    this.sigil2(gp, 'wizard', '#ffb347', '#ff3a1a', 6.8, 2.1, { draw: 0.35, spin: 0.9 });
-    for (let w = 0; w < 3; w++) this.after(0.1 + w * 0.32, () => {
-      for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * TAU + w * 0.4, r = 2.4 - w * 0.55, fp = V(gp.x + Math.cos(a) * r, 0, gp.z + Math.sin(a) * r);
-        this.flameCol(fp, { r: 0.42, h: 3.2 - w * 0.3, dur: 0.75, grow: 0.12, twist: 4 });
-        this.hdBurst(V(fp.x, 0.4, fp.z), ['#fff1b0', '#ffb347', '#ff6a2a'], 6, [1, 3], { gravity: 3, life: [0.4, 0.8], size: [0.12, 0.24] });
-      }
-      this.hdRing(gp, '#ffb347', 0.4, 3.4, 0.45); this.light(V(gp.x, 1, gp.z), '#ff6a2a', 6, 0.35, 8);
-      for (const [tt, i] of this.inRadius(c, gp, 3)) c.hit(i, { mult: 1, hitIndex: w, total: 3 });
-      this.impact(c, V(gp.x, 1, gp.z), 1, '#ff8a2a');
+    const W = PAL.wizard, gp = V(t.pos.x, 0, t.pos.z), ip = V(gp.x, 1.0, gp.z), B = '#9ae8ff';
+    // 1 ดีดนิ้ว
+    c.anim('cast'); this.hdFlash(this.hand(c), '#ffffff', 1.2, 0.2, T.star());
+    this.sigil2(gp, 'wizard', B, W.a, 6.2, 1.3, { draw: 0.3, spin: 0 });
+    // เข็มนาฬิกา 2 เข็มหมุนย้อน
+    const hands = [[2.4, 0.18, 1.5], [1.7, 0.26, 12]].map(([len, w, sp]) => { const m = this.hdAdd(new THREE.Mesh(this.geo.plane, this.hdMat(B, { map: T.dot() }))); m.rotation.x = -Math.PI / 2; m.position.set(gp.x, 0.1, gp.z); m.renderOrder = 25; m.userData = { len, w, sp }; return m; });
+    this.anim(1.1, (k, dt, tt) => { for (const m of hands) { const a = -tt * m.userData.sp; m.rotation.z = a; m.position.set(gp.x + Math.cos(a) * m.userData.len / 2, 0.1, gp.z + Math.sin(a) * m.userData.len / 2); m.scale.set(m.userData.len, m.userData.w, 1); m.material.opacity = k > 0.9 ? (1 - k) / 0.1 : 1; } }, () => hands.forEach((m) => this.hdRemove(m)));
+    // 2 เวลาหยุด: โดมแสงฟ้าใส ศัตรูในวงแช่แข็ง
+    this.after(0.3, () => {
+      this.dome(gp, B, 2.9, 0.85, { grow: 0.2, map: T.hex(), rep: [8, 4] });
+      this.hdRing(gp, '#ffffff', 0.3, 3, 0.4); this.hdFlash(ip, B, 4, 0.4, T.dot(), 0.5);
+      if (c.aberrate) c.aberrate(0.4); if (c.hitstop) c.hitstop(0.06);
+      for (const [tt, i] of this.inRadius(c, gp, 2.8)) { this.hdFlash(this.hitPos(tt), '#ffffff', 1.2, 0.3, T.star()); c.freeze && c.freeze(i); }
+      this.hdBurst(ip, ['#ffffff', B], 24, [0.5, 1.5], { sys: 'hdStars', gravity: 0, life: [0.5, 0.9], size: [0.12, 0.25] });
     });
-    this.after(1.1, () => {
-      this.flameCol(gp, { r: 2.4, h: 6.5, dur: 1.0, grow: 0.14, cone: true, twist: 6, speed: 3 });
-      this.flameCol(gp, { r: 1.2, h: 8, dur: 0.8, grow: 0.1, core: '#ffffff', edge: '#ffb347', twist: -8 });
-      this.hdFlash(V(gp.x, 1, gp.z), '#fff1b0', 6, 0.45); this.hdFlash(V(gp.x, 1, gp.z), '#ff5a1a', 9, 0.8, T.dot(), 0.6);
-      this.hdRing(gp, '#ffd27a', 0.5, 4.2, 0.6);
-      this.hdBurst(V(gp.x, 0.8, gp.z), ['#fff1b0', '#ffb347', '#ff6a2a'], 120, [4, 11], { gravity: -5, colorEnd: '#a8201a' });
-      this.decal(gp, TX.scorch(), 6, 3); this.impact(c, V(gp.x, 1, gp.z), 3, '#ffb347');
-      for (const [tt, i] of this.inRadius(c, gp, 3)) c.hit(i, { mult: 1.8, knock: 1 });
+    // 3 ดีดนิ้วครั้งที่สอง: รอยร้าวแสง → แตก
+    this.after(1.0, () => {
+      c.anim('cast'); this.hdFlash(this.hand(c), '#ffffff', 1.2, 0.2, T.star());
+      for (let i = 0; i < 10; i++) { const a = (i / 10) * TAU + rand(-0.2, 0.2); this.bolt(ip, V(gp.x + Math.cos(a) * 2.9, rand(0.1, 2.2), gp.z + Math.sin(a) * 2.9), { color: '#ffffff', core: B, width: 0.14, dur: 0.3, jag: 0.25, n: 10 }); }
     });
-    return 2.2;
-  },
-
-  fx_glacial_prison(c) {
-    const t = c.targets[c.main]; if (!t) return 0.5;
-    const gp = V(t.pos.x, 0, t.pos.z); c.anim('cast');
-    this.sigil2(gp, 'wizard', '#bff3ff', '#3a8aff', 6.2, 2.2, { draw: 0.4, spin: -0.8 });
-    // ลมหนาวหมุนเกลียวเข้าใจกลาง
-    for (let s = 0; s < 4; s++) this.streak((u) => { const a = u * 3.5 * Math.PI + (s / 4) * TAU, r = 3.4 * (1 - u * 0.9); return V(gp.x + Math.cos(a) * r, (0.3 + u * 1.4) * this.vs, gp.z + Math.sin(a) * r); }, { color: s % 2 ? '#9ae8ff' : '#ffffff', width: 0.32, sweep: 0.45, len: 0.5, n: 40 });
-    this.after(0.4, () => {
-      this.spikes(gp, { count: 22, r0: 0.6, r1: 2.8, h: [0.8, 1.7], width: 0.24, dur: 1.9, mat: new THREE.MeshStandardMaterial({ color: '#e0f8ff', emissive: '#3a9ae0', emissiveIntensity: 0.6, roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.82, flatShading: true }) });
-      this.dome(gp, '#9ae8ff', 2.9, 1.5, { grow: 0.18, rep: [8, 4] });
-      this.hdFlash(V(gp.x, 1, gp.z), '#e8fbff', 6, 0.5); this.hdRing(gp, '#ffffff', 0.3, 3.6, 0.5);
-      this.light(V(gp.x, 1, gp.z), '#7fd8ff', 6, 0.6, 8); if (c.flash) c.flash('#bfeeff', 0.08);
-      for (const [tt, i] of this.inRadius(c, gp, 2.8)) this.hitStun(c, tt, i, { mult: 1.8, freeze: 3 });
-      this.impact(c, V(gp.x, 1, gp.z), 2, '#bfeeff');
+    this.after(1.2, () => {
+      if (c.hitstop) c.hitstop(0.12); if (c.flash) c.flash('#dff6ff', 0.3); if (c.aberrate) c.aberrate(0.8);
+      this.hdFlash(ip, '#ffffff', 6, 0.35); this.hdFlash(ip, B, 10, 0.7, T.dot(), 0.6);
+      for (let i = 0; i < 3; i++) this.hdRing(gp, i % 2 ? W.a : B, 0.3, 3.2 + i * 0.8, 0.45 + i * 0.1);
+      this.hdBurst(ip, ['#ffffff', B, W.c], 80, [3, 9], { sys: 'hdStars', gravity: -6, size: [0.15, 0.35], life: [0.4, 0.9] });
+      this.hdBurst(ip, ['#ffffff', B], 50, [4, 10], { gravity: -8 });
+      this.cracks(gp, B, 5.5, 2.4); this.light(ip, B, 8, 0.5, 9); this.impact(c, ip, 3, '#ffffff');
+      for (const [tt, i] of this.inRadius(c, gp, 2.8)) { this.hdFlash(this.hitPos(tt), B, 1.8, 0.3, T.star()); c.hit(i, { mult: 2.2 }); }
     });
-    this.after(1.75, () => {
-      this.hdBurst(V(gp.x, 1, gp.z), ['#ffffff', '#bff3ff', '#7fd8ff'], 90, [3, 9], { sys: 'hdStars', gravity: -7, size: [0.16, 0.32] });
-      this.snow.emit({ pos: V(gp.x, 1, gp.z), count: 50, speed: [3, 7], gravity: -8, drag: 1, life: [0.5, 1], size: [0.18, 0.34], color: ['#ffffff', '#9ae8ff'] });
-      this.hdRing(gp, '#bfeeff', 0.5, 4, 0.5);
-    });
-    return 2.2;
-  },
-
-  fx_arcane_haste(c) {
-    const W = PAL.wizard, p = c.caster.pos.clone(), ch = V(p.x, 1 * this.vs, p.z);
-    c.anim('cast');
-    this.sigil2(p, 'clock', W.b, W.a, 3.8, 1.6, { draw: 0.35, spin: 6 });
-    for (let i = 0; i < 3; i++) { const tilt = i * 1.05; this.streak((u) => { const a = u * TAU * 2 + i; return V(p.x + Math.cos(a) * 1.25, ch.y + Math.sin(a) * Math.sin(tilt) * 0.9, p.z + Math.sin(a) * Math.cos(tilt) * 1.25); }, { color: [W.a, W.b, '#ffffff'][i], width: 0.18, sweep: 0.9, len: 0.35, n: 50 }); }
-    this.after(0.45, () => {
-      this.sigil2(p, 'clock', '#ffffff', W.a, 1.8, 0.9, { draw: 0.2, spin: -9, y: 2.6 * this.vs });
-      this.hdFlash(ch, W.a, 3.4, 0.45); this.hdRing(p, W.b, 0.3, 2.8, 0.5);
-      this.hdBurst(ch, ['#ffffff', W.b, W.a], 30, [1, 3], { sys: 'hdStars', gravity: 1, life: [0.6, 1.1], size: [0.16, 0.3] });
-      c.buff('ร่ายเร็ว ▲');
-    });
-    this.light(ch, W.a, 5, 1.4, 6);
     return 1.6;
   },
 
-  fx_starfall_cataclysm(c) {
+  // ร่างดารา: วงเวทซ้อน 3 ชั้นลอยผ่านร่าง ดาวระยิบ ลอยตัว
+  fx_astral_form(c) {
+    const W = PAL.wizard, p = c.caster.pos.clone(), ch = V(p.x, 1.0 * this.vs, p.z);
+    c.anim('castHold');
+    for (let i = 0; i < 3; i++) this.after(i * 0.22, () => this.sigil2(p, 'wizard', i % 2 ? W.b : W.a, W.c, 3.2 - i * 0.5, 0.9, { draw: 0.15, spin: 2 + i, y: 0.05, opacity: 0.9 }));
+    for (let i = 0; i < 3; i++) this.after(i * 0.22, () => { const s = this.sigil2(p, 'wizard', W.a, W.b, 2.6 - i * 0.4, 0.9, { draw: 0.1, spin: -3, y: 0.05 }); this.anim(0.9, (k) => { s.position.y = 0.05 + easeOut(k) * 2.6 * this.vs; }); });
+    for (let s = 0; s < 3; s++) this.streak((u) => { const a = u * TAU * 2 + s * 2.1, r = 1.2; return V(p.x + Math.cos(a) * r, (0.1 + u * 2.2) * this.vs, p.z + Math.sin(a) * r); }, { color: s === 1 ? W.b : W.a, width: 0.22, sweep: 0.9, len: 0.4, n: 44 });
+    this.after(0.85, () => {
+      this.hdFlash(ch, '#ffffff', 3.5, 0.4); this.hdFlash(ch, W.a, 5, 0.6, T.dot(), 0.6); this.hdRing(p, W.c, 0.3, 3, 0.5);
+      this.hdBurst(ch, ['#ffffff', W.c, W.b], 40, [1, 3], { sys: 'hdStars', gravity: 0.3, life: [0.7, 1.3], size: [0.18, 0.34] });
+      c.buff('ร่างดารา ▲');
+    });
+    this.light(ch, W.a, 5, 1.4, 6);
+    return 1.3;
+  },
+
+  // มหานวดารา (ไม้ตาย): ดาวก่อตัวเหนือเป้า ดูดศัตรู → ยุบเป็นจุดดำ → ระเบิดเต็มจอ
+  fx_supernova(c) {
     const t = c.targets[c.main]; if (!t) return 0.5;
-    const W = PAL.wizard, gp = V(t.pos.x, 0, t.pos.z);
-    c.anim('castHold'); if (c.sky) c.sky(0.62, 4.2); this.lines(c, 0.6, 2.4);
-    this.sigil2(gp, 'wizard', W.a, W.b, 8.5, 3.2, { draw: 0.6, spin: 0.5 });
-    this.sigil2(gp, 'galaxy', '#ffffff', W.a, 12, 3, { draw: 0.4, spin: 0.9, y: 9, face: V(0, -1, 0), opacity: 0.85 });
-    const starObj = (col, s) => { const g = new THREE.Group(); const a = new THREE.Sprite(this.hdSpriteMat(T.star(), '#ffffff')); a.scale.setScalar(s); const b = new THREE.Sprite(this.hdSpriteMat(T.dot(), col, 0.9)); b.scale.setScalar(s * 2.2); g.add(a, b); this.hdAdd(g); return g; };
-    for (let i = 0; i < 16; i++) this.after(0.25 + i * 0.09, () => {
-      const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * 3.3, to = V(gp.x + Math.cos(a) * r, 0.2, gp.z + Math.sin(a) * r);
-      const fromP = to.clone().add(V(rand(-4, -2.5), 10, rand(-2, 2))), col = [W.a, W.b, '#ff9ae6'][i % 3];
-      const S = starObj(col, 0.9), cur = fromP.clone();
-      this.trail(() => cur, { color: col, width: 0.4, dur: 0.6, n: 16 });
-      this.anim(0.32, (k) => { cur.lerpVectors(fromP, to, easeIn(k)); S.position.copy(cur); }, () => {
-        this.hdRemove(S);
-        this.hdFlash(V(to.x, 0.5, to.z), col, 3, 0.35); this.hdFlash(V(to.x, 0.6, to.z), '#ffffff', 1.5, 0.25, T.star());
-        this.hdRing(to, col, 0.2, 1.8, 0.45);
-        this.hdBurst(V(to.x, 0.4, to.z), ['#ffffff', col], 18, [2, 6], { gravity: -6 });
-        for (const [tt, j] of this.inRadius(c, to, 1.5)) c.hit(j, { mult: 1 });
-        if (i % 4 === 0) this.impact(c, to, 1, col);
-      });
+    const W = PAL.wizard, gp = V(t.pos.x, 0, t.pos.z), sp = V(gp.x, 2.6, gp.z), p = c.caster.pos.clone();
+    c.anim('castHold'); if (c.sky) c.sky(0.6, 3.4); c.lift && c.lift(1.4, 1.0, 1.8); this.lines(c, 0.35, 2.0);
+    this.sigil2(p, 'wizard', W.a, W.b, 4, 2.6, { draw: 0.4, spin: 1 });
+    this.sigil2(gp, 'wizard', W.b, W.a, 9, 2.8, { draw: 0.5, spin: -0.8 });
+    this.sigil2(gp, 'wizard', '#ffffff', W.a, 6, 2.2, { draw: 0.4, spin: 1.2, y: 7, face: V(0, -1, 0), opacity: 0.7 });
+    // ดาว
+    const star = this.hdAdd(new THREE.Sprite(this.hdSpriteMat(T.dot(), '#ffffff', 1))); star.position.copy(sp); star.renderOrder = 27;
+    const halo = this.hdAdd(new THREE.Sprite(this.hdSpriteMat(T.dot(), W.a, 0.7))); halo.position.copy(sp); halo.renderOrder = 26;
+    const rings = [0, 1, 2].map((i) => { const m = this.hdAdd(new THREE.Mesh(this.geo.plane, this.hdMat(i ? W.b : W.c, { map: T.ring(), opacity: 0.9 }))); m.position.copy(sp); m.renderOrder = 26; m.userData.ax = V(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize(); return m; });
+    this.anim(1.75, (k, dt, tt) => {
+      const g = 0.4 + 2.4 * easeIO(Math.min(1, tt / 1.5)) * (1 + 0.05 * Math.sin(tt * 20));
+      star.scale.setScalar(g); halo.scale.setScalar(g * 2.2);
+      rings.forEach((m, i) => { m.scale.setScalar(g * (1.6 + i * 0.5)); m.rotateOnAxis(m.userData.ax, dt * (1.5 + i)); });
+      if (tt > 0.5) { c.pull && c.pull(gp, 4, 4 * dt); if (c.aberrate && Math.random() < 0.3) c.aberrate(0.3); }
+      if (Math.random() < 0.9) { const a = rand(0, TAU), rr = rand(3, 5); this.streak((u) => V(gp.x + Math.cos(a) * rr * (1 - u), 0.2 + u * 2.4, gp.z + Math.sin(a) * rr * (1 - u)), { color: Math.random() < 0.5 ? W.a : W.c, width: 0.14, sweep: 0.3, len: 0.5, n: 10, opacity: 0.8 }); }
     });
-    this.after(1.85, () => {
-      const C = starObj(W.a, 3.4), fromP = gp.clone().add(V(-7, 15, -2)), cur = fromP.clone(), end = V(gp.x, 0.6, gp.z);
-      this.trail(() => cur, { color: W.a, width: 2.2, dur: 0.9, n: 24 });
-      this.trail(() => cur, { color: W.b, width: 1.1, dur: 0.9, n: 24 });
-      this.anim(0.45, (k) => { cur.lerpVectors(fromP, end, easeIn(k)); C.position.copy(cur); }, () => {
-        this.hdRemove(C);
-        this.vortex(gp, W.a, 3.6, 3, 1.1, { spin: 5 });
-        this.beam2(gp, W.a, 2, 14, 0.8, { grow: 0.05 }); this.beam2(gp, '#ffffff', 0.7, 14, 0.6, { grow: 0.05 });
-        this.hdFlash(end, '#ffffff', 9, 0.45); this.hdFlash(end, W.a, 14, 0.9, T.dot(), 0.6);
-        for (let i = 0; i < 3; i++) this.hdRing(gp, [W.b, W.a, '#ffffff'][i], 0.5, 4 + i * 1.5, 0.6 + i * 0.15);
-        this.hdBurst(end, ['#ffffff', W.a, W.b, '#ff9ae6'], 160, [5, 13], { gravity: -6, sys: 'hdStars', size: [0.18, 0.36] });
-        this.cracks(gp, W.a, 8, 3.2); if (c.flash) c.flash('#e8d8ff', 0.18);
-        this.impact(c, end, 3, W.c);
-        for (const [tt, j] of this.inRadius(c, gp, 3.5)) c.hit(j, { mult: 4, knock: 1.4 });
-      });
+    for (let n = 0; n < 6; n++) this.after(0.55 + n * 0.2, () => {
+      this.hdRing(gp, n % 2 ? W.b : W.a, 4.4, 0.4, 0.3, { opacity: 0.7 });
+      for (const [tt, i] of this.inRadius(c, gp, 4)) { this.hdFlash(this.hitPos(tt), W.c, 0.9, 0.2); c.hit(i, { mult: 0.65, hitIndex: n, total: 7 }); }
+      this.impact(c, sp, 1, W.c);
     });
-    return 3.0;
+    // ยุบเป็นจุดดำ
+    this.after(1.75, () => {
+      const dark = this.hdAdd(new THREE.Mesh(this.geo.sphere, new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 1, depthTest: false, depthWrite: false }))); dark.position.copy(sp); dark.renderOrder = 28;
+      this.anim(0.22, (k) => { const r = 2.8 * (1 - easeIn(k)); star.scale.setScalar(Math.max(0.05, r)); halo.scale.setScalar(Math.max(0.1, r * 2.2)); rings.forEach((m) => m.scale.setScalar(Math.max(0.05, r * 1.8))); dark.scale.setScalar(0.1 + k * 0.5); }, () => { [star, halo, dark, ...rings].forEach((m) => this.hdRemove(m)); });
+      if (c.hitstop) c.hitstop(0.22); this.hdRing(gp, '#ffffff', 5, 0.3, 0.25, { y: 2.6, face: V(0, 1, 0) });
+    });
+    // ระเบิด
+    this.after(2.0, () => {
+      if (c.flash) c.flash('#f4ecff', 1.0); if (c.aberrate) c.aberrate(1.2); if (c.hitstop) c.hitstop(0.1);
+      this.hdFlash(sp, '#ffffff', 12, 0.5); this.hdFlash(sp, W.a, 20, 1.0, T.dot(), 0.6); this.hdFlash(sp, W.b, 9, 0.6, T.star());
+      for (let i = 0; i < 4; i++) this.hdRing(gp, i % 2 ? W.b : '#ffffff', 0.5, 4.5 + i * 1.6, 0.55 + i * 0.15, { opacity: 0.9 - i * 0.15 });
+      for (let i = 0; i < 3; i++) this.hdRing(gp, W.c, 0.5, 6 + i, 0.6 + i * 0.1, { y: 2.6, face: V(rand(-1, 1), 1, rand(-1, 1)).normalize(), opacity: 0.6 });
+      this.beam2(gp, W.a, 2.0, 7, 0.9, { grow: 0.05 }); this.beam2(gp, '#ffffff', 0.8, 7, 0.7, { grow: 0.04 });
+      this.hdBurst(sp, ['#ffffff', W.c, W.a, W.b], 180, [5, 14], { gravity: -6 });
+      this.hdBurst(sp, ['#ffffff', W.c], 60, [2, 6], { sys: 'hdStars', gravity: -1, life: [0.8, 1.5], size: [0.2, 0.4] });
+      this.debris(V(gp.x, 0.3, gp.z), { count: 20, speed: [4, 9], color: '#3a2a5a', glow: W.a }); this.cracks(gp, W.a, 9, 3.2);
+      this.light(sp, W.a, 12, 0.7, 14); this.impact(c, sp, 3, '#ffffff');
+      for (const [tt, i] of this.inRadius(c, gp, 4.5)) c.hit(i, { mult: 5, knock: 1.5, hitIndex: 6, total: 7 });
+    });
+    return 2.9;
   },
 
   /* ================= Hunter · มรกตแห่งลม + ทอง ================= */

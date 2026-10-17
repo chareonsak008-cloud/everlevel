@@ -44,7 +44,7 @@ export class MonsterManager {
 
   kill(m, time) {
     m.dead = true; m.moving = false; m.target = null; m.path = [];
-    m.frozen = m.stunned = false; m.frozenUntil = m.stunUntil = 0;
+    m.frozen = m.stunned = false; m.frozenUntil = m.stunUntil = 0; m.slowUntil = 0; m.pulledUntil = 0;
     const [a, b] = m.data.respawn;
     m.respawnAt = time + a + Math.random() * (b - a);
   }
@@ -85,6 +85,8 @@ export class MonsterManager {
       // สถานะผิดปกติจากสกิล: แช่แข็ง / มึน → ขยับไม่ได้
       m.frozen = m.frozenUntil > time; m.stunned = m.stunUntil > time;
       if (m.frozen || m.stunned) { m.moving = false; m.path = []; continue; }
+      if (m.pulledUntil > time) { m.moving = false; continue; }   // v0.35: กำลังถูกดูด
+      m.slowK = m.slowUntil > time ? (m.slowMul || 0.6) : 1;     // v0.35: สถานะช้า
       if (m.busyUntil > time) { m.moving = false; continue; }   // บอสกำลังง้างท่าพิเศษ
       m.attackCd -= dt;
       const playerOk = player && !player.dead;
@@ -180,7 +182,7 @@ export class MonsterManager {
       if (m.path.length) m.path.shift();
       return Math.hypot(tx - m.x, ty - m.y);
     }
-    const step = Math.min(d, m.speed * speedMul * dt);
+    const step = Math.min(d, m.speed * speedMul * (m.slowK || 1) * dt);
     const moved = m.moveBy((dx / d) * step, (dy / d) * step, this.map);
     m.face(dx, dy);
     m.moving = moved;

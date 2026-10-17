@@ -37,7 +37,10 @@ import { SkillWindow } from '../ui/SkillWindow.js';
 import { isSkillKey } from '../entities/Player.js';
 import { clamp } from './util.js';
 import { Social } from '../systems/Social.js';
+const DROP_GATE = 0.4;   // v0.38: โอกาสที่มอนธรรมดาจะดรอปของ (ก่อนลุ้นทีละชิ้น)
 import { PartyFrame } from '../ui/PartyFrame.js';
+import { PlayerMenu } from '../ui/PlayerMenu.js';
+import { QuestNav } from '../systems/QuestNav.js';
 import { MONSTERS } from '../data/monsters.js';
 import { THREE } from '../render/three.js';
 import { WardrobeWindow } from '../ui/WardrobeWindow.js';
@@ -231,9 +234,14 @@ export class Game {
     this.social = new Social(this);           // v0.37: ปาร์ตี้ + กิลด์
     this.partyUi = new PartyFrame(root, this);
     this.onWin = new OnlineWindow(root, this);
+    this.playerMenu = new PlayerMenu(root, this);   // v0.38
+    this.questNav = new QuestNav(root, this);       // v0.38 ลูกศรนำทางเควส
+    this.questWin.onNav = (id) => { this.questNav.pick = this.questNav.pick === id ? null : id; this.questNav.t = 0; this.questWin.renderTracker(); };
+    this.questWin.navId = () => this.questNav.questId();
     this.remote = new RemotePlayers(this);
     this.netTimer = 0; this.lastPres = {}; this.netSay = null; this.netRefresh = 0;
     this.chat = new ChatBox(root, { onSend: (t) => this.sendChat(t), onChannel: (c) => { this.chatChannel = c; } });
+    this.social.onChange(() => { if (this.social.replyTo) this.chat.setWhisperTo(this.social.replyTo); });
     this.menu = new MenuPanel(root, (act) => this.menuAction(act));
     // v0.27: แผนที่ใหญ่ + แผนที่โลก
     this.mapWin = new MapWindow(root, this);
@@ -431,6 +439,11 @@ export class Game {
         // v0.17.1: เซฟเก่า (ก่อนกล้องแบบ RO) ใช้ระยะเริ่มต้นใหม่ · เซฟใหม่ใช้ระยะที่ผู้เล่นซูมไว้ (ปัดให้ตรงขั้นพิกเซล)
         if (data.camera.v === 2 && data.camera.dist > 0) { this.gfx.wantDist = data.camera.dist; this.gfx.zoomCamera(1); }
       }
+    } else if (p && p.name) {
+      // v0.38: ตัวละครที่จองชื่อแล้วแต่ยังไม่เคยเซฟสำเร็จ — ใช้ชื่อเดิม + คลังของบัญชี (เดิมกลายเป็น "Novice" และเขียนคลังทั้งบัญชีเป็นว่าง)
+      this.player.name = p.name;
+      const st = Array.isArray(data.storage) ? data.storage : Array.isArray(opts.storage) ? opts.storage : null;
+      if (st) this.loadStorage(st);
     }
     this.gfx.refreshLook(this.player);
     this.loadMap(mapId, arrive);
@@ -468,6 +481,7 @@ export class Game {
       this.update(simDt);
       this.updateNet(dt);
       this.gfx.render(dt, this.player, simDt);
+      this.questNav.update(real);
       // v0.16: แผนที่ย่อวาดใหม่ 10 ครั้ง/วินาที (เดิมทุกเฟรม)
       if ((this.mmT = (this.mmT || 0) - real) <= 0) { this.mmT = 0.1; this.minimap.draw(this.player, this.gfx.yaw, this.mobs ? this.mobs.list.filter((m) => m.data.mvp && !m.dead) : []); if ((this.mwT = (this.mwT || 0) + 1) % 2 === 0) this.mapWin.update(); }
       if (first) { first = false; this.root.classList.add('ready'); }
@@ -571,6 +585,7 @@ export class Game {
     this.holdMove = !actor && !drop;
     const pl = this.player;
     if (actor && actor.isMonster) { pl.pendingSkill = null; this.setTarget(actor); this.auto.manualTarget(actor); return; }
+    if (actor && actor.isRemote) { this.holdMove = false; this.playerMenu.open(actor, p); return; }   // v0.38
     if (pl.cast) this.cancelCast();
     pl.pendingSkill = null;
     if (actor) { this.auto.manual(); return this.approachNpc(actor); }
@@ -694,7 +709,10 @@ export class Game {
     // v0.13: ใบคูณดรอป/การ์ด + สัตว์เลี้ยง (อบิส/โนวา/เทียนหยุน) · ไอเทมใช้งานและไข่สัตว์เลี้ยงดรอปจากมอนทุกตัว
     const pl = this.player, dm = pl.itemBuffMul('drop') * this.pets.dropMul() * (this.events?.rate('drop') || 1) * (1 + ((pl.bonus && pl.bonus.dropPct) || 0) / 100), cm = pl.itemBuffMul('card') * this.pets.cardMul() * (this.events?.rate('drop') || 1);
     const scale = (list, k) => (k === 1 ? list : list.map(([id, c]) => [id, Math.min(1,c * k)]));
-    const items = rollDrops([...scale(m.data.drops, dm), ...scale(boxDrops(m.data), dm), ...(m.noCard ? [] : scale(cardDrops(m.type), cm)), ...scale(consumableDrops(m.data), dm)]);   // v0.9 กล่องแฟชั่น · v0.10 การ์ด
+    // v0.38: มอนธรรมดาไม่ได้ดรอปของทุกตัว — ลุ้นก่อนว่าตัวนี้จะดรอปไหม (40% · ใบคูณดรอป/อีเวนต์เพิ่มโอกาส) · บอส/MVP/บอสดันเจี้ยนดรอปเสมอ · การ์ดกับกล่องแฟชั่นลุ้นแยกตามเดิม
+    const bossy = !!(m.data.mvp || m.data.boss || m.data.dgBoss || m.data.worldBoss || m.worldRun);
+    const lucky = bossy || Math.random() < Math.min(1, DROP_GATE * dm);
+    const items = rollDrops([...(lucky ? scale(m.data.drops, dm) : []), ...scale(boxDrops(m.data), dm), ...(m.noCard ? [] : scale(cardDrops(m.type), cm)), ...(lucky ? scale(consumableDrops(m.data), dm) : [])]);   // v0.9 กล่องแฟชั่น · v0.10 การ์ด
     if (this.pets.meteorChance() && Math.random() < this.pets.meteorChance() && m.data.drops.length) {
       const extra = m.data.drops[Math.floor(Math.random() * m.data.drops.length)][0];
       this.gfx.meteorFall(m.x, m.y);
@@ -2776,12 +2794,16 @@ export class Game {
 
   sendChat(text) {
     const pl = this.player;
-    // v0.37: /p ข้อความ = ปาร์ตี้ · /g ข้อความ = กิลด์ · ช่องแชตที่เลือกไว้ (ปุ่มหน้าช่องพิมพ์)
-    const m = /^\/(p|g|s)\s+(.+)$/i.exec(text);
-    const ch = m ? m[1].toLowerCase() : this.chatChannel || 's';
-    if (m) text = m[2];
+    // v0.37–0.38: ช่องแชตที่เลือกจากแถบเหนือช่องพิมพ์ · หรือพิมพ์นำหน้า /p ปาร์ตี้ · /g กิลด์ · /o โลก · /w ชื่อ ข้อความ = กระซิบ · /r ข้อความ = ตอบกระซิบล่าสุด
+    let ch = this.chatChannel || 's', to = this.chat.whisperTo;
+    let m = /^\/(p|g|s|o)\s+(.+)$/i.exec(text);
+    if (m) { ch = { p: 'p', g: 'g', s: 's', o: 'w' }[m[1].toLowerCase()]; text = m[2]; }
+    else if ((m = /^\/w\s+(\S+)\s+(.+)$/i.exec(text))) { ch = 't'; to = m[1]; text = m[2]; this.chat.setWhisperTo(to, true); }
+    else if ((m = /^\/r\s+(.+)$/i.exec(text))) { ch = 't'; to = this.social.replyTo || to; text = m[1]; }
     if (ch === 'p') { this.social.sendPartyChat(text); this.sfx('chat'); return; }
     if (ch === 'g') { this.social.sendGuildChat(text); this.sfx('chat'); return; }
+    if (ch === 'w') { if (this.social.sendWorld(text)) this.sfx('chat'); return; }
+    if (ch === 't') { if (this.social.whisper(to, text)) this.sfx('chat'); return; }
     pl.bubble = { text, t: 5 };
     this.hud.log(text, 'pc me', pl.name);
     this.sfx('chat');

@@ -14,15 +14,18 @@ export function rollAttack(att, def, rnd = Math.random) {
 }
 
 // ดาเมจสกิล (v0.6): mult = ตัวคูณ · magic = ใช้ MATK และไม่มีวันพลาด (ลดด้วย MDEF)
-export function rollSkill(att, def, { mult = 1, magic = false, hitBonus = 0 } = {}, rnd = Math.random) {
+// v0.35: crit = true → คริติคอลแน่นอน (×1.5 × CRIT DMG ทะลุเกราะ ไม่มีวันพลาด)
+export function rollSkill(att, def, { mult = 1, magic = false, hitBonus = 0, crit = false } = {}, rnd = Math.random) {
   if (magic) {
     const [lo, hi] = att.matk || [1, 1];
     const base = lo + Math.floor(rnd() * (hi - lo + 1));
+    if (crit) return { miss: false, crit: true, amount: Math.max(1, Math.round(base * mult * 1.5 * (att.critDmg || 1))) };
     return { miss: false, crit: false, amount: Math.max(1, Math.round(base * mult) - (def.mdef ?? 0)) };
   }
   const hitChance = clamp((att.hit ?? 90) + hitBonus - (def.flee ?? 5), 30, 100) / 100;
-  if (rnd() > hitChance) return { miss: true, crit: false, amount: 0 };
+  if (!crit && rnd() > hitChance) return { miss: true, crit: false, amount: 0 };
   const [lo, hi] = att.atk;
   const base = lo + Math.floor(rnd() * (hi - lo + 1));
+  if (crit) return { miss: false, crit: true, amount: Math.max(1, Math.round(base * mult * 1.5 * (att.critDmg || 1))) };
   return { miss: false, crit: false, amount: Math.max(1, Math.round(base * mult) - (def.def ?? 0)) };
 }
