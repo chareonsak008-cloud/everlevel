@@ -1,9 +1,9 @@
 // หน้าต่างร้านค้า NPC: แท็บซื้อ / ขาย พร้อมตะกร้าเลือกจำนวน
-import { ITEMS, RARITY, EQUIP_SLOTS, describeBonus, canJobUse } from '../data/items.js?v=0.40.2';
-import { JOBS } from '../data/progression.js?v=0.40.2';
-import { SHOPS, buyPrice, sellPrice, fmtZ } from '../data/shops.js?v=0.40.2';
-import { STACK_MAX } from '../systems/Inventory.js?v=0.40.2';
-import { iconURL } from '../render/ItemIcons.js?v=0.40.2';
+import { ITEMS, RARITY, EQUIP_SLOTS, describeBonus, canJobUse } from '../data/items.js?v=0.40.3';
+import { JOBS } from '../data/progression.js?v=0.40.3';
+import { SHOPS, buyPrice, sellPrice, fmtZ } from '../data/shops.js?v=0.40.3';
+import { STACK_MAX } from '../systems/Inventory.js?v=0.40.3';
+import { iconURL } from '../render/ItemIcons.js?v=0.40.3';
 
 const slotName = (id) => (EQUIP_SLOTS.find((s) => s.id === id) || {}).name || '';
 
