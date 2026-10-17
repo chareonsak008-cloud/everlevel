@@ -1,8 +1,8 @@
 // เอฟเฟกต์เคลื่อนไหว: ผิวน้ำ, ละอองน้ำพุ, ประตูมิติ, ละอองแสง, จุดหมายคลิก
-import { THREE } from './three.js?v=0.40.5';
-import { waterTexture, glowTexture, beamTexture, magicCircleTexture } from './Textures.js?v=0.40.5';
-import { rng } from '../core/util.js?v=0.40.5';
-import { lin, mergeGeometries } from './Geo.js?v=0.40.5';
+import { THREE } from './three.js?v=0.40.6';
+import { waterTexture, glowTexture, beamTexture, magicCircleTexture } from './Textures.js?v=0.40.6';
+import { rng } from '../core/util.js?v=0.40.6';
+import { lin, mergeGeometries } from './Geo.js?v=0.40.6';
 
 /* ---------- ผิวน้ำ: 2 ชั้นเลื่อนสวนทางกัน ดูเป็นคลื่นระยิบ ---------- */
 export class Water {

@@ -2,8 +2,8 @@
 // แผ่นละอาชีพ = 8 คอลัมน์ × 8 แถว (ช่องละ 128px)
 //   แถว: N · NE · E · SE · S · SW · W · NW  (ทิศตัวละครหันเทียบจอ)
 //   คอลัมน์ 0–3 = เดิน 4 เฟรม · 4–7 = โจมตี 4 เฟรม (นักบวช = ท่าร่าย/ฮีล)
-import { THREE } from './three.js?v=0.40.5';
-import { VERSION } from '../config.js?v=0.40.5';
+import { THREE } from './three.js?v=0.40.6';
+import { VERSION } from '../config.js?v=0.40.6';
 
 // แผ่นวาดมือ 8×8 (ช่อง 128px): คอลัมน์ 0–3 เดิน · 4–7 โจมตี
 const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1, 2, 3], attack: [4, 5, 6, 7] } };
@@ -20,13 +20,9 @@ const PX2 = { cols: 16, rows: 16, rowsPerDir: 2, size: 3.55 * 144 / 96, pixel: t
 const PXC = (cell, foot) => ({ ...PX2, size: 3.55 * cell / 96, foot: foot / cell, head: (foot - 72) / cell });
 export const SHEETS = {
   swordsman: { ...PX2, src: 'assets/sprites/swordsman_v2.png' },   // v0.39 ดาบใหญ่ · ท่าละ 8 เฟรม
-  swordsman_flame: { ...PX2, src: 'assets/sprites/swordsman_flame.png', base: 'swordsman' },   // v0.39 สกินดาบเพลิงชาด
   archer: { ...PX2, src: 'assets/sprites/archer_v2.png' },   // v0.40 อาวุธใหญ่ · ท่าละ 8 เฟรม
-  archer_frost: { ...PXC(176, 128), src: 'assets/sprites/archer_frost.png', base: 'archer' },   // v0.40 สกินธนูน้ำแข็ง
   mage: { ...PX2, src: 'assets/sprites/mage_v2.png' },   // v0.40 อาวุธใหญ่ · ท่าละ 8 เฟรม
-  mage_star: { ...PXC(144, 100), src: 'assets/sprites/mage_star.png', base: 'mage' },   // v0.40 สกินคทาดาวตก
   acolyte: { ...PXC(208, 112), src: 'assets/sprites/acolyte_v2.png' },   // v0.40 อาวุธใหญ่ (ช่องกว้าง: คทาเหวี่ยงไกล)
-  acolyte_seraph: { ...PXC(208, 140), src: 'assets/sprites/acolyte_seraph.png', base: 'acolyte' },   // v0.40 สกินคทาเทพเซราฟ (ปีกแสง)
 };
 // v0.39 สกินอาวุธ (แผ่นทั้งตัวที่ถืออาวุธลายอื่น) — key = ชื่อแผ่น · เลือกได้จากชิ้นแฟชั่นอาวุธ { sheet: key, job }
 export const SKIN_SHEETS = {};
