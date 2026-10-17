@@ -1,4 +1,4 @@
-import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.40.5';
+import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.40.6';
 // แคตตาล็อกชุดแฟชั่น (v0.9) — ได้จากการเปิดกล่องแฟชั่นสุ่ม (data/fashionBoxes.js) — ชิ้นแฟชั่นเป็น "ชุดทับ" ไม่เพิ่มค่าสถานะ ใส่ทับอุปกรณ์จริงได้
 // slot: wings | outfit | head | face | back | weapon | aura | pet · kind = ชื่อตัวสร้างใน render/Costumes.js · p = ค่าปรับแต่ง
 // rarity: common ธรรมดา | rare หายาก | epic ล้ำค่า | legend ตำนาน | mythic | celestial
@@ -302,20 +302,9 @@ COSTUMES.push(...FASHION_COLLECTION);
 const PX = (slot, id, name, en, rarity, desc, p) => I(slot, id, 'pixel', name, en, rarity, desc, p, { batch: 5, px: true });
 COSTUMES.push(
   /* ---------- ปีกพิกเซล ---------- */
-  PX('wings', 'w_px_feather', 'ปีกขนนกนักเดินทาง', 'Wayfarer Feather Wings', 'common', 'ปีกขนนกสีครีมคู่เล็ก กระพือเบา ๆ · ปีกภาพพิกเซล 8 ทิศ', { px: 'feather', cell: 97, frames: 6, fps: 7 }),
-  PX('wings', 'w_px_sylvan', 'ปีกภูตพงไพร', 'Sylvan Sprite Wings', 'rare', 'ปีกใบไม้โปร่งแสงพันด้วยเถาวัลย์เรืองแสง หยดน้ำค้างระยิบ · ปีกภาพพิกเซล 8 ทิศ', { px: 'sylvan', cell: 97, frames: 6, fps: 9 }),
-  PX('wings', 'w_px_angel', 'ปีกเทวทูตปลายทอง', 'Gilded Angel Wings', 'epic', 'ปีกขนนกขาวใหญ่ ปลายขนเรืองแสงทอง กระพือช้า ๆ อย่างสง่า · ปีกภาพพิกเซล 8 ทิศ', { px: 'angel', cell: 97, frames: 6, fps: 6 }),
-  PX('wings', 'w_px_crystal', 'ปีกผลึกน้ำแข็งนิรันดร์', 'Eternal Crystal Wings', 'legend', 'ปีกผลึกใสสีฟ้าเรียงเป็นแผง เกล็ดผลึกระยิบตลอดเวลา · ปีกภาพพิกเซล 8 ทิศ', { px: 'crystal', cell: 97, frames: 6, fps: 7 }),
-  PX('wings', 'w_px_phoenix', 'ปีกวิหคเพลิงพิกเซล', 'Pixel Phoenix Wings', 'legend', 'ปีกไฟลุกโชนไล่สีทองถึงแดง สะเก็ดไฟปลิวจากปลายปีก · ปีกภาพพิกเซล 8 ทิศ', { px: 'phoenix', cell: 97, frames: 6, fps: 8 }),
-  PX('wings', 'w_px_void', 'ปีกห้วงเงาสายฟ้า', 'Voidstorm Wings', 'mythic', 'ปีกเงาม่วงหมุนวนพร้อมสายฟ้าสีม่วง อักขระเรืองแสงตามขอบปีก · ปีกภาพพิกเซล 8 ทิศ', { px: 'void', cell: 113, frames: 6, fps: 8 }),
-  PX('wings', 'w_px_seraph', 'ปีกเซราฟทองหกปีก', 'Golden Seraph Wings', 'celestial', 'ปีกทองสามคู่พร้อมรัศมีทองเหนือศีรษะ กระพือช้า ๆ อย่างศักดิ์สิทธิ์ · ปีกภาพพิกเซล 8 ทิศ', { px: 'seraph', cell: 124, frames: 6, fps: 6, lift: 1.25 }),
 );
 // v0.39 สกินอาวุธ = ตัวละครทั้งตัวที่ถืออาวุธลายใหม่ (ท่าครบทุกท่า) · ใช้ได้เฉพาะสายอาชีพนั้น (p.job)
 COSTUMES.push(
-  PX('weapon', 'x_sk_sw_flame', 'ดาบเพลิงชาด', 'Crimson Blaze Greatsword', 'legend', 'ดาบใหญ่ใบแดงส้มลุกเป็นไฟตลอดเวลา เปลี่ยนดาบที่ถือทุกท่า (ยืน เดิน ฟัน ร่ายสกิล) · เฉพาะสายนักดาบ (Swordsman / Knight)', { sheet: 'swordsman_flame', job: 'swordsman' }),
-  PX('weapon', 'x_sk_ar_frost', 'ธนูผลึกน้ำแข็ง', 'Frostcrystal Bow', 'legend', 'ธนูผลึกน้ำแข็งสีฟ้า ไอเย็นและเกล็ดหิมะลอยรอบตลอดเวลา ยิงลูกศรน้ำแข็งแตกกระจาย · สกิลวงเวทน้ำแข็งพร้อมลูกศรยักษ์ · เฉพาะสายนักธนู (Archer / Hunter)', { sheet: 'archer_frost', job: 'archer' }),
-  PX('weapon', 'x_sk_mg_star', 'คทาดาวตก', 'Starfall Staff', 'legend', 'คทายอดดาวคริสตัลสีม่วงชมพู ดาวเล็ก ๆ โคจรรอบ ยิงดาวตกพร้อมผงดาวระยิบ · สกิลวงกาแล็กซีเรียกฝนดาว · เฉพาะสายนักเวท (Mage / Wizard)', { sheet: 'mage_star', job: 'mage' }),
-  PX('weapon', 'x_sk_ac_seraph', 'คทาเทพเซราฟ', 'Seraph Scepter', 'legend', 'คทาทองยอดเพชรพร้อมวงรัศมี ขนนกทองล่องลอย ฟาดแล้วแสงศักดิ์สิทธิ์ระเบิด · สกิลกางปีกเทพแสงทองพร้อมคลื่นรักษา · เฉพาะสายนักบวช (Acolyte / Priest)', { sheet: 'acolyte_seraph', job: 'acolyte' }),
 );
 // ออร่า/อาวุธพิกเซล — ออกแบบเสร็จแล้ว รอไฟล์ภาพ (assets/vfx/aura_* · slash_*) ค่อยเปิดใช้
 export const PX_PENDING = [
