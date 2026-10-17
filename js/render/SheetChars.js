@@ -2,8 +2,8 @@
 // แผ่นละอาชีพ = 8 คอลัมน์ × 8 แถว (ช่องละ 128px)
 //   แถว: N · NE · E · SE · S · SW · W · NW  (ทิศตัวละครหันเทียบจอ)
 //   คอลัมน์ 0–3 = เดิน 4 เฟรม · 4–7 = โจมตี 4 เฟรม (นักบวช = ท่าร่าย/ฮีล)
-import { THREE } from './three.js?v=0.40.6';
-import { VERSION } from '../config.js?v=0.40.6';
+import { THREE } from './three.js?v=0.41.0';
+import { VERSION } from '../config.js?v=0.41.0';
 
 // แผ่นวาดมือ 8×8 (ช่อง 128px): คอลัมน์ 0–3 เดิน · 4–7 โจมตี
 const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1, 2, 3], attack: [4, 5, 6, 7] } };
@@ -23,13 +23,14 @@ export const SHEETS = {
   archer: { ...PX2, src: 'assets/sprites/archer_v2.png' },   // v0.40 อาวุธใหญ่ · ท่าละ 8 เฟรม
   mage: { ...PX2, src: 'assets/sprites/mage_v2.png' },   // v0.40 อาวุธใหญ่ · ท่าละ 8 เฟรม
   acolyte: { ...PXC(208, 112), src: 'assets/sprites/acolyte_v2.png' },   // v0.40 อาวุธใหญ่ (ช่องกว้าง: คทาเหวี่ยงไกล)
+  novice: { ...PX2, src: 'assets/sprites/novice_v2.png' },   // v0.41 Novice ตัวพิกเซล (ดาบไม้ฝึก · เป้ผ้าใบ)
 };
 // v0.39 สกินอาวุธ (แผ่นทั้งตัวที่ถืออาวุธลายอื่น) — key = ชื่อแผ่น · เลือกได้จากชิ้นแฟชั่นอาวุธ { sheet: key, job }
 export const SKIN_SHEETS = {};
 export function registerSheet(key, def) { SHEETS[key] = def; }
 const LINE = { knight: 'swordsman', wizard: 'mage', hunter: 'archer', priest: 'acolyte' };
 export const sheetOf = (job) => (SHEETS[job] ? job : LINE[job] || null);
-// อาชีพที่ใช้ตัวละครพิกเซลในเกมจริงแล้ว (Novice ยังเป็นโมเดลเดิม)
+// อาชีพที่ใช้ตัวละครพิกเซลในเกมจริงแล้ว (v0.41: Novice ด้วย)
 export const liveSheet = (job) => { const k = sheetOf(job); return k && SHEETS[k].pixel ? k : null; };
 
 // 8 ทิศเทียบจอ (0 = หันหน้าเข้าหากล้อง หมุนตามเข็มไปทางขวา) → แถวในแผ่น
