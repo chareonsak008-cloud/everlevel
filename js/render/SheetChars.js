@@ -2,8 +2,8 @@
 // แผ่นละอาชีพ = 8 คอลัมน์ × 8 แถว (ช่องละ 128px)
 //   แถว: N · NE · E · SE · S · SW · W · NW  (ทิศตัวละครหันเทียบจอ)
 //   คอลัมน์ 0–3 = เดิน 4 เฟรม · 4–7 = โจมตี 4 เฟรม (นักบวช = ท่าร่าย/ฮีล)
-import { THREE } from './three.js?v=0.40.3';
-import { VERSION } from '../config.js?v=0.40.3';
+import { THREE } from './three.js?v=0.40.5';
+import { VERSION } from '../config.js?v=0.40.5';
 
 // แผ่นวาดมือ 8×8 (ช่อง 128px): คอลัมน์ 0–3 เดิน · 4–7 โจมตี
 const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1, 2, 3], attack: [4, 5, 6, 7] } };
@@ -11,6 +11,7 @@ const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1
 const PXLAB = { cols: 13, size: 3.55, pixel: true, anim: { idle: [0], walk: [1, 2, 3, 4, 5, 6, 7, 8], attack: [9, 10, 11, 12] } };
 // v0.39: แผ่นชุดใหม่ (ช่อง 128px · อาวุธใหญ่เห็นชัด · ท่ายืนหายใจ 8 เฟรม · เดิน 8 · ฟัน 8 · ร่ายสกิล 8) — ทำทีละอาชีพ
 // แผ่น 16×16 ช่อง 144px: ทิศละ 2 แถว — แถวบน คอลัมน์ 0–7 ยืน · 8–15 เดิน / แถวล่าง 0–7 โจมตี · 8–15 สกิล (ขนาดบนจอเทียบความละเอียดเดิม 96px = 3.55 หน่วย)
+const PX_UNIT = 3.55 / 96;   // หน่วยโลกต่อพิกเซลของแผ่นพิกเซล
 const R = (a, n) => Array.from({ length: n }, (_, i) => a + i);
 const PX2 = { cols: 16, rows: 16, rowsPerDir: 2, size: 3.55 * 144 / 96, pixel: true, foot: 96 / 144, head: 24 / 144,
   anim: { idle: R(0, 8), walk: R(8, 8), attack: R(0, 8), skill: R(8, 8) }, row: { idle: 0, walk: 0, attack: 1, skill: 1 },
@@ -18,14 +19,14 @@ const PX2 = { cols: 16, rows: 16, rowsPerDir: 2, size: 3.55 * 144 / 96, pixel: t
 // แผ่นช่องใหญ่กว่า 144 (เอฟเฟกต์/ปีกกว้าง) — ขนาดพิกเซลต่อหน่วยเท่าเดิม · foot = แถวพิกเซลเท้าจากขอบบน
 const PXC = (cell, foot) => ({ ...PX2, size: 3.55 * cell / 96, foot: foot / cell, head: (foot - 72) / cell });
 export const SHEETS = {
-  swordsman: { ...PX2, wingK: 0.86, head: 34 / 144, src: 'assets/sprites/swordsman_v2.png' },   // v0.39 ดาบใหญ่ · ท่าละ 8 เฟรม
-  swordsman_flame: { ...PX2, wingK: 0.86, head: 34 / 144, src: 'assets/sprites/swordsman_flame.png', base: 'swordsman' },   // v0.39 สกินดาบเพลิงชาด
+  swordsman: { ...PX2, src: 'assets/sprites/swordsman_v2.png' },   // v0.39 ดาบใหญ่ · ท่าละ 8 เฟรม
+  swordsman_flame: { ...PX2, src: 'assets/sprites/swordsman_flame.png', base: 'swordsman' },   // v0.39 สกินดาบเพลิงชาด
   archer: { ...PX2, src: 'assets/sprites/archer_v2.png' },   // v0.40 อาวุธใหญ่ · ท่าละ 8 เฟรม
   archer_frost: { ...PXC(176, 128), src: 'assets/sprites/archer_frost.png', base: 'archer' },   // v0.40 สกินธนูน้ำแข็ง
   mage: { ...PX2, src: 'assets/sprites/mage_v2.png' },   // v0.40 อาวุธใหญ่ · ท่าละ 8 เฟรม
   mage_star: { ...PXC(144, 100), src: 'assets/sprites/mage_star.png', base: 'mage' },   // v0.40 สกินคทาดาวตก
-  acolyte: { ...PXC(208, 112), wingK: 0.86, head: 50 / 208, src: 'assets/sprites/acolyte_v2.png' },   // v0.40 อาวุธใหญ่ (ช่องกว้าง: คทาเหวี่ยงไกล)
-  acolyte_seraph: { ...PXC(208, 140), wingK: 0.86, head: 78 / 208, src: 'assets/sprites/acolyte_seraph.png', base: 'acolyte' },   // v0.40 สกินคทาเทพเซราฟ (ปีกแสง)
+  acolyte: { ...PXC(208, 112), src: 'assets/sprites/acolyte_v2.png' },   // v0.40 อาวุธใหญ่ (ช่องกว้าง: คทาเหวี่ยงไกล)
+  acolyte_seraph: { ...PXC(208, 140), src: 'assets/sprites/acolyte_seraph.png', base: 'acolyte' },   // v0.40 สกินคทาเทพเซราฟ (ปีกแสง)
 };
 // v0.39 สกินอาวุธ (แผ่นทั้งตัวที่ถืออาวุธลายอื่น) — key = ชื่อแผ่น · เลือกได้จากชิ้นแฟชั่นอาวุธ { sheet: key, job }
 export const SKIN_SHEETS = {};
@@ -89,6 +90,12 @@ export class SheetSprite {
     this.tex = sheetTexture(this.S);
     this.mat.map = this.tex; this.mat.needsUpdate = true; this.xmat.map = this.tex; this.xmat.needsUpdate = true;
     this.headH = this.S.size * (this.S.foot - (this.S.head || 12 / 96)) + 0.6;   // ความสูงถึงปลายผม (วางป้ายฉายา)
+    // v0.40.5 จุดหลังของตัวละครทุกเฟรม (ไฟล์ .json คู่กับแผ่น) → ปีกขยับตามตัว
+    const S = this.S;
+    if (S.pixel && S.anch === undefined && S.rowsPerDir) {
+      S.anch = null;
+      fetch(`${S.src.replace(/\.png$/, '.json')}?v=${VERSION}`).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.a) S.anch = j.a; }).catch(() => {});
+    }
     return true;
   }
 
@@ -128,6 +135,9 @@ export class SheetSprite {
     f = A.loop ? f % n : Math.min(n - 1, f);
     const col = cols[f], row = ROW[d] * (S.rowsPerDir || 1) + ((S.row && S.row[this.anim]) || 0), NR = S.rows || 8;
     this.tex.offset.set(col / S.cols, 1 - (row + 1) / NR);
+    // ปีกเกาะหลัง: ระยะที่จุดหลังเฟรมนี้ต่างจากท่ายืนเฟรมแรกของทิศเดียวกัน (หน่วยโลก)
+    const AN = S.anch, cur = AN && AN[row] && AN[row][col], base = AN && AN[ROW[d] * (S.rowsPerDir || 1)] && AN[ROW[d] * (S.rowsPerDir || 1)][0];
+    if (cur && base) { this.wdx = (cur[0] - base[0]) * PX_UNIT; this.wdy = (cur[1] - base[1]) * PX_UNIT; } else { this.wdx = 0; this.wdy = 0; }
     // วางตำแหน่ง · หันหากล้อง
     const bob = this.anim === 'idle' && !ent.dead && S.anim.idle.length < 2 ? 1 + Math.sin(this.life * 2.6) * 0.012 : 1;   // แผ่นที่มีท่าหายใจแล้วไม่ต้องยืดหด
     // แผ่นป้าย: ตามตำแหน่งเท้า หันหากล้อง ดันเข้าหากล้องเล็กน้อยกันจมพื้น/สะพาน/รั้ว (ย่อชดเชยให้ขนาดบนจอเท่าเดิม)

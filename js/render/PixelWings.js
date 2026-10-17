@@ -1,8 +1,8 @@
 // v0.35: ปีกแฟชั่นภาพพิกเซล 8 ทิศ (จาก PixelLab) — แผ่นป้ายหันหากล้อง วางซ้อนหลัง/หน้าตัวละครพิกเซลตามทิศที่หัน
 // แผ่นภาพ assets/fashion/wings/<key>.png : 8 แถว (N·NE·E·SE·S·SW·W·NW) × F คอลัมน์ (เฟรมกระพือ) · ช่องละ cell px
 // ค่าในชิ้นแฟชั่น p = { px: key, cell, frames, fps, lift, scale }
-import { THREE } from './three.js?v=0.40.3';
-import { VERSION } from '../config.js?v=0.40.3';
+import { THREE } from './three.js?v=0.40.5';
+import { VERSION } from '../config.js?v=0.40.5';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อพิกเซล (เท่าตัวละครพิกเซล)
 const ROW = { n: 0, ne: 1, e: 2, se: 3, s: 4, sw: 5, w: 6, nw: 7 };
@@ -46,12 +46,14 @@ export class PixelWingSprite {
     const push = behind ? 0.3 : 0.7, k = (dist - push) / dist;
     this.mesh.renderOrder = behind ? 38 : 42;
     const side = Math.abs(sn) > 0.9 ? 1 : 0;   // หันข้างเท่านั้นที่ขยับปีกไปทางหลัง (เฉียง/หน้า/หลัง = กลางตัว)
-    const lift = ((p.lift ?? 1.2) * (p.scale || 1) - side * 0.08) * (this.liftK || 1);
+    const diag = !side && Math.abs(sn) > 0.5 ? 1 : 0;
+    const sc = side ? 0.72 : diag ? 0.88 : 0.94;   // v0.40.4 หันข้าง = ปีกเล็กลงแนบหลัง (ไม่ชูสูงเกินหัว)
+    const lift = (p.lift ?? 1.2) * (p.scale || 1) * (this.liftK || 1) * (side ? 0.86 : diag ? 0.94 : 1);
     this.mesh.position.copy(foot).addScaledVector(toCam, push);
     this.mesh.quaternion.copy(camera.quaternion);
-    this.mesh.translateY(lift * k);
-    this.mesh.translateX(-Math.sign(sn) * side * (p.back ?? 0.25) * k);   // ชิดแผ่นหลังของตัวละคร
-    this.mesh.scale.set(k, k, 1);
+    this.mesh.translateY((lift + (this.ay || 0)) * k);   // v0.40.5 ขยับตามตัว (เดินโยก/ฟันพุ่ง)
+    this.mesh.translateX((-Math.sign(sn) * side * (p.back ?? 0.14) + (this.ax || 0)) * k);   // ชิดแผ่นหลังของตัวละคร
+    this.mesh.scale.set(k * sc, k * sc, 1);
   }
 
   dispose() { this.scene.remove(this.mesh); this.mesh.geometry.dispose(); this.mat.dispose(); this.tex.dispose(); }
