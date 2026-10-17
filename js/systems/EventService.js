@@ -71,11 +71,12 @@ export class EventService {
  }
  async hit(m,r,magic) {
   if(!this.fresh)return;
-  if(this.hits.has(m.worldRun)){this.hits.set(m.worldRun,Math.min(15000,this.hits.get(m.worldRun)+r.amount));return;}
+  if(this.hits.has(m.worldRun)){this.hits.set(m.worldRun,Math.min(90000,this.hits.get(m.worldRun)+r.amount));return;}
   this.hits.set(m.worldRun,0);
   try {
    let result;
-   if(this.online){await new Promise(resolve=>setTimeout(resolve,220));result=await this.g.online.hitWorldBoss(m.worldRun,Math.max(1,Math.floor(r.amount)),this.g.slot);}
+   if(this.online){await new Promise(resolve=>setTimeout(resolve,220));const dmg=Math.max(1,Math.floor(r.amount));if(dmg>15000)this.hits.set(m.worldRun,dmg-15000);   // v0.38: เซิร์ฟเวอร์รับครั้งละ ≤15000 — ส่วนเกินส่งรอบถัดไป (เดิมทิ้ง)
+    result=await Promise.race([this.g.online.hitWorldBoss(m.worldRun,Math.min(15000,dmg),this.g.slot),new Promise((_,no)=>setTimeout(()=>no(new Error('เซิร์ฟเวอร์ตอบช้า ลองตีต่อได้เลย')),8000))]);   /* v0.38: ค้างแล้วไม่ล็อกการตีตลอดไป */}
    else {const b=this.localRuns.get(m.worldRun);if(!b||b.status!=='active')return;b.hp=Math.max(0,b.hp-r.amount);b.participated=true;if(!b.hp){b.status='defeated';b.defeated_at=new Date(this.now()).toISOString();}localStorage.setItem(this.storagePrefix+'-bosses',JSON.stringify([...this.localRuns]));result=b;}
    m.hp=result.hp;if(this.g.mobs?.list.includes(m)){this.g.gfx.playHurt(m);this.g.gfx.floatText(m,String(result.damage??r.amount),magic?'hit magic':'hit');this.g.sfx('hit');}
    const b=this.state?.runs?.find(x=>x.id===m.worldRun);if(b)Object.assign(b,result);

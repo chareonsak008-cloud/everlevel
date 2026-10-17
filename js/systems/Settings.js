@@ -12,6 +12,8 @@ export const DEFAULT_SETTINGS = {
   showHelp: true,       // แผงคำแนะนำปุ่ม (เดสก์ท็อป)
   showOthers: true,     // แสดงผู้เล่นคนอื่น (ออนไลน์)
   chatSound: true,
+  questNav: true,       // v0.38 ลูกศรนำทางเควส
+  partyInvites: true,   // v0.38 รับคำเชิญปาร์ตี้
 };
 
 export function loadSettings() {

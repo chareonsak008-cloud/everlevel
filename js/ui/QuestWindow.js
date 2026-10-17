@@ -118,6 +118,10 @@ export class QuestWindow {
       b.style.setProperty('--kc', QUEST_KIND[q.kind].color);
       b.innerHTML = `<b></b>${ready ? `<span class="qt-goal ok">✔ ส่งที่ ${npcWhere(q.turnIn)}</span>` : L.progress(id).map((g) => `<span class="qt-goal${g.done ? ' ok' : ''}">${g.text}${g.type === 'kill' || g.type === 'collect' ? ` ${g.cur}/${g.n}` : g.done ? ' ✔' : ''}</span>`).join('')}`;
       b.querySelector('b').textContent = q.name;
+      // v0.38: 🧭 = ให้ลูกศรนำทางชี้เควสนี้
+      const nav = document.createElement('span'); nav.className = 'qt-nav' + (this.navId && this.navId() === id ? ' on' : ''); nav.textContent = '🧭'; nav.title = 'นำทางเควสนี้';
+      nav.addEventListener('click', (e) => { e.stopPropagation(); if (this.onNav) this.onNav(id); });
+      b.prepend(nav);
       b.addEventListener('click', () => { this.tab = 'active'; this.toggle(true); });
       list.append(b);
     }

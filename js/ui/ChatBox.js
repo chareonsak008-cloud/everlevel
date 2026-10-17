@@ -1,13 +1,28 @@
 // ช่องพิมพ์แชต (v0.11): พิมพ์คุยกับผู้เล่นในแผนที่เดียวกัน · Enter เพื่อเริ่มพิมพ์ · มือถือย่อ/ขยายกล่องแชตได้
+const CHANNELS = [['s', 'ทั่วไป'], ['w', 'โลก'], ['p', 'ปาร์ตี้'], ['g', 'กิลด์'], ['t', 'กระซิบ']];
+const HINT = { s: 'คุยกับคนในแผนที่นี้… (Enter)', w: 'แชตโลก — ทุกแผนที่เห็น…', p: 'คุยในปาร์ตี้…', g: 'คุยในกิลด์…', t: 'ข้อความกระซิบ…' };
+
 export class ChatBox {
   constructor(root, { onSend, onOpen, onChannel }) {
     this.root = root;
     this.onSend = onSend; this.onOpen = onOpen || (() => {}); this.onChannel = onChannel || (() => {});
-    // v0.37: ปุ่มเลือกช่องแชต ทั่วไป → ปาร์ตี้ → กิลด์
-    this.chBtn = root.querySelector('#chatCh');
-    if (this.chBtn) {
-      this.chBtn.addEventListener('pointerdown', (e) => e.preventDefault());   // ไม่ให้ช่องพิมพ์หลุดโฟกัส
-      this.chBtn.addEventListener('click', () => { this.setChannel({ s: 'p', p: 'g', g: 's' }[this.chBtn.dataset.ch] || 's'); this.input.focus(); });
+    // v0.38: แถบเลือกช่องแชต — กดเลือกแล้วพิมพ์ได้เลย (หรือพิมพ์ /p /g /o /w ชื่อ นำหน้า)
+    this.tabs = root.querySelector('#chatTabs');
+    this.toInput = root.querySelector('#chatTo');
+    this.ch = 's';
+    if (this.tabs) {
+      for (const [c, label] of CHANNELS) {
+        const b = document.createElement('button'); b.type = 'button'; b.dataset.ch = c; b.textContent = label; b.setAttribute('role', 'tab');
+        b.addEventListener('pointerdown', (e) => e.preventDefault());   // ไม่ให้ช่องพิมพ์หลุดโฟกัส
+        b.addEventListener('click', () => { this.setChannel(c); if (c === 't' && !this.toInput.value) this.toInput.focus(); else this.focus(); });
+        this.tabs.append(b);
+      }
+      for (const ev of ['pointerdown', 'wheel', 'contextmenu', 'touchstart']) this.tabs.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
+    }
+    if (this.toInput) {
+      this.toInput.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); this.input.focus(); } if (e.key === 'Escape') this.toInput.blur(); });
+      this.toInput.addEventListener('focus', () => this.wrap.classList.add('typing'));
+      this.toInput.addEventListener('blur', () => setTimeout(() => { if (!this.typing) this.wrap.classList.remove('typing'); }, 0));
     }
     this.box = root.querySelector('#chat');
     this.wrap = root.querySelector('#chatWrap');
@@ -46,6 +61,7 @@ export class ChatBox {
       clearTimeout(this.fadeTimer);
       this.fadeTimer = setTimeout(() => this.wrap.classList.remove('fresh'), 6000);
     }).observe(this.box, { childList: true });
+    this.setChannel('s');
   }
 
   // มือถือ: กล่องแชตที่ขยายแล้วไปอยู่ใต้แถบสถานะตัวละคร/แผนที่ย่อ ไม่บังตัวละครกลางจอ และคีย์บอร์ดไม่บังช่องพิมพ์
@@ -66,17 +82,21 @@ export class ChatBox {
   }
 
   setChannel(c) {
-    if (!this.chBtn) return;
-    this.chBtn.dataset.ch = c;
-    this.chBtn.textContent = { s: 'ทั่วไป', p: 'ปาร์ตี้', g: 'กิลด์' }[c];
-    this.input.placeholder = { s: 'พิมพ์ข้อความ… (กด Enter)', p: 'คุยในปาร์ตี้…', g: 'คุยในกิลด์…' }[c];
+    this.ch = c;
+    if (this.tabs) for (const b of this.tabs.children) b.setAttribute('aria-selected', String(b.dataset.ch === c));
+    if (this.toInput) this.toInput.hidden = c !== 't';
+    this.wrap.dataset.ch = c;
+    this.input.placeholder = HINT[c] || HINT.s;
     this.onChannel(c);
   }
+  // ชื่อผู้รับกระซิบ (เติมให้อัตโนมัติจากคนล่าสุดที่กระซิบมา)
+  setWhisperTo(name, force = false) { if (this.toInput && name && (force || !this.toInput.value)) this.toInput.value = name; }
+  get whisperTo() { return this.toInput ? this.toInput.value.trim() : ''; }
 
   focus() {
     if (!this.expanded) this.toggle(true);
     this.input.focus();
   }
 
-  get typing() { return document.activeElement === this.input; }
+  get typing() { return document.activeElement === this.input || document.activeElement === this.toInput; }
 }

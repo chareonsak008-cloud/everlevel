@@ -230,7 +230,7 @@ export class Dungeons {
     } else {
       // ผ่านครบ: หีบรางวัล + สถิติ
       const st = this.st, ch = caveChest(R.L0), got = [];
-      pl.zeny += ch.zeny;
+      pl.addZeny(ch.zeny);
       for (const [id, n] of ch.items) { if (!ITEMS[id]) continue; const add = pl.inventory.add(id, n); if (add < n) for (let k = 0; k < n - add; k++) g.spawnDrop(id, pl.x, pl.y); got.push(`${ITEMS[id].name} ×${n}`); }
       st.clears++; const tm = Math.round(R.t);
       const record = !st.caveTime || tm < st.caveTime; if (record) st.caveTime = tm;
@@ -254,7 +254,7 @@ export class Dungeons {
     let msg = '';
     if (R.floor > st.tPaid && R.floor >= R.startFloor) {
       const rw = towerFloorReward(R.floor), got = [];
-      pl.zeny += rw.zeny;
+      pl.addZeny(rw.zeny);
       for (const [id, n] of rw.items) { if (!ITEMS[id]) continue; const add = pl.inventory.add(id, n); if (add < n) for (let k = 0; k < n - add; k++) g.spawnDrop(id, pl.x, pl.y); got.push(`${ITEMS[id].name} ×${n}`); }
       st.tPaid = R.floor;
       msg = ` · รางวัล ${fmtZ(rw.zeny)}${got.length ? ' · ' + got.join(' · ') : ''}`;

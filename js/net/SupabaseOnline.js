@@ -10,7 +10,7 @@ import { SideChannel } from './SideChannel.js';
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
 const SLOW_KEYS = ['n', 'j', 'lv', 'm', 'u', 'lk', 'fw', 'pt', 'ps', 'tt', 'gd'];   // v0.37: gd = รหัสกิลด์ (ชื่อ/ตรากิลด์อ่านจากเซิร์ฟเวอร์ ปลอมไม่ได้)   // v0.18: tt = ฉายา (รหัสความสำเร็จ) // ข้อมูลเต็มของตัวละคร (ส่งตอนเข้าห้อง/เปลี่ยน/ทุกครั้งที่เต้นหัวใจ)
 const FAST_KEYS = ['x', 'y', 'a', 'mv', 'h', 'dead', 'at', 'ak'];     // ตำแหน่ง/ท่าทาง (ส่งเมื่อเปลี่ยน)
-const PEER_TTL = 20000;     // ไม่ได้ยินจากผู้เล่นเกินนี้ (มิลลิวินาที) = ถือว่าออกจากแมพไปแล้ว
+const PEER_TTL = 32000;   // v0.38: เดิม 20 วินาที — แพ็กเก็ตหล่น 2 ครั้งติด (แพ็กเกจฟรี) เพื่อนหายไปเฉย ๆ     // ไม่ได้ยินจากผู้เล่นเกินนี้ (มิลลิวินาที) = ถือว่าออกจากแมพไปแล้ว
 const WATCHDOG_MS = 7000;   // ช่องที่ไม่พร้อมเกินนี้ → สร้างใหม่
 
 const clampN = (v, lo, hi) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : undefined);
@@ -272,7 +272,10 @@ export class SupabaseOnline extends Online {
   /* ---------- v0.37: ปาร์ตี้ + กิลด์ ---------- */
   get social() { return true; }
   // ฟังเหตุการณ์ที่ส่งถึงเรา (payload.to = key ของเรา) ในห้องรวม — ลงทะเบียนก่อนเชื่อมต่อ (หรือเปิดห้องรวมใหม่ให้)
-  onLobby(event, fn) { const had = event in this.lobbyEv; this.lobbyEv[event] = fn; if (!had && this.lobby) this.reopenLobby(true); }
+  // all = รับทุกข้อความ (แชตโลก) · ไม่งั้นรับเฉพาะที่ส่งถึงเรา
+  onLobby(event, fn, all = false) { const had = event in this.lobbyEv; this.lobbyEv[event] = { fn, all }; if (!had && this.lobby) this.reopenLobby(true); }
+  // หา key ของผู้เล่นที่ออนไลน์จากชื่อ (ไม่สนตัวพิมพ์) — ไว้กระซิบ/แจ้งเพิ่มเพื่อน
+  keyByName(name) { const n = String(name || '').trim().toLowerCase(); if (!n) return null; for (const [k, l] of this.lobbyState) if (k !== this.key && l && typeof l.n === 'string' && l.n.toLowerCase() === n) return k; for (const [k, e] of this.mapPeers) if (e.st && typeof e.st.n === 'string' && e.st.n.toLowerCase() === n) return k; return null; }
   lobbySend(event, payload) { if (!this.lobbyReady || !this.lobby) return Promise.resolve('error'); return this.raw(this.lobby, event, { ...payload, k: this.key }); }
   sideChannel(name, opts) { return new SideChannel(this.sb, 'everlevel-' + name, this.key, opts); }
 
@@ -395,7 +398,7 @@ export class SupabaseOnline extends Online {
     this.lobby = ch; this.lobbyReady = false; this.lobbyAt = Date.now(); this.lobbySig = '';
     try {
       ch.on('broadcast', { event: 'sh' }, ({ payload }) => { if (ch === this.lobby) this.onShout(payload); });
-      for (const ev of Object.keys(this.lobbyEv)) ch.on('broadcast', { event: ev }, ({ payload }) => { if (ch === this.lobby && payload && typeof payload.k === 'string' && payload.k !== this.key && payload.to === this.key) this.lobbyEv[ev](payload); });
+      for (const ev of Object.keys(this.lobbyEv)) ch.on('broadcast', { event: ev }, ({ payload }) => { const h = this.lobbyEv[ev]; if (ch === this.lobby && payload && typeof payload.k === 'string' && payload.k !== this.key && (h.all || payload.to === this.key)) h.fn(payload); });
       ch.on('presence', { event: 'sync' }, () => { if (ch !== this.lobby) return; this.lobbyState = this.readPresence(ch); this.prune(); this.emitPeers(); });
       ch.subscribe((status) => {
         if (ch !== this.lobby) return;
@@ -655,8 +658,12 @@ export class SupabaseOnline extends Online {
     let slow = false, fast = false;
     if ((patch.x !== undefined || patch.y !== undefined) && typeof this.mine.x === 'number' && typeof this.mine.y === 'number') {
       const nx = patch.x !== undefined ? patch.x : this.mine.x, ny = patch.y !== undefined ? patch.y : this.mine.y;
-      if (Math.hypot(nx - this.mine.x, ny - this.mine.y) > 64) this.tp = (this.tp + 1) & 0xffff;   // กระโดดไกลผิดปกติ = วาร์ป: ให้ฝั่งรับย้ายตามทันทีไม่ไถล
+      // กระโดดไกลผิดปกติ = วาร์ป: ให้ฝั่งรับย้ายตามทันทีไม่ไถล
+      // v0.38: เทียบกับระยะที่เดินได้จริงในช่วงเวลานั้น (เครื่องกระตุก/แท็บพื้นหลังทำให้ห่างหลายเฟรม → เดิมนับเป็นวาร์ป เพื่อนเลยเห็นเราวาร์ปไปมา)
+      const now = performance.now(), el = Math.min(5, (now - (this.posAt || now)) / 1000), sp = clampN(this.mine.sp, 20, 400) || 120;
+      if (Math.hypot(nx - this.mine.x, ny - this.mine.y) > 64 + sp * el * 1.5) this.tp = (this.tp + 1) & 0xffff;
     }
+    if (patch.x !== undefined || patch.y !== undefined) this.posAt = performance.now();
     for (const [k, v] of Object.entries(patch)) {
       if (k === 'say' || k === 'sh') continue;
       this.mine[k] = v;

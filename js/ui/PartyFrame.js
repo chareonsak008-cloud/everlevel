@@ -66,7 +66,7 @@ export class PartyFrame {
     this.pr.innerHTML = '';
     for (const p of S.prompts) {
       const d = document.createElement('div'); d.className = 'sp-card ' + p.kind;
-      d.innerHTML = `<span class="sp-ic">${p.kind === 'guild' ? '🛡️' : '🤝'}</span><p></p><div class="sp-btns"><button type="button" class="yes">ตกลง</button><button type="button" class="no">ไม่</button></div>`;
+      d.innerHTML = `<span class="sp-ic">${p.kind === 'guild' ? '🛡️' : p.kind === 'friend' ? '💛' : '🤝'}</span><p></p><div class="sp-btns"><button type="button" class="yes">ตกลง</button><button type="button" class="no">ไม่</button></div>`;
       d.querySelector('p').textContent = p.text;
       d.querySelector('.yes').addEventListener('click', () => S.answer(p.id, true));
       d.querySelector('.no').addEventListener('click', () => S.answer(p.id, false));

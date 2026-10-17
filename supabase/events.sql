@@ -122,7 +122,7 @@ begin
  update world_boss_runs set hp=hp-v_damage,defeated_at=case when hp-v_damage<=0 then now() else null end,status=case when hp-v_damage<=0 then 'defeated' else 'active' end where id=p_id returning * into b;
  if b.status='defeated' then
   insert into event_notices(message) values('บอสโลก '||(case b.type when 'world_aurex' then 'ออเร็กซ์ จอมทัพโลก' else 'น็อคธาร์ ราชันคราสโลก' end)||' ถูกกำจัดแล้ว! ผู้ร่วมต่อสู้รับรางวัลทางจดหมาย');
-  for w in select p.user_id,c.name from world_boss_participants p join characters c on c.user_id=p.user_id and c.slot=p.slot where p.run_id=p_id and p.damage>0 loop
+  for w in select wp.user_id,ch.name from world_boss_participants wp join characters ch on ch.user_id=wp.user_id and ch.slot=wp.slot where wp.run_id=p_id and wp.damage>0 loop   -- v0.38: เดิมใช้ชื่อ p/c ซ้ำกับตัวแปร → error ตอนตีครั้งสุดท้าย บอสเลยไม่ตาย
    insert into world_boss_rewards(run_id,user_id) values(p_id,w.user_id) on conflict do nothing;
    if found then
     insert into mails(to_name,sender,title,body,items,zeny,per)

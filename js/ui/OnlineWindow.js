@@ -5,7 +5,7 @@ import { EMBLEM_SHAPES, EMBLEM_ICONS, EMBLEM_COLORS, emblemSvg, parseEmblem, emb
 import { GUILD_COST, GUILD_LV, PARTY_MAX } from '../systems/Social.js';
 
 const clean = (s, n = 16) => String(s || '').replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g, '').slice(0, n);
-const TABS = [['here', 'แผนที่นี้'], ['all', 'ออนไลน์'], ['party', 'ปาร์ตี้'], ['guild', 'กิลด์'], ['rank', 'อันดับ']];
+const TABS = [['here', 'แผนที่นี้'], ['all', 'ออนไลน์'], ['friends', 'เพื่อน'], ['party', 'ปาร์ตี้'], ['guild', 'กิลด์'], ['rank', 'อันดับ']];
 
 export class OnlineWindow {
   constructor(root, game) {
@@ -39,6 +39,7 @@ export class OnlineWindow {
     const g = this.game, S = g.social, o = g.online;
     const base = [this.tab, g.mode, o && o.online, o && o.connected && o.connected(), S.pid, S.guildId, S.isGuildLeader, S.isLeader, g.map && g.map.id];
     if (this.tab === 'here' || this.tab === 'all') base.push((o && o.online ? o.peers() : []).map((p) => { const P = p.presence || {}; return [p.peer, p.isMe, P.n, P.j, P.lv, P.m, P.gd, S.members.has(p.peer)]; }));
+    else if (this.tab === 'friends') base.push(S.friendList());
     else if (this.tab === 'party') base.push(S.memberList().map((m) => [m.key, m.n, m.j, m.lv, m.m, Math.round(m.h * 20), m.leader]));
     else if (this.tab === 'guild') base.push(S.guild, S.guildInvites, [...S.guildOnline.values()], S.guildErr, this.busy, g.player.baseLevel >= GUILD_LV, g.player.zeny >= GUILD_COST);
     else base.push(this.rankAt);
@@ -65,6 +66,7 @@ export class OnlineWindow {
     sub.textContent = g.online.connected() ? `ออนไลน์อยู่ ${peers.length || 1} คน` : 'กำลังเชื่อมต่อห้องผู้เล่น...';
     if (this.tab === 'rank') return this.renderRank(list);
     if (this.tab === 'party') return this.renderParty(list);
+    if (this.tab === 'friends') return this.renderFriends(list);
     if (this.tab === 'guild') return this.renderGuild(list);
     const mapId = g.map && g.map.id;
     const rows = this.tab === 'here' ? others.filter((p) => p.presence.m === mapId) : others;
@@ -106,6 +108,41 @@ export class OnlineWindow {
       r.append(box);
     }
     return r;
+  }
+
+  /* ---------- v0.38 เพื่อน ---------- */
+  renderFriends(list) {
+    const g = this.game, S = g.social;
+    const fl = S.friendList();
+    const info = document.createElement('p'); info.className = 'on-note';
+    info.textContent = fl.length ? `เพื่อน ${fl.length} คน · ออนไลน์ ${fl.filter((f) => f.online).length} คน` : 'ยังไม่มีเพื่อน — คลิก/แตะที่ตัวผู้เล่นคนอื่นแล้วกด "เพิ่มเพื่อน" หรือพิมพ์ชื่อด้านล่าง';
+    list.append(info);
+    const addRow = document.createElement('div'); addRow.className = 'g-preview';
+    addRow.innerHTML = '<input class="g-name" maxlength="16" placeholder="ชื่อตัวละครที่จะเพิ่ม" aria-label="ชื่อเพื่อน"><button type="button" class="on-act">เพิ่ม</button>';
+    const inp = addRow.querySelector('input');
+    inp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') addRow.querySelector('button').click(); });
+    addRow.querySelector('button').addEventListener('click', () => { const n = inp.value.trim(); if (n.length >= 2) { S.addFriend(n); inp.value = ''; this.lastSig = null; this.render(); } });
+    list.append(addRow);
+    for (const f of fl) {
+      const r = document.createElement('div'); r.className = 'on-row' + (f.online ? ' on' : ' off');
+      const J = JOBS[f.j] || JOBS.novice;
+      r.innerHTML = '<span class="on-crest"></span><div class="on-info"><b></b><small></small></div>';
+      r.querySelector('.on-crest').textContent = f.online ? J.crest : '·'; r.querySelector('.on-crest').style.setProperty('--jc', f.online ? J.color : '#555');
+      r.querySelector('b').textContent = f.name;
+      r.querySelector('small').textContent = f.online ? `● Lv.${f.lv} ${J.name} · ${(MAPS[f.m] || {}).name || ''}` : 'ออฟไลน์';
+      const box = document.createElement('div'); box.className = 'on-acts';
+      if (f.online && S.enabled) {
+        const w = document.createElement('button'); w.type = 'button'; w.className = 'on-act'; w.textContent = 'กระซิบ';
+        w.addEventListener('click', () => { this.toggle(false); g.chat.setChannel('t'); g.chat.setWhisperTo(f.name, true); g.chat.focus(); });
+        const p = document.createElement('button'); p.type = 'button'; p.className = 'on-act'; p.textContent = '+ปาร์ตี้';
+        p.disabled = S.inParty && S.members.has(f.key);
+        p.addEventListener('click', () => S.invite(f.key, f.name));
+        box.append(w, p);
+      }
+      const d = document.createElement('button'); d.type = 'button'; d.className = 'on-act no'; d.textContent = 'ลบ';
+      d.addEventListener('click', () => { if (d.dataset.sure) S.removeFriend(f.name); else { d.dataset.sure = '1'; d.textContent = 'ยืนยัน?'; } });
+      box.append(d); r.append(box); list.append(r);
+    }
   }
 
   /* ---------- v0.37 ปาร์ตี้ ---------- */
@@ -212,15 +249,15 @@ export class OnlineWindow {
     const draw = () => { prev.innerHTML = emblemSvg(cur.code); this.emb = cur.code; };
     draw();
     box.append(this.emblemEditor(cur, draw));
-    const msg = document.createElement('p'); msg.className = 'g-msg';
+    const msg = document.createElement('p'); msg.className = 'g-msg'; msg.textContent = this.gmsg || '';
     const b = document.createElement('button'); b.type = 'button'; b.className = 'on-wide'; b.textContent = `ก่อตั้งกิลด์ (${GUILD_COST.toLocaleString()} Zeny)`;
     b.disabled = !okLv || !okZ || this.busy;
     b.addEventListener('click', async () => {
       const name = inp.value.replace(/\s+/g, ' ').trim();
       if (name.length < 2) { msg.textContent = 'ตั้งชื่อกิลด์ 2–16 ตัวอักษร'; return; }
-      this.busy = true; b.disabled = true; msg.textContent = 'กำลังก่อตั้ง…';
-      try { await S.createGuild(name, cur.code); this.gname = ''; this.emb = randomEmblem(); this.busy = false; this.render(); }
-      catch (e) { this.busy = false; b.disabled = false; msg.textContent = e.message || String(e); }
+      this.busy = true; b.disabled = true; msg.textContent = this.gmsg = 'กำลังก่อตั้ง…';
+      try { await S.createGuild(name, cur.code); this.gname = ''; this.gmsg = ''; this.emb = randomEmblem(); this.busy = false; this.lastSig = null; this.render(); }
+      catch (e) { this.busy = false; this.gmsg = e.message || String(e); this.lastSig = null; this.render(); }
     });
     box.append(b, msg);
     list.append(box);

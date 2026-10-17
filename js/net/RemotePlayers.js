@@ -87,7 +87,7 @@ class RemotePlayer {
     if (Number.isFinite(tp)) { if (this.tp !== undefined && tp !== this.tp) { this.x = x; this.y = y; } this.tp = tp; }   // ผู้ส่งวาร์ปในแมพ: ย้ายตามทันที
     const off = this.clock * 1000 - s;
     this.off = this.off === undefined ? off : Math.min(off, this.off + 1);
-    this.anchor = { s, x, y, vx: Number.isFinite(vx) ? vx : 0, vy: Number.isFinite(vy) ? vy : 0, cap: Math.min(3500, Math.max(1500, (Number.isFinite(e) ? e : 1500) + 500)) };   // เดินต่อได้นานสุดเท่าที่ผู้ส่งสัญญา (+0.5 วินาที) · วิ่งเลยสูงสุด ~280 px
+    this.anchor = { s, x, y, vx: Number.isFinite(vx) ? vx : 0, vy: Number.isFinite(vy) ? vy : 0, cap: Math.min(3000, Math.max(1200, (Number.isFinite(e) ? e : 1500) + 250)) };   // v0.38: เดินเลยน้อยลง (ลดอาการดีดกลับ)   // เดินต่อได้นานสุดเท่าที่ผู้ส่งสัญญา (+0.5 วินาที) · วิ่งเลยสูงสุด ~280 px
   }
 
   update(dt) {

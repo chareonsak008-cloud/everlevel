@@ -22,6 +22,8 @@ export const refineTargets = (player) => gearList(player, (it) => canRefine(it))
 
 // ตรวจเงื่อนไขก่อนตีบวก → { ok, reason, target, mat, fee, rate, fail }
 export function refineCheck(player, ref, guard = false) {
+  // v0.38: ชิ้นที่เลือกต้องยังอยู่ที่เดิม (กันสวม/ถอดระหว่างรอค้อนตี → ของงอกเป็น 2 ชิ้น)
+  if (!gearOwned(player, ref)) return { ok: false, reason: 'ไม่พบอุปกรณ์ชิ้นนี้แล้ว (ถูกสวม/ถอดไป) เลือกใหม่อีกครั้ง' };
   const it = ITEMS[ref.key];
   if (!canRefine(it)) return { ok: false, reason: 'อุปกรณ์ชิ้นนี้ตีบวกไม่ได้' };
   const { refine } = itemMods(ref.key);
@@ -53,6 +55,8 @@ export function doRefine(player, ref, guard = false, rnd = Math.random) {
   return { result, oldKey: ref.key, newKey, from: refine, to, guarded: chk.useGuard };
 }
 
+export const gearOwned = (player, ref) => !!ref && !!ref.key && (ref.where === 'equip' ? player.equip[ref.slot] === ref.key : player.inventory.count(ref.key) > 0);
+
 // แทนที่ชิ้นอุปกรณ์ (newKey = null คืออุปกรณ์แตกหาย) แล้วอัปเดตปุ่มลัดที่ชี้ชิ้นเดิม
 export function replaceGear(player, ref, newKey) {
   if (ref.where === 'equip') player.equip[ref.slot] = newKey;
@@ -75,6 +79,7 @@ export function socketTargets(player, cardId) {
 export function doSocket(player, ref, cardId) {
   const c = CARDS[cardId], it = ITEMS[ref.key];
   if (!c || !it) return { error: 'ไม่พบการ์ดหรืออุปกรณ์' };
+  if (!gearOwned(player, ref)) return { error: 'ไม่พบอุปกรณ์ชิ้นนี้แล้ว เลือกใหม่อีกครั้ง' };
   if (player.inventory.count(cardId) < 1) return { error: 'ไม่มีการ์ดใบนี้' };
   const { base, refine, cards, roll } = itemMods(ref.key);
   if (it.slot !== c.on) return { error: `การ์ดใบนี้ใส่ได้เฉพาะ${c.on}` };

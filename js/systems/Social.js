@@ -40,6 +40,9 @@ export class Social {
       this.net.onLobby('pi', (p) => this.onPartyInvite(p));
       this.net.onLobby('pr', (p) => this.onPartyReply(p));
       this.net.onLobby('gi', (p) => this.onGuildInvite(p));
+      this.net.onLobby('wh', (p) => this.onWhisper(p));          // v0.38 กระซิบ
+      this.net.onLobby('fr', (p) => this.onFriendAdd(p));        // v0.38 มีคนเพิ่มเราเป็นเพื่อน
+      this.net.onLobby('wc', (p) => this.onWorld(p), true);      // v0.38 แชตโลก (ทุกแผนที่)
     }
     const saved = this.loadPid();
     if (saved && !this.pid) this.joinParty(saved, true);
@@ -50,6 +53,86 @@ export class Social {
   storeKey() { const o = this.net; return `everlevel-party-${(o.uid || '').slice(0, 8)}-${o.slot || 0}`; }
   loadPid() { try { const v = JSON.parse(localStorage.getItem(this.storeKey()) || 'null'); return v && Date.now() - v.t < 30 * 60000 && /^[a-z0-9]{6,12}$/.test(v.pid) ? v.pid : null; } catch (e) { return null; } }
   savePid() { try { if (this.pid) localStorage.setItem(this.storeKey(), JSON.stringify({ pid: this.pid, t: Date.now() })); else localStorage.removeItem(this.storeKey()); } catch (e) { /* */ } }
+
+  /* ======================= v0.38 แชตโลก · กระซิบ · เพื่อน ======================= */
+  needOnline() { if (this.enabled) return true; this.log('ใช้ได้เฉพาะตอนเล่นออนไลน์ด้วยบัญชี Everlevel', 'sys'); return false; }
+
+  sendWorld(text) {
+    if (!this.needOnline()) return false;
+    const now = Date.now();
+    if (now - (this.worldAt || 0) < 4000) { this.log('แชตโลกส่งได้ทุก 4 วินาที', 'sys'); return false; }
+    this.worldAt = now;
+    const pl = this.game.player;
+    this.net.lobbySend('wc', { n: pl.name, m: text, t: now }).then((r) => { if (r !== 'ok') this.log('ส่งแชตโลกไม่สำเร็จ ลองใหม่อีกครั้ง', 'sys'); });
+    this.game.hud.log(`[โลก] ${pl.name} : ${text}`, 'world me');
+    return true;
+  }
+  onWorld(p) {
+    const text = clean(p.m, 120), who = clean(p.n);
+    if (!text || !Number.isFinite(p.t) || this.dupMsg('wc' + p.k + p.t) || this.isBlocked(who)) return;
+    this.game.hud.log(`[โลก] ${who} : ${text}`, 'world');
+  }
+
+  whisper(name, text) {
+    if (!this.needOnline()) return false;
+    name = clean(name).trim();
+    if (!name) { this.log('ใส่ชื่อผู้เล่นที่จะกระซิบก่อน', 'sys'); return false; }
+    if (name === this.game.player.name) { this.log('กระซิบหาตัวเองไม่ได้', 'sys'); return false; }
+    const key = this.net.keyByName(name);
+    if (!key) { this.log(`${name} ไม่ได้ออนไลน์อยู่ (หรือพิมพ์ชื่อผิด)`, 'sys'); return false; }
+    const pl = this.game.player, t = Date.now();
+    this.net.lobbySend('wh', { to: key, n: pl.name, m: text, t }).then((r) => { if (r !== 'ok') this.log('ส่งข้อความกระซิบไม่สำเร็จ ลองใหม่อีกครั้ง', 'sys'); });
+    this.game.hud.log(`[กระซิบถึง ${name}] ${text}`, 'whisper me');
+    this.whisperTo = name; this.changed();
+    return true;
+  }
+  onWhisper(p) {
+    const g = this.game, text = clean(p.m, 120), who = clean(p.n);
+    if (!text || !who || !Number.isFinite(p.t) || this.dupMsg('wh' + p.k + p.t) || this.isBlocked(who)) return;
+    g.hud.log(`[กระซิบจาก ${who}] ${text}`, 'whisper');
+    g.sfx('chat');
+    this.replyTo = who;
+    if (!this.whisperTo) this.whisperTo = who;
+    this.changed();
+  }
+
+  get friends() { return this.game.player.friends || (this.game.player.friends = []); }
+  isFriend(name) { const n = String(name || '').toLowerCase(); return this.friends.some((f) => f.toLowerCase() === n); }
+  isBlocked() { return false; }
+  addFriend(name, notify = true) {
+    name = clean(name).trim();
+    if (!name || name === this.game.player.name) return;
+    if (this.isFriend(name)) { this.log(`${name} เป็นเพื่อนอยู่แล้ว`, 'sys'); return; }
+    if (this.friends.length >= 100) { this.log('รายชื่อเพื่อนเต็มแล้ว (100 คน)', 'sys'); return; }
+    this.friends.push(name);
+    this.game.dirty = true;
+    this.log(`เพิ่ม ${name} เป็นเพื่อนแล้ว · ดูว่าเพื่อนออนไลน์ไหมได้ที่แท็บ "เพื่อน" (👥)`, 'net');
+    const key = notify && this.enabled ? this.net.keyByName(name) : null;
+    if (key) this.net.lobbySend('fr', { to: key, n: this.game.player.name });
+    this.changed();
+  }
+  removeFriend(name) {
+    const n = String(name).toLowerCase();
+    const before = this.friends.length;
+    this.game.player.friends = this.friends.filter((f) => f.toLowerCase() !== n);
+    if (before !== this.friends.length) { this.game.dirty = true; this.log(`ลบ ${name} ออกจากรายชื่อเพื่อนแล้ว`, 'sys'); }
+    this.changed();
+  }
+  onFriendAdd(p) {
+    const who = clean(p.n);
+    if (!who) return;
+    if (this.isFriend(who)) { this.log(`${who} เพิ่มคุณเป็นเพื่อนแล้ว 🤝`, 'net'); return; }
+    this.prompt({ id: 'f' + who, kind: 'friend', text: `${who} เพิ่มคุณเป็นเพื่อน — เพิ่มกลับไหม?`, yes: () => this.addFriend(who, false), no: () => {} });
+  }
+  // สถานะเพื่อน: ออนไลน์อยู่ไหม แผนที่ไหน (จากห้องรวม)
+  friendList() {
+    const peers = this.enabled ? this.net.peers() : [];
+    return this.friends.map((name) => {
+      const n = name.toLowerCase();
+      const p = peers.find((q) => !q.isMe && q.presence && typeof q.presence.n === 'string' && q.presence.n.toLowerCase() === n);
+      return { name, online: !!p, key: p ? p.peer : null, m: p ? p.presence.m : '', lv: p ? p.presence.lv : 0, j: p ? p.presence.j : '' };
+    }).sort((a, b) => b.online - a.online || a.name.localeCompare(b.name));
+  }
 
   /* ======================= ปาร์ตี้ ======================= */
   get inParty() { return !!this.pid; }
