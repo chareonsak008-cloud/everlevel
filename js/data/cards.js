@@ -1,7 +1,7 @@
 // การ์ดมอนสเตอร์ (v0.10) — ใส่ในช่องการ์ดของอุปกรณ์ เพิ่มค่าสถานะถาวร (ใส่แล้วถอดไม่ได้)
 // on = ช่องอุปกรณ์ที่ใส่ได้ · drop = โอกาสดรอปต่อการกำจัด 1 ตัว (หายากมาก)
 
-import { CARD_CATALOG, CARD_MAPS, toBonus } from './cardCatalog.js?v=0.40.3';
+import { CARD_CATALOG, CARD_MAPS, toBonus } from './cardCatalog.js?v=0.40.5';
 
 // v0.29: การ์ดทั้งหมดมาจาก cardCatalog.js (Normal / Elite / MVP) · รหัสการ์ดเดิมใช้ต่อได้
 // legacyOn = ช่องเดิมก่อน v0.29 — อุปกรณ์ที่เคยเสียบไว้แล้วยังใช้ได้ (เสียบใหม่ต้องใช้ช่องใหม่)
