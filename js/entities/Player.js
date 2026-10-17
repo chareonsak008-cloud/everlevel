@@ -9,7 +9,7 @@ import {
 import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js';
 import { setInfo } from '../data/affixes.js';
 import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js';
-import { SKILLS, skillTrees } from '../data/skills.js';
+import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js';
 import { Inventory } from '../systems/Inventory.js';
 import { START_ZENY, MAX_ZENY } from '../data/shops.js';
 import { COSTUME_BY_ID } from '../data/costumes.js';
@@ -67,6 +67,9 @@ export const JOB_LOOK_V2 = {
 export const isSkillKey = (k) => typeof k === 'string' && k.startsWith('skill:');
 export const validHotkey = (k) => (isSkillKey(k) ? !!SKILLS[k.slice(6)] : !!ITEMS[k]);
 
+const JOB_LINE = { knight: 'swordsman', wizard: 'mage', hunter: 'archer', priest: 'acolyte' };
+export const jobLine = (job) => JOB_LINE[job] || job;
+
 export class Player extends Entity {
   constructor(name, x, y) {
     super({ name, x, y, look: PLAYER_LOOK });
@@ -92,6 +95,7 @@ export class Player extends Entity {
     for (const sl of EQUIP_SLOTS) this.equip[sl.id] = START_EQUIP[sl.id] || null;
     this.hotbar = [...START_HOTBAR];
     this.zeny = START_ZENY;
+    this.friends = [];   // v0.38: รายชื่อเพื่อน (ชื่อตัวละคร)
     // สกิล (v0.6)
     this.skills = { first_aid: 1 };   // id → เลเวล
     this.buffs = [];                  // { id, lv, left, total, bonus }
@@ -204,7 +208,12 @@ export class Player extends Entity {
   }
 
   /* ---------- แฟชั่น (v0.9) ---------- */
-  fashionFits(it) { return it.slot !== 'weapon' || it.kind === 'pixel' || (FASHION_WEAPON_FIT[it.wtype] || []).includes(this.weaponType); }
+  // v0.39: สกินอาวุธพิกเซล (p.job) ใช้ได้เฉพาะสายอาชีพนั้น (เช่น swordsman = Swordsman + Knight)
+  fashionFits(it) {
+    if (it.slot !== 'weapon') return true;
+    if (it.kind === 'pixel') return !(it.p && it.p.job) || jobLine(this.jobId) === it.p.job;
+    return (FASHION_WEAPON_FIT[it.wtype] || []).includes(this.weaponType);
+  }
 
   // ชิ้นแฟชั่นที่แสดงบนตัวจริง (slot → ข้อมูลชิ้น) — อาวุธแฟชั่นที่ไม่เข้ากับอาวุธที่ถือจะถูกซ่อน
   fashionItems() {
@@ -623,6 +632,7 @@ export class Player extends Entity {
       attr: { ...this.attr }, statPoints: this.statPoints, skillPoints: this.skillPoints,
       inventory: this.inventory.toSave(), equip: { ...this.equip }, hotbar: [...this.hotbar], zeny: this.zeny,
       skills: { ...this.skills },
+      friends: [...this.friends],
       hp: Math.round(this.hp), sp: Math.round(this.sp),
       fashion: { owned: [...this.fashion.owned], worn: { ...this.fashion.worn }, opened: this.fashion.opened, hidden: this.fashion.hidden },
       quests: JSON.parse(JSON.stringify(this.quests)),
@@ -658,6 +668,7 @@ export class Player extends Entity {
     this.visited = new Set(['asteria_town', ...(Array.isArray(p.visited) ? p.visited.filter((m) => typeof m === 'string' && m.length < 40).slice(0, 50) : [])]);
     this.auto = normAuto(p.auto);     // v0.14: ตั้งค่าออโต้
     this.cid = typeof p.cid === 'string' && /^[a-z0-9]{8,24}$/.test(p.cid) ? p.cid : newCid();   // v0.15
+    this.friends = Array.isArray(p.friends) ? [...new Set(p.friends.filter((n) => typeof n === 'string' && n.length >= 2 && n.length <= 16))].slice(0, 100) : [];
     this.mail = { welcome: !!(p.mail && p.mail.welcome), box: [], hidden: new Set(p.mail && Array.isArray(p.mail.hidden) ? p.mail.hidden.filter((k) => typeof k === 'string' && k.length < 80).slice(-300) : []) };
     // v0.18: จดหมายจากระบบเกม (ตรวจของ/จำนวนเหมือนจดหมายเซิร์ฟเวอร์)
     if (p.mail && Array.isArray(p.mail.box)) for (const m of p.mail.box.slice(0, 20)) {
@@ -690,6 +701,10 @@ export class Player extends Entity {
     this.skills = { first_aid: 1 };
     if (p.skills && typeof p.skills === 'object') {
       for (const [id, lv] of Object.entries(p.skills)) if (SKILLS[id]) this.skills[id] = Math.max(0, Math.min(SKILLS[id].maxLv, Math.floor(lv) || 0));
+      // v0.35: สกิล Wizard ชุดเก่า (v0.31) ถูกแทนที่ → คืนแต้มสกิลให้เรียนชุดใหม่
+      let refund = 0;
+      for (const [id, lv] of Object.entries(p.skills)) if (!SKILLS[id] && LEGACY_JOB2.includes(id)) refund += Math.max(0, Math.floor(lv) || 0);
+      if (refund) { this.skillPoints += refund; this.skillRefund = refund; }
     }
     // เควส (v0.10) — ตรวจความถูกต้องใน systems/Quests.js ตอนโหลด
     const Q = p.quests && typeof p.quests === 'object' ? p.quests : {};

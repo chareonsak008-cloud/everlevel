@@ -41,7 +41,7 @@ export const BOX_ITEMS = {
 export const BOX_IDS = Object.keys(BOX_ITEMS);
 
 // รายชื่อชิ้นแฟชั่นแยกตามระดับ
-const POOL = Object.fromEntries(FASHION_TIERS.map((t) => [t, COSTUMES.filter((c) => c.rarity === t)]));
+const POOL = Object.fromEntries(FASHION_TIERS.map((t) => [t, COSTUMES.filter((c) => c.rarity === t && !(c.p && c.p.job))]));   // v0.39: สกินอาวุธเฉพาะอาชีพไม่สุ่มจากกล่อง (ได้จาก GM/กิจกรรม)
 export const poolSize = (tier) => POOL[tier].length;
 // v0.13: สุ่ม 1 ชิ้นจากระดับที่กำหนด (กิเลนเมฆาสวรรค์อัประดับกล่อง)
 export const pickOfTier = (tier, rnd = Math.random) => { const p = POOL[tier]; return p && p.length ? p[Math.floor(rnd() * p.length) % p.length] : null; };

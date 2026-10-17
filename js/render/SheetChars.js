@@ -8,12 +8,22 @@ import { THREE } from './three.js';
 const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1, 2, 3], attack: [4, 5, 6, 7] } };
 // แผ่นจาก PixelLab 13×8 (ช่อง 96px): คอลัมน์ 0 = ยืน · 1–8 เดิน · 9–12 โจมตี
 const PXLAB = { cols: 13, size: 3.55, pixel: true, anim: { idle: [0], walk: [1, 2, 3, 4, 5, 6, 7, 8], attack: [9, 10, 11, 12] } };
+// v0.39: แผ่นชุดใหม่ (ช่อง 128px · อาวุธใหญ่เห็นชัด · ท่ายืนหายใจ 8 เฟรม · เดิน 8 · ฟัน 8 · ร่ายสกิล 8) — ทำทีละอาชีพ
+// แผ่น 16×16 ช่อง 144px: ทิศละ 2 แถว — แถวบน คอลัมน์ 0–7 ยืน · 8–15 เดิน / แถวล่าง 0–7 โจมตี · 8–15 สกิล (ขนาดบนจอเทียบความละเอียดเดิม 96px = 3.55 หน่วย)
+const R = (a, n) => Array.from({ length: n }, (_, i) => a + i);
+const PX2 = { cols: 16, rows: 16, rowsPerDir: 2, size: 3.55 * 144 / 96, pixel: true, foot: 96 / 144, head: 24 / 144,
+  anim: { idle: R(0, 8), walk: R(8, 8), attack: R(0, 8), skill: R(8, 8) }, row: { idle: 0, walk: 0, attack: 1, skill: 1 },
+  fps: { idle: { fps: 6, loop: true }, walk: { fps: 11, loop: true }, attack: { fps: 18, loop: false }, skill: { fps: 12, loop: false } } };
 export const SHEETS = {
-  swordsman: { ...PXLAB, src: 'assets/sprites/swordsman_px.png', foot: 75.5 / 96 },
+  swordsman: { ...PX2, src: 'assets/sprites/swordsman_v2.png' },   // v0.39 ดาบใหญ่ · ท่าละ 8 เฟรม
+  swordsman_flame: { ...PX2, src: 'assets/sprites/swordsman_flame.png', base: 'swordsman' },   // v0.39 สกินดาบเพลิงชาด
   archer: { ...PXLAB, src: 'assets/sprites/archer_px.png', foot: 75.5 / 96 },
   mage: { ...PXLAB, src: 'assets/sprites/mage_px.png', foot: 75.5 / 96 },
   acolyte: { ...PXLAB, src: 'assets/sprites/acolyte_px.png', foot: 75.5 / 96 },
 };
+// v0.39 สกินอาวุธ (แผ่นทั้งตัวที่ถืออาวุธลายอื่น) — key = ชื่อแผ่น · เลือกได้จากชิ้นแฟชั่นอาวุธ { sheet: key, job }
+export const SKIN_SHEETS = {};
+export function registerSheet(key, def) { SHEETS[key] = def; }
 const LINE = { knight: 'swordsman', wizard: 'mage', hunter: 'archer', priest: 'acolyte' };
 export const sheetOf = (job) => (SHEETS[job] ? job : LINE[job] || null);
 // อาชีพที่ใช้ตัวละครพิกเซลในเกมจริงแล้ว (Novice ยังเป็นโมเดลเดิม)
@@ -35,12 +45,13 @@ export function screenDir(angle, camera) {
 
 const FPS = { idle: { fps: 1, loop: true }, walk: { fps: 8, loop: true }, attack: { fps: 11, loop: false }, skill: { fps: 9, loop: false } };
 const framesOf = (S, name) => S.anim[name] || S.anim.attack;
+const fpsOf = (S, name) => (S.fps && S.fps[name]) || FPS[name];
 
 function sheetTexture(S) {
   const t = new THREE.TextureLoader().load(S.src);
   const f = S.pixel ? THREE.NearestFilter : THREE.LinearFilter;
   t.encoding = THREE.sRGBEncoding; t.magFilter = f; t.minFilter = f; t.generateMipmaps = false;
-  t.repeat.set(1 / S.cols, 1 / 8);
+  t.repeat.set(1 / S.cols, 1 / (S.rows || 8));
   return t;
 }
 
@@ -61,14 +72,17 @@ export class SheetSprite {
     this.setJob(job);
   }
 
-  setJob(job) {
-    const k = sheetOf(job); if (!k || k === this.job) return !!k;
+  // skin = แผ่นสกินอาวุธ (ถ้ามีและเป็นของสายอาชีพนี้)
+  setJob(job, skin = null) {
+    const base = sheetOf(job); if (!base) return false;
+    const k = skin && SHEETS[skin] && SHEETS[skin].base === base ? skin : base;
+    if (k === this.job) return true;
     this.job = k;
     if (this.tex) this.tex.dispose();
     this.S = SHEETS[k];
     this.tex = sheetTexture(this.S);
     this.mat.map = this.tex; this.mat.needsUpdate = true; this.xmat.map = this.tex; this.xmat.needsUpdate = true;
-    this.headH = this.S.size * (this.S.foot - 12 / 96) + 0.6;   // ความสูงถึงปลายผม (วางป้ายฉายา)
+    this.headH = this.S.size * (this.S.foot - (this.S.head || 12 / 96)) + 0.6;   // ความสูงถึงปลายผม (วางป้ายฉายา)
     return true;
   }
 
@@ -80,7 +94,7 @@ export class SheetSprite {
     const atk = view && view.attackT > 0;
     if (atk && view.lastAttackAt !== this.lastAtk) { this.lastAtk = view.lastAttackAt; this.play(view.attackKind === 'cast' ? 'skill' : 'attack'); this.t = 0; }
     const S = this.S;
-    const busy = (this.anim === 'attack' || this.anim === 'skill') && this.t < framesOf(S, this.anim).length / FPS[this.anim].fps + 0.06;
+    const busy = (this.anim === 'attack' || this.anim === 'skill') && this.t < framesOf(S, this.anim).length / fpsOf(S, this.anim).fps + 0.06;
     if (!busy) this.play(ent.cast || ent.castPose ? 'skill' : (ent.moving ?? ent.mv) ? 'walk' : 'idle');
     this.t += dt; this.life += dt;
     // ทิศเทียบกล้อง: ฉายทิศหันของตัวละครลงแกนจอ (ขวา / ลึกเข้าจอ)
@@ -94,14 +108,14 @@ export class SheetSprite {
     if (raw !== this.dir && diff < Math.PI / 8 - 0.06) this.dir = raw;            // กันสั่นตรงรอยต่อทิศ
     const d = DIR8[this.dir];
     // เฟรม
-    const A = FPS[this.anim], cols = framesOf(S, this.anim), n = cols.length;
+    const A = fpsOf(S, this.anim), cols = framesOf(S, this.anim), n = cols.length;
     let f = Math.floor(this.t * A.fps);
-    if (this.anim === 'skill' && (ent.cast || ent.castPose) && f >= 1 && n > 2) f = 1 + (Math.floor(this.t * 5) % 2);   // ร่ายค้าง (เฟรม 2–3 สลับ)
+    if (this.anim === 'skill' && (ent.cast || ent.castPose) && f >= 1 && n > 2) { const h = n >= 8 ? [n - 4, n - 3] : [1, 2]; if (f >= h[0]) f = h[Math.floor(this.t * 5) % 2]; }   // ร่ายค้าง (สลับ 2 เฟรมช่วงท้าย)
     f = A.loop ? f % n : Math.min(n - 1, f);
-    const col = cols[f], row = ROW[d];
-    this.tex.offset.set(col / S.cols, 1 - (row + 1) / 8);
+    const col = cols[f], row = ROW[d] * (S.rowsPerDir || 1) + ((S.row && S.row[this.anim]) || 0), NR = S.rows || 8;
+    this.tex.offset.set(col / S.cols, 1 - (row + 1) / NR);
     // วางตำแหน่ง · หันหากล้อง
-    const bob = this.anim === 'idle' && !ent.dead ? 1 + Math.sin(this.life * 2.6) * 0.012 : 1;
+    const bob = this.anim === 'idle' && !ent.dead && S.anim.idle.length < 2 ? 1 + Math.sin(this.life * 2.6) * 0.012 : 1;   // แผ่นที่มีท่าหายใจแล้วไม่ต้องยืดหด
     // แผ่นป้าย: ตามตำแหน่งเท้า หันหากล้อง ดันเข้าหากล้องเล็กน้อยกันจมพื้น/สะพาน/รั้ว (ย่อชดเชยให้ขนาดบนจอเท่าเดิม)
     const foot = this._c.set(ent.x / 16, ent.lift || 0, ent.y / 16);
     const toCam = this._b.copy(camera.position).sub(foot); const dist = toCam.length(); toCam.multiplyScalar(1 / dist);

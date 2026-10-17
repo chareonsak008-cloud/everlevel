@@ -164,7 +164,7 @@ export class Renderer3D {
     }
     for (const f of this.floats) f.el.remove();
     for (const e of this.emotes) e.el.remove();
-    this.dropViews.clear(); this.hoverDrop = null; this.dropLabel.hidden = true;
+    this.dropViews.clear(); this.dropHits = []; this.hoverDrop = null; this.dropLabel.hidden = true;
     this.flyDrops = [];
     this.floats = []; this.emotes = [];
     this.hover = null; this.target = null;
@@ -488,6 +488,10 @@ export class Renderer3D {
     if (npc) {
       const hb = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 1.9, 8), new THREE.MeshBasicMaterial({ visible: false }));
       hb.position.y = 0.95; hb.userData.npc = entity; view.root.add(hb); this.hitboxes.push(hb);
+    } else if (remote) {
+      // v0.38: คลิกผู้เล่นคนอื่น → เมนู (เชิญปาร์ตี้ · กระซิบ · เพิ่มเพื่อน)
+      const hb = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.9, 8), new THREE.MeshBasicMaterial({ visible: false }));
+      hb.position.y = 0.95; hb.userData.actor = entity; view.root.add(hb); this.hitboxes.push(hb);
     }
     const label = document.createElement('div');
     label.className = npc ? 'tag tag-npc' : remote ? 'tag tag-remote' : 'tag tag-player';
@@ -634,7 +638,9 @@ export class Renderer3D {
       if (c.sheet) { c.sheet.dispose(); c.sheet = null; c.ent = entity; this.sheetBody(c, false); }
       return;
     }
-    if (!c.sheet) { c.sheet = new SheetSprite(this.scene, job); c.sheetScale = root.scale.x; } else c.sheet.setJob(job);
+    const X = c.pxw && c.pxw.weapon && c.pxw.weapon.p.sheet ? c.pxw.weapon.p.sheet : null;   // v0.39 สกินอาวุธ = แผ่นทั้งตัว
+    if (!c.sheet) { c.sheet = new SheetSprite(this.scene, job); c.sheetScale = root.scale.x; }
+    c.sheet.setJob(job, X);
     // ตัวโมเดลซ่อน · เหลือเฉพาะชิ้นแฟชั่น (ปีก/หมวก/ออร่า) ขยายให้เข้ากับความสูงสไปรต์
     c.ent = entity; this.sheetBody(c, true);
     c.sheet.pivot.visible = !entity.hidden && root.visible;
@@ -649,7 +655,7 @@ export class Renderer3D {
     if (c.paura && (!A || c.paura.name !== A.p.vfx)) { c.paura.stop(); c.paura = null; }
     if (A && !c.paura) c.paura = this.pixelVfx().play(A.p.vfx, null, { scale: A.p.scale || 1, follow: entity });
     const X = !off && c.pxw ? c.pxw.weapon : null;
-    if (X && c.pxwLoaded !== X.p.vfx) { c.pxwLoaded = X.p.vfx; this.pixelVfx().load(X.p.vfx); }   // โหลดภาพเอฟเฟกต์อาวุธล่วงหน้า
+    if (X && X.p.vfx && c.pxwLoaded !== X.p.vfx) { c.pxwLoaded = X.p.vfx; this.pixelVfx().load(X.p.vfx); }   // โหลดภาพเอฟเฟกต์อาวุธล่วงหน้า
     if (!c.pwing && !c.paura) return;
     const vis = !entity.hidden && c.view.root.visible;
     if (c.pwing) c.pwing.update(dt, entity, c.sheet ? c.sheet.dir : screenDir(entity.angle, this.camera), this.camera, vis);
@@ -695,7 +701,7 @@ export class Renderer3D {
     c.view.attack(kind);
     // v0.35: อาวุธแฟชั่นภาพพิกเซล = เอฟเฟกต์ฟันประจำตัวทุกครั้งที่โจมตี (กลับด้านเมื่อหันซ้าย)
     const W = c.pxw && c.pxw.weapon;
-    if (W) { const d = c.sheet ? c.sheet.dir : screenDir(entity.angle, this.camera); this.pixelVfx().play(W.p.vfx, null, { scale: W.p.scale || 1, follow: entity, once: true, flip: d >= 5, delay: W.p.delay || 0 }); }
+    if (W && W.p.vfx) { const d = c.sheet ? c.sheet.dir : screenDir(entity.angle, this.camera); this.pixelVfx().play(W.p.vfx, null, { scale: W.p.scale || 1, follow: entity, once: true, flip: d >= 5, delay: W.p.delay || 0 }); }
   }
 
   /* ---------- บอส (v0.7) ---------- */

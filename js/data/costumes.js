@@ -310,6 +310,10 @@ COSTUMES.push(
   PX('wings', 'w_px_void', 'ปีกห้วงเงาสายฟ้า', 'Voidstorm Wings', 'mythic', 'ปีกเงาม่วงหมุนวนพร้อมสายฟ้าสีม่วง อักขระเรืองแสงตามขอบปีก · ปีกภาพพิกเซล 8 ทิศ', { px: 'void', cell: 113, frames: 6, fps: 8 }),
   PX('wings', 'w_px_seraph', 'ปีกเซราฟทองหกปีก', 'Golden Seraph Wings', 'celestial', 'ปีกทองสามคู่พร้อมรัศมีทองเหนือศีรษะ กระพือช้า ๆ อย่างศักดิ์สิทธิ์ · ปีกภาพพิกเซล 8 ทิศ', { px: 'seraph', cell: 124, frames: 6, fps: 6, lift: 1.25 }),
 );
+// v0.39 สกินอาวุธ = ตัวละครทั้งตัวที่ถืออาวุธลายใหม่ (ท่าครบทุกท่า) · ใช้ได้เฉพาะสายอาชีพนั้น (p.job)
+COSTUMES.push(
+  PX('weapon', 'x_sk_sw_flame', 'ดาบเพลิงชาด', 'Crimson Blaze Greatsword', 'legend', 'ดาบใหญ่ใบแดงส้มลุกเป็นไฟตลอดเวลา เปลี่ยนดาบที่ถือทุกท่า (ยืน เดิน ฟัน ร่ายสกิล) · เฉพาะสายนักดาบ (Swordsman / Knight)', { sheet: 'swordsman_flame', job: 'swordsman' }),
+);
 // ออร่า/อาวุธพิกเซล — ออกแบบเสร็จแล้ว รอไฟล์ภาพ (assets/vfx/aura_* · slash_*) ค่อยเปิดใช้
 export const PX_PENDING = [
   /* ---------- ออร่าพิกเซล ---------- */
