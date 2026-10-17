@@ -1,8 +1,8 @@
 // v0.31 หน้าทดลองเล่นอาชีพขั้นที่ 2 (โหลดเฉพาะ job2-trial.html) — ตัวละครทดลอง ไม่บันทึกเข้าบัญชีจริง
-import { SKILLS, jobSkills } from '../data/skills.js?v=0.41.0';
-import { JOBS, SECOND_OF } from '../data/progression.js?v=0.41.0';
-import { QUESTS, JOB2_QUEST } from '../data/quests.js?v=0.41.0';
-import { ITEMS } from '../data/items.js?v=0.41.0';
+import { SKILLS, jobSkills } from '../data/skills.js?v=0.41.1';
+import { JOBS, SECOND_OF } from '../data/progression.js?v=0.41.1';
+import { QUESTS, JOB2_QUEST } from '../data/quests.js?v=0.41.1';
+import { ITEMS } from '../data/items.js?v=0.41.1';
 
 const FIRST = {
   swordsman: { w: 'astral_sword', attr: { str: 70, agi: 40, vit: 60, int: 15, dex: 45, luk: 20 } },
@@ -75,9 +75,9 @@ function init(g) {
   const firstOf = () => (JOBS[p.jobId] && JOBS[p.jobId].parent) || p.jobId;
   const aurel = () => (g.npcs || []).find((n) => n.id === 'aurel') || { id: 'aurel', bubble: null };
 
-  for (const job of Object.keys(FIRST)) { const b = btn('jobs', `${JOBS[job].thai} → ${JOBS[SECOND_OF[job]].name}`, () => { setFirst(job); if (g.map.id !== 'asteria_town') g.warp('asteria_town', { x: 50.5, y: 14.5, angle: Math.PI }); }); b.dataset.job = job; }
+  for (const job of Object.keys(FIRST)) { const b = btn('jobs', `${JOBS[job].thai} → ${JOBS[SECOND_OF[job]].name}`, () => { setFirst(job); if (g.map.id !== 'asteria_town') g.warp('asteria_town', { x: 75.75, y: 21.75, angle: Math.PI }); }); b.dataset.job = job; }
 
-  btn('quest', 'ไปหาออเรล', () => { if (g.map.id === 'asteria_town') { p.x = 50.5 * 16; p.y = 14.5 * 16; p.path = []; } else g.warp('asteria_town', { x: 50.5, y: 14.5, angle: Math.PI }); });
+  btn('quest', 'ไปหาออเรล', () => { if (g.map.id === 'asteria_town') { p.x = 75.75 * 16; p.y = 21.75 * 16; p.path = []; } else g.warp('asteria_town', { x: 75.75, y: 21.75, angle: Math.PI }); });
   btn('quest', 'รับวัตถุดิบเควส', () => {
     const q = QUESTS[JOB2_QUEST[firstOf()]]; if (!q) { log('ต้องเป็นอาชีพขั้น 1 ก่อน'); return; }
     for (const gl of q.goals) if (gl.type === 'collect') p.inventory.add(gl.item, gl.n, true);
@@ -116,7 +116,7 @@ function init(g) {
   btn('zones', 'ยอดเขาหิมะ · Lv.20–45', () => g.warp('frostveil', null));
   btn('zones', 'ปล่องภูเขาไฟ · Lv.42–80', () => g.warp('ember_caldera', null));
   btn('zones', 'ซากโบราณ · Lv.60–78', () => g.warp('ancient_ruins', null));
-  btn('zones', 'กลับเมือง', () => g.warp('asteria_town', { x: 50.5, y: 14.5, angle: Math.PI }));
+  btn('zones', 'กลับเมือง', () => g.warp('asteria_town', { x: 75.75, y: 21.75, angle: Math.PI }));
 
   const state = panel.querySelector('.state');
   function refresh() {
