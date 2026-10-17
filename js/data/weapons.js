@@ -4433,5 +4433,5 @@ export const WEAPON_DEFS = [
 ];
 
 // v0.31: อาวุธเฉพาะอาชีพขั้นที่ 2
-import { JOB2_WEAPON_DEFS } from './job2Weapons.js?v=0.40.2';
+import { JOB2_WEAPON_DEFS } from './job2Weapons.js?v=0.40.3';
 WEAPON_DEFS.push(...JOB2_WEAPON_DEFS);

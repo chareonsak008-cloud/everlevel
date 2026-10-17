@@ -3,10 +3,10 @@
 // attackDelay = วินาทีต่อการโจมตี 1 ครั้ง | respawn = [ต่ำสุด, สูงสุด] วินาที
 // baseExp / jobExp = EXP ที่ผู้เล่นได้เมื่อกำจัด
 // drops = [ไอเทม, โอกาสดรอป 0..1] สุ่มแยกกันทีละชิ้น
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.40.2';
-import { BASE_ITEMS } from './items.js?v=0.40.2';
-import { WEAPON_DEFS } from './weapons.js?v=0.40.2';
-import { OFFHAND_DROPS } from './offhand.js?v=0.40.2';
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.40.3';
+import { BASE_ITEMS } from './items.js?v=0.40.3';
+import { WEAPON_DEFS } from './weapons.js?v=0.40.3';
+import { OFFHAND_DROPS } from './offhand.js?v=0.40.3';
 export const MONSTERS = {
   ...ENDGAME_MONSTERS,
   bloblet: {
