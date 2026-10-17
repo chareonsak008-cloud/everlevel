@@ -2,7 +2,8 @@
 // แผ่นละอาชีพ = 8 คอลัมน์ × 8 แถว (ช่องละ 128px)
 //   แถว: N · NE · E · SE · S · SW · W · NW  (ทิศตัวละครหันเทียบจอ)
 //   คอลัมน์ 0–3 = เดิน 4 เฟรม · 4–7 = โจมตี 4 เฟรม (นักบวช = ท่าร่าย/ฮีล)
-import { THREE } from './three.js';
+import { THREE } from './three.js?v=0.40.2';
+import { VERSION } from '../config.js?v=0.40.2';
 
 // แผ่นวาดมือ 8×8 (ช่อง 128px): คอลัมน์ 0–3 เดิน · 4–7 โจมตี
 const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1, 2, 3], attack: [4, 5, 6, 7] } };
@@ -13,7 +14,7 @@ const PXLAB = { cols: 13, size: 3.55, pixel: true, anim: { idle: [0], walk: [1, 
 const R = (a, n) => Array.from({ length: n }, (_, i) => a + i);
 const PX2 = { cols: 16, rows: 16, rowsPerDir: 2, size: 3.55 * 144 / 96, pixel: true, foot: 96 / 144, head: 24 / 144,
   anim: { idle: R(0, 8), walk: R(8, 8), attack: R(0, 8), skill: R(8, 8) }, row: { idle: 0, walk: 0, attack: 1, skill: 1 },
-  fps: { idle: { fps: 4.5, loop: true }, walk: { fps: 11, loop: true }, attack: { fps: 15, loop: false }, skill: { fps: 12, loop: false } } };   // v0.40.1 ยืนช้าลง · ฟันชัดขึ้น
+  fps: { idle: { fps: 6, loop: true }, walk: { fps: 11, loop: true }, attack: { fps: 14, loop: false }, skill: { fps: 12, loop: false } } };   // v0.40.2 ฟันชัดขึ้น
 // แผ่นช่องใหญ่กว่า 144 (เอฟเฟกต์/ปีกกว้าง) — ขนาดพิกเซลต่อหน่วยเท่าเดิม · foot = แถวพิกเซลเท้าจากขอบบน
 const PXC = (cell, foot) => ({ ...PX2, size: 3.55 * cell / 96, foot: foot / cell, head: (foot - 72) / cell });
 export const SHEETS = {
@@ -53,7 +54,7 @@ const framesOf = (S, name) => S.anim[name] || S.anim.attack;
 const fpsOf = (S, name) => (S.fps && S.fps[name]) || FPS[name];
 
 function sheetTexture(S) {
-  const t = new THREE.TextureLoader().load(S.src);
+  const t = new THREE.TextureLoader().load(`${S.src}?v=${VERSION}`);   // v0.40.2 กันภาพเก่าค้างแคช
   const f = S.pixel ? THREE.NearestFilter : THREE.LinearFilter;
   t.encoding = THREE.sRGBEncoding; t.magFilter = f; t.minFilter = f; t.generateMipmaps = false;
   t.repeat.set(1 / S.cols, 1 / (S.rows || 8));
@@ -98,16 +99,12 @@ export class SheetSprite {
     // ท่า
     const atk = view && view.attackT > 0;
     const S = this.S;
-    // v0.40.1 โจมตีรัว: ปรับความเร็วท่าให้จบพอดีรอบตี (เห็นท่าครบ) · ไม่เริ่มท่าใหม่กลางท่าที่ยังเล่นไม่ถึง 70%
+    // v0.40.2 โจมตีรัว: เล่นท่าด้วยความเร็วปกติ (อ่านท่าออก) · ระหว่างท่ายังไม่จบไม่เริ่มใหม่ — จบแล้วตีต่อก็เล่นรอบใหม่
     if (atk && view.lastAttackAt !== this.lastAtk) {
-      const gap = this.lastAtk ? view.lastAttackAt - this.lastAtk : 9;
       this.lastAtk = view.lastAttackAt;
-      if (gap > 0 && gap < 3) this.gap = this.gap ? this.gap * 0.6 + gap * 0.4 : gap;
-      else if (gap >= 3) this.gap = 0;
       const name = view.attackKind === 'cast' ? 'skill' : 'attack';
-      const n = framesOf(S, name).length, base = n / fpsOf(S, name).fps;
-      const inAtk = (this.anim === 'attack' || this.anim === 'skill') && this.t < this.dur * 0.7;
-      if (!inAtk) { this.dur = this.gap ? Math.min(base, Math.max(0.3, this.gap * 0.92)) : base; this.play(name); this.t = 0; }
+      const playing = (this.anim === 'attack' || this.anim === 'skill') && this.t < this.dur;
+      if (!playing) { this.dur = framesOf(S, name).length / fpsOf(S, name).fps; this.play(name); this.t = 0; }
     }
     const busy = (this.anim === 'attack' || this.anim === 'skill') && this.t < (this.dur || framesOf(S, this.anim).length / fpsOf(S, this.anim).fps) + 0.04;
     if (!busy) this.play(ent.cast || ent.castPose ? 'skill' : (ent.moving ?? ent.mv) ? 'walk' : 'idle');
@@ -124,8 +121,9 @@ export class SheetSprite {
     const d = DIR8[this.dir];
     // เฟรม
     const A = fpsOf(S, this.anim), cols = framesOf(S, this.anim), n = cols.length;
-    const act = this.anim === 'attack' || this.anim === 'skill';
-    let f = act && this.dur && !(ent.cast || ent.castPose) ? Math.floor(this.t / this.dur * n) : Math.floor(this.t * A.fps);
+    let f = Math.floor(this.t * A.fps);
+    // v0.40.2 ยืนนิ่ง: ค้างเฟรมแรก แล้วขยับท่ายืนรอบเดียวทุก ~5 วิ (ไม่ไหวตลอดเวลา)
+    if (this.anim === 'idle' && n > 1) { const cyc = n / A.fps, per = cyc + 4; const ph = (this.t + cyc) % per; f = ph < cyc ? Math.floor(ph * A.fps) : 0; }
     if (this.anim === 'skill' && (ent.cast || ent.castPose) && f >= 1 && n > 2) { const h = n >= 8 ? [n - 4, n - 3] : [1, 2]; if (f >= h[0]) f = h[Math.floor(this.t * 5) % 2]; }   // ร่ายค้าง (สลับ 2 เฟรมช่วงท้าย)
     f = A.loop ? f % n : Math.min(n - 1, f);
     const col = cols[f], row = ROW[d] * (S.rowsPerDir || 1) + ((S.row && S.row[this.anim]) || 0), NR = S.rows || 8;

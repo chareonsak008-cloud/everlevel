@@ -1,9 +1,9 @@
 // v0.27: หน้าต่างแผนที่ (N) — แท็บ "แผนที่นี้" (ผังเมือง/ทุ่ง + ป้ายชื่อ NPC/ทางออก) และ "แผนที่โลก" (ภูมิภาค · เลเวล · มอนสเตอร์)
-import { TILE } from '../config.js';
-import { TILE_INFO } from '../data/tileTypes.js';
-import { MAPS } from '../data/maps/index.js';
-import { MONSTERS } from '../data/monsters.js';
-import { GameMap } from '../world/GameMap.js';
+import { TILE } from '../config.js?v=0.40.2';
+import { TILE_INFO } from '../data/tileTypes.js?v=0.40.2';
+import { MAPS } from '../data/maps/index.js?v=0.40.2';
+import { MONSTERS } from '../data/monsters.js?v=0.40.2';
+import { GameMap } from '../world/GameMap.js?v=0.40.2';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const SVC = { shop: ['#ff9a3a', 'ร้านค้า'], storage: ['#5ae0a8', 'คลัง'], warp: ['#7fe0ff', 'วาร์ป'], job: ['#d49bff', 'เปลี่ยนอาชีพ'] };

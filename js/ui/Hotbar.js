@@ -1,9 +1,9 @@
 // แถบปุ่มลัด F1–F9 (หรือเลข 1–9): ใช้ยา/สวมใส่อุปกรณ์/ใช้สกิลได้ทันที
-import { ITEMS } from '../data/items.js';
-import { SKILLS, skillSp } from '../data/skills.js';
-import { iconURL } from '../render/ItemIcons.js';
-import { skillIconURL } from '../render/SkillIcons.js';
-import { isSkillKey, validHotkey } from '../entities/Player.js';
+import { ITEMS } from '../data/items.js?v=0.40.2';
+import { SKILLS, skillSp } from '../data/skills.js?v=0.40.2';
+import { iconURL } from '../render/ItemIcons.js?v=0.40.2';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.40.2';
+import { isSkillKey, validHotkey } from '../entities/Player.js?v=0.40.2';
 
 export class Hotbar {
   constructor(root, player, { onUse, onAssign }) {

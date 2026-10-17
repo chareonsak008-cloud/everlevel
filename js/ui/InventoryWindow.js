@@ -1,15 +1,15 @@
 // หน้าต่างกระเป๋า + อุปกรณ์ที่สวมใส่ (เปิดด้วย I หรือ Alt+E)
-import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js';
-import { weaponLines } from './WeaponInfo.js';
-import { refineBonus, canRefine } from '../data/refine.js';
-import { CARDS, cardSlotName } from '../data/cards.js';
-import { socketTargets } from '../systems/Forge.js';
-import { JOBS } from '../data/progression.js';
-import { iconURL } from '../render/ItemIcons.js';
-import { sellPrice, fmtZ } from '../data/shops.js';
-import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js';
-import { fmtDur } from '../data/consumables.js';
-import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js';
+import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.40.2';
+import { weaponLines } from './WeaponInfo.js?v=0.40.2';
+import { refineBonus, canRefine } from '../data/refine.js?v=0.40.2';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.40.2';
+import { socketTargets } from '../systems/Forge.js?v=0.40.2';
+import { JOBS } from '../data/progression.js?v=0.40.2';
+import { iconURL } from '../render/ItemIcons.js?v=0.40.2';
+import { sellPrice, fmtZ } from '../data/shops.js?v=0.40.2';
+import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.40.2';
+import { fmtDur } from '../data/consumables.js?v=0.40.2';
+import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.40.2';
 
 const TABS = [
   { id: 'all', name: 'ทั้งหมด', test: () => true },

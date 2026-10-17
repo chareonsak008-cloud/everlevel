@@ -1,9 +1,9 @@
-import {THREE} from '../render/three.js';
-import {CharacterView} from '../render/Characters.js';
-import {BASE_ITEMS,RARITY} from '../data/items.js';
-import {equipmentDesign,DESIGN_THEMES,DESIGN_GRADES} from '../data/equipmentDesigns.js';
-import {PLAYER_LOOK,JOB_LOOK} from '../entities/Player.js';
-import {iconURL} from '../render/ItemIcons.js';
+import {THREE} from '../render/three.js?v=0.40.2';
+import {CharacterView} from '../render/Characters.js?v=0.40.2';
+import {BASE_ITEMS,RARITY} from '../data/items.js?v=0.40.2';
+import {equipmentDesign,DESIGN_THEMES,DESIGN_GRADES} from '../data/equipmentDesigns.js?v=0.40.2';
+import {PLAYER_LOOK,JOB_LOOK} from '../entities/Player.js?v=0.40.2';
+import {iconURL} from '../render/ItemIcons.js?v=0.40.2';
 const $=id=>document.getElementById(id),levels=[1,15,30,50,70,85,95],weapons={swordsman:'sword',mage:'staff',archer:'bow',acolyte:'mace'};
 levels.forEach((lv,i)=>$('level').add(new Option('Lv.'+lv+' · '+DESIGN_THEMES[i].name,String(lv))));
 DESIGN_GRADES.forEach((gr,i)=>$('grade').add(new Option(['ขาว','เขียว','ฟ้า','ม่วง','ส้ม','ทอง','แดง'][i]+' · '+RARITY[gr].name,gr)));

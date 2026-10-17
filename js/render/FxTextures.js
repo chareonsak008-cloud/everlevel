@@ -1,7 +1,7 @@
 // เท็กซ์เจอร์สำหรับเอฟเฟกต์สกิล (วาดด้วย Canvas สีขาว แล้วย้อมสีด้วยวัสดุ)
-import { THREE } from './three.js';
-import { PIXEL } from './PixelSprites.js';
-import { pixelizeCanvas, nearestTexture } from './PixelArt.js';
+import { THREE } from './three.js?v=0.40.2';
+import { PIXEL } from './PixelSprites.js?v=0.40.2';
+import { pixelizeCanvas, nearestTexture } from './PixelArt.js?v=0.40.2';
 
 // v0.17: โหมดพิกเซล → ย่อเป็นภาพพิกเซล (ขนาดตามตาราง) ความโปร่งเป็นขั้น ขอบคม
 const PXS = { dot: [32, 5], star4: [24, 3], ring: [48, 3], crescent: [48, 3], cross: [40, 3], feather: [24, 3], wing: [48, 3], hex: [64, 3], snow: [20, 3], puff: [20, 4], scorch: [64, 4], eye: [56, 3], swords: [56, 3], flame: [24, 4], wind: [56, 3], cracks: [128, 3], vgrad: [32, 5] };

@@ -1,11 +1,11 @@
 // ภาพไอคอนชิ้นแฟชั่น (v0.9) — เรนเดอร์ 3 มิติของชิ้นนั้นลงผืนผ้าใบเล็ก แล้วเก็บเป็น dataURL ไว้ใช้ซ้ำ
 // ใช้ในตู้แฟชั่นและหน้าต่างเปิดกล่อง · สร้าง WebGL renderer แยกเฉพาะตอนที่ต้องใช้ครั้งแรก
-import { THREE } from './three.js';
-import { CharacterView } from './Characters.js';
-import { PLAYER_LOOK, JOB_LOOK } from '../entities/Player.js';
-import { costumeLook, wearCostume, makeRig, buildOnRig, CostumeRuntime } from './Costumes.js';
-import { COSTUME_BY_ID, COSTUMES } from '../data/costumes.js';
-import { PixelSprites, PIXEL } from './PixelSprites.js';   // v0.17: ไอคอนแฟชั่นแบบพิกเซล
+import { THREE } from './three.js?v=0.40.2';
+import { CharacterView } from './Characters.js?v=0.40.2';
+import { PLAYER_LOOK, JOB_LOOK } from '../entities/Player.js?v=0.40.2';
+import { costumeLook, wearCostume, makeRig, buildOnRig, CostumeRuntime } from './Costumes.js?v=0.40.2';
+import { COSTUME_BY_ID, COSTUMES } from '../data/costumes.js?v=0.40.2';
+import { PixelSprites, PIXEL } from './PixelSprites.js?v=0.40.2';   // v0.17: ไอคอนแฟชั่นแบบพิกเซล
 
 let R = null, tScene = null, tCam = null, BG = null;
 const cache = new Map();

@@ -1,10 +1,10 @@
-import { MAPS } from '../data/maps/index.js';
-import { MONSTERS } from '../data/monsters.js';
-import { ENDGAME_ITEMS } from '../data/endgameItems.js';
-import { ITEMS, RARITY, describeBonus } from '../data/items.js';
-import { CARDS, cardSlotName } from '../data/cards.js';
-import { GameMap } from '../world/GameMap.js';
-import { T } from '../data/tileTypes.js';
+import { MAPS } from '../data/maps/index.js?v=0.40.2';
+import { MONSTERS } from '../data/monsters.js?v=0.40.2';
+import { ENDGAME_ITEMS } from '../data/endgameItems.js?v=0.40.2';
+import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.40.2';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.40.2';
+import { GameMap } from '../world/GameMap.js?v=0.40.2';
+import { T } from '../data/tileTypes.js?v=0.40.2';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const colors={common:'ขาว',uncommon:'เขียว',rare:'ฟ้า',epic:'ม่วง',legend:'ส้ม',mythic:'ทอง',celestial:'แดง'};
 const pct=n=>(n*100).toLocaleString('th-TH',{maximumFractionDigits:3})+'%';

@@ -1,14 +1,15 @@
 // v0.35: ปีกแฟชั่นภาพพิกเซล 8 ทิศ (จาก PixelLab) — แผ่นป้ายหันหากล้อง วางซ้อนหลัง/หน้าตัวละครพิกเซลตามทิศที่หัน
 // แผ่นภาพ assets/fashion/wings/<key>.png : 8 แถว (N·NE·E·SE·S·SW·W·NW) × F คอลัมน์ (เฟรมกระพือ) · ช่องละ cell px
 // ค่าในชิ้นแฟชั่น p = { px: key, cell, frames, fps, lift, scale }
-import { THREE } from './three.js';
+import { THREE } from './three.js?v=0.40.2';
+import { VERSION } from '../config.js?v=0.40.2';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อพิกเซล (เท่าตัวละครพิกเซล)
 const ROW = { n: 0, ne: 1, e: 2, se: 3, s: 4, sw: 5, w: 6, nw: 7 };
 const DIR8 = ['s', 'se', 'e', 'ne', 'n', 'nw', 'w', 'sw'];   // ดัชนีทิศเทียบจอ (เหมือน SheetChars)
 // โหลดแยกต่อตัว (offset ต่างกัน · เบราว์เซอร์แคชไฟล์ให้อยู่แล้ว — ห้าม clone ก่อนภาพโหลดเสร็จ)
 function wingTexture(p) {
-  const t = new THREE.TextureLoader().load(`assets/fashion/wings/${p.px}.png`);
+  const t = new THREE.TextureLoader().load(`assets/fashion/wings/${p.px}.png?v=${VERSION}`);
   t.encoding = THREE.sRGBEncoding; t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false;
   return t;
 }
@@ -44,12 +45,12 @@ export class PixelWingSprite {
     // ตัวสไปรต์ถูกดันเข้าหากล้อง 0.5 → ปีกหลังตัว 0.3 · ปีกหน้าตัว 0.7
     const push = behind ? 0.3 : 0.7, k = (dist - push) / dist;
     this.mesh.renderOrder = behind ? 38 : 42;
-    const side = Math.abs(sn) > 0.9 ? 1 : Math.abs(sn) > 0.5 ? 0.6 : 0;   // ข้าง / เฉียง / หน้า-หลัง
+    const side = Math.abs(sn) > 0.9 ? 1 : 0;   // หันข้างเท่านั้นที่ขยับปีกไปทางหลัง (เฉียง/หน้า/หลัง = กลางตัว)
     const lift = (p.lift ?? 1.2) * (p.scale || 1) - side * 0.08;
     this.mesh.position.copy(foot).addScaledVector(toCam, push);
     this.mesh.quaternion.copy(camera.quaternion);
     this.mesh.translateY(lift * k);
-    this.mesh.translateX(-Math.sign(sn) * side * (p.back ?? 0.3) * k);   // ชิดแผ่นหลังของตัวละคร
+    this.mesh.translateX(-Math.sign(sn) * side * (p.back ?? 0.25) * k);   // ชิดแผ่นหลังของตัวละคร
     this.mesh.scale.set(k, k, 1);
   }
 

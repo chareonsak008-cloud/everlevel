@@ -1,6 +1,6 @@
 // หน้าต่างคลังเก็บของ: ฝาก/ถอนระหว่างกระเป๋ากับคลัง (คลังใช้ร่วมกันทั้งบัญชี)
-import { ITEMS, RARITY } from '../data/items.js';
-import { iconURL } from '../render/ItemIcons.js';
+import { ITEMS, RARITY } from '../data/items.js?v=0.40.2';
+import { iconURL } from '../render/ItemIcons.js?v=0.40.2';
 
 export class StorageWindow {
   constructor(root, player, storage, { onMove, onClose } = {}) {
