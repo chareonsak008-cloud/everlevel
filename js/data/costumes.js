@@ -313,6 +313,9 @@ COSTUMES.push(
 // v0.39 สกินอาวุธ = ตัวละครทั้งตัวที่ถืออาวุธลายใหม่ (ท่าครบทุกท่า) · ใช้ได้เฉพาะสายอาชีพนั้น (p.job)
 COSTUMES.push(
   PX('weapon', 'x_sk_sw_flame', 'ดาบเพลิงชาด', 'Crimson Blaze Greatsword', 'legend', 'ดาบใหญ่ใบแดงส้มลุกเป็นไฟตลอดเวลา เปลี่ยนดาบที่ถือทุกท่า (ยืน เดิน ฟัน ร่ายสกิล) · เฉพาะสายนักดาบ (Swordsman / Knight)', { sheet: 'swordsman_flame', job: 'swordsman' }),
+  PX('weapon', 'x_sk_ar_frost', 'ธนูผลึกน้ำแข็ง', 'Frostcrystal Bow', 'legend', 'ธนูผลึกน้ำแข็งสีฟ้า ไอเย็นและเกล็ดหิมะลอยรอบตลอดเวลา ยิงลูกศรน้ำแข็งแตกกระจาย · สกิลวงเวทน้ำแข็งพร้อมลูกศรยักษ์ · เฉพาะสายนักธนู (Archer / Hunter)', { sheet: 'archer_frost', job: 'archer' }),
+  PX('weapon', 'x_sk_mg_star', 'คทาดาวตก', 'Starfall Staff', 'legend', 'คทายอดดาวคริสตัลสีม่วงชมพู ดาวเล็ก ๆ โคจรรอบ ยิงดาวตกพร้อมผงดาวระยิบ · สกิลวงกาแล็กซีเรียกฝนดาว · เฉพาะสายนักเวท (Mage / Wizard)', { sheet: 'mage_star', job: 'mage' }),
+  PX('weapon', 'x_sk_ac_seraph', 'คทาเทพเซราฟ', 'Seraph Scepter', 'legend', 'คทาทองยอดเพชรพร้อมวงรัศมี ขนนกทองล่องลอย ฟาดแล้วแสงศักดิ์สิทธิ์ระเบิด · สกิลกางปีกเทพแสงทองพร้อมคลื่นรักษา · เฉพาะสายนักบวช (Acolyte / Priest)', { sheet: 'acolyte_seraph', job: 'acolyte' }),
 );
 // ออร่า/อาวุธพิกเซล — ออกแบบเสร็จแล้ว รอไฟล์ภาพ (assets/vfx/aura_* · slash_*) ค่อยเปิดใช้
 export const PX_PENDING = [

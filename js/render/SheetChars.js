@@ -14,12 +14,17 @@ const R = (a, n) => Array.from({ length: n }, (_, i) => a + i);
 const PX2 = { cols: 16, rows: 16, rowsPerDir: 2, size: 3.55 * 144 / 96, pixel: true, foot: 96 / 144, head: 24 / 144,
   anim: { idle: R(0, 8), walk: R(8, 8), attack: R(0, 8), skill: R(8, 8) }, row: { idle: 0, walk: 0, attack: 1, skill: 1 },
   fps: { idle: { fps: 6, loop: true }, walk: { fps: 11, loop: true }, attack: { fps: 18, loop: false }, skill: { fps: 12, loop: false } } };
+// แผ่นช่องใหญ่กว่า 144 (เอฟเฟกต์/ปีกกว้าง) — ขนาดพิกเซลต่อหน่วยเท่าเดิม · foot = แถวพิกเซลเท้าจากขอบบน
+const PXC = (cell, foot) => ({ ...PX2, size: 3.55 * cell / 96, foot: foot / cell, head: (foot - 72) / cell });
 export const SHEETS = {
   swordsman: { ...PX2, src: 'assets/sprites/swordsman_v2.png' },   // v0.39 ดาบใหญ่ · ท่าละ 8 เฟรม
   swordsman_flame: { ...PX2, src: 'assets/sprites/swordsman_flame.png', base: 'swordsman' },   // v0.39 สกินดาบเพลิงชาด
-  archer: { ...PXLAB, src: 'assets/sprites/archer_px.png', foot: 75.5 / 96 },
-  mage: { ...PXLAB, src: 'assets/sprites/mage_px.png', foot: 75.5 / 96 },
-  acolyte: { ...PXLAB, src: 'assets/sprites/acolyte_px.png', foot: 75.5 / 96 },
+  archer: { ...PX2, src: 'assets/sprites/archer_v2.png' },   // v0.40 อาวุธใหญ่ · ท่าละ 8 เฟรม
+  archer_frost: { ...PXC(176, 128), src: 'assets/sprites/archer_frost.png', base: 'archer' },   // v0.40 สกินธนูน้ำแข็ง
+  mage: { ...PX2, src: 'assets/sprites/mage_v2.png' },   // v0.40 อาวุธใหญ่ · ท่าละ 8 เฟรม
+  mage_star: { ...PXC(144, 100), src: 'assets/sprites/mage_star.png', base: 'mage' },   // v0.40 สกินคทาดาวตก
+  acolyte: { ...PXC(208, 112), src: 'assets/sprites/acolyte_v2.png' },   // v0.40 อาวุธใหญ่ (ช่องกว้าง: คทาเหวี่ยงไกล)
+  acolyte_seraph: { ...PXC(208, 140), src: 'assets/sprites/acolyte_seraph.png', base: 'acolyte' },   // v0.40 สกินคทาเทพเซราฟ (ปีกแสง)
 };
 // v0.39 สกินอาวุธ (แผ่นทั้งตัวที่ถืออาวุธลายอื่น) — key = ชื่อแผ่น · เลือกได้จากชิ้นแฟชั่นอาวุธ { sheet: key, job }
 export const SKIN_SHEETS = {};
