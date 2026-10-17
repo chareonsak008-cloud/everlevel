@@ -35,5 +35,6 @@ export function footprint(o) {
   const spec = OBJECT_SPECS[o.kind];
   if (!spec) throw new Error('Unknown object kind: ' + o.kind);
   const val = (v) => (typeof v === 'function' ? v(o) : v);
-  return { fw: val(spec.fw), fh: val(spec.fh), solid: spec.solid };
+  const fs = o.fs || 1;   // v0.41.1: แผนที่ขยาย (เมือง) → พื้นที่ชนใหญ่ตาม
+  return { fw: Math.max(1, Math.round(val(spec.fw) * fs)), fh: Math.max(1, Math.round(val(spec.fh) * fs)), solid: spec.solid };
 }

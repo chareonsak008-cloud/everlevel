@@ -1,5 +1,5 @@
 // ข้อมูลแผนที่ Beginner Field — ทุ่งหญ้าฝึกฝีมือนอกเมือง
-import { borderTrees, treesAt } from './helpers.js?v=0.41.0';
+import { borderTrees, treesAt } from './helpers.js?v=0.41.1';
 
 const W = 72, H = 56;
 
@@ -98,7 +98,7 @@ export const BEGINNER_FIELD = {
   ],
 
   portals: [
-    { x: 1, y: 26, w: 2, h: 2, to: 'asteria_town', arrive: { x: 65.5, y: 28, angle: -Math.PI / 2 }, label: 'Asteria Town' },
+    { x: 1, y: 26, w: 2, h: 2, to: 'asteria_town', arrive: { x: 98.25, y: 42, angle: -Math.PI / 2 }, label: 'Asteria Town' },
     { x: 69, y: 26, w: 2, h: 2, to: 'whisper_forest', arrive: { x: 5, y: 28.5, angle: Math.PI / 2 }, label: 'Whisperwood Forest' },
   ],
 

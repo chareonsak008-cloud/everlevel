@@ -1,5 +1,5 @@
 // ข้อมูลแผนที่ Asteria Town (เมืองเริ่มต้น) — v0.27 รีมาสเตอร์: ลานวงกลมกลางเมือง · คลองตะวันตก · 4 ย่าน
-import { borderTrees as _borderTrees } from './helpers.js?v=0.41.0';
+import { borderTrees as _borderTrees, scaleMap } from './helpers.js?v=0.41.1';
 // พิกัดทั้งหมดเป็นหน่วย "ช่อง" (tile) — วัตถุใช้มุมซ้ายบนของ footprint
 
 const LOOK = {
@@ -28,7 +28,7 @@ const innerTrees = [
   ...T('tree', [[6, 7], [8, 10], [6, 14], [8, 18], [6, 22], [6, 33], [8, 36], [6, 39], [14, 6], [41, 6], [64, 13], [64, 20], [15, 30], [24, 30], [62, 34], [56, 49], [48, 49], [24, 50], [17, 50]], 500),
 ];
 
-export const ASTERIA_TOWN = {
+const RAW = {
   id: 'asteria_town',
   name: 'Asteria Town',
   subtitle: 'เมืองแห่งการเริ่มต้น',
@@ -127,7 +127,6 @@ export const ASTERIA_TOWN = {
     { kind: 'tower', x: 3, y: 51, roof: '#3f6fb5' }, { kind: 'tower', x: 67, y: 51, roof: '#3f6fb5' },
     { kind: 'tower', x: 34, y: 3, roof: '#3f6fb5' }, { kind: 'tower', x: 36, y: 51, roof: '#3f6fb5' }, { kind: 'tower', x: 3, y: 27, roof: '#3f6fb5' },
     ...innerTrees,
-    ...borderTrees(),
   ],
 
   npcs: [
@@ -193,3 +192,9 @@ export const ASTERIA_TOWN = {
     { x: 69, y: 27, w: 2, h: 2, to: 'beginner_field', arrive: { x: 5.5, y: 27.5, angle: Math.PI / 2 }, label: 'Beginner Field' },
   ],
 };
+
+// v0.41.1: ขยายเมืองทั้งเมือง 1.5 เท่า (บ้าน/หอคอย/ร้าน/ของตกแต่งใหญ่ขึ้นให้สมดุลกับตัวละครพิกเซล) · ป่ารอบนอกสร้างใหม่ตามขนาดใหม่
+export const TOWN_SCALE = 1.5;
+const SCALED = scaleMap(RAW, TOWN_SCALE);
+SCALED.objects.push(...(() => { const w = SCALED.width, h = SCALED.height, p = SCALED.portals[0]; return _borderTrees(w, h, 4, [{ x0: p.x - 3, x1: w, y0: p.y - 3, y1: p.y + p.h + 2 }], 2027, 0.9).map((t) => ({ ...t, vs: 1.2 })); })());
+export const ASTERIA_TOWN = SCALED;

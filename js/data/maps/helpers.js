@@ -32,3 +32,34 @@ export function scatterTrees(W, H, count, avoid = [], seed = 4242, margin = 3, p
   }
   return out;
 }
+
+// v0.41.1: ขยายทั้งแผนที่ (เมือง) ด้วยตัวคูณ S — พิกัด/ขนาดพื้นที่/ถนนคูณ S · สิ่งปลูกสร้างใหญ่ขึ้นทั้งโมเดล (vs) และพื้นที่ชน (fs)
+// เพื่อให้บ้าน ร้านค้า หอคอย สมดุลกับตัวละครพิกเซลที่สูงขึ้น · ความหนากำแพง (ring) คงเดิม
+export function scaleMap(def, S, { treeScale = 1.2, keepThick = true } = {}) {
+  const R = (v) => Math.round(v * S);
+  const span = (x, w) => { const a = R(x); return [a, Math.max(1, R(x + w) - a)]; };
+  const reg = (g) => {
+    const o = { ...g };
+    if (g.rect) { const [x, w] = span(g.rect[0], g.rect[2]); const [y, h] = span(g.rect[1], g.rect[3]); o.rect = [x, y, w, h]; }
+    if (g.circle) o.circle = g.circle.map((v) => v * S);
+    if (g.ring) { const [x, w] = span(g.ring[0], g.ring[2]); const [y, h] = span(g.ring[1], g.ring[3]); o.ring = [x, y, w, h, keepThick ? g.ring[4] : R(g.ring[4])]; }
+    if (g.path) { o.path = g.path.map(([x, y]) => [x * S, y * S]); o.w = Math.max(1, Math.round((g.w || 1) * S)); }
+    return o;
+  };
+  const TREE = new Set(['tree', 'pine']);
+  const obj = (o) => TREE.has(o.kind)
+    ? { ...o, x: R(o.x), y: R(o.y), vs: treeScale }
+    : { ...o, x: R(o.x), y: R(o.y), vs: S, fs: S };
+  const pt = (p) => (p ? { ...p, x: p.x * S, y: p.y * S } : p);
+  return {
+    ...def,
+    width: R(def.width), height: R(def.height),
+    spawn: pt(def.spawn),
+    districts: (def.districts || []).map(pt),
+    regions: (def.regions || []).map(reg),
+    objects: (def.objects || []).map(obj),
+    npcs: (def.npcs || []).map(pt),
+    portals: (def.portals || []).map((p) => ({ ...p, x: R(p.x), y: R(p.y), w: R(p.w), h: R(p.h) })),
+    scaled: S,
+  };
+}
