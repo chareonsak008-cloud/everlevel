@@ -2266,3 +2266,10 @@ body.touch .pm-item { padding: 10px 10px; font-size: 14px; }
 body.touch .qnav-tip { font-size: 10px; }
 @media (prefers-reduced-motion: reduce) { .qnav-arrow { animation: none; } }
 .on-tabs button { font-size: 12.5px; padding-left: 4px !important; padding-right: 4px !important; white-space: nowrap; }
+
+/* v0.40.1 ปุ่มเปิด/ปิดลูกศรนำทางบนแถบติดตามเควส */
+.qt-top { display: flex; align-items: center; gap: 4px; }
+.qt-top .qt-head { flex: 1; min-width: 0; }
+.qt-navtog { flex: none; display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; font: inherit; font-size: 10.5px; color: var(--muted); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 999px; cursor: pointer; }
+.qt-navtog b { font-weight: 600; }
+.qt-navtog.on { color: var(--gold); border-color: rgba(255, 210, 90, 0.55); background: rgba(255, 210, 90, 0.12); }

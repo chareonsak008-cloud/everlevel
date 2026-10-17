@@ -236,8 +236,10 @@ export class Game {
     this.onWin = new OnlineWindow(root, this);
     this.playerMenu = new PlayerMenu(root, this);   // v0.38
     this.questNav = new QuestNav(root, this);       // v0.38 ลูกศรนำทางเควส
-    this.questWin.onNav = (id) => { this.questNav.pick = this.questNav.pick === id ? null : id; this.questNav.t = 0; this.questWin.renderTracker(); };
+    this.questWin.onNav = (id) => { if (this.settings.questNav === false) { this.settings.questNav = true; saveSettings(this.settings); this.questNav.pick = id; this.questNav.t = 0; this.questWin.renderTracker(); return; } this.questNav.pick = this.questNav.pick === id ? null : id; this.questNav.t = 0; this.questWin.renderTracker(); };
     this.questWin.navId = () => this.questNav.questId();
+    this.questWin.navEnabled = () => this.settings.questNav !== false;
+    this.questWin.onNavToggle = () => { this.settings.questNav = this.settings.questNav === false; saveSettings(this.settings); this.questNav.t = 0; };
     this.remote = new RemotePlayers(this);
     this.netTimer = 0; this.lastPres = {}; this.netSay = null; this.netRefresh = 0;
     this.chat = new ChatBox(root, { onSend: (t) => this.sendChat(t), onChannel: (c) => { this.chatChannel = c; } });

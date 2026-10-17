@@ -17,9 +17,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Cinzel:wght@600;700&family=Lilita+One&family=Pixelify+Sans:wght@500;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=0.40.0">
-<link rel="stylesheet" href="css/nameplates.css?v=0.40.0">
-<link rel="stylesheet" href="css/events.css?v=0.40.0">
+<link rel="stylesheet" href="css/style.css?v=0.40.1">
+<link rel="stylesheet" href="css/nameplates.css?v=0.40.1">
+<link rel="stylesheet" href="css/events.css?v=0.40.1">
 </head>
 <body>
 <!--GAME-START-->
@@ -232,7 +232,7 @@
       <footer class="pet-foot"><span>ดับเบิลคลิกเพื่อเรียก/เก็บ</span></footer>
     </section>
     <div class="panel qtrack" id="qtrack" hidden aria-label="เควสที่กำลังทำ">
-      <button type="button" class="qt-head" id="qtHead">📜 เควส <span id="qtCount">0</span><i aria-hidden="true">▾</i></button>
+      <div class="qt-top"><button type="button" class="qt-head" id="qtHead">📜 เควส <span id="qtCount">0</span><i aria-hidden="true">▾</i></button><button type="button" class="qt-navtog" id="qtNavTog" title="เปิด/ปิดลูกศรนำทางเควส" aria-pressed="true">🧭 <b>เปิด</b></button></div>
       <div class="qt-list" id="qtList"></div>
     </div>
     <div class="panel help">คลิกมอนสเตอร์เพื่อโจมตี · <kbd>Space</kbd> ตีตัวใกล้สุด · <kbd>C</kbd> สถานะ · <kbd>I</kbd> กระเป๋า · <kbd>K</kbd> สกิล · <kbd>O</kbd> ตู้แฟชั่น · <kbd>J</kbd> เควส · <kbd>P</kbd> สัตว์เลี้ยง · <kbd>H</kbd> ตั้งค่าออโต้ · <kbd>Z</kbd> เริ่ม/หยุดออโต้ · <kbd>M</kbd> จดหมาย · <kbd>B</kbd> สมุดสะสม · <kbd>N</kbd> แผนที่ · <kbd>F1</kbd>–<kbd>F9</kbd> ปุ่มลัด · <kbd>Enter</kbd> แชต · คลิก NPC เพื่อซื้อขาย/ฝากของ/วาร์ป · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> เดิน · <kbd>Q</kbd><kbd>E</kbd> หมุนกล้อง · คลิกขวาลากขึ้นลง หรือ <kbd>PgUp</kbd><kbd>PgDn</kbd> ปรับมุมก้ม · ⚙ ตั้งค่าเสียง/กราฟิก</div>
@@ -242,7 +242,7 @@
     <div class="tools">
       <span class="net" id="netStatus" data-s="offline" title="ออฟไลน์"><i aria-hidden="true"></i><span>ออฟไลน์</span></span>
       <span id="fps">60 FPS</span>
-      <span class="ver">v0.40.0</span>
+      <span class="ver">v0.40.1</span>
       <button id="btnBook" type="button" aria-label="สมุดสะสม" title="สมุดสะสม (B)">📖</button>
       <button id="btnMail" type="button" aria-label="จดหมาย" title="จดหมาย (M)">📬<span class="badge" id="mailBadge" hidden>0</span></button>
       <button id="btnOnline" type="button" aria-label="ผู้เล่นออนไลน์" title="ผู้เล่นออนไลน์">👥</button>
@@ -278,7 +278,7 @@
   </div>
 </div>
 <script src="vendor/three.min.js"></script>
-<script type="module" src="js/main.js?v=0.31.1"></script>
+<script type="module" src="js/main.js?v=0.40.1"></script>
 <!--GAME-END-->
 </body>
 </html>

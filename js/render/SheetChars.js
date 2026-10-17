@@ -13,7 +13,7 @@ const PXLAB = { cols: 13, size: 3.55, pixel: true, anim: { idle: [0], walk: [1, 
 const R = (a, n) => Array.from({ length: n }, (_, i) => a + i);
 const PX2 = { cols: 16, rows: 16, rowsPerDir: 2, size: 3.55 * 144 / 96, pixel: true, foot: 96 / 144, head: 24 / 144,
   anim: { idle: R(0, 8), walk: R(8, 8), attack: R(0, 8), skill: R(8, 8) }, row: { idle: 0, walk: 0, attack: 1, skill: 1 },
-  fps: { idle: { fps: 6, loop: true }, walk: { fps: 11, loop: true }, attack: { fps: 18, loop: false }, skill: { fps: 12, loop: false } } };
+  fps: { idle: { fps: 4.5, loop: true }, walk: { fps: 11, loop: true }, attack: { fps: 15, loop: false }, skill: { fps: 12, loop: false } } };   // v0.40.1 ยืนช้าลง · ฟันชัดขึ้น
 // แผ่นช่องใหญ่กว่า 144 (เอฟเฟกต์/ปีกกว้าง) — ขนาดพิกเซลต่อหน่วยเท่าเดิม · foot = แถวพิกเซลเท้าจากขอบบน
 const PXC = (cell, foot) => ({ ...PX2, size: 3.55 * cell / 96, foot: foot / cell, head: (foot - 72) / cell });
 export const SHEETS = {
@@ -97,9 +97,19 @@ export class SheetSprite {
     if (!this.job) return;
     // ท่า
     const atk = view && view.attackT > 0;
-    if (atk && view.lastAttackAt !== this.lastAtk) { this.lastAtk = view.lastAttackAt; this.play(view.attackKind === 'cast' ? 'skill' : 'attack'); this.t = 0; }
     const S = this.S;
-    const busy = (this.anim === 'attack' || this.anim === 'skill') && this.t < framesOf(S, this.anim).length / fpsOf(S, this.anim).fps + 0.06;
+    // v0.40.1 โจมตีรัว: ปรับความเร็วท่าให้จบพอดีรอบตี (เห็นท่าครบ) · ไม่เริ่มท่าใหม่กลางท่าที่ยังเล่นไม่ถึง 70%
+    if (atk && view.lastAttackAt !== this.lastAtk) {
+      const gap = this.lastAtk ? view.lastAttackAt - this.lastAtk : 9;
+      this.lastAtk = view.lastAttackAt;
+      if (gap > 0 && gap < 3) this.gap = this.gap ? this.gap * 0.6 + gap * 0.4 : gap;
+      else if (gap >= 3) this.gap = 0;
+      const name = view.attackKind === 'cast' ? 'skill' : 'attack';
+      const n = framesOf(S, name).length, base = n / fpsOf(S, name).fps;
+      const inAtk = (this.anim === 'attack' || this.anim === 'skill') && this.t < this.dur * 0.7;
+      if (!inAtk) { this.dur = this.gap ? Math.min(base, Math.max(0.3, this.gap * 0.92)) : base; this.play(name); this.t = 0; }
+    }
+    const busy = (this.anim === 'attack' || this.anim === 'skill') && this.t < (this.dur || framesOf(S, this.anim).length / fpsOf(S, this.anim).fps) + 0.04;
     if (!busy) this.play(ent.cast || ent.castPose ? 'skill' : (ent.moving ?? ent.mv) ? 'walk' : 'idle');
     this.t += dt; this.life += dt;
     // ทิศเทียบกล้อง: ฉายทิศหันของตัวละครลงแกนจอ (ขวา / ลึกเข้าจอ)
@@ -114,7 +124,8 @@ export class SheetSprite {
     const d = DIR8[this.dir];
     // เฟรม
     const A = fpsOf(S, this.anim), cols = framesOf(S, this.anim), n = cols.length;
-    let f = Math.floor(this.t * A.fps);
+    const act = this.anim === 'attack' || this.anim === 'skill';
+    let f = act && this.dur && !(ent.cast || ent.castPose) ? Math.floor(this.t / this.dur * n) : Math.floor(this.t * A.fps);
     if (this.anim === 'skill' && (ent.cast || ent.castPose) && f >= 1 && n > 2) { const h = n >= 8 ? [n - 4, n - 3] : [1, 2]; if (f >= h[0]) f = h[Math.floor(this.t * 5) % 2]; }   // ร่ายค้าง (สลับ 2 เฟรมช่วงท้าย)
     f = A.loop ? f % n : Math.min(n - 1, f);
     const col = cols[f], row = ROW[d] * (S.rowsPerDir || 1) + ((S.row && S.row[this.anim]) || 0), NR = S.rows || 8;

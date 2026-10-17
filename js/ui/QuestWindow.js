@@ -25,6 +25,8 @@ export class QuestWindow {
     }
     this.$('qClose').addEventListener('click', () => this.toggle(false));
     this.$('qtHead').addEventListener('click', () => { this.trackerOpen = !this.trackerOpen; this.renderTracker(); });
+    // v0.40.1 ปุ่มเปิด/ปิดลูกศรนำทางเควส
+    this.$('qtNavTog').addEventListener('click', () => { if (this.onNavToggle) this.onNavToggle(); this.renderTracker(); });
     for (const el of [this.el, this.$('qtrack')]) for (const ev of ['pointerdown', 'wheel', 'contextmenu']) el.addEventListener(ev, (e) => e.stopPropagation());
   }
 
@@ -107,6 +109,8 @@ export class QuestWindow {
     box.hidden = !ids.length;
     if (!ids.length) return;
     this.$('qtCount').textContent = ids.length;
+    const navOn = this.navEnabled ? this.navEnabled() : true, tog = this.$('qtNavTog');
+    tog.classList.toggle('on', navOn); tog.setAttribute('aria-pressed', String(navOn)); tog.querySelector('b').textContent = navOn ? 'เปิด' : 'ปิด';
     box.classList.toggle('closed', !this.trackerOpen);
     const list = this.$('qtList');
     if (!this.trackerOpen) { list.innerHTML = ''; return; }
@@ -119,7 +123,7 @@ export class QuestWindow {
       b.innerHTML = `<b></b>${ready ? `<span class="qt-goal ok">✔ ส่งที่ ${npcWhere(q.turnIn)}</span>` : L.progress(id).map((g) => `<span class="qt-goal${g.done ? ' ok' : ''}">${g.text}${g.type === 'kill' || g.type === 'collect' ? ` ${g.cur}/${g.n}` : g.done ? ' ✔' : ''}</span>`).join('')}`;
       b.querySelector('b').textContent = q.name;
       // v0.38: 🧭 = ให้ลูกศรนำทางชี้เควสนี้
-      const nav = document.createElement('span'); nav.className = 'qt-nav' + (this.navId && this.navId() === id ? ' on' : ''); nav.textContent = '🧭'; nav.title = 'นำทางเควสนี้';
+      const nav = document.createElement('span'); nav.className = 'qt-nav' + ((!this.navEnabled || this.navEnabled()) && this.navId && this.navId() === id ? ' on' : ''); nav.textContent = '🧭'; nav.title = 'นำทางเควสนี้';
       nav.addEventListener('click', (e) => { e.stopPropagation(); if (this.onNav) this.onNav(id); });
       b.prepend(nav);
       b.addEventListener('click', () => { this.tab = 'active'; this.toggle(true); });

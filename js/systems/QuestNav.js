@@ -1,7 +1,7 @@
 // v0.38 ลูกศรนำทางเควส — ชี้ไปยังเป้าหมายของเควสที่ติดตามอยู่
 // · ส่งเควสได้แล้ว → NPC ที่รับส่ง · ล่ามอน → จุดเกิด/ตัวที่ใกล้ที่สุด · เก็บของ → มอนที่ดรอปของนั้น · ไปแผนที่ → แผนที่นั้น
 // · เป้าหมายอยู่แผนที่อื่น → ชี้ประตูวาร์ปที่พาไปทางนั้น (หาเส้นทางสั้นสุดผ่านประตูของแต่ละแผนที่)
-// · ไม่มีเควสที่ทำอยู่ → ชี้คนให้เควสเนื้อเรื่องถัดไป
+// · ไม่มีเควสที่ทำอยู่ → ไม่แสดงลูกศร (v0.40.1) · เปิด/ปิดได้ที่ปุ่ม 🧭 บนแถบติดตามเควส
 import { QUESTS } from '../data/quests.js';
 import { MAPS } from '../data/maps/index.js';
 import { MONSTERS } from '../data/monsters.js';
@@ -79,9 +79,7 @@ export class QuestNav {
     if (ready) return ready;
     const main = act.find((id) => QUESTS[id].kind === 'main');
     if (main) return main;
-    if (act.length) return act[0];
-    const avail = Object.keys(QUESTS).filter((id) => QUESTS[id].kind === 'main' && L.status(id) === 'available');
-    return avail[0] || null;
+    return act[0] || null;   // v0.40.1: ไม่ได้รับเควส = ไม่มีลูกศร
   }
 
   // เป้าหมายจริง { map, x, y, label, sub } (x, y = พิกเซลโลก) หรือ null
