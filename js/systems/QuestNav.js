@@ -59,7 +59,7 @@ export class QuestNav {
   constructor(root, game) {
     this.game = game;
     this.el = document.createElement('div'); this.el.className = 'qnav'; this.el.hidden = true;
-    this.el.innerHTML = '<div class="qnav-arrow"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 33 22h-8v14H15V22H7z"/></svg></div><div class="qnav-tip"><b></b><small></small></div>';
+    this.el.innerHTML = '<div class="qnav-arrow"><svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><path d="M20 3 33 22h-8v14H15V22H7z"/></svg></div><div class="qnav-tip"><b></b><small></small></div>';
     (root.querySelector('#labels') || root).append(this.el);
     this.arrow = this.el.querySelector('.qnav-arrow'); this.tipB = this.el.querySelector('.qnav-tip b'); this.tipS = this.el.querySelector('.qnav-tip small');
     this.pick = null;           // เควสที่ผู้เล่นเลือกติดตาม (null = อัตโนมัติ)
