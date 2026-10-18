@@ -6,15 +6,15 @@
 // v0.9: type box = กล่องแฟชั่นสุ่ม (ข้อมูลอยู่ใน data/fashionBoxes.js)
 // v0.10: slots = ช่องการ์ด · type card = การ์ดมอนสเตอร์ (data/cards.js) · วัสดุตีบวก (data/refine.js)
 //        อุปกรณ์ที่ตีบวก/ใส่การ์ดแล้วใช้ "คีย์" แทน id เช่น 'iron_blade*7*card_barkwolf' (ดู itemKey ด้านล่าง)
-import { ENDGAME_ITEMS } from './endgameItems.js?v=0.51.0';
-import { ASCEND_ITEMS } from './ascendData.js?v=0.51.0';   // v0.46 Lv.100–150
-import { parentJob } from './progression.js?v=0.51.0';
-import { BOX_ITEMS } from './fashionBoxes.js?v=0.51.0';
-import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.51.0';
-import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.51.0';
-import { CONSUMABLES } from './consumables.js?v=0.51.0';
-import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH } from './affixes.js?v=0.51.0';
-import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.51.0';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
+import { ENDGAME_ITEMS } from './endgameItems.js?v=0.52.0';
+import { ASCEND_ITEMS } from './ascendData.js?v=0.52.0';   // v0.46 Lv.100–150
+import { parentJob } from './progression.js?v=0.52.0';
+import { BOX_ITEMS } from './fashionBoxes.js?v=0.52.0';
+import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.52.0';
+import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.52.0';
+import { CONSUMABLES } from './consumables.js?v=0.52.0';
+import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH, extraRollPool } from './affixes.js?v=0.52.0';
+import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.52.0';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
 
 export const EQUIP_SLOTS = [
   { id: 'head', name: 'หัว' },
@@ -141,6 +141,12 @@ const BASE = {
 // v0.25.2: โล่ใช้ได้เฉพาะสายดาบ (และเด็กฝึกหัด) — สายอื่นใช้ของมือรองของตัวเอง
 for (const it of Object.values(BASE)) if (it.slot === 'shield' && !it.offhand && !it.jobs) it.jobs = ['novice', 'swordsman'];
 export const BASE_ITEMS = BASE;
+// v0.52: อาวุธทุกชิ้นทุกระดับมีค่าสุ่มพิเศษ 1–3 ค่า (pool เดิมอยู่หน้า → คีย์ของเก่ายังถูกต้อง)
+for (const it of Object.values(BASE)) if (it && it.type === 'equip' && it.slot === 'weapon' && !(it.rolls && it.rolls.v2)) {
+  const old = (it.rolls && it.rolls.pool) || [];
+  const have = new Set(old.map((p) => p.stat));
+  it.rolls = { pool: [...old, ...extraRollPool(it).filter((p) => !have.has(p.stat))].slice(0, 36), count: [1, 3], v2: true, oldCount: it.rolls && it.rolls.count };
+}
 
 export function splitKey(key) {
   const [base, r, c, roll] = String(key).split('*');

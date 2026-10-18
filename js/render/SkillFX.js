@@ -3,9 +3,9 @@
 // ctx = { caster:{pos,facing,height}, targets:[{pos,height}], main, center?, count?,
 //         hit(i, info) → { stun, freeze } | undefined, heal(n), buff(text), anim(kind, dur), shake(a), sky(dark, dur),
 //         hitstop?(t), shock?(pos, s), flash?(color, a), aberrate?(a), punch?(a), lines?(a, dur) }
-import { THREE } from './three.js?v=0.51.0';
-import * as TX from './FxTextures.js?v=0.51.0';
-import { beamTexture } from './Textures.js?v=0.51.0';
+import { THREE } from './three.js?v=0.52.0';
+import * as TX from './FxTextures.js?v=0.52.0';
+import { beamTexture } from './Textures.js?v=0.52.0';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1462,5 +1462,5 @@ export class SkillFX {
 }
 
 // v0.31: เอฟเฟกต์สกิลอาชีพขั้นที่ 2
-import { installJob2FX } from './Job2FX.js?v=0.51.0';
+import { installJob2FX } from './Job2FX.js?v=0.52.0';
 installJob2FX(SkillFX.prototype, { Particles });

@@ -1,6 +1,6 @@
 // v0.25.0: สเตตัสรอง (ค่าสุ่ม) · ธาตุ/เผ่า/ขนาดมอนสเตอร์ · แปลงอาวุธจาก weapons.js เป็นไอเทมในเกม
-import { WEAPON_DEFS, WEAPON_FORMS } from './weapons.js?v=0.51.0';
-import { OFFHAND_BLOODMOON } from './offhand.js?v=0.51.0';
+import { WEAPON_DEFS, WEAPON_FORMS } from './weapons.js?v=0.52.0';
+import { OFFHAND_BLOODMOON } from './offhand.js?v=0.52.0';
 
 // ชื่อสเตตัสในสเปก → คีย์โบนัสในเกม (scale = ตัวคูณตอนแปลง)
 export const STAT_DEF = {
@@ -84,8 +84,43 @@ for (const d of WEAPON_DEFS) {
 
 // ---------- ค่าสุ่ม: เก็บในคีย์ไอเทมช่องที่ 4 เช่น 'wpn_sword_002*0**0a.3c' ('~' = สุ่มแล้วไม่ได้สักค่า) ----------
 const b36 = (n) => n.toString(36);
+// ---------- v0.52 ค่าสุ่มพิเศษของอาวุธทุกชิ้น (ดี/ไม่ดี · ตรงสาย/ไม่ตรงสาย) ----------
+// ต่อท้าย pool เดิมของอาวุธ (คีย์เก่ายังอ่านได้) · ค่าติดลบได้ = ค่าสุ่มไม่ดี · สเกลตามเลเวลและระดับความหายาก
+const RMUL = { common: 1, uncommon: 1.1, rare: 1.25, epic: 1.4, legend: 1.6, mythic: 1.8, celestial: 2, abyssal: 2.1, divine: 2.3 };
+export function extraRollPool(it) {
+  const L = it.reqLevel || 1, k = Math.max(1, Math.round((1 + L / 20) * (RMUL[it.rarity] || 1)));
+  const h = Math.ceil(k / 2), P = (stat, min, max) => ({ stat, min, max, extra: true });
+  return [
+    P('STR', -h, k), P('AGI', -h, k), P('VIT', -h, k), P('INT', -h, k), P('DEX', -h, k), P('LUK', -h, k),
+    P('ATK', -k * 2, k * 4), P('MATK', -k * 2, k * 4), P('HIT', -k, k * 2), P('FLEE', -k, k * 2), P('DEF', -h, k),
+    P('CRIT', -1, Math.max(1, Math.ceil(k / 3))), P('MaxHP', -k * 15, k * 30), P('MaxSP', -k * 5, k * 10),
+    P('ASPD%', -2, Math.max(2, h)), P('Cast Time -%', -2, Math.max(2, h)),
+  ];
+}
+// สเตตัสที่ "ตรงสาย" กับอาวุธแต่ละประเภท
+const FIT = {
+  melee: ['STR', 'AGI', 'DEX', 'VIT', 'LUK', 'ATK', 'HIT', 'CRIT', 'ASPD%', 'MaxHP', 'DEF', 'FLEE'],
+  staff: ['INT', 'DEX', 'VIT', 'MATK', 'Cast Time -%', 'MaxSP', 'MaxHP', 'DEF'],
+  bow: ['DEX', 'AGI', 'LUK', 'STR', 'ATK', 'HIT', 'CRIT', 'ASPD%', 'FLEE'],
+};
+export const rollFits = (it, stat) => (FIT[it.wtype === 'staff' ? 'staff' : it.wtype === 'bow' ? 'bow' : 'melee'] || []).includes(stat) || !STAT_DEF[stat];
+// คะแนนค่าสุ่ม: ค่าบวกเต็ม = +1 ต่อบรรทัด · ค่าลบเต็ม = −1 · ไม่ตรงสายนับครึ่ง
+export function rollScore(it, rolled) {
+  let s = 0;
+  for (const r of rolled || []) { const f = r.value >= 0 ? (r.max > 0 ? r.value / r.max : 0) : (r.min < 0 ? -r.value / r.min : 0); s += f * (rollFits(it, r.stat) ? 1 : 0.5); }
+  return s;
+}
+export const rollGrade = (s) => (s >= 2 ? ['ยอดเยี่ยม', 'g4'] : s >= 1.1 ? ['ดีมาก', 'g3'] : s >= 0.4 ? ['ดี', 'g2'] : s >= 0 ? ['ธรรมดา', 'g1'] : ['แย่', 'g0']);
+
 export function rollCode(it, rnd = Math.random) {
   const R = it && it.rolls; if (!R) return '';
+  if (R.v2) {   // v0.52: 1–3 ค่าเสมอ (หายากขึ้นได้หลายค่าบ่อยขึ้น) สุ่มจาก pool ทั้งหมด
+    const up = { epic: 0.08, legend: 0.12, mythic: 0.16, celestial: 0.2, abyssal: 0.22, divine: 0.25 }[it.rarity] || 0;
+    const x = rnd(), n = Math.min(R.pool.length, x < 0.15 + up ? 3 : x < 0.5 + up ? 2 : 1);
+    const idx = R.pool.map((_, i) => i).sort(() => rnd() - 0.5).slice(0, n).sort((a, b) => a - b);
+    const pick = (p) => { const z = p.min <= 0 && p.max >= 0, n = p.max - p.min + 1 - (z ? 1 : 0); let v = p.min + Math.floor(rnd() * n); if (z && v >= 0) v += 1; return v; };   // ไม่ออก 0
+    return idx.map((i) => b36(i) + b36(pick(R.pool[i]))).join('.');
+  }
   const [lo, hi] = R.count;
   // ได้จำนวนน้อยบ่อยกว่า: ค่าสูงสุดของช่วงโอกาส 35%
   const n = Math.min(R.pool.length, lo + (hi > lo && rnd() < 0.35 ? hi - lo : 0));
