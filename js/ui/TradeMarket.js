@@ -1,14 +1,25 @@
 // v0.42 แลกของตัวต่อตัว + ตลาดฝากขาย
 // ทุกอย่างผ่านฟังก์ชันบนเซิร์ฟเวอร์ (supabase/trade.sql) — เครื่องผู้เล่นแค่ส่งคำขอ แล้วดึงผล (ledger) มาปรับกระเป๋า
-import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.44.3';
-import { iconURL } from '../render/ItemIcons.js?v=0.44.3';
-import { buyPrice, sellPrice } from '../data/shops.js?v=0.44.3';
+import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.44.5';
+import { iconURL } from '../render/ItemIcons.js?v=0.44.5';
+import { buyPrice, sellPrice } from '../data/shops.js?v=0.44.5';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const itemName = (id) => (ITEMS[id] ? ITEMS[id].name : id);
 const rarityOf = (id) => (ITEMS[id] && ITEMS[id].rarity) || 'common';
 const MAX_KINDS = 10;
+// v0.44.5 แปลรหัสสาเหตุจากเซิร์ฟเวอร์ (มีชื่อไอเทม)
+function tradeNote(n) {
+  if (!n) return '';
+  const [k, id, x] = String(n).split(':');
+  if (k === 'peer_full') return `กระเป๋าอีกฝ่ายรับ ${itemName(id)} ได้อีกแค่ ${fmt(x)} ชิ้น (ชนิดเดียวกันถือได้สูงสุด 999) — ลดจำนวนแล้ววางใหม่`;
+  if (k === 'stack_full') return `${itemName(id)} ในกระเป๋าฝ่ายรับจะเกิน 999 ชิ้น — ลดจำนวนแล้ววางใหม่`;
+  if (k === 'not_enough') return id ? `${itemName(id)} ในกระเป๋าไม่พอแล้ว — วางของใหม่อีกครั้ง` : 'ของในกระเป๋าไม่พอ';
+  if (k === 'not_enough_zeny') return 'Zeny ไม่พอแล้ว — แก้จำนวนแล้ววางใหม่';
+  if (k === 'zeny_full') return 'Zeny ของฝ่ายรับจะเกินเพดาน';
+  return n;
+}
 
 function panel(root, cls, title, sub) {
   const el = document.createElement('section');
@@ -66,7 +77,7 @@ export class TradeWindow {
     if (err) return this.log(err);
     const r = await g.online.tradeRPC('trade_invite', { p_name: name });
     if (r.error) return this.log(r.error);
-    this.t = r.data; this.draft = []; this.zeny = 0;
+    this.t = r.data; this.draft = []; this.zeny = 0; this.msg = ''; this.lastNote = null;
     g.online.lobbySend('tr', { to: key, id: this.t.id, n: g.player.name, inv: 1 });
     this.log(`ส่งคำขอแลกเปลี่ยนให้ ${name} แล้ว รออีกฝ่ายตอบรับ…`);
     this.show();
@@ -85,7 +96,7 @@ export class TradeWindow {
           if (err) return this.log(err);
           const r = await g.online.tradeRPC('trade_respond', { p_id: id, p_accept: true });
           if (r.error) return this.log(r.error);
-          this.t = r.data; this.draft = []; this.zeny = 0; this.show(); this.ping();
+          this.t = r.data; this.draft = []; this.zeny = 0; this.msg = ''; this.lastNote = null; this.show(); this.ping();
         },
         no: () => { g.online.tradeRPC('trade_respond', { p_id: id, p_accept: false }); },
       });
@@ -117,8 +128,17 @@ export class TradeWindow {
       this.t = t;
       if (t.status === 'done' && was !== 'done') return this.finish('done');
       if (t.status === 'cancel' && was !== 'cancel') return this.finish('cancel', t.note);
+      this.noteCheck();
       const sig = JSON.stringify(t); if (sig !== this.sig) { this.sig = sig; this.render(); }   // ไม่วาดใหม่ถ้าไม่เปลี่ยน (ช่องพิมพ์ไม่หลุด)
     } finally { this.polling = false; }
+  }
+
+  // ย้ายของไม่สำเร็จ → โต๊ะยังเปิด · แจ้งสาเหตุครั้งเดียว
+  noteCheck() {
+    const n = this.t && this.t.status === 'open' ? this.t.note : null;
+    if (n && n !== this.lastNote) { this.msg = 'ย้ายของไม่สำเร็จ: ' + tradeNote(n); this.log(this.msg); }
+    if (!n && this.lastNote && this.t && this.t.status === 'open') this.msg = '';
+    this.lastNote = n;
   }
 
   async finish(kind, note) {
@@ -127,7 +147,7 @@ export class TradeWindow {
       this.log(`แลกเปลี่ยนกับ ${this.peerName} สำเร็จ`);
       this.g.sfx('coin');
     } else {
-      const why = { declined: 'อีกฝ่ายปฏิเสธ', timeout: 'หมดเวลา', cancelled: 'ยกเลิกแล้ว', replaced: 'อีกฝ่ายเริ่มการแลกใหม่' }[note] || (note && note.startsWith('not_enough') ? 'ของบางชิ้นไม่อยู่ในกระเป๋าแล้ว' : note || 'ยกเลิกแล้ว');
+      const why = { declined: 'อีกฝ่ายปฏิเสธ', timeout: 'หมดเวลา', cancelled: 'ยกเลิกแล้ว', replaced: 'อีกฝ่ายเริ่มการแลกใหม่' }[note] || (note && note.startsWith('trade_locked') ? 'บัญชีถูกระงับการแลกชั่วคราว' : tradeNote(note) || 'ยกเลิกแล้ว');
       this.log(`การแลกเปลี่ยนถูกยกเลิก: ${why}`);
       if (this.t) this.t.status = 'cancel';
     }
@@ -151,7 +171,8 @@ export class TradeWindow {
       const err = await ready(this.g);
       if (err) return this.log(err);
       const r = await this.g.online.tradeRPC('trade_offer', { p_id: this.t.id, p_items: this.draft, p_zeny: this.zeny });
-      if (r.error) return this.log(r.error);
+      if (r.error) { this.msg = tradeNote(r.error); return this.log(this.msg); }
+      this.msg = '';
       this.t = r.data; this.ping();
     } finally { this.busy = false; this.render(); }
   }
@@ -161,26 +182,27 @@ export class TradeWindow {
     this.busy = true; this.render();
     try {
       const r = await this.g.online.tradeRPC('trade_confirm', { p_id: this.t.id, p_ver: this.t.ver });
-      if (r.error) { this.log(r.error); return this.poll(true); }
+      if (r.error) { this.msg = tradeNote(r.error); this.log(this.msg); return this.poll(true); }
       const was = this.t.status; this.t = r.data; this.ping();
       if (this.t.status === 'done' && was !== 'done') await this.finish('done');
       else if (this.t.status === 'cancel') await this.finish('cancel', this.t.note);
+      else this.noteCheck();
     } finally { this.busy = false; this.render(); }
   }
 
   render() {
     if (!this.open || !this.t) return;
     const t = this.t, me = this.side(t.me), you = this.side(t.me === 'a' ? 'b' : 'a'), pl = this.g.player;
-    const st = t.status === 'invite' ? 'รอ ' + esc(this.peerName) + ' ตอบรับ…' : t.status === 'done' ? '✔ แลกสำเร็จ' : t.status === 'cancel' ? 'ยกเลิกแล้ว' : me.ok && you.ok ? 'กำลังย้ายของ…' : me.ok ? 'ยืนยันแล้ว รออีกฝ่าย' : you.ok ? 'อีกฝ่ายยืนยันแล้ว' : 'วางของแล้วกดยืนยัน';
+    const st = t.status === 'invite' ? 'รอ ' + esc(this.peerName) + ' ตอบรับ…' : t.status === 'done' ? '✔ แลกสำเร็จ' : t.status === 'cancel' ? 'ยกเลิกแล้ว' : me.ok && you.ok ? 'กำลังย้ายของ…' : me.ok ? 'ยืนยันแล้ว รออีกฝ่าย' : you.ok ? 'อีกฝ่ายยืนยันแล้ว' : 'วางของแล้วกดยืนยัน (ให้ฝ่ายเดียวได้ อีกฝ่ายไม่ต้องวางของ แค่กดยืนยัน)';
     const changed = JSON.stringify(this.draft) !== JSON.stringify(me.items || []) || this.zeny !== (+me.zeny || 0);
     this.body.innerHTML = `
-      <p class="tm-status">${st}</p>
+      <p class="tm-status">${st}</p>${this.msg && t.status === 'open' ? `<p class="tm-msg tm-warn">${esc(this.msg)}</p>` : ''}
       <div class="tm-sides">
         <div class="tm-side"><h3>คุณ <small>${me.ok ? '✔ ยืนยัน' : ''}</small></h3><div class="tm-offer" data-k="me"></div><p class="tm-z">Zeny <b>${fmt(me.zeny)}</b></p></div>
         <div class="tm-side"><h3>${esc(you.name || this.peerName)} <small>${you.ok ? '✔ ยืนยัน' : ''}</small></h3><div class="tm-offer" data-k="you"></div><p class="tm-z">Zeny <b>${fmt(you.zeny)}</b></p></div>
       </div>
       <div class="tm-draft">
-        <h3>ของที่จะวาง <small>${this.draft.length}/${MAX_KINDS} ชนิด · แตะของในกระเป๋าด้านล่าง</small></h3>
+        <h3>ของที่จะวาง <small>${this.draft.length}/${MAX_KINDS} ชนิด · แตะของในกระเป๋าด้านล่าง · แก้จำนวนได้ · ไม่วางก็ได้</small></h3>
         <div class="tm-offer tm-mine"></div>
         <label class="tm-zin">Zeny ที่จะให้ <input id="tmZeny" type="number" min="0" max="${pl.zeny}" step="1" value="${this.zeny}" inputmode="numeric"></label>
         <div class="inv-grid tm-bag"></div>
@@ -195,7 +217,19 @@ export class TradeWindow {
     fill(this.body.querySelector('[data-k="you"]'), you.items);
     // ของที่เลือกไว้ (แตะเพื่อเอาออก)
     const mine = this.body.querySelector('.tm-mine'); mine.innerHTML = '';
-    for (const [id, q] of this.draft) { const b = slotBtn(id, q, { title: `${itemName(id)} ×${q} · แตะเพื่อเอาออก` }); b.addEventListener('click', () => { this.draft = this.draft.filter((x) => x[0] !== id); this.render(); }); mine.append(b); }
+    for (const d of this.draft) {
+      const [id, q] = d, have = pl.inventory.count(id);
+      const w = document.createElement('div'); w.className = 'tm-dq';
+      const b = slotBtn(id, q, { title: `${itemName(id)} ×${q} · แตะเพื่อเอาออก` }); b.addEventListener('click', () => { this.draft = this.draft.filter((x) => x[0] !== id); this.render(); });
+      w.append(b);
+      if (have > 1) {   // v0.44.5 เลือกจำนวนที่จะให้
+        const inp = document.createElement('input'); inp.type = 'number'; inp.min = '1'; inp.max = String(have); inp.step = '1'; inp.value = String(q); inp.inputMode = 'numeric';
+        inp.setAttribute('aria-label', `จำนวน ${itemName(id)}`);
+        inp.addEventListener('change', () => { d[1] = Math.max(1, Math.min(have, Math.floor(+inp.value) || 1)); this.render(); });
+        w.append(inp);
+      }
+      mine.append(w);
+    }
     if (!this.draft.length) mine.innerHTML = '<span class="tm-empty">ยังไม่ได้เลือก</span>';
     // กระเป๋า (ไม่รวมของที่สวมใส่)
     const bag = this.body.querySelector('.tm-bag');

@@ -97,3 +97,7 @@
 .cs-req { grid-template-columns: auto minmax(0, 1fr) auto; }
 .cs-adm { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); }
 .cs-slip img { max-width: 100%; max-height: 320px; border-radius: 8px; }
+/* v0.44.5 จำนวนของที่จะวาง + คำเตือน */
+.tm-dq { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.tm .tm-dq input[type="number"] { width: 58px; padding: 3px 4px; font-size: 12px; text-align: center; }
+.tm-warn { background: rgba(255, 160, 90, 0.12); border-color: rgba(255, 170, 100, 0.5); color: #ffd0a0; }
