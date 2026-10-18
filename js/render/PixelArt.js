@@ -1,5 +1,5 @@
 // v0.17: แปลงภาพวาด Canvas (เอฟเฟกต์ ไอคอน) ให้เป็นภาพพิกเซล: ย่อความละเอียด → ตัดความโปร่งเป็นขั้น → ลดเฉดสี
-import { THREE } from './three.js?v=0.44.2';
+import { THREE } from './three.js?v=0.44.3';
 
 // src = canvas · w,h = ขนาดพิกเซลปลายทาง · alpha = จำนวนขั้นความโปร่ง · color = จำนวนขั้นต่อสี (0 = ไม่ลด)
 export function pixelizeCanvas(src, w, h = w, { alpha = 4, color = 0, cut = 0.08 } = {}) {

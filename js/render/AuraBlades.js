@@ -1,7 +1,7 @@
 // v0.41: ออร่าสายยุทธ์ (กระบี่บินวน · เคียวยักษ์ลอยหลัง · ลำแสงปลดปล่อยพลัง)
 // ชิ้นส่วนเป็นภาพพิกเซลวาดด้วยโค้ด (ออกแบบเอง) แปะเป็นสไปรต์หันหากล้อง · ใช้ความลึกจริง → ดาบที่วนไปด้านหลังถูกตัวละครบัง
 // รับตัวช่วยจาก Costumes.js ผ่าน H (mesh, unlit, spriteOf, shockwaves, flashSprite, burstCycle, scatter, discPos, lin, TX)
-import { THREE } from './three.js?v=0.44.2';
+import { THREE } from './three.js?v=0.44.3';
 
 /* ---------------- ภาพพิกเซล ---------------- */
 const texCache = new Map();
@@ -47,9 +47,10 @@ export function swordTex(pal) {
   });
 }
 // เคียวยักษ์: ด้ามยาวเอียง ใบโค้งใหญ่ ตาอัญมณีที่โคน
-export function scytheTex(pal) {
+export function scytheTex(pal, mirror = false) {
   const P = PAL[pal] || PAL.soul;
-  return pxTex('sc' + pal, 58, 76, (g) => {
+  return pxTex((mirror ? 'scm' : 'sc') + pal, 58, 76, (g) => {
+    if (mirror) { g.translate(58, 0); g.scale(-1, 1); }   // v0.44.3 เคียวกลับด้าน (สไปรต์ไม่รองรับ scale ติดลบ)
     // ด้าม (ล่างขวา → บนกลาง)
     for (let i = 0; i <= 68; i++) { const x = Math.round(42 - i * 0.16), y = 74 - i; R(g, P.grip, x, y, 3); R(g, P.shade, x + 2, y); if (i % 9 === 4) R(g, P.guard, x - 1, y, 5, 2); }
     // ใบเคียว (โค้งไปทางซ้าย ปลายแหลมชี้ลง)
@@ -101,6 +102,9 @@ function camBasis(root, out) {
   _v.copy(CAM.position); root.worldToLocal(_v); _v.y = 0; if (_v.lengthSq() < 1e-6) _v.set(0, 0, 1); _v.normalize();
   out.f.copy(_v); out.r.set(_v.z, 0, -_v.x); return out;
 }
+
+// แผ่นหลังตัวละครหันเข้าหากล้องไหม (หลัง = -Z ของ root)
+const backFront = (B) => B.f.z < -0.2;
 
 // วงกระบี่บิน: n เล่ม รัศมี r สูง y หมุน sp · mode: up (ตั้งตรง) / chase (ไล่กันเป็นวง) / out (ชี้ออก)
 function swordRing(H, g, rt, P, ring, st, root) {
@@ -157,9 +161,10 @@ export function wuxiaAura(rig, p, rt, H) {
     const halo = glowOf(H, PAL[f.pal || P.pal].glow, (f.R || 0.9) * 2.4, 0.3); g.add(halo);
     rt.on(({ t }) => {
       camBasis(rig.root, B); const br = 1 + 0.06 * Math.sin(t * 2) + st.kick * 0.25;
-      const cx = -B.f.x * 0.25, cz = -B.f.z * 0.25, cy = f.y || 1.45;
-      halo.position.set(cx, cy, cz);
+      const cx = 0, cz = -0.25, cy = f.y || 1.45, bk = backFront(B);   // v0.44.3 ติดหลังตัวละคร หันตามตัว
+      halo.position.set(cx, cy, cz); halo.renderOrder = 35;
       for (const o of list) {
+        o.s.renderOrder = bk ? 46 : 36;
         const th = THREE.MathUtils.lerp(f.from ?? 0.12, f.to ?? Math.PI - 0.12, o.k) + Math.sin(t * 0.8) * 0.04, rr = (f.R || 0.9) * br;
         o.s.position.set(cx + B.r.x * Math.cos(th) * rr, cy + Math.sin(th) * rr, cz + B.r.z * Math.cos(th) * rr);
         o.s.material.rotation = th - Math.PI / 2;
@@ -167,20 +172,29 @@ export function wuxiaAura(rig, p, rt, H) {
     });
   }
 
-  // เคียวยักษ์ลอยหลังตัว (โยกช้า ๆ) · twin = เคียวคู่ไขว้
+  // เคียวยักษ์ลอยหลังตัว (โยกช้า ๆ) · twin = เคียวคู่ไขว้เป็นรูป X ใบเคียวคนละข้าง
+  // v0.44.3 ติดอยู่ที่หลังตัวละคร (หันตามทิศตัว) · หันหลังให้กล้อง → เคียวอยู่หน้าแผ่นหลัง
   if (p.scythe) {
-    const c = p.scythe, tex = scytheTex(c.pal || 'soul'), n = c.twin ? 2 : 1;
-    const list = Array.from({ length: n }, (_, i) => { const s = pxSprite(H, tex, c.size || 2.1); g.add(s); return { s, side: n === 1 ? 1 : (i ? -1 : 1) }; });
-    const gl = glowOf(H, PAL[c.pal || 'soul'].glow, (c.size || 2.1) * 1.1, 0.28); g.add(gl);
+    const c = p.scythe, tex = scytheTex(c.pal || 'soul'), n = c.twin ? 2 : 1, S = c.size || 2.1;
+    const list = Array.from({ length: n }, (_, i) => { const side = n === 1 ? 1 : (i ? -1 : 1), s = pxSprite(H, side < 0 ? scytheTex(c.pal || 'soul', true) : tex, S); g.add(s); return { s, side }; });
+    const gl = glowOf(H, PAL[c.pal || 'soul'].glow, S * 1.1, 0.28); g.add(gl);
+    // จุดกึ่งกลางด้ามในภาพ (จากกึ่งกลางสไปรต์) · ด้ามเอียงซ้ายเดิม ~0.16 เรเดียน
+    const PX1 = S / tex.userData.h, DX = 9 * PX1, DY = -2 * PX1, LEAN = 0.16, X_ANG = 0.62;
     rt.on(({ t }) => {
-      camBasis(rig.root, B); const y = (c.y || 1.35) + Math.sin(t * 1.1) * 0.08;
+      camBasis(rig.root, B); const y = (c.y || 1.35) + (n === 2 ? 0.15 : 0) + Math.sin(t * 1.1) * 0.08, bk = backFront(B), az = -0.3;
       for (const o of list) {
-        const off = n === 1 ? 0.12 : o.side * 0.32;
-        o.s.position.set(-B.f.x * 0.3 + B.r.x * off, y, -B.f.z * 0.3 + B.r.z * off);
-        o.s.material.rotation = (n === 1 ? -0.25 : o.side * 0.45) + Math.sin(t * 0.9 + o.side) * 0.06;
-        o.s.scale.x = Math.abs(o.s.scale.x) * (n === 2 && o.side < 0 ? -1 : 1);
+        let th, ox = 0, oy = 0;
+        if (n === 1) { th = -0.25 + Math.sin(t * 0.9) * 0.06; ox = 0.12; }
+        else {
+          th = o.side * (X_ANG - LEAN + Math.sin(t * 0.9) * 0.05);         // สองเล่มเอียงสวนกันสมมาตร → ด้ามไขว้กลางหลัง
+          const lx = o.side * DX, cs = Math.cos(th), sn = Math.sin(th);
+          ox = -(lx * cs - DY * sn); oy = -(lx * sn + DY * cs);            // เลื่อนให้จุดกลางด้ามทับกันพอดี
+        }
+        o.s.material.rotation = th;
+        o.s.position.set(B.r.x * ox, y + oy, az + B.r.z * ox);
+        o.s.renderOrder = (bk ? 46 : 36) + (o.side < 0 ? 1 : 0);
       }
-      gl.position.set(-B.f.x * 0.32, y + 0.25, -B.f.z * 0.32); gl.material.opacity = 0.22 + 0.1 * Math.sin(t * 2.2);
+      gl.position.set(0, y + 0.25, az - 0.02); gl.renderOrder = 35; gl.material.opacity = 0.22 + 0.1 * Math.sin(t * 2.2);
     });
     // วิญญาณลอยวนรอบเคียว
     H.auraEmitter(rig, rt, 10, (b) => rt.ps('dot').emit({ pos: H.discPos(b, 0.7, 0.4, 2.4), count: 1, vel: () => H.V(0, H.rand(0.2, 0.5), 0), life: [0.8, 1.4], size: [0.06, 0.12], color: [PAL[c.pal || 'soul'].glow, '#ffffff'] }));
@@ -190,7 +204,7 @@ export function wuxiaAura(rig, p, rt, H) {
   if (p.moon) {
     const m = H.spriteOf(H.TX.crescent(), p.moon, 0.9, 0.85); m.renderOrder = 35; m.userData.auraDepth = true; g.add(m);
     const mg = glowOf(H, p.moon, 1.6, 0.25); g.add(mg);
-    rt.on(({ t }) => { camBasis(rig.root, B); const y = 2.45 + Math.sin(t * 1.2) * 0.05; m.position.set(-B.f.x * 0.4, y, -B.f.z * 0.4); mg.position.copy(m.position); m.material.rotation = 0.5 + Math.sin(t * 0.5) * 0.05; });
+    rt.on(({ t }) => { camBasis(rig.root, B); const y = 2.45 + Math.sin(t * 1.2) * 0.05; m.position.set(0, y, -0.4); mg.position.copy(m.position); m.material.rotation = 0.5 + Math.sin(t * 0.5) * 0.05; });
   }
 
   // ลำแสงแผ่ออกจากกลางตัว (ปลดปล่อยพลัง)
