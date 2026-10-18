@@ -1,6 +1,6 @@
 {
   "name": "everlevel",
-  "version": "0.44.6",
+  "version": "0.46.0",
   "private": true,
   "type": "module",
   "scripts": {

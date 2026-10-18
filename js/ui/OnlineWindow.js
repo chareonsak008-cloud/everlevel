@@ -1,8 +1,8 @@
 // หน้าต่างผู้เล่นออนไลน์ (v0.11): ใครอยู่ในแผนที่เดียวกัน · ใครออนไลน์ทั้งหมด · อันดับเลเวล
-import { MAPS } from '../data/maps/index.js?v=0.44.6';
-import { JOBS } from '../data/progression.js?v=0.44.6';
-import { EMBLEM_SHAPES, EMBLEM_ICONS, EMBLEM_COLORS, emblemSvg, parseEmblem, emblemCode, randomEmblem } from '../data/guildEmblems.js?v=0.44.6';
-import { GUILD_COST, GUILD_LV, PARTY_MAX } from '../systems/Social.js?v=0.44.6';
+import { MAPS } from '../data/maps/index.js?v=0.46.0';
+import { JOBS } from '../data/progression.js?v=0.46.0';
+import { EMBLEM_SHAPES, EMBLEM_ICONS, EMBLEM_COLORS, emblemSvg, parseEmblem, emblemCode, randomEmblem } from '../data/guildEmblems.js?v=0.46.0';
+import { GUILD_COST, GUILD_LV, PARTY_MAX } from '../systems/Social.js?v=0.46.0';
 
 const clean = (s, n = 16) => String(s || '').replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g, '').slice(0, n);
 const TABS = [['here', 'แผนที่นี้'], ['all', 'ออนไลน์'], ['friends', 'เพื่อน'], ['party', 'ปาร์ตี้'], ['guild', 'กิลด์'], ['rank', 'อันดับ']];
@@ -83,7 +83,7 @@ export class OnlineWindow {
     const r = document.createElement('div'); r.className = 'on-row' + (isMe ? ' me' : '');
     const S = this.game.social;
     const J = JOBS[P.j] || JOBS.novice;
-    const lv = Math.max(1, Math.min(99, Math.floor(+P.lv) || 1));
+    const lv = Math.max(1, Math.min(150, Math.floor(+P.lv) || 1));
     r.innerHTML = '<span class="on-crest"></span><div class="on-info"><b></b><small></small></div><span class="on-map"></span>';
     r.querySelector('.on-crest').textContent = J.crest;
     r.querySelector('.on-crest').style.setProperty('--jc', J.color);
@@ -317,7 +317,7 @@ export class OnlineWindow {
       r.innerHTML = '<span class="on-no"></span><div class="on-info"><b></b><small></small></div>';
       r.querySelector('.on-no').textContent = i + 1;
       r.querySelector('b').textContent = clean(d.name) || '???';
-      r.querySelector('small').textContent = `Base Lv.${Math.max(1, Math.min(99, +d.lv || 1))} · Job Lv.${Math.max(1, Math.min(99, +d.jlv || 1))} · ${J.name}`;
+      r.querySelector('small').textContent = `Base Lv.${Math.max(1, Math.min(150, +d.lv || 1))} · Job Lv.${Math.max(1, Math.min(99, +d.jlv || 1))} · ${J.name}`;
       list.append(r);
     });
   }

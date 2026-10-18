@@ -4,16 +4,18 @@
 // · ยาเลือดหมดหรือกระเป๋าเต็ม → ใช้ใบกลับเมืองแล้วหยุด
 // · v0.17.1: เอาการเดินเก็บของอัตโนมัติออกแล้ว (เก็บเองด้วยการแตะของ หรือใช้สัตว์เลี้ยงช่วยเก็บ)
 // · เดินเองระหว่างออโต้ = ย้ายจุดตีไปที่ที่หยุดเดิน · แตะมอนเอง = ตีตัวนั้นก่อน
-import { TILE } from '../config.js?v=0.44.6';
-import { MONSTERS } from '../data/monsters.js?v=0.44.6';
-import { ITEMS } from '../data/items.js?v=0.44.6';
-import { SKILLS, skillSp } from '../data/skills.js?v=0.44.6';
+import { TILE } from '../config.js?v=0.46.0';
+import { MONSTERS } from '../data/monsters.js?v=0.46.0';
+import { ITEMS } from '../data/items.js?v=0.46.0';
+import { SKILLS, skillSp } from '../data/skills.js?v=0.46.0';
+import { SHOPS, buyPrice } from '../data/shops.js?v=0.46.0';
 
 export const AUTO_RANGE = [3, 25];          // ช่อง
 export const AUTO_DEFAULT = {
   hpOn: true, hpPct: 50, hpItem: 'auto',
   spOn: true, spPct: 30, spItem: 'auto',
   potAlways: false,                         // ใช้ยาอัตโนมัติแม้ไม่ได้เปิดออโต้
+  buyOn: false, buyMin: 20, buyTo: 100,     // v0.45 VIP: ยาเหลือน้อยกว่า buyMin → ซื้อเติมให้ถึง buyTo (ใช้ Zeny)
   range: 10, retaliate: true, goHome: true,
   pick: {},                                 // { ชนิดมอน: true/false } (ไม่ระบุ = ตี ยกเว้น MVP)
   skills: [],                               // สกิลที่ติ๊กให้ใช้
@@ -24,16 +26,32 @@ const potsOf = (k) => Object.keys(ITEMS).filter((id) => ITEMS[id].type === 'usab
 export const HP_POTS = potsOf('hp');
 export const SP_POTS = potsOf('sp');
 export const potHeal = (id, k) => Math.round(avg(ITEMS[id].heal[k]));
+// v0.45 ยาที่ซื้อจากร้านได้ (ไว้ให้ VIP ซื้ออัตโนมัติ)
+export const SHOP_POTS = new Set(Object.values(SHOPS).flatMap((s) => s.items).filter((id) => ITEMS[id] && ITEMS[id].heal && buyPrice(id) > 0));
+// ยาที่จะซื้อ: ยาที่ตั้งไว้ (ถ้าร้านขาย) · อัตโนมัติ = ยาที่มีในกระเป๋ามากสุดที่ร้านขาย · ไม่มี = ตามเลเวล
+export function buyPotFor(k, cfg, pl) {
+  const pick = cfg[k + 'Item'];
+  if (pick && pick !== 'auto' && SHOP_POTS.has(pick)) return pick;
+  const list = (k === 'hp' ? HP_POTS : SP_POTS).filter((id) => SHOP_POTS.has(id));
+  let best = null, n = 0;
+  for (const id of list) { const c = pl.inventory.count(id); if (c > n) { n = c; best = id; } }
+  if (best) return best;
+  const lv = pl.baseLevel || 1;
+  const want = k === 'hp' ? (lv >= 60 ? 'white_potion' : lv >= 25 ? 'orange_potion' : 'red_potion') : (lv >= 50 ? 'mana_potion' : 'blue_potion');
+  return SHOP_POTS.has(want) ? want : list[0] || null;
+}
 
 // ตรวจค่าที่โหลดจากเซฟ
 export function normAuto(a) {
   const o = { ...AUTO_DEFAULT, pick: {}, skills: [] };
   if (!a || typeof a !== 'object') return o;
   const pct = (v, d) => (Number.isFinite(v) ? Math.max(5, Math.min(95, Math.round(v))) : d);
-  for (const k of ['hpOn', 'spOn', 'potAlways', 'retaliate', 'goHome']) if (typeof a[k] === 'boolean') o[k] = a[k];
+  for (const k of ['hpOn', 'spOn', 'potAlways', 'retaliate', 'goHome', 'buyOn']) if (typeof a[k] === 'boolean') o[k] = a[k];
   o.hpPct = pct(a.hpPct, o.hpPct); o.spPct = pct(a.spPct, o.spPct);
   o.hpItem = HP_POTS.includes(a.hpItem) ? a.hpItem : 'auto';
   o.spItem = SP_POTS.includes(a.spItem) ? a.spItem : 'auto';
+  if (Number.isFinite(a.buyMin)) o.buyMin = Math.max(1, Math.min(500, Math.round(a.buyMin)));
+  if (Number.isFinite(a.buyTo)) o.buyTo = Math.max(o.buyMin + 1, Math.min(999, Math.round(a.buyTo)));
   if (Number.isFinite(a.range)) o.range = Math.max(AUTO_RANGE[0], Math.min(AUTO_RANGE[1], Math.round(a.range)));
   if (a.pick && typeof a.pick === 'object') for (const [k, v] of Object.entries(a.pick)) if (MONSTERS[k] && typeof v === 'boolean') o.pick[k] = v;
   if (Array.isArray(a.skills)) o.skills = a.skills.filter((id) => SKILLS[id] && autoSkillRole(SKILLS[id])).slice(0, 30);
@@ -176,6 +194,7 @@ export class AutoHunt {
     if (pl.dead || g.warping) return;
     if (this.on || this.cfg.potAlways) this.potions();
     if (!this.on) return;
+    if (this.cfg.buyOn && (this.buyT = (this.buyT || 0) - 0.15) <= 0) { this.buyT = 3; this.autoBuy(); }
 
     // เดินเองอยู่ → รอจนหยุดเดิน แล้วค่อยย้ายจุดตี
     if (this.pauseUntil > g.time || (this.moved && pl.path.length && !pl.target)) { this.setStatus('ควบคุมเอง…'); return; }
@@ -322,6 +341,7 @@ export class AutoHunt {
       else if (g.useCd <= 0) {
         const id = this.potion('hp');
         if (id) { this.warned.hp = false; g.useItem(id); return; }
+        if (this.on && c.buyOn && g.vipActive) { this.autoBuy(); const id2 = this.potion('hp'); if (id2) { g.useItem(id2); return; } }   // v0.45 VIP ซื้อก่อนกลับเมือง
         if (this.on && c.goHome && !this.leaving) { this.leave('ยาเพิ่มเลือดหมด'); return; }
         if (!this.warned.hp && !this.leaving) { this.warned.hp = true; g.hud.log('⚠ ยาเพิ่มเลือดหมดแล้ว!', 'sys'); }
       }
@@ -330,6 +350,29 @@ export class AutoHunt {
       const id = this.potion('sp');
       if (id) { this.warned.sp = false; g.useItem(id); return; }
       if (!this.warned.sp) { this.warned.sp = true; g.hud.log('ยาเพิ่ม SP หมดแล้ว — ตีธรรมดาต่อไป', 'sys'); }
+    }
+  }
+
+  /* ---------- v0.45 VIP: ซื้อยาอัตโนมัติระหว่างบอท ---------- */
+  autoBuy() {
+    const g = this.g, pl = g.player, c = this.cfg;
+    if (!g.vipActive) { if (!this.warned.vipBuy) { this.warned.vipBuy = true; g.hud.log('ซื้อยาอัตโนมัติเป็นสิทธิ์ VIP — ต่ออายุ VIP ที่ร้านเพชร', 'sys'); } return; }
+    for (const k of ['hp', 'sp']) {
+      if (!c[k + 'On']) continue;
+      const id = buyPotFor(k, c, pl); if (!id) continue;
+      const have = pl.inventory.count(id); if (have >= c.buyMin) continue;
+      const price = buyPrice(id), want = Math.max(0, c.buyTo - have), afford = Math.floor(pl.zeny / Math.max(1, price));
+      let n = Math.min(want, afford);
+      if (n > 0 && !pl.inventory.canAdd(id)) n = 0;
+      if (n <= 0) { if (!this.warned['buy' + k]) { this.warned['buy' + k] = true; g.hud.log(`ซื้อ${ITEMS[id].name}อัตโนมัติไม่ได้ (${afford <= 0 ? 'Zeny ไม่พอ' : 'กระเป๋าเต็ม'})`, 'sys'); } continue; }
+      if (!pl.spendZeny(n * price)) continue;
+      const got = pl.inventory.add(id, n);
+      if (got < n) pl.addZeny((n - got) * price);   // ใส่ไม่ครบ → คืนเงินส่วนที่เกิน
+      if (got > 0) {
+        this.warned['buy' + k] = false;
+        g.hud.log(`👑 ซื้อ${ITEMS[id].name} ×${got} อัตโนมัติ (−${(got * price).toLocaleString('en-US')} z)`, 'zeny');
+        g.refreshItemsUI(); g.dirty = true;
+      }
     }
   }
 

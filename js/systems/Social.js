@@ -4,7 +4,7 @@
 //   · เชิญผ่านห้องรวม (pi → pr) · หัวหน้า = คนที่เข้าปาร์ตี้ก่อนสุด · สูงสุด 6 คน
 //   · แชร์ EXP: คนที่อยู่แมพเดียวกันแบ่ง EXP เท่ากัน + โบนัส 20% ต่อสมาชิกเพิ่ม 1 คน (มอนยังจำลองแยกเครื่อง — แชร์แค่ EXP)
 // กิลด์ — ข้อมูลถาวรในฐานข้อมูล (supabase/guild.sql) · ห้อง everlevel-guild-<id> ไว้แชตกิลด์ + ดูว่าใครออนไลน์
-import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.44.6';
+import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.46.0';
 
 export const PARTY_MAX = 6;
 export const PARTY_BONUS = 0.2;
@@ -63,14 +63,14 @@ export class Social {
     if (now - (this.worldAt || 0) < 4000) { this.log('แชตโลกส่งได้ทุก 4 วินาที', 'sys'); return false; }
     this.worldAt = now;
     const pl = this.game.player;
-    this.net.lobbySend('wc', { n: pl.name, m: text, t: now }).then((r) => { if (r !== 'ok') this.log('ส่งแชตโลกไม่สำเร็จ ลองใหม่อีกครั้ง', 'sys'); });
-    this.game.hud.log(`[โลก] ${pl.name} : ${text}`, 'world me');
+    this.net.lobbySend('wc', { n: pl.name, m: text, t: now, ...(this.game.vipActive ? { v: 1 } : {}) }).then((r) => { if (r !== 'ok') this.log('ส่งแชตโลกไม่สำเร็จ ลองใหม่อีกครั้ง', 'sys'); });
+    this.game.hud.log(text, 'world me', pl.name, this.game.vipActive, '[โลก] ');
     return true;
   }
   onWorld(p) {
     const text = clean(p.m, 120), who = clean(p.n);
     if (!text || !Number.isFinite(p.t) || this.dupMsg('wc' + p.k + p.t) || this.isBlocked(who)) return;
-    this.game.hud.log(`[โลก] ${who} : ${text}`, 'world');
+    this.game.hud.log(text, 'world', who, p.v === 1, '[โลก] ');
   }
 
   whisper(name, text) {

@@ -1,10 +1,10 @@
-import { jobTier } from '../data/progression.js?v=0.44.6';
+import { jobTier } from '../data/progression.js?v=0.46.0';
 // ระบบสะสมและเป้าหมายระยะยาว (v0.18) — สมุดมอนสเตอร์ · ความสำเร็จ/ฉายา · อัลบั้มการ์ด · เช็กอินรายวัน
 // ข้อมูลอยู่ในเซฟตัวละคร (player.col) → ไม่ต้องตั้งค่าเซิร์ฟเวอร์เพิ่ม · โบนัสรวมอยู่ที่ player.colBonus (คิดรวมในค่าสถานะ)
-import { MONSTERS } from '../data/monsters.js?v=0.44.6';
-import { CARDS } from '../data/cards.js?v=0.44.6';
-import { ITEMS, itemMods, describeBonus } from '../data/items.js?v=0.44.6';
-import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, ACHIEVEMENTS, ACH_BY_ID, ACH_COUNTED, MVP_CARDS, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.44.6';
+import { MONSTERS } from '../data/monsters.js?v=0.46.0';
+import { CARDS } from '../data/cards.js?v=0.46.0';
+import { ITEMS, itemMods, describeBonus } from '../data/items.js?v=0.46.0';
+import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, ACHIEVEMENTS, ACH_BY_ID, ACH_COUNTED, MVP_CARDS, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.46.0';
 
 const SET_OF = (o) => Object.keys(o);
 const addTo = (out, o) => { for (const [k, v] of Object.entries(o || {})) out[k] = +(((out[k] || 0) + v).toFixed(4)); return out; };
@@ -29,7 +29,7 @@ export function normCol(c) {
   if (c.ach && typeof c.ach === 'object') for (const [id, v] of Object.entries(c.ach)) if (ACH_BY_ID[id]) o.ach[id] = int(v) || 1;
   if (typeof c.title === 'string' && o.ach[c.title]) o.title = c.title;
   const ci = c.ci && typeof c.ci === 'object' ? c.ci : {};
-  o.ci = { last: typeof ci.last === 'string' && /^\d{4}-\d\d-\d\d$/.test(ci.last) ? ci.last : '', count: int(ci.count, 99999), day: int(ci.day, LOGIN_DAYS), streak: int(ci.streak, 99999), best: int(ci.best, 99999) };
+  o.ci = { last: typeof ci.last === 'string' && /^\d{4}-\d\d-\d\d$/.test(ci.last) ? ci.last : '', count: int(ci.count, 99999), day: int(ci.day, LOGIN_DAYS), streak: int(ci.streak, 99999), best: int(ci.best, 99999), vip: typeof ci.vip === 'string' && /^\d{4}-\d\d-\d\d$/.test(ci.vip) ? ci.vip : '' };
   return o;
 }
 
@@ -207,6 +207,17 @@ export class Collection {
     g.dirty = true;
     this.evalT = 1;
     this.changed();
+  }
+
+  // v0.45 VIP: เช็กอินคูณ 2 → ส่งรางวัลวันนี้ซ้ำอีกชุด (ครั้งเดียวต่อวัน · เรียกเมื่อรู้ว่าเป็น VIP)
+  vipBonus() {
+    const g = this.g, c = this.c.ci, today = localDay();
+    if (!g.started || !g.vipActive || c.last !== today || c.vip === today || !c.day) return;
+    c.vip = today;
+    const r = loginReward(c.day, this.pl.baseLevel);
+    this.sendMail({ id: `civ${c.count}-${today}`, sender: 'ปฏิทินเช็กอิน', title: `👑 โบนัสเช็กอิน VIP วันที่ ${c.day}/${LOGIN_DAYS}`, body: 'สิทธิ์ VIP: รับรางวัลเช็กอินวันนี้เพิ่มอีก 1 ชุด (คูณ 2)', items: r.items, zeny: r.zeny });
+    g.hud.log('👑 โบนัสเช็กอิน VIP ส่งเข้ากล่องจดหมายแล้ว (รางวัลคูณ 2)', 'lv');
+    g.dirty = true; this.changed();
   }
 
   // จดหมายในเครื่อง (ระบบเกมส่งให้ตัวละครนี้) — เก็บในเซฟตัวละคร · แสดงในกล่องจดหมายเดิม

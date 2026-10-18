@@ -1,12 +1,12 @@
 // หน้าต่างตีมอนออโต้ (v0.14 · ปุ่ม H) + ปุ่ม AUTO ลอยบนจอ (กดเริ่ม/หยุดได้ทันที)
 // ตั้งค่า: ยาเพิ่ม HP/SP อัตโนมัติ · ระยะการตี · ติ๊กมอนที่จะตี (มีรูปมอน) · ตีตัวที่โจมตีเราก่อน · สกิลที่ใช้ (v0.17.1: เอาเก็บของอัตโนมัติออก)
-import { MONSTERS } from '../data/monsters.js?v=0.44.6';
-import { ITEMS } from '../data/items.js?v=0.44.6';
-import { SKILLS, skillSp } from '../data/skills.js?v=0.44.6';
-import { iconURL } from '../render/ItemIcons.js?v=0.44.6';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.44.6';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.44.6';
-import { AUTO_RANGE, HP_POTS, SP_POTS, potHeal, mapMonsters, autoSkillRole } from '../systems/AutoHunt.js?v=0.44.6';
+import { MONSTERS } from '../data/monsters.js?v=0.46.0';
+import { ITEMS } from '../data/items.js?v=0.46.0';
+import { SKILLS, skillSp } from '../data/skills.js?v=0.46.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.46.0';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.46.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.46.0';
+import { AUTO_RANGE, HP_POTS, SP_POTS, potHeal, mapMonsters, autoSkillRole, buyPotFor } from '../systems/AutoHunt.js?v=0.46.0';
 
 const ROLE_LABEL = { attack: 'โจมตีเป้าหมาย', aoe: 'โจมตีรอบตัว', buff: 'บัฟ · ใช้ใหม่เมื่อหมดเวลา', heal: 'รักษา · ใช้เมื่อ HP ต่ำกว่าที่ตั้ง' };
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -44,6 +44,10 @@ export class AutoWindow {
         ${pot('hp', 'เพิ่มเลือด (HP)')}
         ${pot('sp', 'เพิ่ม SP (MP)')}
         <label class="aw-chk aw-small"><input type="checkbox" data-k="potAlways"><span>ใช้ยาอัตโนมัติตลอดเวลา แม้ไม่ได้เปิดออโต้</span></label>
+      </section>
+      <section class="aw-sec aw-vip"><h3>👑 ซื้อยาอัตโนมัติ <small class="aw-vipst"></small></h3>
+        <label class="aw-chk"><input type="checkbox" data-k="buyOn"><span>ยาใกล้หมดระหว่างบอท → ซื้อเติมให้อัตโนมัติ (ใช้ Zeny)<small class="aw-buyinfo"></small></span></label>
+        <div class="aw-buy"><label>เหลือน้อยกว่า <input type="number" min="1" max="500" step="1" data-k="buyMin" inputmode="numeric"> ชิ้น</label><label>ซื้อเติมให้ถึง <input type="number" min="2" max="999" step="1" data-k="buyTo" inputmode="numeric"> ชิ้น</label></div>
       </section>
       <section class="aw-sec"><h3>ระยะการตี <output class="aw-range-v"></output></h3>
         <div class="aw-slide"><input type="range" min="${AUTO_RANGE[0]}" max="${AUTO_RANGE[1]}" step="1" data-k="range" aria-label="ระยะการตี (ช่อง)"></div>
@@ -86,6 +90,7 @@ export class AutoWindow {
       const k = t.dataset.k;
       if (t.type === 'checkbox') { if (!commit) return; c[k] = t.checked; }
       else if (t.type === 'range') c[k] = +t.value;
+      else if (t.type === 'number') { if (!commit) return; const v = Math.floor(+t.value) || 1; c[k] = k === 'buyMin' ? Math.max(1, Math.min(500, v)) : Math.max(c.buyMin + 1, Math.min(999, v)); }
       else if (commit) c[k] = t.value;
       else return;
       auto.changed(k);
@@ -152,6 +157,12 @@ export class AutoWindow {
     }
     this.$('.aw-range-v').textContent = `${c.range} ช่อง`;
     for (const k of ['hp', 'sp']) this.el.querySelector(`[data-pot="${k}"]`).classList.toggle('off', !c[k + 'On']);
+    const vip = this.g.vipActive, sec = this.$('.aw-vip');
+    sec.classList.toggle('locked', !vip);
+    this.$('.aw-vipst').textContent = vip ? 'สิทธิ์ VIP' : 'สำหรับ VIP เท่านั้น';
+    const hpId = buyPotFor('hp', c, this.g.player), spId = buyPotFor('sp', c, this.g.player);
+    this.$('.aw-buyinfo').textContent = (hpId ? `HP: ${ITEMS[hpId].name}` : '') + (spId ? ` · SP: ${ITEMS[spId].name}` : '') + ' · เลือกยาได้จากช่องยาด้านบน';
+    for (const inp of sec.querySelectorAll('input')) inp.disabled = !vip;
     const sc = this.g.player.inventory.count('return_scroll');
     this.$('.aw-scroll').textContent = sc ? `มีใบกลับเมือง ${sc} ใบ` : 'ยังไม่มีใบกลับเมือง — ซื้อได้ที่ร้านของใช้ (ถ้าไม่มีจะหยุดอยู่กับที่)';
   }

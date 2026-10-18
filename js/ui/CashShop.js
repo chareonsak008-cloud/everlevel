@@ -1,14 +1,27 @@
 // v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → แอดมินอนุมัติ)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.44.6';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.44.6';
-import { iconURL } from '../render/ItemIcons.js?v=0.44.6';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.44.6';
-import { ready } from './TradeMarket.js?v=0.44.6';
+import { ITEMS, RARITY } from '../data/items.js?v=0.46.0';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.46.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.46.0';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.46.0';
+import { ready } from './TradeMarket.js?v=0.46.0';
+import { WARP_ROUTES } from '../data/shops.js?v=0.46.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
-const QR_SRC = 'assets/ui/topup_qr.png';   // ภาพ QR พร้อมเพย์ของเจ้าของเกม (ใส่ไฟล์นี้เอง)
-const TABS = [['fashion', 'แฟชั่น'], ['box', 'กล่อง & สัตว์เลี้ยง'], ['convenience', 'สะดวกสบาย'], ['boost', 'เร่งเลเวล'], ['topup', '💎 เติมเพชร']];
+const QR_SRC = 'assets/ui/topup_qr.png';
+// v0.45 สิทธิ์ VIP (ข้อความแสดงในแท็บ VIP)
+export const VIP_PERKS = [
+  ['🧪', 'ซื้อยาอัตโนมัติระหว่างบอท', 'ยาใกล้หมดกระเป๋า ระบบซื้อเติมให้เองด้วย Zeny (ตั้งค่าที่หน้าต่างออโต้)'],
+  ['🏪', 'ตลาด 5 รายการ · ค่าธรรมเนียม 3%', 'คนทั่วไปลงขายได้ 2 รายการ ค่าธรรมเนียม 7%'],
+  ['🌀', 'วาร์ป · คลัง · ร้านค้า ได้ทุกที่', 'กดจากแท็บนี้ ไม่ต้องเดินไปหา NPC · วาร์ปฟรี'],
+  ['🎁', 'รางวัลรายวัน', '10 เพชร + กล่องไม้ · ใบวาร์ป ×3 · ลูกอมฟื้นฟู ×2 ทุกวัน · รางวัลเช็กอินคูณ 2'],
+  ['⚡', 'EXP / ดรอป +20%', 'ซ้อนกับใบคูณและอีเวนต์ได้'],
+  ['👑', 'ป้าย VIP + ชื่อสีทอง', 'ทั้งบนป้ายชื่อและในแชต'],
+];
+const dateTH = (ms) => new Date(ms).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+// ปลายทางวาร์ป VIP: รวมทุกเส้นทางของนักเวทย์ (ไม่ซ้ำ)
+const VIP_WARPS = (() => { const seen = new Set(), out = []; for (const list of Object.values(WARP_ROUTES)) for (const r of list) { const k = r.map + '|' + r.label; if (!seen.has(k)) { seen.add(k); out.push(r); } } return out; })();   // ภาพ QR พร้อมเพย์ของเจ้าของเกม (ใส่ไฟล์นี้เอง)
+const TABS = [['vip', '👑 VIP'], ['fashion', 'แฟชั่น'], ['box', 'กล่อง & สัตว์เลี้ยง'], ['convenience', 'สะดวกสบาย'], ['boost', 'เร่งเลเวล'], ['topup', '💎 เติมเพชร']];
 
 // ย่อรูปสลิปเป็น JPEG ไม่เกิน 1400px (ไฟล์เล็ก อัปโหลดเร็ว)
 async function shrink(file) {
@@ -21,7 +34,7 @@ async function shrink(file) {
 
 export class CashShopWindow {
   constructor(root, game) {
-    this.g = game; this.tab = 'fashion'; this.st = null; this.busy = false; this.msg = ''; this.pack = null; this.file = null; this.adminRows = null; this.slips = {};
+    this.g = game; this.tab = 'vip'; this.st = null; this.busy = false; this.msg = ''; this.pack = null; this.file = null; this.adminRows = null; this.slips = {};
     const el = this.el = document.createElement('section');
     el.className = 'panel tm cs'; el.hidden = true;
     el.innerHTML = `<header class="st-head"><div><h2>ร้านเพชร</h2><p>แฟชั่น · กล่องสุ่ม · ไอเทมสะดวกสบาย · เพชรใช้ร่วมทุกตัวละครในบัญชี</p></div><div class="cs-gems" title="เพชรของคุณ">💎 <b>0</b></div><button type="button" class="st-close" aria-label="ปิด">✕</button></header><div class="tm-body"></div>`;
@@ -36,7 +49,8 @@ export class CashShopWindow {
   close() { this.el.hidden = true; }
   log(m) { this.msg = m; this.render(); }
 
-  async show() {
+  async show(tab) {
+    if (tab) { this.tab = tab; this.confirmId = null; }
     this.el.hidden = false; this.msg = '';
     if (!this.g.cloud || !this.g.online || !this.g.online.tradeRPC) { this.msg = 'ร้านเพชรใช้ได้เมื่อเล่นออนไลน์และเซฟบนคลาวด์'; return this.render(); }
     this.render();
@@ -49,6 +63,7 @@ export class CashShopWindow {
     this.busy = false;
     if (r.error) { this.msg = r.error; return this.render(); }
     this.st = r.data;
+    this.g.setVip(this.st);
     this.news(this.st.requests || []);
     this.render();
   }
@@ -62,7 +77,7 @@ export class CashShopWindow {
   async checkNews() {
     if (!this.g.cloud || !this.g.online || !this.g.online.tradeRPC) return;
     const r = await this.g.online.tradeRPC('cash_state', {});
-    if (!r.error && r.data) { this.st = r.data; this.news(r.data.requests || []); }
+    if (!r.error && r.data) { this.st = r.data; this.g.setVip(r.data); this.news(r.data.requests || []); if (this.g.vipActive && !r.data.vip_claimed) this.g.hud.log('👑 รางวัลรายวัน VIP พร้อมรับแล้ว — เปิดร้านเพชร แท็บ VIP', 'lv'); }
   }
 
   async buy(p) {
@@ -78,6 +93,12 @@ export class CashShopWindow {
       await this.g.online.syncLedger();
       this.st.gems = r.data.gems;
       this.g.sfx('coin');
+      if (p.kind === 'vip') {
+        this.st.vip_until = r.data.vip_until; this.st.now = Date.now() + (this.g.vip.skew || 0); this.g.setVip(this.st);
+        await this.load();
+        this.msg = `👑 เป็น VIP แล้ว ถึง ${dateTH(this.g.vip.until)}`;
+        return;
+      }
       this.msg = p.kind === 'fashion' ? `ได้รับ ${name} แล้ว · เปิดตู้แฟชั่น (O) เพื่อสวมใส่` : `ได้รับ ${name}${p.qty > 1 ? ' ×' + p.qty : ''} แล้ว · อยู่ในกระเป๋า`;
     } finally { this.busy = false; this.render(); }
   }
@@ -115,7 +136,59 @@ export class CashShopWindow {
     await this.loadAdmin();
   }
 
+  async claimDaily() {
+    if (this.busy) return;
+    this.busy = true; this.msg = ''; this.render();
+    try {
+      const err = await ready(this.g); if (err) { this.msg = err; return; }
+      const r = await this.g.online.tradeRPC('vip_daily', {});
+      if (r.error) { this.msg = r.error; return; }
+      await this.g.online.syncLedger();
+      this.st.gems = r.data.gems; this.st.vip_claimed = true; this.g.vip.claimed = true;
+      this.g.sfx('coin');
+      this.msg = '🎁 รับรางวัลรายวัน VIP แล้ว: 10 เพชร · กล่องไม้ · ใบวาร์ป ×3 · ลูกอมฟื้นฟู ×2';
+    } finally { this.busy = false; this.render(); }
+  }
+
+  renderVip(pane) {
+    const g = this.g, st = this.st, on = g.vipActive, list = (st.products || []).filter((p) => p.kind === 'vip');
+    pane.innerHTML = `<div class="vip-card${on ? ' on' : ''}"><div class="vip-crown" aria-hidden="true">👑</div><div class="vip-st"><b>${on ? 'คุณเป็น VIP' : 'ยังไม่ได้เป็น VIP'}</b><small></small></div></div>
+      <div class="vip-buy"></div>
+      ${on ? `<div class="vip-acts"><h3>ใช้สิทธิ์ VIP</h3><div class="vip-row"><button type="button" class="primary" data-v="daily"></button><button type="button" data-v="stor">📦 เปิดคลัง</button><button type="button" data-v="shop">🧪 ร้านของใช้</button><button type="button" data-v="sell">💰 ขายของ</button></div>
+        <h3>วาร์ปฟรี</h3><div class="vip-warps"></div></div>` : ''}
+      <h3>สิทธิ์ VIP</h3><ul class="vip-perks"></ul>`;
+    pane.querySelector('.vip-st small').textContent = on ? `หมดอายุ ${dateTH(g.vip.until)} · ซื้อเพิ่มต่ออายุสะสมได้` : 'ซื้อบัตร VIP ด้วยเพชร · ซื้อซ้ำต่ออายุสะสม';
+    const buy = pane.querySelector('.vip-buy');
+    for (const p of list) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'vip-pass' + (this.confirmId === p.id ? ' sel' : '');
+      b.innerHTML = `${p.tag ? '<span class="cs-tag"></span>' : ''}<b>บัตร VIP ${p.qty} วัน</b><span>${this.confirmId === p.id ? 'กดอีกครั้งเพื่อยืนยัน' : on ? 'ต่ออายุ +' + p.qty + ' วัน' : 'เริ่มทันทีหลังซื้อ'}</span><em>💎 ${fmt(p.price)}</em>`;
+      if (p.tag) b.querySelector('.cs-tag').textContent = p.tag;
+      b.disabled = this.busy;
+      b.addEventListener('click', () => this.buy(p));
+      buy.append(b);
+    }
+    if (!list.length) buy.innerHTML = '<p class="tm-empty">ยังไม่เปิดขาย VIP (แอดมินต้องรัน supabase/vip.sql)</p>';
+    const ul = pane.querySelector('.vip-perks');
+    for (const [ic, t, d] of VIP_PERKS) { const li = document.createElement('li'); li.innerHTML = '<i></i><div><b></b><small></small></div>'; li.querySelector('i').textContent = ic; li.querySelector('b').textContent = t; li.querySelector('small').textContent = d; ul.append(li); }
+    if (!on) return;
+    const daily = pane.querySelector('[data-v="daily"]');
+    daily.textContent = st.vip_claimed ? '✔ รับรางวัลวันนี้แล้ว' : '🎁 รับรางวัลรายวัน';
+    daily.disabled = this.busy || !!st.vip_claimed;
+    daily.addEventListener('click', () => this.claimDaily());
+    pane.querySelector('[data-v="stor"]').addEventListener('click', () => { this.close(); g.vipService('storage'); });
+    pane.querySelector('[data-v="shop"]').addEventListener('click', () => { this.close(); g.vipService('shop'); });
+    pane.querySelector('[data-v="sell"]').addEventListener('click', () => { this.close(); g.vipService('sell'); });
+    const wr = pane.querySelector('.vip-warps');
+    for (const r of VIP_WARPS) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'vip-warp';
+      b.innerHTML = '<b></b><small></small>'; b.querySelector('b').textContent = r.label; b.querySelector('small').textContent = r.hint || '';
+      b.addEventListener('click', () => { this.close(); g.vipWarp(r); });
+      wr.append(b);
+    }
+  }
+
   nameOf(p) {
+    if (p.kind === 'vip') return `บัตร VIP ${p.qty} วัน`;
     if (p.kind === 'fashion') return (COSTUME_BY_ID[p.ref] || {}).name || p.ref;
     return (ITEMS[p.ref] || {}).name || p.ref;
   }
@@ -133,6 +206,7 @@ export class CashShopWindow {
     for (const b of this.body.querySelectorAll('[data-t]')) b.addEventListener('click', () => this.setTab(b.dataset.t));
     const pane = this.body.querySelector('.tm-pane');
     if (!st) { pane.innerHTML = `<p class="tm-empty">${this.busy ? 'กำลังโหลด…' : ''}</p>`; return; }
+    if (this.tab === 'vip') return this.renderVip(pane);
     if (this.tab === 'topup') return this.renderTopup(pane);
     if (this.tab === 'admin') return this.renderAdmin(pane);
     this.renderProducts(pane);

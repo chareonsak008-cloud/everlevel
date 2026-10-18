@@ -2316,3 +2316,22 @@ body.touch .qnav-tip { font-size: 10px; }
 .qt-navtog { flex: none; display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; font: inherit; font-size: 10.5px; color: var(--muted); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 999px; cursor: pointer; }
 .qt-navtog b { font-weight: 600; }
 .qt-navtog.on { color: var(--gold); border-color: rgba(255, 210, 90, 0.55); background: rgba(255, 210, 90, 0.12); }
+
+/* v0.46 เกรดอุปกรณ์ใหม่: ห้วงสมุทร (Lv.110) · เทพสวรรค์ (Lv.135) */
+.slot.r-abyssal { --rt: #9ef7ea; --rb: #0e6a7a; --re: #c8fff6; }
+.slot.r-divine  { --rt: #fffbe8; --rb: #c8a24a; --re: #ffffff; }
+.slot.r-abyssal, .slot.r-divine { box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), inset 0 -6px 10px rgba(0,0,0,.25), 0 0 10px color-mix(in srgb, var(--re) 65%, transparent); }
+.slot.r-abyssal::after, .slot.r-divine::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.6) 50%, transparent 65%) -150% 0 / 250% 100% no-repeat;
+  animation: slotShine 2s ease-in-out infinite;
+}
+.chat .r-abyssal, .dmg.loot.r-abyssal { color: #3fe6d0; font-weight: 600; }
+.chat .r-divine, .dmg.loot.r-divine { color: #fff1b0; font-weight: 700; text-shadow: 0 0 6px rgba(255, 230, 150, 0.7); }
+.chat .f-abyssal, .chat .f-divine { font-weight: 700; color: transparent; background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; animation: flow1 4s linear infinite; }
+.chat .f-abyssal { background-image: linear-gradient(110deg, #3fe6d0, #bff8ff, #2a9ad8, #3fe6d0); }
+.chat .f-divine { background-image: linear-gradient(110deg, #fff1b0, #ffffff, #ffd86a, #fff1b0); }
+.dmg.loot.f-abyssal { color: #7ff4e4; font-size: 26px; font-family: 'Lilita One', var(--display); text-shadow: 0 0 10px rgba(63, 230, 208, 0.9), 0 1px 0 #0a1a22; }
+.dmg.loot.f-divine { color: #fff6d0; font-size: 28px; font-family: 'Lilita One', var(--display); text-shadow: 0 0 12px rgba(255, 236, 160, 1), 0 1px 0 #2a2010; }
+.g-rar[data-rarity="abyssal"] { color: #3fe6d0; }
+.g-rar[data-rarity="divine"] { color: #fff1b0; }

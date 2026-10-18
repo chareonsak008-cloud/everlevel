@@ -1,12 +1,12 @@
 // ใช้ไอเทมใช้งานชุดใหม่ (v0.13): วาร์ป · บัฟ/ใบคูณ · ฟื้นฟู · ขยายกระเป๋า/คลัง · รีเซ็ต · เปลี่ยนชื่อ · ประกาศ · เรียกมอน · กล่องสุ่ม · ฟักไข่
-import { TILE } from '../config.js?v=0.44.6';
-import { ITEMS } from '../data/items.js?v=0.44.6';
-import { CONSUMABLES, ADVENTURER_BOX, fmtDur } from '../data/consumables.js?v=0.44.6';
-import { MAPS, START_MAP } from '../data/maps/index.js?v=0.44.6';
-import { MONSTERS } from '../data/monsters.js?v=0.44.6';
-import { STORAGE_CAPACITY } from '../data/shops.js?v=0.44.6';
-import { validName } from '../net/Online.js?v=0.44.6';
-import { askText } from '../ui/Prompt.js?v=0.44.6';
+import { TILE } from '../config.js?v=0.46.0';
+import { ITEMS } from '../data/items.js?v=0.46.0';
+import { CONSUMABLES, ADVENTURER_BOX, fmtDur } from '../data/consumables.js?v=0.46.0';
+import { MAPS, START_MAP } from '../data/maps/index.js?v=0.46.0';
+import { MONSTERS } from '../data/monsters.js?v=0.46.0';
+import { STORAGE_CAPACITY } from '../data/shops.js?v=0.46.0';
+import { validName } from '../net/Online.js?v=0.46.0';
+import { askText } from '../ui/Prompt.js?v=0.46.0';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const STORAGE_UP = 20;
@@ -81,7 +81,7 @@ export function useConsumable(g, id) {
     }
     if (!list.length) { g.hud.log('ยังไม่มีผู้เล่นคนอื่นออนไลน์อยู่', 'sys'); return; }
     g.dialog.show({ name: it.name, title: 'ผู้เล่นที่ออนไลน์อยู่' }, 'จะวาร์ปไปหาใคร? (ร่าย 2 วินาที)', [
-      ...list.slice(0, 8).map((P) => ({ label: esc(String(P.n).slice(0, 16)), sub: `Lv.${Math.max(1, Math.min(99, Math.floor(P.lv) || 1))} · ${esc(MAPS[P.m].name)}`, onSelect: () => cast(it.cast, () => { if (pl.inventory.count(id) <= 0) return; take(); g.warpToFriend(String(P.n).slice(0, 16), P.m); }) })),
+      ...list.slice(0, 8).map((P) => ({ label: esc(String(P.n).slice(0, 16)), sub: `Lv.${Math.max(1, Math.min(150, Math.floor(P.lv) || 1))} · ${esc(MAPS[P.m].name)}`, onSelect: () => cast(it.cast, () => { if (pl.inventory.count(id) <= 0) return; take(); g.warpToFriend(String(P.n).slice(0, 16), P.m); }) })),
       { label: 'ยกเลิก', cls: 'ghost' },
     ]);
     return;

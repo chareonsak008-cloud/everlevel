@@ -18,7 +18,7 @@ create table if not exists public.characters (
   slot       smallint    not null check (slot between 1 and 3),
   name       text        not null check (char_length(btrim(name)) between 2 and 16),
   job        text        not null default 'novice' check (char_length(job) <= 20),
-  lv         smallint    not null default 1 check (lv between 1 and 99),
+  lv         smallint    not null default 1 check (lv between 1 and 150),
   jlv        smallint    not null default 1 check (jlv between 1 and 99),
   map        text        not null default 'asteria_town' check (char_length(map) <= 40),
   data       jsonb       not null default '{}'::jsonb check (pg_column_size(data) < 400000),

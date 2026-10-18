@@ -1,8 +1,8 @@
 // หน้าจอข้อมูล (DOM): สถานะตัวละคร, แชท, ชื่อแผนที่, FPS, บัฟ
-import { SKILLS } from '../data/skills.js?v=0.44.6';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.44.6';
-import { ITEMS } from '../data/items.js?v=0.44.6';
-import { iconURL } from '../render/ItemIcons.js?v=0.44.6';
+import { SKILLS } from '../data/skills.js?v=0.46.0';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.46.0';
+import { ITEMS } from '../data/items.js?v=0.46.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.46.0';
 export class HUD {
   constructor(root) {
     this.el = {
@@ -150,10 +150,14 @@ export class HUD {
     this.bannerTimer = setTimeout(() => b.classList.remove('show'), 2800);
   }
 
-  log(text, type = 'info', who = '') {
+  log(text, type = 'info', who = '', vip = false, pre = '') {
     const line = document.createElement('div');
     line.className = type;
-    line.textContent = who ? `${who} : ${text}` : text;
+    if (who && vip) {   // v0.45 ชื่อ VIP สีทอง + ป้าย
+      const b = document.createElement('b'); b.className = 'vip-tag'; b.textContent = 'VIP';
+      const n = document.createElement('span'); n.className = 'vip-name'; n.textContent = who;
+      line.append(pre, b, n, ` : ${text}`);
+    } else line.textContent = who ? `${pre}${who} : ${text}` : text;
     this.el.chat.append(line);
     while (this.el.chat.children.length > 40) this.el.chat.firstChild.remove();
   }

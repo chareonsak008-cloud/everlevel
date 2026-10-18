@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.44.6';
-import { SideChannel } from './SideChannel.js?v=0.44.6';
+import { Online, MAX_CHARS } from './Online.js?v=0.46.0';
+import { SideChannel } from './SideChannel.js?v=0.46.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -57,7 +57,7 @@ const TRADE_ERR = {
   changed: 'อีกฝ่ายเพิ่งเปลี่ยนของบนโต๊ะ ตรวจอีกครั้งแล้วกดยืนยันใหม่', not_enough: 'ของในกระเป๋าไม่พอ (ลองรอเซฟสักครู่)',
   not_enough_zeny: 'Zeny ไม่พอ', zeny_full: 'Zeny เต็มเพดานแล้ว', stack_full: 'ไอเทมชนิดนี้เต็ม 999 ชิ้นแล้ว',
   untradable: 'ไอเทมนี้แลก/ขายไม่ได้', bad_items: 'รายการของไม่ถูกต้อง (สูงสุด 10 ชนิด)', bad_price: 'ราคาไม่ถูกต้อง',
-  too_many_listings: 'ลงขายได้สูงสุด 10 รายการต่อตัวละคร', sold_out: 'ของชิ้นนี้ขายหมดหรือหมดเวลาแล้ว',
+  too_many_listings: 'ลงขายครบจำนวนแล้ว (ทั่วไป 2 รายการ · VIP 5 รายการ) ปิดรายการเก่าก่อน', not_vip: 'สิทธิ์นี้สำหรับ VIP — ซื้อบัตร VIP ได้ที่ร้านเพชร', already_claimed: 'วันนี้รับรางวัล VIP ไปแล้ว พรุ่งนี้มาใหม่นะ', sold_out: 'ของชิ้นนี้ขายหมดหรือหมดเวลาแล้ว',
   own_listing: 'ซื้อของของตัวเองไม่ได้',
   peer_zeny_full: 'Zeny ของอีกฝ่ายจะเกินเพดาน ลดจำนวน Zeny ลง', empty_trade: 'ยังไม่มีของหรือ Zeny บนโต๊ะเลย (วางฝ่ายเดียวก็ได้)', bad_zeny: 'จำนวน Zeny ไม่ถูกต้อง',
   not_enough_gems: 'เพชรไม่พอ', already_owned: 'มีชิ้นนี้ในตู้แฟชั่นแล้ว', no_product: 'สินค้านี้ปิดขายแล้ว', bad_pack: 'แพ็กนี้ไม่มีแล้ว',
@@ -233,7 +233,7 @@ export class SupabaseOnline extends Online {
     }
     const row = {
       user_id: this.uid, slot: this.slot, name: p.name, job: p.job || 'novice',
-      lv: Math.max(1, Math.min(99, p.baseLevel || 1)), jlv: Math.max(1, Math.min(99, p.jobLevel || 1)),
+      lv: Math.max(1, Math.min(150, p.baseLevel || 1)), jlv: Math.max(1, Math.min(99, p.jobLevel || 1)),
       map: p.map || 'asteria_town', data: rest, updated_at: new Date().toISOString(),
     };
     const r1 = await this.sb.from('characters').upsert(row, { onConflict: 'user_id,slot' });

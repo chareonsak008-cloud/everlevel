@@ -1,15 +1,15 @@
 // v0.32: ระบบดันเจี้ยนถ้ำ (เป็นชั้น · บอสท้ายชั้น · จำกัดรอบต่อวัน) + หอคอยไต่ชั้นไม่รู้จบ (อันดับชั้นสูงสุด)
 // แต่ละรอบเป็นแผนที่ส่วนตัว (instance) สร้างใหม่ทุกชั้น · มอนปรับเลเวลตามผู้เล่น/ชั้น · ไม่เกิดใหม่
-import { TILE } from '../config.js?v=0.44.6';
-import { ITEMS } from '../data/items.js?v=0.44.6';
-import { MONSTERS } from '../data/monsters.js?v=0.44.6';
-import { JOBS } from '../data/progression.js?v=0.44.6';
-import { START_MAP } from '../data/maps/index.js?v=0.44.6';
+import { TILE } from '../config.js?v=0.46.0';
+import { ITEMS } from '../data/items.js?v=0.46.0';
+import { MONSTERS } from '../data/monsters.js?v=0.46.0';
+import { JOBS } from '../data/progression.js?v=0.46.0';
+import { START_MAP } from '../data/maps/index.js?v=0.46.0';
 import {
   CAVE, TOWER, todayKey, rngOf, pickRoster, scaledData, refHp, refExp, BOSS_MOBS,
   caveFloorDef, towerFloorDef, towerFloorPlan, towerFloorReward, towerLevel,
   CAVE_MOB_DROPS, CAVE_BOSS_DROPS, CAVE_FINAL_DROPS, TOWER_MOB_DROPS, caveChest, normDungeon,
-} from '../data/dungeons.js?v=0.44.6';
+} from '../data/dungeons.js?v=0.46.0';
 export { normDungeon };
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -34,7 +34,7 @@ export class Dungeons {
   }
   get caveLeft() { return Math.max(0, CAVE.daily - this.st.cave); }
   get active() { return !!this.run; }
-  caveLevel() { return Math.max(CAVE.minLv, Math.min(99, this.g.player.baseLevel)); }
+  caveLevel() { return Math.max(CAVE.minLv, Math.min(150, this.g.player.baseLevel)); }
 
   /* ---------- เมนู NPC ---------- */
   caveMenu(npc, greet) {
@@ -62,7 +62,7 @@ export class Dungeons {
       ...(cp > 1 ? [{ label: `เริ่มจากเช็กพอยต์ชั้น ${cp}`, sub: `ข้ามชั้น 1–${cp - 1} (ไม่ได้รางวัลชั้นที่ข้าม) · มอน Lv.${towerLevel(cp)}`, disabled: lowLv || pl.dead, onSelect: () => this.startTower(cp) }] : []),
       { label: 'อันดับหอคอย', sub: 'ชั้นสูงสุดของผู้เล่นทั้งเซิร์ฟเวอร์', keepOpen: true, onSelect: () => { g.dialog.hide(); this.openRanking(); } },
       { label: 'กติกาและรางวัล', keepOpen: true, onSelect: () => g.dialog.show(npc,
-        `หอคอยไม่มีชั้นสุดท้าย · ยิ่งสูงมอนยิ่งแรง (ชั้น N = มอน Lv.N+4 · เกิน Lv.99 แรงขึ้นทวีคูณ)\nกำจัดมอนทุกตัวในเวลาที่กำหนดเพื่อขึ้นชั้นถัดไป · ทุก 5 ชั้นมีบอส · ทุก 10 ชั้นมีบอสใหญ่\nผ่านชั้นแล้วฟื้น HP/SP ${Math.round(TOWER.heal * 100)}%\n\nรางวัล: Zeny ทุกชั้น · ผลึกตีบวกทุก 5 ชั้น · กล่องแฟชั่น + ใบคูณ EXP ทุก 10 ชั้น (รับได้ครั้งเดียวต่อชั้นต่อวัน)\nเริ่มใหม่จากเช็กพอยต์ได้ทุก ${TOWER.checkpoint} ชั้น · ชั้นสูงสุดขึ้นกระดานอันดับ\nเข้าได้ไม่จำกัดรอบ`, [
+        `หอคอยไม่มีชั้นสุดท้าย · ยิ่งสูงมอนยิ่งแรง (ชั้น N = มอน Lv.N+4 · เกิน Lv.150 แรงขึ้นทวีคูณ)\nกำจัดมอนทุกตัวในเวลาที่กำหนดเพื่อขึ้นชั้นถัดไป · ทุก 5 ชั้นมีบอส · ทุก 10 ชั้นมีบอสใหญ่\nผ่านชั้นแล้วฟื้น HP/SP ${Math.round(TOWER.heal * 100)}%\n\nรางวัล: Zeny ทุกชั้น · ผลึกตีบวกทุก 5 ชั้น · กล่องแฟชั่น + ใบคูณ EXP ทุก 10 ชั้น (รับได้ครั้งเดียวต่อชั้นต่อวัน)\nเริ่มใหม่จากเช็กพอยต์ได้ทุก ${TOWER.checkpoint} ชั้น · ชั้นสูงสุดขึ้นกระดานอันดับ\nเข้าได้ไม่จำกัดรอบ`, [
           { label: 'เริ่มไต่จากชั้น 1', disabled: lowLv, onSelect: () => this.startTower(1) }, bye]) },
       bye,
     ]);

@@ -1,8 +1,8 @@
 // v0.42 แลกของตัวต่อตัว + ตลาดฝากขาย
 // ทุกอย่างผ่านฟังก์ชันบนเซิร์ฟเวอร์ (supabase/trade.sql) — เครื่องผู้เล่นแค่ส่งคำขอ แล้วดึงผล (ledger) มาปรับกระเป๋า
-import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.44.6';
-import { iconURL } from '../render/ItemIcons.js?v=0.44.6';
-import { buyPrice, sellPrice } from '../data/shops.js?v=0.44.6';
+import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.46.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.46.0';
+import { buyPrice, sellPrice } from '../data/shops.js?v=0.46.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -264,10 +264,14 @@ export class MarketWindow {
 
   get open() { return !this.el.hidden; }
   close() { this.el.hidden = true; if (this.onClose) this.onClose(); }
+  // v0.45 เงื่อนไขตลาดของฉัน: ทั่วไป 2 รายการ 7% · VIP 5 รายการ 3% (ค่าจริงมาจากเซิร์ฟเวอร์)
+  terms() { const m = this.g.vip && this.g.vip.market, v = this.g.vipActive; return { max: (m && +m.max) || (v ? 5 : 2), tax: (m && +m.tax) || (v ? 3 : 7), vip: v }; }
+  syncTerms() { const T = this.terms(); this.el.querySelector('.st-head p').textContent = `ฝากขายได้แม้ออฟไลน์ · ขายได้เงินเข้ากระเป๋าทันที (หักค่าธรรมเนียม ${T.tax}%${T.vip ? ' · 👑 VIP' : ' · VIP เหลือ 3%'})`; }
   log(m) { this.msg = m; this.render(); }
 
   async show() {
     this.el.hidden = false; this.msg = '';
+    this.syncTerms();
     if (!this.g.cloud) { this.msg = 'ตลาดใช้ได้เมื่อเล่นออนไลน์และเซฟบนคลาวด์'; return this.render(); }
     this.render();
     try { await this.g.online.syncLedger(); } catch (e) { /* ยังไม่ติดตั้งก็ไม่เป็นไร */ }
@@ -390,7 +394,7 @@ export class MarketWindow {
 
   renderSell(pane) {
     const pl = this.g.player;
-    pane.innerHTML = `<p class="tm-hint">เลือกของในกระเป๋า แล้วตั้งราคาต่อชิ้น · ของจะออกจากกระเป๋าทันที ปิดรายการเมื่อไหร่ได้ของคืน · ลงขายได้ 10 รายการ อยู่ในตลาด 7 วัน</p><div class="inv-grid tm-bag"></div><div class="tm-sell"></div>`;
+    pane.innerHTML = `<p class="tm-hint">เลือกของในกระเป๋า แล้วตั้งราคาต่อชิ้น · ของจะออกจากกระเป๋าทันที ปิดรายการเมื่อไหร่ได้ของคืน · ลงขายได้ ${this.terms().max} รายการ${this.terms().vip ? ' (VIP)' : ' (VIP ได้ 5)'} · ค่าธรรมเนียม ${this.terms().tax}% · อยู่ในตลาด 7 วัน</p><div class="inv-grid tm-bag"></div><div class="tm-sell"></div>`;
     const bag = pane.querySelector('.tm-bag');
     for (const s of pl.inventory.stacks) {
       const b = slotBtn(s.id, s.qty, { sel: this.sel && this.sel.id === s.id });

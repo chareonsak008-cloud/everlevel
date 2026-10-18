@@ -1,10 +1,10 @@
 // ผู้เล่นคนอื่นในแผนที่เดียวกัน (v0.11) — สร้างจาก presence ของห้องออนไลน์
 // ข้อมูลจากผู้เล่นอื่นเชื่อถือไม่ได้: กรองทุกช่องก่อนใช้ (สี ชื่อ ตัวเลข ไอดีแฟชั่น ข้อความ)
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.44.6';
-import { MAPS } from '../data/maps/index.js?v=0.44.6';
-import { JOBS } from '../data/progression.js?v=0.44.6';
-import { PETS } from '../data/pets.js?v=0.44.6';
-import { ACH_BY_ID } from '../data/collection.js?v=0.44.6';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.46.0';
+import { MAPS } from '../data/maps/index.js?v=0.46.0';
+import { JOBS } from '../data/progression.js?v=0.46.0';
+import { PETS } from '../data/pets.js?v=0.46.0';
+import { ACH_BY_ID } from '../data/collection.js?v=0.46.0';
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 const ENUMS = {
@@ -68,6 +68,7 @@ class RemotePlayer {
     // v0.18: ฉายา — รับเฉพาะรหัสที่มีในเกม (แสดงชื่อจากข้อมูลในเครื่องเรา ไม่ใช้ข้อความจากคนอื่นตรง ๆ)
     const ach = typeof P.tt === 'string' && ACH_BY_ID[P.tt] ? ACH_BY_ID[P.tt] : null;
     this.honor = ach ? ach.title : ''; this.honorTier = ach ? ach.tier : ''; this.honorFx = ach ? ach.fx : '';
+    this.vip = P.vp === 1;   // v0.45 ป้าย VIP
     this.petId = typeof P.pt === 'string' && PETS[P.pt] ? P.pt : null;   // v0.13: สัตว์เลี้ยงของผู้เล่นคนนี้
     this.petStars = clampNum(Math.floor(P.ps), 0, 5, 0);
     if (P.at !== this.atkSeq) { if (this.atkSeq !== undefined) this.attacked = P.ak === 'shoot' || P.ak === 'cast' ? P.ak : 'melee'; this.atkSeq = P.at; }
@@ -147,7 +148,7 @@ export class RemotePlayers {
         r.apply(P);
         if (r.lookChanged) g.gfx.refreshLook(r);
       }
-      if (r.newSay) { g.hud.log(r.newSay, 'pc', r.name); if (g.settings.chatSound) g.sfx('chat'); r.newSay = null; }
+      if (r.newSay) { g.hud.log(r.newSay, 'pc', r.name, r.vip); if (g.settings.chatSound) g.sfx('chat'); r.newSay = null; }
       if (r.attacked) { g.gfx.playAttack(r, r.attacked === 'melee' ? undefined : r.attacked); r.attacked = null; }
     }
     for (const [peer, r] of [...this.list]) if (!seen.has(peer)) { g.gfx.removeActor(r); this.list.delete(peer); if (this.visible) g.hud.log(`${r.name} ออกจากแผนที่`, 'net'); }
