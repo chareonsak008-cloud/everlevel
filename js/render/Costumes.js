@@ -1,15 +1,15 @@
-import { FASHION_BUILDERS } from './FashionCollection.js?v=0.42.0';
+import { FASHION_BUILDERS } from './FashionCollection.js?v=0.43.0';
 // ชุดแฟชั่น (v0.9 preview): ปีก · ชุด · หมวก · หน้า · หลัง/หาง · อาวุธ · ออร่า · ผู้ติดตาม
 // ทุกชิ้นสร้างจากโค้ด (ไม่มีไฟล์โมเดล) แล้วติดเข้ากับโครงของ CharacterView
 // ใช้:  const look = costumeLook(baseLook, items);  const view = new CharacterView(look);
 //       const rt = wearCostume(view, items, { world: scene });  ทุกเฟรม rt.update(dt, view)
-import { THREE } from './three.js?v=0.42.0';
-import { toon, toonOwn, bake, gradientMap } from './Toon.js?v=0.42.0';
-import { shadeHex } from './Textures.js?v=0.42.0';
-import * as TX from './FxTextures.js?v=0.42.0';
-import { wuxiaAura } from './AuraBlades.js?v=0.42.0';
-import { Particles } from './SkillFX.js?v=0.42.0';
-import { COSTUME_PETS } from './CostumePets.js?v=0.42.0';   // v0.17: ผู้ติดตามแฟชั่นแบบใหม่ (หน้าเป็นโมเดล เห็นชัดในสไปรต์พิกเซล)
+import { THREE } from './three.js?v=0.43.0';
+import { toon, toonOwn, bake, gradientMap } from './Toon.js?v=0.43.0';
+import { shadeHex } from './Textures.js?v=0.43.0';
+import * as TX from './FxTextures.js?v=0.43.0';
+import { wuxiaAura } from './AuraBlades.js?v=0.43.0';
+import { Particles } from './SkillFX.js?v=0.43.0';
+import { COSTUME_PETS } from './CostumePets.js?v=0.43.0';   // v0.17: ผู้ติดตามแฟชั่นแบบใหม่ (หน้าเป็นโมเดล เห็นชัดในสไปรต์พิกเซล)
 
 /* ================= ตัวช่วยพื้นฐาน ================= */
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -3303,7 +3303,7 @@ const BUILD = {
   weapon: (rig, it, rt, L) => WEAPON[it.kind](rig, it.p || {}, rt, L),
   aura: (rig, it, rt, L) => { if (it.kind === 'pixel') return; AURA[it.kind](rig, it.p || {}, rt, L); auraGround(rig, it, rt); },
   pet: (rig, it, rt, L) => PET[it.kind](rig, it.p || {}, rt, L),
-  outfit: (rig, it, rt, L) => it.kind === 'fashion24' ? FASHION_BUILDERS.outfit(rig, it.p || {}, rt, L) : outfitParts(rig, it.p || {}, rt, L),
+  outfit: (rig, it, rt, L) => it.kind === 'pixel' ? null : it.kind === 'fashion24' ? FASHION_BUILDERS.outfit(rig, it.p || {}, rt, L) : outfitParts(rig, it.p || {}, rt, L),
 };
 // v0.41: ออร่าสายยุทธ์ (กระบี่บินวน · เคียวยักษ์ · ลำแสงปลดปล่อยพลัง) — ตั้งค่าทั้งหมดผ่าน p ของชิ้น
 const WX_H = { group, mesh, unlit, spriteOf, shockwaves, flashSprite, burstCycle, scatter, discPos, auraEmitter, lin, rand, V, TX };
@@ -3316,6 +3316,7 @@ export const hasBuilder = (it) => it.slot === 'outfit' || !!(DICT[it.slot] && DI
 // ปรับหน้าตาพื้นฐานก่อนสร้างตัวละคร (สีชุด · ซ่อนชุดอาชีพ/หมวกอาชีพ/อาวุธเดิม)
 export function costumeLook(base, items = {}) {
   const L = { ...base, equipment: { ...(base.equipment || {}) } };
+  if (items.outfit && items.outfit.kind === 'pixel') items = { ...items, outfit: null };   // v0.43 ชุดพิกเซล = เปลี่ยนแผ่นสไปรต์ ไม่แตะโมเดล
   if (items.outfit) for (const slot of ['body','shoes','accessory','garment']) delete L.equipment[slot];
   if (items.weapon && items.weapon.kind !== 'pixel') delete L.equipment.weapon;   // อาวุธแฟชั่นพิกเซล = เอฟเฟกต์ฟัน ไม่ซ่อนอาวุธจริง
   if (items.head) delete L.equipment.head;

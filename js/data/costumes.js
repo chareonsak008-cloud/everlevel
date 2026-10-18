@@ -1,4 +1,4 @@
-import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.42.0';
+import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.43.0';
 // แคตตาล็อกชุดแฟชั่น (v0.9) — ได้จากการเปิดกล่องแฟชั่นสุ่ม (data/fashionBoxes.js) — ชิ้นแฟชั่นเป็น "ชุดทับ" ไม่เพิ่มค่าสถานะ ใส่ทับอุปกรณ์จริงได้
 // slot: wings | outfit | head | face | back | weapon | aura | pet · kind = ชื่อตัวสร้างใน render/Costumes.js · p = ค่าปรับแต่ง
 // rarity: common ธรรมดา | rare หายาก | epic ล้ำค่า | legend ตำนาน | mythic | celestial
@@ -335,8 +335,8 @@ COSTUMES.push(
 );
 
 /* ================= v0.41: ออร่าสายยุทธ์ — กระบี่บินวน · เคียวยักษ์ลอยหลัง · ลำแสงปลดปล่อยพลัง (batch: 6) ================= */
-const WX = (...a) => ({ ...I(...a), batch: 6 });
-const WX_ON = false;   // ยังไม่เปิดใช้ (รอยืนยัน) — เปลี่ยนเป็น true เพื่อเพิ่มออร่าสายยุทธ์ 10 แบบ
+const WX = (...a) => ({ ...I(...a), batch: 6, cash: true });
+const WX_ON = true;   // v0.43 เปิดขายในร้านเพชร (ไม่อยู่ในกล่องสุ่ม)
 if (WX_ON) COSTUMES.push(
   WX('aura', 'a_wx_iron', 'wuxia', 'กระบี่เหล็กพิทักษ์', 'Iron Guardian Blades', 'common', 'กระบี่เหล็กสามเล่มลอยวนรอบเอวช้า ๆ คอยคุ้มกันเจ้าของ', { pal: 'iron', color: '#bfe0ff', rings: [{ n: 3, r: 0.72, y: 0.95, sp: 0.9, size: 0.78 }] }),
   WX('aura', 'a_wx_jade', 'wuxia', 'กระบี่หยกห้าทิศ', 'Five Jade Swords', 'rare', 'กระบี่หยกเขียวห้าเล่มพู่แดง บินไล่กันเป็นวงรอบตัว ทิ้งละอองแสงหยก', { pal: 'jade', color: '#6affb0', rings: [{ n: 5, r: 0.78, y: 1.0, sp: 1.4, size: 0.81, mode: 'chase', tilt: 0.18 }], motes: ['#6affb0', '#ffffff'] }),
@@ -349,6 +349,10 @@ if (WX_ON) COSTUMES.push(
   WX('aura', 'a_wx_heaven', 'wuxia', 'กระบี่เซียนสวรรค์', 'Celestial Immortal Swords', 'celestial', 'กระบี่ทองเก้าเล่มกางเป็นรัศมีพัดหลังศีรษะ อีกหกเล่มวนรอบกาย เสาแสงทองพุ่งทะลุฟ้า', { pal: 'gold', color: '#ffd86a', fan: { n: 9, R: 1.15, y: 1.6, size: 0.96 }, rings: [{ n: 6, r: 0.85, y: 0.8, sp: 1.3, size: 0.74, mode: 'chase', tilt: 0.2 }], pillar: '#ffd86a', burst: { period: 3.8, color: '#ffe08a' }, rune: { kind: 'star', color: '#ffd86a', size: 2.3, inner: '#ffffff' }, motes: ['#ffe08a', '#ffffff'] }),
   WX('aura', 'a_wx_ascend', 'wuxia', 'ลำแสงทะลวงสวรรค์', 'Heaven-Piercing Radiance', 'celestial', 'ลำแสงทองขาวนับสิบแผ่ซ่านรอบกาย เสาแสงพุ่งขึ้นฟ้า กระบี่แสงสี่เล่มโคจร คลื่นพลังสั่นสะเทือนพื้นเป็นระลอก', { pal: 'gold', color: '#fff0a3', rays: { n: 16, len: 2.4, width: 0.45, color: ['#fff6c8', '#ffffff', '#ffd86a', '#bfe8ff'], pulse: 2.6, spin: 0.3, opacity: 0.95 }, pillar: '#fff0a3', rings: [{ n: 4, r: 0.9, y: 1.3, sp: 2, size: 0.78, mode: 'chase', tilt: 0.3 }], burst: { period: 3, color: '#fff0a3', sparks: 26, r1: 3 }, rune: { kind: 'star', color: '#ffe08a', size: 2.4, inner: '#bfe8ff' }, motes: ['#ffffff', '#ffe08a'], moteRate: 16 }),
 );
+
+// v0.43 ชุดเกราะมังกร (ร้านเพชร) — ชิ้นเดียวใช้ได้ 4 อาชีพ (เปลี่ยนแผ่นสไปรต์ทั้งตัว · Novice ยังเป็นชุดปกติ)
+COSTUMES.push(PX('outfit', 'o_px_dragon', 'ชุดเกราะมังกรเพลิง', 'Dragonflame Regalia', 'mythic', 'เกราะเกล็ดมังกรแดงทองครบชุด ท่าทางใหม่ทุกท่า · ใช้ได้กับนักดาบ นักธนู นักเวทย์ นักบวช และอาชีพขั้น 2', { sheets: { swordsman: 'swordsman_dragon', archer: 'archer_dragon', mage: 'mage_dragon', acolyte: 'acolyte_dragon' } }));
+COSTUMES[COSTUMES.length - 1].cash = true;
 
 // v0.35: ตัวละครเป็นภาพพิกเซล 8 ทิศแล้ว → ชิ้นแฟชั่นโมเดล 3 มิติ (ปีก/ชุด/หมวก/หน้า/หลัง/อาวุธ/ผู้ติดตาม) ถอดออกจากเกมทั้งหมด
 // เหลือออร่า (อนุภาค ใช้ได้กับทุกตัวละคร) + ชิ้นภาพพิกเซลจาก PixelLab · ชิ้นที่ถอดออกจะออกแบบใหม่ให้เข้ากับตัวละครใหม่ภายหลัง

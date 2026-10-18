@@ -1,7 +1,7 @@
 // กล่องแฟชั่นสุ่ม (v0.9) — มอนสเตอร์ดรอปกล่อง → เปิดกล่องสุ่มได้ชิ้นแฟชั่น 1 ชิ้น
 // สุ่ม 2 ขั้น: (1) สุ่มระดับความหายากตาม odds ของกล่อง (2) สุ่มชิ้นในระดับนั้นแบบเท่ากันทุกชิ้น
 // ได้ชิ้นซ้ำ → แปลงเป็น Zeny ตามระดับ (DUP_ZENY)
-import { COSTUMES, RARITY as FASHION_RARITY } from './costumes.js?v=0.42.0';
+import { COSTUMES, RARITY as FASHION_RARITY } from './costumes.js?v=0.43.0';
 
 export { FASHION_RARITY };
 export const FASHION_TIERS = ['common', 'rare', 'epic', 'legend', 'mythic', 'celestial'];
@@ -41,7 +41,7 @@ export const BOX_ITEMS = {
 export const BOX_IDS = Object.keys(BOX_ITEMS);
 
 // รายชื่อชิ้นแฟชั่นแยกตามระดับ
-const POOL = Object.fromEntries(FASHION_TIERS.map((t) => [t, COSTUMES.filter((c) => c.rarity === t && !(c.p && c.p.job))]));   // v0.39: สกินอาวุธเฉพาะอาชีพไม่สุ่มจากกล่อง (ได้จาก GM/กิจกรรม)
+const POOL = Object.fromEntries(FASHION_TIERS.map((t) => [t, COSTUMES.filter((c) => c.rarity === t && !(c.p && c.p.job) && !c.cash)]));   // v0.39: สกินอาวุธเฉพาะอาชีพไม่สุ่มจากกล่อง (ได้จาก GM/กิจกรรม)
 export const poolSize = (tier) => POOL[tier].length;
 // v0.13: สุ่ม 1 ชิ้นจากระดับที่กำหนด (กิเลนเมฆาสวรรค์อัประดับกล่อง)
 export const pickOfTier = (tier, rnd = Math.random) => { const p = POOL[tier]; return p && p.length ? p[Math.floor(rnd() * p.length) % p.length] : null; };

@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.42.0';
-import { SideChannel } from './SideChannel.js?v=0.42.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.43.0';
+import { SideChannel } from './SideChannel.js?v=0.43.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -58,7 +58,10 @@ const TRADE_ERR = {
   not_enough_zeny: 'Zeny ไม่พอ', zeny_full: 'Zeny เต็มเพดานแล้ว', stack_full: 'ไอเทมชนิดนี้เต็ม 999 ชิ้นแล้ว',
   untradable: 'ไอเทมนี้แลก/ขายไม่ได้', bad_items: 'รายการของไม่ถูกต้อง (สูงสุด 10 ชนิด)', bad_price: 'ราคาไม่ถูกต้อง',
   too_many_listings: 'ลงขายได้สูงสุด 10 รายการต่อตัวละคร', sold_out: 'ของชิ้นนี้ขายหมดหรือหมดเวลาแล้ว',
-  own_listing: 'ซื้อของของตัวเองไม่ได้', no_listing: 'ไม่พบรายการนี้', no_character: 'ไม่พบตัวละคร', bad_qty: 'จำนวนไม่ถูกต้อง',
+  own_listing: 'ซื้อของของตัวเองไม่ได้',
+  not_enough_gems: 'เพชรไม่พอ', already_owned: 'มีชิ้นนี้ในตู้แฟชั่นแล้ว', no_product: 'สินค้านี้ปิดขายแล้ว', bad_pack: 'แพ็กนี้ไม่มีแล้ว',
+  bad_slip: 'อัปโหลดสลิปไม่สำเร็จ ลองใหม่อีกครั้ง', too_many_pending: 'มีคำขอเติมรออนุมัติอยู่ 3 รายการแล้ว รอแอดมินตรวจก่อนนะ',
+  already_decided: 'คำขอนี้ถูกตัดสินไปแล้ว', not_admin: 'บัญชีนี้ไม่ใช่แอดมิน', no_save: 'ยังไม่มีเซฟบนเซิร์ฟเวอร์ ลองเล่นสักครู่แล้วซื้อใหม่', no_listing: 'ไม่พบรายการนี้', no_character: 'ไม่พบตัวละคร', bad_qty: 'จำนวนไม่ถูกต้อง',
 };
 function tradeError(e) {
   const msg = String((e && e.message) || ''), key = msg.split(':')[0].trim();
@@ -297,9 +300,23 @@ export class SupabaseOnline extends Online {
 
   // เรียกฟังก์ชันตลาด/แลกของ (ใส่ช่องตัวละครให้) · คืน { data } หรือ { error: ข้อความไทย }
   async tradeRPC(name, args = {}) {
-    const { data, error } = await this.sb.rpc(name, name === 'market_search' ? args : { p_slot: this.slot, ...args });
+    const noSlot = name === 'market_search' || name === 'cash_state' || name.startsWith('gm_');
+    const { data, error } = await this.sb.rpc(name, noSlot ? args : { p_slot: this.slot, ...args });
     if (error) return { error: tradeError(error) };
     return { data };
+  }
+
+  // v0.43 อัปโหลดสลิปเติมเพชร (Storage bucket "slips" แบบส่วนตัว) · คืน { path } หรือ { error }
+  async uploadSlip(blob) {
+    if (!this.uid) return { error: 'ยังไม่ได้เข้าสู่ระบบ' };
+    const path = `${this.uid}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const { error } = await this.sb.storage.from('slips').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+    if (error) return { error: /bucket|not found/i.test(error.message || '') ? 'เซิร์ฟเวอร์ยังไม่เปิดระบบเติมเพชร (แอดมินต้องรัน supabase/cashshop.sql)' : 'อัปโหลดสลิปไม่สำเร็จ: ' + (error.message || '') };
+    return { path };
+  }
+  async slipUrl(path) {
+    const { data, error } = await this.sb.storage.from('slips').createSignedUrl(path, 600);
+    return error ? null : data && data.signedUrl;
   }
 
   async eventRPC(name, args = {}) {
