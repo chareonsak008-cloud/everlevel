@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.41.2';
-import { SideChannel } from './SideChannel.js?v=0.41.2';
+import { Online, MAX_CHARS } from './Online.js?v=0.42.0';
+import { SideChannel } from './SideChannel.js?v=0.42.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -48,6 +48,22 @@ export function authMessage(err) {
   if (code === 'email_address_invalid' || msg.includes('invalid format') || msg.includes('invalid email')) return 'รูปแบบอีเมลไม่ถูกต้อง';
   if (msg.includes('failed to fetch') || msg.includes('network')) return 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
   return 'เกิดข้อผิดพลาด: ' + (err.message || code || 'ไม่ทราบสาเหตุ');
+}
+
+// v0.42: ข้อความผิดพลาดจากฟังก์ชันแลกของ/ตลาด
+const TRADE_ERR = {
+  trade_locked: 'บัญชีนี้ถูกระงับการแลกและตลาดชั่วคราว (ระบบพบการได้ของเร็วผิดปกติ) ติดต่อแอดมิน',
+  no_target: 'ไม่พบตัวละครชื่อนี้', self_trade: 'แลกกับตัวละครในบัญชีเดียวกันไม่ได้', no_trade: 'การแลกนี้ปิดไปแล้ว',
+  changed: 'อีกฝ่ายเพิ่งเปลี่ยนของบนโต๊ะ ตรวจอีกครั้งแล้วกดยืนยันใหม่', not_enough: 'ของในกระเป๋าไม่พอ (ลองรอเซฟสักครู่)',
+  not_enough_zeny: 'Zeny ไม่พอ', zeny_full: 'Zeny เต็มเพดานแล้ว', stack_full: 'ไอเทมชนิดนี้เต็ม 999 ชิ้นแล้ว',
+  untradable: 'ไอเทมนี้แลก/ขายไม่ได้', bad_items: 'รายการของไม่ถูกต้อง (สูงสุด 10 ชนิด)', bad_price: 'ราคาไม่ถูกต้อง',
+  too_many_listings: 'ลงขายได้สูงสุด 10 รายการต่อตัวละคร', sold_out: 'ของชิ้นนี้ขายหมดหรือหมดเวลาแล้ว',
+  own_listing: 'ซื้อของของตัวเองไม่ได้', no_listing: 'ไม่พบรายการนี้', no_character: 'ไม่พบตัวละคร', bad_qty: 'จำนวนไม่ถูกต้อง',
+};
+function tradeError(e) {
+  const msg = String((e && e.message) || ''), key = msg.split(':')[0].trim();
+  if (e && (e.code === 'PGRST202' || e.code === '42883')) return 'เซิร์ฟเวอร์ยังไม่เปิดระบบนี้ (แอดมินต้องรัน supabase/trade.sql)';
+  return TRADE_ERR[key] || msg || 'ผิดพลาด ลองใหม่อีกครั้ง';
 }
 
 export class SupabaseOnline extends Online {
@@ -148,9 +164,13 @@ export class SupabaseOnline extends Online {
   }
 
   async loadChar(slot) {
-    const { data, error } = await this.sb.from('characters').select('name,data').eq('slot', slot).maybeSingle();
+    // v0.42: rev = ครั้งที่เซิร์ฟเวอร์แก้เซฟ (แลกของ/ตลาด) · ฐานข้อมูลที่ยังไม่รัน trade.sql ไม่มีคอลัมน์นี้ → อ่านแบบเดิม
+    let { data, error } = await this.sb.from('characters').select('name,data,rev').eq('slot', slot).maybeSingle();
+    if (error && /rev/.test(error.message || '')) ({ data, error } = await this.sb.from('characters').select('name,data').eq('slot', slot).maybeSingle());
     if (error) throw error;
     if (!data) return null;
+    this.rev = Number.isFinite(+data.rev) ? +data.rev : 0;
+    this.serverSave = undefined; this.tradeLock = null;
     const d = data.data && typeof data.data === 'object' ? data.data : {};
     // ตัวละครที่จองชื่อแล้วแต่ยังไม่เคยเซฟ → เริ่มใหม่ด้วยชื่อนั้น
     if (!d.player) return { schema: 1, player: { name: data.name } };
@@ -188,6 +208,25 @@ export class SupabaseOnline extends Online {
   async writeState(s) {
     const p = s.player || {};
     const { storage, ...rest } = s;   // คลังเก็บแยกไว้ในตาราง accounts (ใช้ร่วมทุกตัวละคร)
+    // v0.42: เซฟผ่านฟังก์ชันตรวจบนเซิร์ฟเวอร์ (supabase/trade.sql) · ยังไม่ติดตั้ง → เขียนตรงแบบเดิม
+    if (this.serverSave !== false) {
+      const st = JSON.stringify(storage || []);
+      const { data, error } = await this.sb.rpc('save_state', { p_slot: this.slot, p_rev: this.rev || 0, p_data: rest, p_storage: st !== this.lastStorage ? (storage || []) : null });
+      if (error && (error.code === 'PGRST202' || error.code === '42883')) this.serverSave = false;
+      else if (error) throw error;
+      else if (data && data.ok === false && data.reason === 'stale') {
+        // เซิร์ฟเวอร์เพิ่งแก้เซฟ (ขายของได้/แลกเสร็จ) → ปรับกระเป๋าในเครื่องก่อน แล้วเซฟสถานะใหม่ต่อทันที
+        await this.syncLedger();
+        if (this.freshState) this.pending = this.pending || this.freshState();
+        return;
+      } else {
+        this.serverSave = true;
+        if (data && Number.isFinite(+data.rev)) this.rev = +data.rev;
+        this.tradeLock = data && data.locked ? true : null;
+        this.lastStorage = st;
+        return;
+      }
+    }
     const row = {
       user_id: this.uid, slot: this.slot, name: p.name, job: p.job || 'novice',
       lv: Math.max(1, Math.min(99, p.baseLevel || 1)), jlv: Math.max(1, Math.min(99, p.jobLevel || 1)),
@@ -239,6 +278,28 @@ export class SupabaseOnline extends Online {
   async deleteMail(id) {
     const { error } = await this.sb.from('mails').delete().eq('id', id);
     return error ? error.message || error.code : null;
+  }
+
+  /* ---------- v0.42: แลกของ / ตลาด (supabase/trade.sql) ---------- */
+  // ดึงรายการที่เซิร์ฟเวอร์แก้เซฟหลัง rev ที่รู้ → ให้เกมปรับกระเป๋า (onLedger) · คืนจำนวนรายการ
+  async syncLedger() {
+    if (this.ledgerBusy) return this.ledgerBusy;
+    this.ledgerBusy = (async () => {
+      const { data, error } = await this.sb.rpc('ledger_since', { p_slot: this.slot, p_rev: this.rev || 0 });
+      if (error) throw error;
+      const items = (data && Array.isArray(data.items)) ? data.items : [];
+      for (const it of items) if (+it.rev > (this.rev || 0)) { this.rev = +it.rev; if (this.onLedger) this.onLedger(it.delta || {}); }
+      if (data && Number.isFinite(+data.rev) && +data.rev > (this.rev || 0)) this.rev = +data.rev;
+      return items.length;
+    })();
+    try { return await this.ledgerBusy; } finally { this.ledgerBusy = null; }
+  }
+
+  // เรียกฟังก์ชันตลาด/แลกของ (ใส่ช่องตัวละครให้) · คืน { data } หรือ { error: ข้อความไทย }
+  async tradeRPC(name, args = {}) {
+    const { data, error } = await this.sb.rpc(name, name === 'market_search' ? args : { p_slot: this.slot, ...args });
+    if (error) return { error: tradeError(error) };
+    return { data };
   }
 
   async eventRPC(name, args = {}) {

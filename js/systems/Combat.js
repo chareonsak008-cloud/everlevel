@@ -1,5 +1,5 @@
 // สูตรการต่อสู้ (แบบเรียบง่าย — ระบบค่าสถานะเต็มรูปแบบจะมาใน v0.3)
-import { clamp } from '../core/util.js?v=0.41.2';
+import { clamp } from '../core/util.js?v=0.42.0';
 
 // คืนค่า { miss, crit, amount }
 export function rollAttack(att, def, rnd = Math.random) {

@@ -1,5 +1,5 @@
 // ข้อมูลแผนที่ Asteria Town (เมืองเริ่มต้น) — v0.27 รีมาสเตอร์: ลานวงกลมกลางเมือง · คลองตะวันตก · 4 ย่าน
-import { borderTrees as _borderTrees, scaleMap } from './helpers.js?v=0.41.2';
+import { borderTrees as _borderTrees, scaleMap } from './helpers.js?v=0.42.0';
 // พิกัดทั้งหมดเป็นหน่วย "ช่อง" (tile) — วัตถุใช้มุมซ้ายบนของ footprint
 
 const LOOK = {
@@ -153,6 +153,12 @@ const RAW = {
       service: { type: 'storage' },
       greet: 'สวัสดีค่ะ คลังเก็บของ Asteria ยินดีให้บริการ ฝากของไว้ที่นี่ได้ฟรีเลยนะคะ',
       lines: ['ของในคลังจะอยู่ครบทุกชิ้น ไม่ต้องห่วงค่ะ'] },
+    // v0.42 ตลาดฝากขาย (ลานแผงลอย)
+    { id: 'mercer', name: 'เมอร์เซอร์', title: 'นายตลาด', x: 48, y: 40, dir: 'down',
+      look: { hair: '#3a2a20', skin: '#e8b98f', eye: '#2a2030', tunic: '#8a3a2a', pants: '#3a2e28', boot: '#2a1e18', belt: '#e8c050', hairStyle: 'short', accessory: 'hat', hatColor: '#5a2a1e' },
+      service: { type: 'market' },
+      greet: 'ตลาดนักผจญภัยมาแล้ว! จะหาของดี หรือฝากของขาย บอกข้ามาได้เลย',
+      lines: ['ของทุกชิ้นในตลาดผ่านการตรวจของสมาคมแล้ว ซื้อได้สบายใจ'] },
     { id: 'celes', name: 'เซเลส', title: 'นักเวทย์วาร์ป', x: 31, y: 23, dir: 'down', look: LOOK.celes,
       service: { type: 'warp', routes: 'town' },
       greet: 'อยากไปที่ไหนล่ะ? ข้าส่งเจ้าไปได้ในพริบตา แค่จ่ายค่าผลึกเวทย์นิดหน่อย',
