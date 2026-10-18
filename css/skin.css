@@ -2,7 +2,7 @@
    ปิดสกินได้โดยลบบรรทัด <link ... skin.css> ใน index.html */
 .panel {
   border-style: solid !important; border-color: transparent !important; border-width: 0 !important;
-  border-image: url("../assets/ui/skin/frame.png") 72 fill / 24px / 10px round !important;
+  border-image: url("../assets/ui/skin/frame.png") 72 fill / 18px / 0 round !important;
   background: transparent !important;
   backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
@@ -22,7 +22,7 @@
 .slot.empty { opacity: 0.55; }
 /* แท็บ */
 .inv-tabs button {
-  border-style: solid !important; border-color: transparent !important; border-width: 0 !important; border-image: url("../assets/ui/skin/tab.png") 14 fill / 10px / 0 stretch !important; background: transparent !important; image-rendering: pixelated;
+  border-style: solid !important; border-color: transparent !important; border-width: 0 !important; border-image: url("../assets/ui/skin/tab.png") 14 fill / 6px / 0 stretch !important; background: transparent !important; image-rendering: pixelated;
 }
 .inv-tabs button[aria-selected="true"] { filter: brightness(1.35) saturate(1.2); }
 /* ปุ่มทั่วไปในหน้าต่างบริการ */
@@ -66,3 +66,7 @@
   .tb-btn img { width: 36px; height: 36px; }
   .tb-btn span { font-size: 10.5px; padding: 0 5px 1px; }
 }
+
+/* v0.44.1 กันซ้อนทับ: กรอบไม่ล้นออกนอกกล่อง · เผื่อขอบในให้ข้อความไม่ชนกรอบทอง · เลื่อนกรอบเป้าหมาย/บอสลงใต้แถบไอคอน */
+.target { top: calc(84px + env(safe-area-inset-top, 0px)) !important; }
+.bossbar { top: calc(150px + env(safe-area-inset-top, 0px)) !important; }
