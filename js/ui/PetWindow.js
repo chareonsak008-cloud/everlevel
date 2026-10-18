@@ -1,10 +1,10 @@
 // หน้าต่างสัตว์เลี้ยง (v0.13 · ปุ่ม P) — สัตว์ที่ฟักได้ · เรียกออกมา/เก็บกลับ · ตัวกรองการเก็บของ · ไข่ในกระเป๋า
-import { PETS, PET_ORDER, PET_RARITY, PET_EGGS, petStats, STAR_MAX, fmtPct, petsOfTier } from '../data/pets.js?v=0.44.0';
-import { ITEMS } from '../data/items.js?v=0.44.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.44.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.44.0';
-import { PICK_CATS, PICK_GRADES } from '../systems/PetPick.js?v=0.44.0';
-import { RARITY } from '../data/items.js?v=0.44.0';
+import { PETS, PET_ORDER, PET_RARITY, PET_EGGS, petStats, STAR_MAX, fmtPct, petsOfTier } from '../data/pets.js?v=0.44.1';
+import { ITEMS } from '../data/items.js?v=0.44.1';
+import { iconURL } from '../render/ItemIcons.js?v=0.44.1';
+import { petThumb } from '../render/PetThumbs.js?v=0.44.1';
+import { PICK_CATS, PICK_GRADES } from '../systems/PetPick.js?v=0.44.1';
+import { RARITY } from '../data/items.js?v=0.44.1';
 
 const EGGS = ['egg_spot', 'egg_moon', 'egg_galaxy'];
 
