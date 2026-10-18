@@ -6,14 +6,15 @@
 // v0.9: type box = กล่องแฟชั่นสุ่ม (ข้อมูลอยู่ใน data/fashionBoxes.js)
 // v0.10: slots = ช่องการ์ด · type card = การ์ดมอนสเตอร์ (data/cards.js) · วัสดุตีบวก (data/refine.js)
 //        อุปกรณ์ที่ตีบวก/ใส่การ์ดแล้วใช้ "คีย์" แทน id เช่น 'iron_blade*7*card_barkwolf' (ดู itemKey ด้านล่าง)
-import { ENDGAME_ITEMS } from './endgameItems.js?v=0.44.6';
-import { parentJob } from './progression.js?v=0.44.6';
-import { BOX_ITEMS } from './fashionBoxes.js?v=0.44.6';
-import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.44.6';
-import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.44.6';
-import { CONSUMABLES } from './consumables.js?v=0.44.6';
-import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH } from './affixes.js?v=0.44.6';
-import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.44.6';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
+import { ENDGAME_ITEMS } from './endgameItems.js?v=0.46.0';
+import { ASCEND_ITEMS } from './ascendData.js?v=0.46.0';   // v0.46 Lv.100–150
+import { parentJob } from './progression.js?v=0.46.0';
+import { BOX_ITEMS } from './fashionBoxes.js?v=0.46.0';
+import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.46.0';
+import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.46.0';
+import { CONSUMABLES } from './consumables.js?v=0.46.0';
+import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH } from './affixes.js?v=0.46.0';
+import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.46.0';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
 
 export const EQUIP_SLOTS = [
   { id: 'head', name: 'หัว' },
@@ -33,6 +34,8 @@ export const RARITY = {
   legend: { name: 'ตำนาน · ส้ม', color: '#ffb347' },
   mythic: { name: 'เทพนิยาย · ทอง', color: '#ffd85e' },
   celestial: { name: 'จันทร์โลหิต · แดง', color: '#ff5266' },   // v0.13
+  abyssal: { name: 'ห้วงสมุทร · ฟ้าคราม', color: '#3fe6d0' },   // v0.46 ชุด Lv.110
+  divine: { name: 'เทพสวรรค์ · ขาวทอง', color: '#fff1b0' },     // v0.46 ชุด Lv.135
 };
 
 const BASE = {
@@ -121,6 +124,7 @@ const BASE = {
 
   /* ---------- กล่องแฟชั่นสุ่ม (v0.9) ---------- */
   ...ENDGAME_ITEMS,
+  ...ASCEND_ITEMS,
   ...WEAPON_ITEMS,
   ...OFFHAND_ITEMS,
   ...BOX_ITEMS,

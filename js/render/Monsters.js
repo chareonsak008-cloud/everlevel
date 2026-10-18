@@ -1,10 +1,10 @@
 // v0.17: มอนสเตอร์ออกแบบใหม่ทั้งหมด (ใช้ถ่ายเป็นสไปรต์พิกเซลแบบเกม RPG — render/PixelSprites.js)
 // แต่ละชนิด = build (สร้างโมเดลจากชิ้นรูปทรง) + anim (ท่าทางต่อเฟรม) · ส่วนกลาง: กระพริบตอนโดนตี ตาย เกิดใหม่ แช่แข็ง มึน ทุบพื้น
-import { THREE } from './three.js?v=0.44.6';
-import { lin, mergeGeometries } from './Geo.js?v=0.44.6';
-import { toon, toonOwn, addOutline } from './Toon.js?v=0.44.6';
-import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.44.6';
-import { lerpAngle, damp } from '../core/util.js?v=0.44.6';
+import { THREE } from './three.js?v=0.46.0';
+import { lin, mergeGeometries } from './Geo.js?v=0.46.0';
+import { toon, toonOwn, addOutline } from './Toon.js?v=0.46.0';
+import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.46.0';
+import { lerpAngle, damp } from '../core/util.js?v=0.46.0';
 
 const PI = Math.PI;
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -983,4 +983,194 @@ function spectralShade(v,d){
 DEFS.shade={build:spectralShade,anim(v,P,{t,moving,atk,slam}){P.core.position.y=.32+Math.sin(t*2.6)*.10;P.core.position.z=atk*.3;P.core.rotation.z=Math.sin(t*1.7)*.04;P.arms.forEach((a,i)=>a.rotation.x=-atk*1.4+(slam>=0?-Math.sin(slam*PI)*1.8:Math.sin(t*1.3+i)*.08));}};
 DEFS.reaper=DEFS.shade;
 DEFS.stag={build(v,d){const P=shadowBeast(v,{...d,model:'basilisk'}),antler=v.own('#d3b996');for(const side of [-1,1]){const h=grp(P.head,side*.19,.18,0);add(h,tube([[0,0,0],[side*.18,.35,0],[side*.30,.60,-.05]],[.045,.032,.009],6,12),antler);for(const [y,z] of [[.22,.18],[.38,-.16]])add(h,tube([[side*.1,y,0],[side*.22,y+.15,z]],[.025,.008],6,6),antler);}return P;},anim(v,P,a){animQuad(v,P,a,{stride:.8,rate:1.1});}};
+
+/* ---------- v0.46: มอนดินแดน Lv.100–150 (ออกแบบใหม่) ---------- */
+// แครบปะการัง: กระดองกว้างแบน ก้ามใหญ่สองข้าง ตาบนก้าน ปะการังงอกบนหลัง
+DEFS.crab = {
+  build(v, d) {
+    const shell = v.own(d.color), belly = toon(shadeHex(d.color, 0.25)), dark = toon(shadeHex(d.color, -0.35)), coral = toon('#ff9ad0', { emissive: '#ff5aa0', emissiveIntensity: 0.25 });
+    const core = grp(v.body, 0, 0.42); core.scale.setScalar(d.modelScale || 1);
+    add(core, ridges(sph(0.5, 18, 12).scale(1.25, 0.5, 1), 9, 0.03), shell, 0, 0.08, 0);
+    add(core, sph(0.42, 14, 10).scale(1.15, 0.32, 0.9), belly, 0, -0.06, 0.02);
+    for (let i = 0; i < 4; i++) add(core, spike(V(-0.3 + i * 0.2, 0.28, -0.12 + (i % 2) * 0.12), V((i - 1.5) * 0.3, 1, -0.2), 0.22 + (i % 2) * 0.1, 0.05, 5), coral);
+    const stalks = [-1, 1].map((sx) => { const st = grp(core, sx * 0.14, 0.2, 0.42); add(st, cyl(0.025, 0.03, 0.2, 6), dark, 0, 0.1); eyes(st, 0.22, 0.03, 0.05, 0, { color: '#fff3a0', glow: true }); return st; });
+    const legs = [];
+    for (const sx of [-1, 1]) for (let j = 0; j < 3; j++) { const l = grp(core, sx * 0.48, -0.02, -0.25 + j * 0.22); add(l, tube([[0, 0, 0], [sx * 0.28, 0.12, 0], [sx * 0.42, -0.38, 0.04]], [0.05, 0.04, 0.015], 6, 8), dark); legs.push(l); }
+    const claws = [-1, 1].map((sx) => {
+      const arm = grp(core, sx * 0.5, 0.02, 0.32); add(arm, tube([[0, 0, 0], [sx * 0.22, 0.1, 0.12], [sx * 0.28, 0.12, 0.34]], [0.07, 0.06, 0.06], 6, 8), shell);
+      const hand = grp(arm, sx * 0.28, 0.12, 0.38); add(hand, sph(0.2, 12, 10).scale(1, 0.8, 1.2), shell);
+      const top = grp(hand, 0, 0.06, 0.14); add(top, cone(0.08, 0.32, 6).rotateX(PI / 2), dark, 0, 0, 0.14);
+      const bot = grp(hand, 0, -0.06, 0.14); add(bot, cone(0.065, 0.26, 6).rotateX(PI / 2), dark, 0, 0, 0.12);
+      return { arm, top, bot };
+    });
+    return { core, legs, claws, stalks };
+  },
+  anim(v, P, { t, moving, atk, ph }) {
+    P.legs.forEach((l, i) => { l.rotation.z = (moving ? Math.sin(ph * 1.6 + i * 1.3) * 0.35 : Math.sin(t * 2 + i) * 0.03) * (i < 3 ? 1 : -1); });
+    P.core.position.y = 0.42 + (moving ? Math.abs(Math.sin(ph * 1.6)) * 0.04 : Math.sin(t * 2) * 0.01);
+    P.core.rotation.z = moving ? Math.sin(ph * 0.8) * 0.06 : 0;
+    P.claws.forEach((c, i) => { const open = 0.25 + Math.sin(t * 3 + i) * 0.08 + atk * 0.5; c.top.rotation.x = -open; c.bot.rotation.x = open * 0.6; c.arm.rotation.x = -atk * 0.6; });
+    P.stalks.forEach((s, i) => { s.rotation.z = Math.sin(t * 2.4 + i * 2) * 0.12; });
+  },
+};
+// เต่ากระดองหอย: กระดองโดมมีเปลือกหอยสังข์บิดเกลียวบนหลัง หัวยื่นงับ
+DEFS.turtle = {
+  build(v, d) {
+    const shellM = v.own(d.color), skin = toon('#7ab88a'), dark = toon(shadeHex(d.color, -0.4)), pearl = shiny('#fff4e8', '#ffd0e8');
+    const torso = grp(v.body, 0, 0.5); torso.scale.setScalar(d.modelScale || 1);
+    add(torso, ridges(lathe([[0.62, 0], [0.6, 0.12], [0.5, 0.3], [0.3, 0.45], [0.02, 0.5]], 18), 7, 0.04), shellM, 0, -0.05, 0);
+    add(torso, cyl(0.62, 0.58, 0.1, 18), dark, 0, -0.08, 0);
+    const conch = grp(torso, 0, 0.38, -0.05);
+    for (let i = 0; i < 6; i++) { const r = 0.22 - i * 0.032, a = i * 1.1; add(conch, sph(r, 10, 8), i % 2 ? pearl : shellM, Math.cos(a) * 0.06, i * 0.09, Math.sin(a) * 0.06); }
+    add(conch, cone(0.05, 0.2, 6), pearl, 0, 0.6, 0);
+    const head = grp(torso, 0, 0.0, 0.62); add(head, sph(0.2, 12, 10).scale(0.9, 0.85, 1.15), skin); add(head, cone(0.08, 0.14, 6).rotateX(PI / 2), dark, 0, -0.04, 0.22);
+    eyes(head, 0.06, 0.16, 0.035, 0.1, { color: '#ffd86a', glow: true });
+    const legs = [];
+    for (const sx of [-1, 1]) for (const z of [-0.38, 0.38]) { const l = grp(torso, sx * 0.48, -0.12, z); add(l, cyl(0.12, 0.14, 0.32, 8), skin, 0, -0.14); add(l, sph(0.14, 8, 6).scale(1.1, 0.5, 1.3), skin, 0, -0.3, 0.03); legs.push(l); }
+    const tail = grp(torso, 0, -0.08, -0.62); add(tail, cone(0.07, 0.22, 6).rotateX(-PI / 2), skin, 0, 0, -0.08);
+    return { torso, head, legs, tail, y0: 0.5 };
+  },
+  anim(v, P, a) { animQuad(v, P, a, { stride: 0.35, rate: 0.9, bob: 0.02 }); P.head.position.z = 0.62 + a.atk * 0.2; },
+};
+// แมงกะพรุนห้วงลึก: ร่มโปร่งแสงเรืองแสง หนวดยาวพลิ้ว ลอยตัว
+DEFS.jelly = {
+  build(v, d) {
+    v.flyer = true;
+    const bell = v.own(d.color, { emissive: d.color, emissiveIntensity: 0.35 }), inner = toon('#ffffff', { emissive: d.color, emissiveIntensity: 1.2 }), tent = toon(shadeHex(d.color, 0.2), { emissive: d.color, emissiveIntensity: 0.5 });
+    const core = grp(v.body, 0, 1.2); core.scale.setScalar(d.modelScale || 1);
+    const top = grp(core);
+    add(top, ridges(lathe([[0.02, 0.48], [0.3, 0.44], [0.48, 0.28], [0.56, 0.06], [0.5, 0]], 18), 8, 0.03), bell);
+    add(top, sph(0.18, 12, 10).scale(1, 0.8, 1), inner, 0, 0.22, 0);
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * PI * 2; add(top, sph(0.05, 6, 5), inner, Math.cos(a) * 0.46, 0.06, Math.sin(a) * 0.46); }
+    eyes(top, 0.24, 0.42, 0.04, 0.12, { color: '#ffffff', glow: true });
+    const tentacles = [];
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * PI * 2 + 0.2, r = i % 2 ? 0.36 : 0.22, L = i % 2 ? 0.9 : 1.1;
+      const g = grp(core, Math.cos(a) * r, 0.02, Math.sin(a) * r);
+      add(g, tube([[0, 0, 0], [Math.cos(a) * 0.06, -L * 0.4, Math.sin(a) * 0.06], [-Math.cos(a) * 0.04, -L * 0.75, 0], [0, -L, 0]], [0.04, 0.03, 0.02, 0.004], 6, 12), tent, 0, 0, 0, false);
+      tentacles.push(g);
+    }
+    return { core, top, tentacles, y0: 1.2, shadow0: NaN };
+  },
+  anim(v, P, { t, moving, atk }) {
+    const pulse = Math.sin(t * 3.2);
+    P.top.scale.set(1 + pulse * 0.06, 1 - pulse * 0.08, 1 + pulse * 0.06);
+    P.core.position.y = P.y0 + Math.sin(t * 1.6) * 0.12 - atk * 0.2;
+    P.core.position.z = atk * 0.35;
+    P.tentacles.forEach((g, i) => { g.rotation.x = Math.sin(t * 2.2 + i) * 0.18 + (moving ? -0.3 : 0); g.rotation.z = Math.cos(t * 1.8 + i * 1.7) * 0.15; });
+  },
+};
+// ไซเรนอีล: งูทะเลยืดตัวขึ้นเป็นรูปตัว S ครีบหลังโปร่ง หัวมีครีบหู ตาเรืองแสง
+DEFS.eel = {
+  build(v, d) {
+    const skin = v.own(d.color), belly = toon(shadeHex(d.color, 0.35)), fin = toon(shadeHex(d.color, 0.15), { emissive: d.color, emissiveIntensity: 0.3, transparent: true, opacity: 0.8, side: THREE.DoubleSide }), gold = shiny('#ffe08a', '#c89a2a');
+    const root = grp(v.body); root.scale.setScalar(d.modelScale || 1);
+    const segs = [], N = 9;
+    for (let i = 0; i < N; i++) {
+      const g = grp(root), r = 0.2 - i * 0.012 + (i < 2 ? 0.02 : 0);
+      add(g, sph(r, 12, 10).scale(1, 1, 1.25), skin);
+      add(g, sph(r * 0.8, 10, 8).scale(0.9, 0.7, 1.2), belly, 0, -r * 0.3, r * 0.25);
+      if (i > 0 && i < N - 1) add(g, spike(V(0, r * 0.8, 0), V(0, 1, -0.4), r * 1.6, r * 0.5, 4, 0.2), fin, 0, 0, 0, false);
+      segs.push(g);
+    }
+    const head = grp(root);
+    add(head, sph(0.24, 14, 10).scale(0.9, 0.8, 1.3), skin); add(head, sph(0.18, 12, 8).scale(0.8, 0.5, 1.2), belly, 0, -0.1, 0.12);
+    eyes(head, 0.08, 0.22, 0.045, 0.12, { color: '#ffffff', glow: true });
+    for (const sx of [-1, 1]) add(head, featherFan(4, 0.3, 0.07, 0.9).scale(sx, 1, 1), fin, sx * 0.2, 0.05, -0.05, false);
+    const jaw = grp(head, 0, -0.1, 0.12); add(jaw, new THREE.BoxGeometry(0.22, 0.05, 0.24), belly, 0, 0, 0.08);
+    if (d.mvp) { for (let i = -2; i <= 2; i++) add(head, spike(V(i * 0.08, 0.2, -0.02), V(i * 0.15, 1, -0.2), 0.3 - Math.abs(i) * 0.05, 0.04, 5), gold); }
+    return { root, segs, head, jaw };
+  },
+  anim(v, P, { t, moving, atk }) {
+    const N = P.segs.length, sp = moving ? 6 : 2.4;
+    for (let i = 0; i < N; i++) {
+      const u = i / (N - 1), y = 0.18 + (1 - u) * 0.95 * (1 - u * 0.2), z = -u * 1.1 + 0.15;
+      P.segs[i].position.set(Math.sin(t * sp - u * 5) * 0.16 * u, y * (1 - u) + 0.16, z);
+    }
+    const h = P.segs[0].position;
+    P.head.position.set(h.x * 0.6, h.y + 0.22 + Math.sin(t * 2) * 0.04, 0.35 + atk * 0.4);
+    P.head.rotation.x = -atk * 0.5 + Math.sin(t * 1.5) * 0.06;
+    P.jaw.rotation.x = 0.1 + atk * 0.6;
+  },
+};
+// ดราคผลึก: มังกรสี่ขาตัวย่อม หนามผลึกตามหลัง ปีกพังผืดโปร่ง เขาคู่
+DEFS.drake = {
+  build(v, d) {
+    const skin = v.own(d.color), belly = toon(shadeHex(d.color, 0.3)), cry = shiny('#e8fbff', d.color), memb = toon(shadeHex(d.color, -0.1), { side: THREE.DoubleSide, transparent: true, opacity: 0.85 }), horn = toon('#e8e0f8');
+    const torso = grp(v.body, 0, 0.72); torso.scale.setScalar(d.modelScale || 1);
+    add(torso, sph(0.5, 16, 12).scale(0.75, 0.68, 1.25), skin); add(torso, sph(0.4, 14, 10).scale(0.7, 0.55, 1.1), belly, 0, -0.12, 0.05);
+    for (let j = 0; j < 6; j++) add(torso, oct(0.1 + (j % 2) * 0.04).scale(0.6, 1.8, 0.6), cry, 0, 0.36 - Math.abs(j - 2.5) * 0.02, -0.5 + j * 0.18);
+    const neck = grp(torso, 0, 0.2, 0.5); add(neck, tube([[0, 0, 0], [0, 0.2, 0.15], [0, 0.32, 0.3]], [0.17, 0.14, 0.12], 8, 8), skin);
+    const head = grp(neck, 0, 0.36, 0.36); add(head, sph(0.22, 12, 10).scale(0.85, 0.75, 1.3), skin); add(head, sph(0.15, 10, 8).scale(0.8, 0.5, 1.3), belly, 0, -0.08, 0.15);
+    eyes(head, 0.06, 0.2, 0.04, 0.1, { color: '#bff8ff', glow: true });
+    for (const sx of [-1, 1]) add(head, spike(V(sx * 0.1, 0.12, -0.08), V(sx * 0.3, 0.8, -0.8), 0.32, 0.05, 6), horn);
+    const jaw = grp(head, 0, -0.1, 0.14); add(jaw, new THREE.BoxGeometry(0.2, 0.05, 0.22), belly, 0, 0, 0.06);
+    const legs = [], knees = [];
+    for (const sx of [-1, 1]) for (const z of [-0.36, 0.36]) { const l = grp(torso, sx * 0.3, -0.18, z), k = grp(l, 0, -0.24); add(l, cyl(0.1, 0.11, 0.28, 8), skin, 0, -0.1); add(k, cyl(0.07, 0.09, 0.26, 8), skin, 0, -0.11); add(k, sph(0.11, 8, 6).scale(1, 0.6, 1.3), horn, 0, -0.24, 0.06); legs.push(l); knees.push(k); }
+    const wings = [-1, 1].map((sx) => { const w = grp(torso, sx * 0.28, 0.3, 0.05); const { geo, tips } = membrane(0.9, 0.6, 4, 0.28); const m = add(w, geo.scale(sx, 1, 1), memb, 0, 0, 0, false); m.rotation.x = -0.4; for (const [x, y] of tips) add(w, tube([[0, 0, 0], [sx * x, y, 0]], [0.025, 0.008], 5, 4), horn).rotation.x = -0.4; return w; });
+    const tail = grp(torso, 0, -0.05, -0.6); add(tail, tube([[0, 0, 0], [0.1, 0.05, -0.4], [0.18, 0.12, -0.8]], [0.14, 0.08, 0.02], 8, 12), skin); add(tail, oct(0.12).scale(0.5, 1.5, 0.5), cry, 0.18, 0.2, -0.82);
+    if (d.mvp) for (const sx of [-1, 1]) for (let j = 0; j < 3; j++) add(torso, oct(0.12).scale(0.6, 2, 0.6), cry, sx * 0.3, 0.3, -0.3 + j * 0.3);
+    return { torso, head, jaw, legs, knees, tail, wings, y0: 0.72 };
+  },
+  anim(v, P, a) {
+    animQuad(v, P, a, { stride: 0.6, rate: 1.1 });
+    const f = Math.sin(a.t * (a.moving ? 7 : 2.2)) * (a.moving ? 0.5 : 0.18);
+    P.wings[0].rotation.z = 0.35 + f; P.wings[1].rotation.z = -0.35 - f;
+    if (a.slam >= 0) P.head.rotation.x = -0.6 * Math.sin(a.slam * PI);
+  },
+};
+// กริฟฟินพายุ: หัวนกอินทรี ตัวสิงโต ปีกขนนกกว้าง
+DEFS.griffin = {
+  build(v, d) {
+    const furM = v.own(d.color), white = toon('#f4efe4'), beak = toon('#ffc23a'), feath = toon('#fff8ec', { side: THREE.DoubleSide }), wingC = toon(shadeHex(d.color, 0.2), { side: THREE.DoubleSide }), spark = toon('#bfe4ff', { emissive: '#7ab4ff', emissiveIntensity: 1 });
+    const torso = grp(v.body, 0, 0.75); torso.scale.setScalar(d.modelScale || 1);
+    add(torso, sph(0.5, 16, 12).scale(0.72, 0.66, 1.2), furM);
+    add(torso, mergeGeometries(fur(V(0, 0.15, 0.42), 0.32, 0.32, 0.25, 26, 0.16, 0.06, { droop: 0.2, seed: 7 })), white);
+    const head = grp(torso, 0, 0.42, 0.48); add(head, sph(0.24, 14, 10).scale(0.9, 0.95, 1.1), white);
+    add(head, cone(0.08, 0.24, 6).rotateX(PI / 2 + 0.4), beak, 0, -0.04, 0.26);
+    eyes(head, 0.06, 0.2, 0.04, 0.11, { color: '#ffcf5a', glow: true, tilt: 0.3 });
+    for (const sx of [-1, 1]) add(head, spike(V(sx * 0.1, 0.18, -0.1), V(sx * 0.2, 0.6, -1), 0.2, 0.05, 5, 0.4), feath);
+    const legs = [], knees = [];
+    for (const sx of [-1, 1]) for (const z of [-0.36, 0.36]) { const front = z > 0, l = grp(torso, sx * 0.28, -0.2, z), k = grp(l, 0, -0.25); add(l, cyl(0.1, 0.11, 0.3, 8), front ? white : furM, 0, -0.1); add(k, cyl(0.07, 0.08, 0.26, 8), front ? beak : furM, 0, -0.11); add(k, sph(0.1, 8, 6).scale(1, 0.55, 1.3), front ? beak : furM, 0, -0.24, 0.05); legs.push(l); knees.push(k); }
+    const wings = [-1, 1].map((sx) => { const w = grp(torso, sx * 0.3, 0.3, 0.1); add(w, featherFan(6, 0.9, 0.2, 1.0, 0.02, 0.05).scale(sx, 1, 1), wingC, 0, 0, 0, false); add(w, featherFan(4, 0.55, 0.18, 0.8).scale(sx, 1, 1), feath, 0, 0.02, 0.02, false); return w; });
+    const tail = grp(torso, 0, 0, -0.58); add(tail, tube([[0, 0, 0], [0, 0.15, -0.35], [0, 0.35, -0.55]], [0.06, 0.04, 0.02], 6, 10), furM); add(tail, sph(0.08, 8, 6), spark, 0, 0.36, -0.56);
+    return { torso, head, legs, knees, tail, wings, y0: 0.75 };
+  },
+  anim(v, P, a) {
+    animQuad(v, P, a, { stride: 0.65, rate: 1.2 });
+    const f = Math.sin(a.t * (a.moving ? 8 : 2.5)) * (a.moving ? 0.55 : 0.15);
+    P.wings[0].rotation.z = 0.5 + f; P.wings[1].rotation.z = -0.5 - f;
+  },
+};
+// อัศวินเซราฟ: อัศวินเกราะขาวทอง ลอยตัว ปีกขนนกสองคู่ วงรัศมีเหนือศีรษะ ถือหอกแสง
+DEFS.seraph = {
+  build(v, d) {
+    v.flyer = true;
+    const armor = v.own(d.color), gold = shiny('#ffe08a', '#c8962a'), cloth = toon('#7ab4ff'), light = toon('#ffffff', { emissive: '#fff1b0', emissiveIntensity: 1.4 }), feath = toon('#fffaf0', { side: THREE.DoubleSide });
+    const core = grp(v.body, 0, 0.45); core.scale.setScalar(d.modelScale || 1);
+    add(core, ridges(lathe([[0.42, -0.1], [0.36, 0.2], [0.24, 0.6], [0.2, 0.75]], 14), 10, 0.03), cloth, 0, 0, 0);
+    const torso = grp(core, 0, 0.95);
+    add(torso, lathe([[0.2, -0.25], [0.32, -0.05], [0.34, 0.18], [0.22, 0.32]], 14), armor);
+    add(torso, oct(0.1), light, 0, 0.05, 0.3);
+    for (const sx of [-1, 1]) add(torso, sph(0.16, 10, 8).scale(1.2, 0.8, 1), gold, sx * 0.34, 0.24, 0);
+    const head = grp(torso, 0, 0.5); add(head, sph(0.2, 12, 10).scale(1, 1.1, 1), armor); add(head, new THREE.BoxGeometry(0.26, 0.05, 0.05), light, 0, 0.0, 0.18);
+    add(head, spike(V(0, 0.18, -0.02), V(0, 1, -0.3), 0.3, 0.05, 5), gold);
+    const halo = add(head, new THREE.TorusGeometry(0.24, 0.025, 6, 28), light, 0, 0.36, -0.05, false); halo.rotation.x = PI / 2 - 0.2;
+    const arms = [-1, 1].map((sx) => { const a = grp(torso, sx * 0.38, 0.2); add(a, cyl(0.08, 0.1, 0.5, 8), armor, 0, -0.25); add(a, sph(0.09, 8, 6), gold, 0, -0.5); return a; });
+    add(arms[0], cyl(0.025, 0.025, 1.9, 6), gold, 0, -0.5, 0.1).rotation.x = PI / 2;
+    add(arms[0], spike(V(0, -0.5, 1.05), V(0, 0, 1), 0.36, 0.08, 4), light);
+    const wings = [-1, 1].map((sx) => { const w = grp(torso, sx * 0.14, 0.2, -0.22); add(w, featherFan(6, 1.05, 0.22, 1.05, 0.02, 0.05).scale(sx, 1, 1), feath, 0, 0, 0, false); return w; });
+    const wings2 = [-1, 1].map((sx) => { const w = grp(torso, sx * 0.12, -0.1, -0.24); add(w, featherFan(4, 0.6, 0.18, 0.8).scale(sx, 1, 1), feath, 0, 0, 0, false); return w; });
+    if (d.mvp) { add(head, new THREE.TorusGeometry(0.34, 0.02, 6, 30), gold, 0, 0.36, -0.05, false).rotation.x = PI / 2 - 0.2; for (let i = -1; i <= 1; i++) add(head, spike(V(i * 0.12, 0.22, 0), V(i * 0.3, 1, 0), 0.3, 0.04, 5), gold); }
+    return { core, torso, head, arms, wings, wings2, halo, y0: 0.45 };
+  },
+  anim(v, P, { t, moving, atk, slam }) {
+    P.core.position.y = P.y0 + Math.sin(t * 2) * 0.1; P.core.position.z = atk * 0.3;
+    const f = Math.sin(t * (moving ? 5 : 2)) * 0.25;
+    P.wings[0].rotation.z = 0.25 + f; P.wings[1].rotation.z = -0.25 - f; P.wings2[0].rotation.z = 0.1 + f * 0.7; P.wings2[1].rotation.z = -0.1 - f * 0.7;
+    P.halo.rotation.z = t * 0.8;
+    P.arms[0].rotation.x = -atk * 1.4 + (slam >= 0 ? -Math.sin(slam * PI) * 1.8 : Math.sin(t * 1.3) * 0.06);
+    P.arms[1].rotation.x = slam >= 0 ? -Math.sin(slam * PI) * 1.6 : Math.sin(t * 1.3 + 1) * 0.06;
+  },
+};
 export const MONSTER_MODEL_IDS = Object.keys(DEFS);

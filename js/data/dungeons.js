@@ -1,6 +1,6 @@
 // v0.32: ดันเจี้ยนถ้ำ + หอคอยไต่ชั้น — ข้อมูล · สูตรปรับความยากมอนสเตอร์ · สร้างแผนที่แต่ละชั้น (สุ่มตาม seed)
 // ปรับสมดุลได้จากไฟล์นี้ไฟล์เดียว
-import { MONSTERS } from './monsters.js?v=0.44.6';
+import { MONSTERS } from './monsters.js?v=0.46.0';
 
 /* ---------- ค่าหลัก ---------- */
 export const CAVE = {
@@ -36,10 +36,10 @@ export function normDungeon(d) {
 
 /* ---------- สูตรความแรงอ้างอิงตามเลเวล (ฟิตจากมอนในเกม Lv.1–98) ---------- */
 const f = (L) => (Math.max(1, L) + 4) / 5;
-const over = (L, k) => (L > 99 ? Math.pow(k, L - 99) : 1);          // เกิน Lv.99 (หอคอยชั้นสูง) แรงขึ้นทวีคูณ
+const over = (L, k) => (L > 150 ? Math.pow(k, L - 150) : 1);        // v0.46 เกิน Lv.150 (หอคอยชั้นสูง) แรงขึ้นทวีคูณ
 export const refHp = (L) => 32 * Math.pow(f(L), 1.85) * over(L, 1.055);
 export const refAtk = (L) => 5 * Math.pow(f(L), 1.55) * over(L, 1.03);
-export const refExp = (L) => 8 * Math.pow(f(Math.min(L, 99)), 2.0);
+export const refExp = (L) => 8 * Math.pow(f(Math.min(L, 150)), 2.0);
 
 export const NORMAL_MOBS = Object.keys(MONSTERS).filter((k) => { const m = MONSTERS[k]; return !m.mvp && !m.worldBoss && !m.boss && m.level; })
   .sort((a, b) => MONSTERS[a].level - MONSTERS[b].level);
@@ -47,7 +47,7 @@ export const BOSS_MOBS = ['gnarlroot', 'glacia', 'ignarok', 'aurex', 'nocthar'].
 
 // ชุดมอนที่เลเวลใกล้เป้าหมาย (สุ่มตาม rnd) — ใช้ตัวที่เลเวลไม่เกินเป้า + 6 เป็นหลัก
 export function pickRoster(L, n, rnd) {
-  const scored = NORMAL_MOBS.map((k) => ({ k, d: Math.abs(MONSTERS[k].level - Math.min(L, 98)) + (MONSTERS[k].level > L + 6 ? 40 : 0) }))
+  const scored = NORMAL_MOBS.map((k) => ({ k, d: Math.abs(MONSTERS[k].level - Math.min(L, 150)) + (MONSTERS[k].level > L + 6 ? 40 : 0) }))
     .sort((a, b) => a.d - b.d).slice(0, Math.max(n + 2, 5));
   const out = [];
   while (out.length < n && scored.length) out.push(scored.splice(Math.floor(rnd() * Math.min(scored.length, n + 1)), 1)[0].k);

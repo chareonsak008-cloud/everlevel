@@ -1,6 +1,6 @@
 // Visual progression is independent of combat stats and existing save IDs.
 // v0.25: แต่ละชิ้นมี "ทรง" ของตัวเอง (form + shape) และสีของตัวเอง — ไม่ได้เปลี่ยนแค่ตามเลเวล/เกรด
-export const DESIGN_GRADES=['common','uncommon','rare','epic','legend','mythic','celestial'];
+export const DESIGN_GRADES=['common','uncommon','rare','epic','legend','mythic','celestial','abyssal','divine'];
 export const DESIGN_THEMES=[
  {name:'นักเดินทาง',metal:'#b9c0c7',cloth:'#56766b',dark:'#654935',gem:'#d9e2c9'},
  {name:'พงไพร',metal:'#b5cf94',cloth:'#426944',dark:'#503e2a',gem:'#98ef8e'},
@@ -8,9 +8,11 @@ export const DESIGN_THEMES=[
  {name:'เตาหลอมเพลิง',metal:'#db9060',cloth:'#913f35',dark:'#37283d',gem:'#ffb14d'},
  {name:'อาณาจักรรูน',metal:'#d7c399',cloth:'#605580',dark:'#302b4e',gem:'#ab9cff'},
  {name:'วิญญาณจันทรา',metal:'#abd2dc',cloth:'#365e68',dark:'#273d46',gem:'#8ffff1'},
- {name:'จันทร์โลหิต',metal:'#e4c281',cloth:'#85324a',dark:'#302439',gem:'#ff607e'}
+ {name:'จันทร์โลหิต',metal:'#e4c281',cloth:'#85324a',dark:'#302439',gem:'#ff607e'},
+ {name:'ห้วงสมุทร',metal:'#9ef2e6',cloth:'#1f6a78',dark:'#123a4a',gem:'#3fe6d0'},   // v0.46 Lv.100–124
+ {name:'เทพสวรรค์',metal:'#fff3d0',cloth:'#e8d8a8',dark:'#6a5a3a',gem:'#ffffff'}    // v0.46 Lv.125+
 ];
-export const levelBand=level=>level<10?0:level<25?1:level<40?2:level<60?3:level<75?4:level<90?5:6;
+export const levelBand=level=>level<10?0:level<25?1:level<40?2:level<60?3:level<75?4:level<90?5:level<100?6:level<125?7:8;
 
 // ทรงที่มีให้เลือกในแต่ละประเภท (ของเก่าที่ไม่ได้กำหนด look จะเลือกจากคีย์เวิร์ดในชื่อ แล้วสุ่มตาม id)
 export const SHAPES={

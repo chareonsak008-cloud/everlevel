@@ -61,4 +61,8 @@ export const SONGS = {
 
 // Two newly arranged variations share the supported synth instruments.
 SONGS.ruins={...SONGS.forest,bpm:92,root:57,chords:[0,5,3,4,0,3,5,4],melody:['0 - 4 - 6 - 4 -','3 - 5 - 7 - . .','5 - 4 2 0 - . .','4 - - - 2 - 0 -']};
+// v0.46 ดินแดน Lv.100–150
+SONGS.coast={...SONGS.field,bpm:100,root:57,lead:'pluck',chords:[0,3,4,5,0,3,4,0],melody:['4 - 2 0 2 - 4 -','5 - 4 2 4 - . .','7 - 5 4 2 - 4 -','2 - 0 - 0 - . .'],drums:{kick:'1...1...',hat:'..1...1.',kickVol:.45,hatVol:.06}};
+SONGS.crystal={...SONGS.title,bpm:88,root:59,chords:[0,5,3,4,0,6,3,4],melody:['0 - 4 7 9 - 7 -','8 - 7 4 2 - . .','4 - 7 9 11 - 9 -','7 - 4 - 0 - . .']};
+SONGS.sky={...SONGS.town,bpm:92,root:62,lead:'flute',chords:[0,4,5,3,0,4,3,4],melody:['4 - 7 - 9 - 11 -','9 - 7 - 4 - . .','5 - 7 9 11 - 12 -','11 - 9 7 4 - . .'],drums:{kick:'1.......',snare:'....1...',hat:'..1...1.',kickVol:.4,snareVol:.15,hatVol:.06}};
 SONGS.haunted={...SONGS.snow,bpm:76,root:53,chords:[0,6,3,4,0,5,6,4],melody:['0 . 4 . 7 - 6 -','6 - 4 . 2 . . .','3 . 5 . 8 - 5 -','4 - 2 - 0 - . .']};

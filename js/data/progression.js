@@ -1,8 +1,8 @@
 // ระบบเลเวลและค่าสถานะ: ตาราง EXP, แต้มสเตตัส และสูตรคำนวณค่าต่อสู้
 // ปรับสมดุลทั้งเกมได้จากไฟล์นี้ไฟล์เดียว
 
-export const MAX_BASE_LEVEL = 99;
-export const MAX_STAT = 99;
+export const MAX_BASE_LEVEL = 150;   // v0.46 ขยายเพดานเลเวลเป็น 150
+export const MAX_STAT = 130;         // v0.46 สเตตัสสูงสุด 130 (แต้มหลัง Lv.99 มีที่ลง)
 export const START_STAT_POINTS = 24;   // แต้มเริ่มต้นให้ผู้เล่นใหม่ลองอัปได้ทันที
 
 // อาชีพ: hp/sp = ตัวคูณการเติบโตของ HP/SP · jobExp = ตัวคูณ EXP อาชีพ

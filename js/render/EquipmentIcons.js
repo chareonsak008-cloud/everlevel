@@ -1,12 +1,12 @@
 // v0.25.0: ไอคอนอุปกรณ์ — ทุกชิ้นมีทรงของตัวเอง (form + shape) และสีของตัวเอง
 // form = ประเภท 12 แบบตามสเปก (ดาบมือเดียว/สองมือ/หอก, คทา/ไม้เท้า/ออร์บ, กระบอง/คทาศักดิ์สิทธิ์/หนังสือ, ธนูสั้น/ยาว/หน้าไม้)
 // เกรดสูงขึ้นเพิ่มลายทอง อัญมณี ปีก รัศมี ประกาย — วาดบนพิกัด 64x64
-import { shadeHex } from './Textures.js?v=0.44.6';
-import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.44.6';
+import { shadeHex } from './Textures.js?v=0.46.0';
+import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.46.0';
 
 const LINE = '#21151f';
 const TAU = Math.PI * 2;
-export const GRADE_GLOW = ['#e8ecf2', '#7fe07a', '#62b6ff', '#c58bff', '#ffa43a', '#ffd84a', '#ff4058'];
+export const GRADE_GLOW = ['#e8ecf2', '#7fe07a', '#62b6ff', '#c58bff', '#ffa43a', '#ffd84a', '#ff4058', '#3fe6d0', '#fff1b0'];
 
 const lg = (g, x0, y0, x1, y1, stops) => { const gr = g.createLinearGradient(x0, y0, x1, y1); stops.forEach((c, i) => gr.addColorStop(i / (stops.length - 1), c)); return gr; };
 const rg = (g, x, y, r0, r1, stops) => { const gr = g.createRadialGradient(x, y, r0, x, y, r1); stops.forEach((c, i) => gr.addColorStop(i / (stops.length - 1), c)); return gr; };

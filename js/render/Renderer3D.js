@@ -1,40 +1,40 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.44.6';
-import { PixelWingSprite } from './PixelWings.js?v=0.44.6';
-import { paintPlate } from '../ui/Nameplates.js?v=0.44.6';
-import { PixelVfx } from './PixelVfx.js?v=0.44.6';
-import { THREE } from './three.js?v=0.44.6';
-import { TILE } from '../config.js?v=0.44.6';
-import { T } from '../data/tileTypes.js?v=0.44.6';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.44.6';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.44.6';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.44.6';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.46.0';
+import { PixelWingSprite } from './PixelWings.js?v=0.46.0';
+import { paintPlate } from '../ui/Nameplates.js?v=0.46.0';
+import { PixelVfx } from './PixelVfx.js?v=0.46.0';
+import { THREE } from './three.js?v=0.46.0';
+import { TILE } from '../config.js?v=0.46.0';
+import { T } from '../data/tileTypes.js?v=0.46.0';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.46.0';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.46.0';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.46.0';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.44.6';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.44.6';
-import { iconCanvas } from './ItemIcons.js?v=0.44.6';
-import { ITEMS, RARITY } from '../data/items.js?v=0.44.6';
-import { MonsterView } from './Monsters.js?v=0.44.6';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.44.6';
-import { SkillFX } from './SkillFX.js?v=0.44.6';
-import { PostFX } from './PostFX.js?v=0.44.6';
-import { costumeLook, wearCostume } from './Costumes.js?v=0.44.6';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.44.6';
-import { PetView } from './Pets.js?v=0.44.6';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.44.6';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.44.6';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.44.6';
-import { gradientMap } from './Toon.js?v=0.44.6';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.44.6';
+} from './Models.js?v=0.46.0';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.46.0';
+import { iconCanvas } from './ItemIcons.js?v=0.46.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.46.0';
+import { MonsterView } from './Monsters.js?v=0.46.0';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.46.0';
+import { SkillFX } from './SkillFX.js?v=0.46.0';
+import { PostFX } from './PostFX.js?v=0.46.0';
+import { costumeLook, wearCostume } from './Costumes.js?v=0.46.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.46.0';
+import { PetView } from './Pets.js?v=0.46.0';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.46.0';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.46.0';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.46.0';
+import { gradientMap } from './Toon.js?v=0.46.0';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.46.0';
 const PX_BASE = (() => { const a = new THREE.Color('#dcefff'), b = new THREE.Color('#fff0d6'); return { r: a.r * 0.72 + b.r * 1.45 * 0.5, g: a.g * 0.72 + b.g * 1.45 * 0.5, b: a.b * 0.72 + b.b * 1.45 * 0.5 }; })();   // v0.17: สไปรต์พิกเซลอาร์ต   // v0.13: สัตว์เลี้ยงช่วยเก็บของ
 
 // ความแรงแสงเรืองของแฟชั่นระดับล้ำค่าขึ้นไป (ตอนไม่มีเอฟเฟกต์สกิล)
 const COSTUME_GLOW = 1.6;
 
 const S = 1 / TILE; // พิกัดโลก (px) → หน่วย 3 มิติ
-const isRareDrop = (it) => !!it && (it.type === 'card' || it.type === 'box' || ['rare', 'epic', 'legend', 'mythic', 'celestial'].includes(it.rarity));
+const isRareDrop = (it) => !!it && (it.type === 'card' || it.type === 'box' || ['rare', 'epic', 'legend', 'mythic', 'celestial', 'abyssal', 'divine'].includes(it.rarity));
 
 // v0.16: คืนหน่วยความจำ GPU ของเท็กซ์เจอร์ที่ชุดแฟชั่นโคลนไว้ใช้เฉพาะตัว (เท็กซ์เจอร์ที่ใช้ร่วมกันไม่ถูกลบ)
 // v0.16: เขียน DOM เฉพาะตอนค่าเปลี่ยน (ป้ายชื่อ/แถบเลือดขยับทุกเฟรม → ลดงาน layout บนมือถือ)
@@ -944,7 +944,7 @@ export class Renderer3D {
   }
 
   // เปลี่ยนป้ายชื่อเหนือหัว (ใบเปลี่ยนชื่อ)
-  setName(entity, name) { const c = this.characters.get(entity); if (!c || !c.label) return; if (c.npc) c.label.textContent = name; else paintPlate(c.label, name, entity.baseLevel || 1, entity.guildTag, entity.inParty); }
+  setName(entity, name) { const c = this.characters.get(entity); if (!c || !c.label) return; if (c.npc) c.label.textContent = name; else paintPlate(c.label, name, entity.baseLevel || 1, entity.guildTag, entity.inParty, !!entity.vip); }
 
   /* ---------- สัตว์เลี้ยง (v0.13) ---------- */
   // ent = { x, y, angle, moving, speedK } (พิกัดพิกเซลโลกเหมือนตัวละคร)
@@ -1391,7 +1391,7 @@ export class Renderer3D {
     if (c.npc) setT(c.label, `translate3d(${sx}px, ${sy}px, 0) translate(-50%, -100%)`);
     else {
       // v0.36: กรอบป้ายชื่อตามเลเวล — ช่องข้อความของกรอบอยู่ใต้เท้า · แถบ HP ใต้กรอบ (ปีก/มงกุฎของกรอบยื่นรอบ ๆ ได้)
-      const g = paintPlate(c.label, entity.name, entity.baseLevel || 1, entity.guildTag, entity.inParty);
+      const g = paintPlate(c.label, entity.name, entity.baseLevel || 1, entity.guildTag, entity.inParty, !!entity.vip);
       setT(c.label, `translate3d(${sx}px, ${sy + 6 - g.top}px, 0) translate(-50%, 0)`);
       setT(c.hpbar, `translate3d(${sx}px, ${sy + 6 + g.h + 4}px, 0) translate(-50%, 0)`);
       // แถบร่ายสกิลเหนือหัว

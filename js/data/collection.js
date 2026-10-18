@@ -3,10 +3,11 @@
 // · ความสำเร็จ: ทำครบแล้วได้ฉายา (ใส่โชว์เหนือหัว) + โบนัสเล็กน้อย (ได้ทุกอันที่ปลดล็อก ไม่ต้องใส่ฉายา)
 // · อัลบั้มการ์ด: เคยได้การ์ดครบชุด → โบนัสชุด (ไม่ต้องใส่การ์ด ไม่เสียการ์ด)
 // · เช็กอินรายวัน: เข้าเกมวันละครั้ง → รางวัลวันที่ 1–7 วนรอบ ส่งเข้ากล่องจดหมาย
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.44.6';
-import { MONSTERS } from './monsters.js?v=0.44.6';
-import { CARDS } from './cards.js?v=0.44.6';
-import { MAPS } from './maps/index.js?v=0.44.6';
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.46.0';
+import { ASCEND_MONSTERS } from './ascendData.js?v=0.46.0';
+import { MONSTERS } from './monsters.js?v=0.46.0';
+import { CARDS } from './cards.js?v=0.46.0';
+import { MAPS } from './maps/index.js?v=0.46.0';
 
 /* ---------- สมุดมอนสเตอร์ ---------- */
 export const BOOK_TIERS = [100, 500, 1000];
@@ -32,6 +33,8 @@ export const BOOK = {
   obsidiangolem: T('vit', { def: 4 }),
   ...Object.fromEntries(Object.keys(ENDGAME_MONSTERS).map((id) => [id, ENDGAME_MONSTERS[id].mvp ? [{ maxHp: 100 }, { atk: 6, matk: 6 }, { def: 4, mdef: 4 }] : T('dex', { hit: 3 })])),
   ignarok: [{ atkPct: 2 }, { str: 2 }, { atk: 15, crit: 0.01 }],
+  // v0.46 มอน Lv.100–150
+  ...Object.fromEntries(Object.keys(ASCEND_MONSTERS).map((id) => [id, ASCEND_MONSTERS[id].mvp ? [{ maxHp: 200 }, { atk: 10, matk: 10 }, { def: 6, mdef: 6 }] : T(['str', 'int', 'dex', 'vit', 'agi'][ASCEND_MONSTERS[id].level % 5], { maxHp: 60 })])),
 };
 export const BOOK_ORDER = Object.keys(MONSTERS).filter((t) => BOOK[t]);
 export const bookTiers = (type) => (MONSTERS[type] && MONSTERS[type].mvp ? BOOK_TIERS_MVP : BOOK_TIERS);
@@ -49,7 +52,10 @@ export const CARD_SETS = [
   { id: 'ember', name: 'ปล่องภูเขาไฟ', cards: mapCards('ember_caldera'), bonus: { def: 5, atkPct: 3 } },
   { id: 'ancient', name: 'ผู้พิทักษ์ซากโบราณ', cards: mapCards('ancient_ruins'), bonus: { atk: 10, matk: 10, hit: 4 } },
   { id: 'haunted', name: 'จันทร์เหนือป่าวิญญาณ', cards: mapCards('haunted_forest'), bonus: { maxHp: 180, mdef: 5 } },
-  { id: 'mvp', name: 'ราชันย์ทั้งห้า (การ์ด MVP)', cards: Object.keys(CARDS).filter((id) => MONSTERS[CARDS[id].mob]?.mvp), bonus: { str: 2, vit: 2, int: 2 } },
+  { id: 'coast', name: 'บุตรแห่งหาดปะการัง', cards: mapCards('sunken_coast'), bonus: { maxHp: 300, flee: 6 } },   // v0.46
+  { id: 'crystal', name: 'แสงเจ็ดสีแห่งหุบเขา', cards: mapCards('crystal_valley'), bonus: { atk: 15, matk: 15, def: 6 } },
+  { id: 'sky', name: 'ผู้ขึ้นถึงฟากฟ้า', cards: mapCards('sky_citadel'), bonus: { str: 2, agi: 2, vit: 2, int: 2, dex: 2, luk: 2 } },
+  { id: 'mvp', name: 'ราชันย์ทั้งห้า (การ์ด MVP)', cards: Object.keys(CARDS).filter((id) => MONSTERS[CARDS[id].mob]?.mvp && MONSTERS[CARDS[id].mob].level < 100), bonus: { str: 2, vit: 2, int: 2 } },
 ];
 export const CARD_TOTAL = Object.keys(CARDS).length;
 export const MVP_CARDS = Object.keys(CARDS).filter((id) => MONSTERS[CARDS[id].mob]?.mvp);
@@ -69,6 +75,8 @@ export const ACHIEVEMENTS = [
   A('lv70', 'level', 'ผู้กล้าแห่งยุค', 'Base Lv. 70', 'rare', { def: 3, mdef: 3 }, maxOf(70)),
   A('lv90', 'level', 'ตำนานมีชีวิต', 'Base Lv. 90', 'epic', { maxHpPct: 2, maxSpPct: 2 }, maxOf(90)),
   A('lv99', 'level', 'ผู้อยู่เหนือขีดจำกัด', 'Base Lv. 99', 'legend', { atk: 5, matk: 5, maxHpPct: 2 }, maxOf(99), 'frost'),
+  A('lv120', 'level', 'ผู้ก้าวข้ามโชคชะตา', 'Base Lv. 120', 'legend', { atk: 6, matk: 6, def: 4, mdef: 4 }, maxOf(120), 'frost'),
+  A('lv150', 'level', 'ผู้อยู่เหนือสวรรค์', 'Base Lv. 150', 'mythic', { atkPct: 3, matkPct: 3, maxHpPct: 3, maxSpPct: 3 }, maxOf(150), 'celestial'),
   A('job1', 'level', 'ผู้เลือกเส้นทาง', 'เปลี่ยนอาชีพครั้งแรก', 'common', { hit: 2 }, (S) => [S.job !== 'novice' ? 1 : 0, 1]),
   A('jlv30', 'level', 'ผู้ฝึกฝนอาชีพ', 'Job Lv. 30 (อาชีพขั้นที่ 1)', 'rare', { flee: 2, hit: 2 }, (S) => [Math.min(S.jlv1, 30), 30]),
   A('jlv60', 'level', 'ปรมาจารย์อาชีพ', 'Job Lv. 60 (อาชีพขั้นที่ 1)', 'epic', { crit: 0.01, maxSp: 20 }, (S) => [Math.min(S.jlv1, 60), 60]),

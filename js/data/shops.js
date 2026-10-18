@@ -1,7 +1,7 @@
 // ร้านค้า · เงิน Zeny · คลังเก็บของ · เส้นทางวาร์ป
 // ปรับเศรษฐกิจของเกมได้จากไฟล์นี้
-import { ITEMS } from './items.js?v=0.44.6';
-import { CONSUMABLES } from './consumables.js?v=0.44.6';
+import { ITEMS } from './items.js?v=0.46.0';
+import { CONSUMABLES } from './consumables.js?v=0.46.0';
 
 export const START_ZENY = 200;          // เงินเริ่มต้นของตัวละครใหม่
 export const MAX_ZENY = 999999999;
@@ -77,3 +77,12 @@ WARP_ROUTES.ember.push(ancientRoute,hauntedRoute);
 WARP_ROUTES.ancient=[WARP_ROUTES.ember[0],WARP_ROUTES.town.find(r=>r.map==='ember_caldera'),hauntedRoute];
 WARP_ROUTES.haunted=[WARP_ROUTES.ember[0],ancientRoute];
 SHOPS.endgame={...SHOPS.ember,name:'เสบียงดินแดนระดับสูง'};
+// v0.46 ดินแดนเหนือขีดจำกัด Lv.100–150
+const coastRoute={label:'Sunken Coast · ค่ายริมหาด',hint:'Lv.100–117',map:'sunken_coast',arrive:{x:5.5,y:31.5,angle:Math.PI/2},cost:4500};
+const crystalRoute={label:'Crystal Valley · ค่ายผลึก',hint:'Lv.118–134',map:'crystal_valley',arrive:{x:5.5,y:31.5,angle:Math.PI/2},cost:6000};
+const skyRoute={label:'Sky Citadel · ประตูฟ้า',hint:'Lv.135–150',map:'sky_citadel',arrive:{x:5.5,y:31.5,angle:Math.PI/2},cost:8000};
+WARP_ROUTES.town.push(coastRoute,crystalRoute,skyRoute);
+WARP_ROUTES.haunted.push(coastRoute);
+WARP_ROUTES.coast=[WARP_ROUTES.ember[0],crystalRoute,skyRoute,hauntedRoute];
+WARP_ROUTES.crystal=[WARP_ROUTES.ember[0],coastRoute,skyRoute];
+WARP_ROUTES.sky=[WARP_ROUTES.ember[0],coastRoute,crystalRoute];
