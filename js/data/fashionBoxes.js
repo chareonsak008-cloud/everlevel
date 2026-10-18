@@ -1,7 +1,7 @@
 // กล่องแฟชั่นสุ่ม (v0.9) — มอนสเตอร์ดรอปกล่อง → เปิดกล่องสุ่มได้ชิ้นแฟชั่น 1 ชิ้น
 // สุ่ม 2 ขั้น: (1) สุ่มระดับความหายากตาม odds ของกล่อง (2) สุ่มชิ้นในระดับนั้นแบบเท่ากันทุกชิ้น
 // ได้ชิ้นซ้ำ → แปลงเป็น Zeny ตามระดับ (DUP_ZENY)
-import { COSTUMES, RARITY as FASHION_RARITY } from './costumes.js?v=0.47.0';
+import { COSTUMES, RARITY as FASHION_RARITY } from './costumes.js?v=0.49.0';
 
 export { FASHION_RARITY };
 export const FASHION_TIERS = ['common', 'rare', 'epic', 'legend', 'mythic', 'celestial'];
@@ -27,15 +27,15 @@ export function fmtPct(p) {
 export const BOX_ITEMS = {
   box_wood: {
     name: 'กล่องแฟชั่นไม้', type: 'box', icon: ['giftbox', '#b07a42', '#ffd27a'], price: 1000, rarity: 'uncommon', tier: 1,
-    desc: 'กล่องไม้ผูกโบว์ทอง มอนสเตอร์ทุกตัวมีโอกาสดรอป เปิดแล้วได้ชิ้นแฟชั่นสุ่ม 1 ชิ้น',
+    desc: 'ของเก่า (เลิกแจกแล้ว) เปิดแล้วได้ชิ้นแฟชั่นสุ่ม 1 ชิ้น',
   },
   box_silver: {
     name: 'กล่องแฟชั่นเงิน', type: 'box', icon: ['giftbox', '#c8d4e4', '#5aa8ff'], price: 6000, rarity: 'rare', tier: 2,
-    desc: 'กล่องเงินขลิบฟ้า หายาก ดรอปจากมอนสเตอร์เลเวลสูงและบอส MVP โอกาสได้ของระดับสูงมากกว่ากล่องไม้',
+    desc: 'ของเก่า (เลิกแจกแล้ว) กล่องเงินขลิบฟ้า โอกาสได้ของระดับสูงมากกว่ากล่องไม้',
   },
   box_gold: {
     name: 'กล่องแฟชั่นทองคำ', type: 'box', icon: ['giftbox', '#f2c24a', '#e8384f'], price: 40000, rarity: 'epic', tier: 3,
-    desc: 'กล่องทองคำประดับทับทิม หายากที่สุด! การันตีระดับหายากขึ้นไป ลุ้น Mythical และ Celestial',
+    desc: 'ของเก่า (เลิกแจกแล้ว) กล่องทองคำ การันตีระดับหายากขึ้นไป',
   },
 };
 export const BOX_IDS = Object.keys(BOX_ITEMS);

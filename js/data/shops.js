@@ -1,7 +1,7 @@
 // ร้านค้า · เงิน Zeny · คลังเก็บของ · เส้นทางวาร์ป
 // ปรับเศรษฐกิจของเกมได้จากไฟล์นี้
-import { ITEMS } from './items.js?v=0.47.0';
-import { CONSUMABLES } from './consumables.js?v=0.47.0';
+import { ITEMS } from './items.js?v=0.49.0';
+import { CONSUMABLES } from './consumables.js?v=0.49.0';
 
 export const START_ZENY = 200;          // เงินเริ่มต้นของตัวละครใหม่
 export const MAX_ZENY = 999999999;
@@ -25,11 +25,11 @@ export const SHOPS = {
   },
   ember: {
     name: 'ร้านเสบียงภูเขาไฟของโรซ่า',
-    items: ['white_potion', 'royal_jelly', 'mana_potion', 'blue_potion', 'refine_w', 'refine_a', 'refine_guard'],
+    items: ['white_potion', 'royal_jelly', 'mana_potion', 'blue_potion', 'refine_w', 'refine_a'],
   },
   arms: {
     name: 'โรงตีเหล็กการ์ธ',
-    items: ['knife', 'cutter', 'trainee_blade', 'oak_staff', 'hunter_bow', 'chapel_mace', 'cotton_shirt', 'leather_vest', 'bandana', 'wooden_shield', 'qv_a', 'tm_a', 'ob_a', 'sandals', 'refine_w', 'refine_a', 'refine_guard'],
+    items: ['knife', 'cutter', 'trainee_blade', 'oak_staff', 'hunter_bow', 'chapel_mace', 'cotton_shirt', 'leather_vest', 'bandana', 'wooden_shield', 'qv_a', 'tm_a', 'ob_a', 'sandals', 'refine_w', 'refine_a'],
   },
 };
 

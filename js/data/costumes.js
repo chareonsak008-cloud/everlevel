@@ -1,17 +1,17 @@
-import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.47.0';
+import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.49.0';
 // แคตตาล็อกชุดแฟชั่น (v0.9) — ได้จากการเปิดกล่องแฟชั่นสุ่ม (data/fashionBoxes.js) — ชิ้นแฟชั่นเป็น "ชุดทับ" ไม่เพิ่มค่าสถานะ ใส่ทับอุปกรณ์จริงได้
 // slot: wings | outfit | head | face | back | weapon | aura | pet · kind = ชื่อตัวสร้างใน render/Costumes.js · p = ค่าปรับแต่ง
 // rarity: common ธรรมดา | rare หายาก | epic ล้ำค่า | legend ตำนาน | mythic | celestial
 const NB = 1; // NormalBlending (ใช้ในพารามิเตอร์อนุภาค)
 
 export const RARITY = {
-  common: { name: 'ธรรมดา', color: '#c8d0dc', tier: 1, source: 'กล่องแฟชั่นไม้ · กล่องแฟชั่นเงิน' },
-  rare: { name: 'หายาก', color: '#6fc8ff', tier: 2, source: 'กล่องแฟชั่นทุกชนิด' },
-  epic: { name: 'ล้ำค่า', color: '#c08aff', tier: 3, source: 'กล่องแฟชั่นทุกชนิด (กล่องทองคำโอกาสสูงสุด)' },
-  legend: { name: 'ตำนาน', color: '#ffb347', tier: 4, source: 'กล่องแฟชั่นทุกชนิด · หายากมาก' },
+  common: { name: 'ธรรมดา', color: '#c8d0dc', tier: 1, source: 'ร้านเพชร' },
+  rare: { name: 'หายาก', color: '#6fc8ff', tier: 2, source: 'ร้านเพชร' },
+  epic: { name: 'ล้ำค่า', color: '#c08aff', tier: 3, source: 'ร้านเพชร' },
+  legend: { name: 'ตำนาน', color: '#ffb347', tier: 4, source: 'ร้านเพชร' },
   // สองระดับสูงสุด — การ์ดมีขอบแสงไหลเวียน · ได้ยากมาก ๆ
-  mythic: { name: 'Mythical', color: '#ff4a6a', tier: 5, source: 'กล่องแฟชั่นทุกชนิด · หายากสุดขีด (กล่องทองคำ 3.4%)' },
-  celestial: { name: 'Celestial', color: '#8af0ff', tier: 6, source: 'กล่องแฟชั่นทุกชนิด · ในตำนาน (กล่องทองคำ 0.6%)' },
+  mythic: { name: 'Mythical', color: '#ff4a6a', tier: 5, source: 'ร้านเพชร' },
+  celestial: { name: 'Celestial', color: '#8af0ff', tier: 6, source: 'ร้านเพชร' },
 };
 
 const I = (slot, id, kind, name, en, rarity, desc, p = {}, extra = {}) => ({ slot, id, kind, name, en, rarity, desc, p, ...extra });

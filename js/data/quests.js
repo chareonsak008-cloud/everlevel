@@ -5,8 +5,8 @@
 //        refine {n} ตีบวกสำเร็จ · socket {n} ใส่การ์ด · level {n}
 // give = ไอเทมที่ได้ทันทีตอนรับเควส · rewards = { exp: [base, job], zeny, items: [[id, จำนวน]] }
 
-import { WEEKLY_QUESTS } from './events.js?v=0.47.0';
-import { QUEST_EXTRA_REWARDS } from './consumables.js?v=0.47.0';
+import { WEEKLY_QUESTS } from './events.js?v=0.49.0';
+import { QUEST_EXTRA_REWARDS } from './consumables.js?v=0.49.0';
 
 export const QUEST_KIND = {
   main: { name: 'เนื้อเรื่อง', color: '#ffd27a' },
@@ -40,7 +40,7 @@ export const QUESTS = {
     wait: 'ระวังนะ สติงเล็ตจะบินเข้าหาเจ้าทันทีที่เห็น',
     done: 'เจ้าทำได้! ทุ่งปลอดภัยขึ้นเยอะ เจ้าแข็งแกร่งพอจะเลือกเส้นทางของตัวเองแล้ว กลับไปหาออเรลที่สมาคมนักผจญภัยในเมืองเถอะ',
     goals: [{ type: 'kill', mob: 'stinglet', n: 8 }, { type: 'collect', item: 'stinger', n: 3 }],
-    rewards: { exp: [380, 270], zeny: 1200, items: [['box_wood', 1]] },
+    rewards: { exp: [380, 270], zeny: 1200, items: [['refine_w', 1]] },
   },
   m4_new_path: {
     kind: 'main', name: 'เส้นทางของตัวเอง', giver: 'aurel', turnIn: 'aurel', req: ['m3_stingers'], minLevel: 1,
@@ -48,7 +48,7 @@ export const QUESTS = {
     wait: 'เงื่อนไขคือ Job Lv.10 และทักษะพื้นฐาน Lv.9 พร้อมเมื่อไหร่คุยกับข้าแล้วเลือก "เปลี่ยนอาชีพ" ได้เลย',
     done: 'ยินดีด้วย! ตอนนี้เจ้าเป็นสมาชิกเต็มตัวของสมาคมแล้ว แวะไปหาการ์ธช่างตีเหล็กเพื่อเรียนการตีบวก แล้วกลับมาหาข้า มีงานสำคัญรออยู่',
     goals: [{ type: 'job' }],
-    rewards: { exp: [1050, 0], zeny: 2000, items: [['blue_potion', 5], ['box_wood', 1]] },
+    rewards: { exp: [1050, 0], zeny: 2000, items: [['blue_potion', 5], ['refine_w', 1]] },
   },
   m5_whisperwood: {
     kind: 'main', name: 'เสียงกระซิบจากป่า', giver: 'aurel', turnIn: 'fern', req: ['m4_new_path'], minLevel: 8,
@@ -64,7 +64,7 @@ export const QUESTS = {
     wait: 'บาร์กวูล์ฟจะพุ่งเข้าหาเจ้าทันที ส่วนธอร์นแบ็กใจเย็นกว่า',
     done: 'เขี้ยวพวกนี้มีกลิ่นเปลือกไม้โบราณ... ต้นไม้เฒ่ากนาร์ลรูทตื่นแล้วจริง ๆ',
     goals: [{ type: 'kill', mob: 'thornback', n: 6 }, { type: 'kill', mob: 'barkwolf', n: 6 }, { type: 'collect', item: 'wolf_fang', n: 3 }],
-    rewards: { exp: [2800, 1950], zeny: 3000, items: [['box_silver', 1]] },
+    rewards: { exp: [2800, 1950], zeny: 3000, items: [['refine_luck', 1]] },
   },
   m7_ancient_tree: {
     kind: 'main', name: 'ต้นไม้เฒ่าพันปี', giver: 'fern', turnIn: 'aurel', req: ['m6_fang_thorn'], minLevel: 12,
@@ -72,7 +72,7 @@ export const QUESTS = {
     wait: 'กนาร์ลรูทตื่นทุกไม่กี่นาที ชวนเพื่อนหรือเตรียมยาไปให้พร้อม',
     done: 'เจ้าสยบกนาร์ลรูทได้จริง ๆ! ตำนานบทแรกของเจ้าจบลงแล้ว แต่ดินแดนที่อยู่ไกลออกไปยังรอเจ้าอยู่... (ติดตามบทต่อไปในเวอร์ชันหน้า)',
     goals: [{ type: 'kill', mob: 'gnarlroot', n: 1 }],
-    rewards: { exp: [9350, 6550], zeny: 15000, items: [['box_gold', 1], ['refine_guard', 1]] },
+    rewards: { exp: [9350, 6550], zeny: 15000, items: [['refine_luck', 1], ['refine_guard', 1]] },
   },
 
   /* ---------- เควสเสริม: สอนระบบตีบวกและการ์ด ---------- */
@@ -114,12 +114,12 @@ export const QUESTS = {
   d_stinglet: {
     kind: 'daily', name: 'ผึ้งดุที่ลานซาก', giver: 'nina', turnIn: 'nina', minLevel: 5,
     intro: 'คาราวานพ่อค้าถูกสติงเล็ตไล่ต่อย ช่วยกำจัด 10 ตัวค่ะ', wait: 'ลานซากโบราณทางตะวันออกเฉียงเหนือของทุ่งค่ะ', done: 'คาราวานผ่านไปได้แล้วค่ะ ขอบคุณมาก!',
-    goals: [{ type: 'kill', mob: 'stinglet', n: 10 }], rewards: { exp: [220, 150], zeny: 1200, items: [['box_wood', 1]] },
+    goals: [{ type: 'kill', mob: 'stinglet', n: 10 }], rewards: { exp: [220, 150], zeny: 1200, items: [['refine_w', 1]] },
   },
   d_thornback: {
     kind: 'daily', name: 'ตัดหนามธอร์นแบ็ก', giver: 'nina', turnIn: 'nina', minLevel: 8,
     intro: 'ช่างทำโล่ต้องการให้ลดจำนวนธอร์นแบ็กในป่า 10 ตัวค่ะ', wait: 'ธอร์นแบ็กอยู่ใน Whisperwood Forest ค่ะ', done: 'เรียบร้อยค่ะ เก่งมาก!',
-    goals: [{ type: 'kill', mob: 'thornback', n: 10 }], rewards: { exp: [560, 390], zeny: 2000, items: [['box_wood', 1]] },
+    goals: [{ type: 'kill', mob: 'thornback', n: 10 }], rewards: { exp: [560, 390], zeny: 2000, items: [['refine_w', 1]] },
   },
   d_wolf_fang: {
     kind: 'daily', name: 'เขี้ยวหมาป่าสำหรับช่างตีเหล็ก', giver: 'nina', turnIn: 'nina', minLevel: 10,
@@ -147,7 +147,7 @@ export const QUESTS = {
     wait: 'จิ้งจอกอยู่ทุ่งหิมะทางตะวันตก ค้างคาวอยู่แถวหน้าผาทางตะวันออก',
     done: 'ขนนุ่มดีจริง ๆ ค่ายของเราจะอุ่นขึ้นเยอะ! แต่ข้ายังมีงานที่ยากกว่านี้...',
     goals: [{ type: 'kill', mob: 'frostfox', n: 8 }, { type: 'kill', mob: 'frostbat', n: 8 }, { type: 'collect', item: 'frost_fur', n: 5 }],
-    rewards: { exp: [11500, 8050], zeny: 8000, items: [['white_potion', 10], ['box_wood', 2]] },
+    rewards: { exp: [11500, 8050], zeny: 8000, items: [['white_potion', 10], ['refine_w', 2]] },
   },
   m10_yeti_golem: {
     kind: 'main', name: 'ยักษ์แห่งธารน้ำแข็ง', giver: 'bjorn', turnIn: 'bjorn', req: ['m9_frost_hunt'], minLevel: 32,
@@ -155,7 +155,7 @@ export const QUESTS = {
     wait: 'ไอซ์โกเลมดุมาก มันจะเดินเข้าหาเจ้าทันทีที่เห็น',
     done: 'แกนน้ำแข็งพวกนี้... มีพลังของราชินีหิมะอยู่ข้างใน นางตื่นแล้วจริง ๆ',
     goals: [{ type: 'kill', mob: 'yeti', n: 6 }, { type: 'kill', mob: 'icegolem', n: 6 }, { type: 'collect', item: 'ice_core', n: 3 }],
-    rewards: { exp: [36000, 25000], zeny: 15000, items: [['box_silver', 1], ['refine_w', 3], ['refine_a', 3]] },
+    rewards: { exp: [36000, 25000], zeny: 15000, items: [['refine_luck', 1], ['refine_w', 3], ['refine_a', 3]] },
   },
   m11_glacia: {
     kind: 'main', name: 'บัลลังก์น้ำแข็ง', giver: 'bjorn', turnIn: 'bjorn', req: ['m10_yeti_golem'], minLevel: 40,
@@ -163,7 +163,7 @@ export const QUESTS = {
     wait: 'กลาเซียฟื้นคืนชีพทุกไม่กี่นาที เตรียมยาขาวไปให้พอ',
     done: 'พายุหยุดแล้ว! เจ้าคือวีรบุรุษแห่งยอดเขา... แต่ลมร้อนที่พัดมาจากทางตะวันออก ข้าว่ามันแปลก ๆ',
     goals: [{ type: 'kill', mob: 'glacia', n: 1 }],
-    rewards: { exp: [105000, 73500], zeny: 40000, items: [['box_gold', 1], ['refine_guard', 2]] },
+    rewards: { exp: [105000, 73500], zeny: 40000, items: [['refine_luck', 1], ['refine_guard', 2]] },
   },
 
   /* ---------- เนื้อเรื่องบทที่ 3: ภูเขาไฟ (v0.11) ---------- */
@@ -181,7 +181,7 @@ export const QUESTS = {
     wait: 'สไลม์อยู่ฝั่งตะวันตก อิมป์อยู่ทางเหนือเลยแม่น้ำลาวา',
     done: 'ไม่เลวเลย! เจ้าทนความร้อนได้ดีกว่าที่คิด',
     goals: [{ type: 'kill', mob: 'magmaslime', n: 10 }, { type: 'kill', mob: 'emberimp', n: 10 }, { type: 'collect', item: 'imp_horn', n: 5 }],
-    rewards: { exp: [90500, 63500], zeny: 30000, items: [['royal_jelly', 5], ['box_silver', 1]] },
+    rewards: { exp: [90500, 63500], zeny: 30000, items: [['royal_jelly', 5], ['refine_luck', 1]] },
   },
   m14_scales: {
     kind: 'main', name: 'เกล็ดและหินดำ', giver: 'kael', turnIn: 'kael', req: ['m13_fire_trial'], minLevel: 65,
@@ -189,7 +189,7 @@ export const QUESTS = {
     wait: 'โกเลมอยู่ที่ราบทางใต้ ข้ามสะพานลาวาไป',
     done: 'เศษหินพวกนี้ร้อนจนมือข้าแทบพอง... ถึงเวลาแล้ว',
     goals: [{ type: 'kill', mob: 'salamander', n: 8 }, { type: 'kill', mob: 'obsidiangolem', n: 8 }, { type: 'collect', item: 'obsidian_shard', n: 4 }],
-    rewards: { exp: [218500, 153000], zeny: 60000, items: [['box_silver', 2], ['refine_guard', 1]] },
+    rewards: { exp: [218500, 153000], zeny: 60000, items: [['refine_luck', 2], ['refine_guard', 1]] },
   },
   m15_ignarok: {
     kind: 'main', name: 'มังกรเพลิงอิกนารอก', giver: 'kael', turnIn: 'aurel', req: ['m14_scales'], minLevel: 80,
@@ -197,7 +197,7 @@ export const QUESTS = {
     wait: 'อิกนารอกแข็งแกร่งเกินกว่าใคร ชวนเพื่อน หรือฝึกให้ถึงเลเวลสูงสุดก่อน',
     done: 'เจ้าปราบมังกรเพลิงได้... ชื่อของเจ้าจะถูกจารึกไว้ในประวัติศาสตร์ของ Everlevel ตลอดไป! (จบบทที่ 3 — ติดตามบทต่อไปในเวอร์ชันหน้า)',
     goals: [{ type: 'kill', mob: 'ignarok', n: 1 }],
-    rewards: { exp: [629500, 440500], zeny: 200000, items: [['box_gold', 2], ['refine_guard', 3]] },
+    rewards: { exp: [629500, 440500], zeny: 200000, items: [['refine_luck', 2], ['refine_guard', 3]] },
   },
 
   /* ---------- เควสรายวันระดับสูง (v0.11) ---------- */
@@ -209,7 +209,7 @@ export const QUESTS = {
   d_yeti_fur: {
     kind: 'daily', name: 'ขนเยติสำหรับช่างตัดเสื้อ', giver: 'nina', turnIn: 'nina', minLevel: 32,
     intro: 'ช่างตัดเสื้อในเมืองต้องการขนเยติ 6 ผืนค่ะ', wait: 'เยติอยู่หุบเขาทางตะวันตกเฉียงเหนือของยอดเขาค่ะ', done: 'ขนหนานุ่มมากเลยค่ะ!',
-    goals: [{ type: 'collect', item: 'yeti_fur', n: 6 }], rewards: { exp: [13000, 9100], zeny: 9000, items: [['box_wood', 1]] },
+    goals: [{ type: 'collect', item: 'yeti_fur', n: 6 }], rewards: { exp: [13000, 9100], zeny: 9000, items: [['refine_w', 1]] },
   },
   d_emberimp: {
     kind: 'daily', name: 'ปราบอิมป์เพลิง', giver: 'nina', turnIn: 'nina', minLevel: 55,

@@ -1,7 +1,7 @@
 // การ์ดมอนสเตอร์ (v0.10) — ใส่ในช่องการ์ดของอุปกรณ์ เพิ่มค่าสถานะถาวร (ใส่แล้วถอดไม่ได้)
 // on = ช่องอุปกรณ์ที่ใส่ได้ · drop = โอกาสดรอปต่อการกำจัด 1 ตัว (หายากมาก)
 
-import { CARD_CATALOG, CARD_MAPS, toBonus } from './cardCatalog.js?v=0.47.0';
+import { CARD_CATALOG, CARD_MAPS, toBonus } from './cardCatalog.js?v=0.49.0';
 
 // v0.29: การ์ดทั้งหมดมาจาก cardCatalog.js (Normal / Elite / MVP) · รหัสการ์ดเดิมใช้ต่อได้
 // legacyOn = ช่องเดิมก่อน v0.29 — อุปกรณ์ที่เคยเสียบไว้แล้วยังใช้ได้ (เสียบใหม่ต้องใช้ช่องใหม่)
@@ -12,7 +12,7 @@ export const CARDS = Object.fromEntries(CARD_CATALOG.map((c) => {
   const old = LEGACY[c.id];
   return [c.id, {
     mob: c.monster.id, name: c.name_th, on: c.slot, legacyOn: old && old[0] !== c.slot ? old[0] : null,
-    color: (old && old[1]) || CARD_MAPS[c.monster.map].tone[0], bonus: toBonus(c.effects), drop: c.drop_rate, desc: c.flavor,
+    color: (old && old[1]) || CARD_MAPS[c.monster.map].tone[0], bonus: toBonus(c.effects), drop: c.drop_rate * 0.5, desc: c.flavor,
     rarity: RARITY[c.rank], rank: c.rank, maxStack: c.stackable ? c.max_stack : 1, price: PRICE[c.rank], combo: c.combo_id, catalog: c,
   }];
 }));

@@ -3,11 +3,11 @@
 // · ความสำเร็จ: ทำครบแล้วได้ฉายา (ใส่โชว์เหนือหัว) + โบนัสเล็กน้อย (ได้ทุกอันที่ปลดล็อก ไม่ต้องใส่ฉายา)
 // · อัลบั้มการ์ด: เคยได้การ์ดครบชุด → โบนัสชุด (ไม่ต้องใส่การ์ด ไม่เสียการ์ด)
 // · เช็กอินรายวัน: เข้าเกมวันละครั้ง → รางวัลวันที่ 1–7 วนรอบ ส่งเข้ากล่องจดหมาย
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.47.0';
-import { ASCEND_MONSTERS } from './ascendData.js?v=0.47.0';
-import { MONSTERS } from './monsters.js?v=0.47.0';
-import { CARDS } from './cards.js?v=0.47.0';
-import { MAPS } from './maps/index.js?v=0.47.0';
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.49.0';
+import { ASCEND_MONSTERS } from './ascendData.js?v=0.49.0';
+import { MONSTERS } from './monsters.js?v=0.49.0';
+import { CARDS } from './cards.js?v=0.49.0';
+import { MAPS } from './maps/index.js?v=0.49.0';
 
 /* ---------- สมุดมอนสเตอร์ ---------- */
 export const BOOK_TIERS = [100, 500, 1000];
@@ -213,7 +213,7 @@ export function loginReward(day, lv) {
     { items: [[sp, 5]], zeny: z(3000) },
     { items: [['drop_15', 1], ['refine_w', 1], ['refine_a', 1]], zeny: 0 },
     { items: [['exp_2', 1], ['festival_cake', 1]], zeny: 0 },
-    { items: [['box_silver', 1], ['card_clover', 1], [hp, 20]], zeny: z(10000) },
+    { items: [['refine_luck', 1], ['card_clover', 1], [hp, 20]], zeny: z(10000) },
   ][Math.max(0, Math.min(6, day - 1))];
 }
 export const LOGIN_DAYS = 7;
