@@ -1,12 +1,12 @@
 // v0.47 หน้าต่างเช็กบอส: บอสโลก (เวลาเกิด · สถานะ · HP · รางวัล) + บอส MVP ทุกแผนที่ (สถานะเกิด · เวลาเกิดใหม่ · ของดรอป)
-import { MONSTERS } from '../data/monsters.js?v=0.52.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.52.0';
-import { MAPS } from '../data/maps/index.js?v=0.52.0';
-import { WORLD_BOSSES, WORLD_TOP_BONUS } from '../data/events.js?v=0.52.0';
-import { cardDrops } from '../data/cards.js?v=0.52.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.52.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.52.0';
-import { TILE } from '../config.js?v=0.52.0';
+import { MONSTERS } from '../data/monsters.js?v=0.53.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.53.0';
+import { MAPS } from '../data/maps/index.js?v=0.53.0';
+import { WORLD_BOSSES, WORLD_TOP_BONUS } from '../data/events.js?v=0.53.0';
+import { cardDrops } from '../data/cards.js?v=0.53.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.53.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.53.0';
+import { TILE } from '../config.js?v=0.53.0';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -61,7 +61,9 @@ export class BossWindow {
     if (!g.mobs || !(g.map.def.spawns || []).some((s) => s.mob === id)) return { cls: 'far', text: 'อยู่แผนที่อื่น · ไปที่แผนที่นั้นเพื่อดูสถานะ' };
     const m = g.mobs.list.find((x) => x.type === id && !x.summoned);
     if (!m) return { cls: 'far', text: '—' };
-    if (m.dead) return { cls: 'wait', text: `⏳ เกิดใหม่ในอีก ${mmss(m.respawnAt - g.time)} · สุ่มจุดเกิด` };
+    const row = m.shared && g.mvp && g.mvp.rows.get(id);   // v0.53 MVP ร่วม: เวลาเกิดจากเซิร์ฟเวอร์
+    if (m.dead) return { cls: 'wait', text: row && row.respawn_at ? `⏳ เกิดใหม่ในอีก ${mmss((Date.parse(row.respawn_at) - Date.now()) / 1000)} · ปราบโดย ${row.killer || '-'}` : `⏳ เกิดใหม่ในอีก ${mmss(m.respawnAt - g.time)} · สุ่มจุดเกิด` };
+    if (row) return { cls: 'on', text: `🔥 MVP ร่วม ที่ (${Math.floor(m.x / TILE)}, ${Math.floor(m.y / TILE)}) · HP ${Math.round((m.hp / m.maxHp) * 100)}% · ผู้ร่วมตี ${row.n || 0} คน` };
     return { cls: 'on', text: `🔥 อยู่ในแผนที่นี้ที่ (${Math.floor(m.x / TILE)}, ${Math.floor(m.y / TILE)}) · HP ${Math.round((m.hp / m.maxHp) * 100)}%` };
   }
 

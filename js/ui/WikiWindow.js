@@ -1,25 +1,25 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.52.0';
-import { MONSTERS } from '../data/monsters.js?v=0.52.0';
-import { MAPS } from '../data/maps/index.js?v=0.52.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.52.0';
-import { CARD_SETS } from '../data/collection.js?v=0.52.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.52.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.52.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.52.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.52.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.52.0';
-import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.52.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.52.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.52.0';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.52.0';
-import { rollFits } from '../data/affixes.js?v=0.52.0';
-import { statsToBonus } from '../data/affixes.js?v=0.52.0';
-import { VIP_PERKS } from './CashShop.js?v=0.52.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.52.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.52.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.52.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.53.0';
+import { MONSTERS } from '../data/monsters.js?v=0.53.0';
+import { MAPS } from '../data/maps/index.js?v=0.53.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.53.0';
+import { CARD_SETS } from '../data/collection.js?v=0.53.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.53.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.53.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.53.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.53.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.53.0';
+import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.53.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.53.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.53.0';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.53.0';
+import { rollFits } from '../data/affixes.js?v=0.53.0';
+import { statsToBonus } from '../data/affixes.js?v=0.53.0';
+import { VIP_PERKS } from './CashShop.js?v=0.53.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.53.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.53.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.53.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -398,7 +398,7 @@ const GUIDES = [
   { id: 'boss', title: '👹 บอสโลก & MVP', sub: 'เวลาเกิด · รางวัล', html: () =>
     `<h4>บอสโลก</h4>` + table(['บอส', 'เวลาเกิด (ไทย)', 'แผนที่', 'HP'], Object.values(WORLD_BOSSES).map((b) => [esc(b.name), `${b.hour}:00 น. (อยู่ 30 นาที)`, mapLink(b.map), fmt(b.hp)])) +
     UL(['ทุกคนที่ตีโดนได้รางวัลทางจดหมาย · ดาเมจอันดับ 1–3 ได้โบนัสเพิ่ม · มีโอกาส 15% ได้อาวุธพิเศษ', 'กดปุ่ม "บอส" ด้านบนเพื่อดูเวลาที่เหลือและรางวัล']) +
-    `<h4>บอส MVP</h4>` + UL(['แต่ละแผนที่มี MVP ประจำ สุ่มจุดเกิดทั่วแผนที่ และเกิดใหม่ตามเวลา', 'มีประกาศในแชตเมื่อ MVP ปรากฏตัว พร้อมพิกัด', 'MVP ดรอปของดี การ์ด MVP และหินตีบวกบ่อยกว่ามอนปกติ']) },
+    `<h4>บอส MVP</h4>` + UL(['<b>MVP ร่วม:</b> ทุกคนในแผนที่เห็นและตี MVP ตัวเดียวกัน เลือดลดพร้อมกัน — ชวนเพื่อนมารุมได้', 'แต่ละแผนที่มี MVP ประจำ 1 ตัว สุ่มจุดเกิดทั่วแผนที่ · ยืนประจำจุดที่เกิด · เกิดใหม่ตามเวลา (ดูเวลาที่ปุ่ม "บอส")', 'ปราบแล้ว: ทุกคนที่ทำดาเมจ ≥1% ได้ EXP ตามสัดส่วนดาเมจ (ขั้นต่ำ 30% ของ EXP เต็ม) และสุ่มของดรอปของตัวเอง', 'ดาเมจ <b>อันดับ 1</b> = MVP ได้รางวัล MVP ประจำอาชีพ + โอกาสดรอปเต็ม · อันดับอื่นได้โอกาสดรอปครึ่งหนึ่ง', 'MVP ดรอปของดี การ์ด MVP และหินตีบวกบ่อยกว่ามอนปกติ']) },
   { id: 'dungeon', title: '🏰 ดันเจี้ยน & หอคอย', sub: 'เนื้อหาท้าทาย', html: () =>
     UL([`<b>${esc(CAVE.name)}</b> — ${CAVE.floors} ชั้น · เข้าได้วันละ ${CAVE.daily} รอบ · Lv.${CAVE.minLv}+ · มอนและบอสปรับเลเวลตามผู้เล่น ชั้นสุดท้ายมีหีบรางวัล`, `<b>${esc(TOWER.name)}</b> — Lv.${TOWER.minLv}+ ไต่ขึ้นไปเรื่อย ๆ ไม่มีที่สิ้นสุด · มีเวลาจำกัดต่อชั้น · จุดเซฟทุก ${TOWER.checkpoint} ชั้น · ทุก 5/10/25 ชั้นได้รางวัลพิเศษ`, 'เข้าได้จาก NPC ในเมือง']) },
   { id: 'social', title: '👥 ปาร์ตี้ · แชต · เพื่อน', sub: 'เล่นกับคนอื่น', html: () =>

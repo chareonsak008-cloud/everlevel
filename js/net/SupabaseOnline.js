@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.52.0';
-import { SideChannel } from './SideChannel.js?v=0.52.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.53.0';
+import { SideChannel } from './SideChannel.js?v=0.53.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -318,6 +318,13 @@ export class SupabaseOnline extends Online {
   async slipUrl(path) {
     const { data, error } = await this.sb.storage.from('slips').createSignedUrl(path, 600);
     return error ? null : data && data.signedUrl;
+  }
+
+  // v0.53 MVP ร่วม (ต้องรัน supabase/mvp_shared.sql) · error.code PGRST202 = ยังไม่ติดตั้ง
+  async mvpRPC(name, args = {}) {
+    const { data, error } = await this.sb.rpc(name, name === 'mvp_hit' ? { p_slot: this.slot || 1, ...args } : args);
+    if (error) { const e = new Error(error.message || 'mvp'); e.missing = error.code === 'PGRST202' || error.code === '42883'; throw e; }
+    return data;
   }
 
   async eventRPC(name, args = {}) {

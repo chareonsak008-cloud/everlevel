@@ -1,5 +1,5 @@
 // ค่าคงที่ของเกม — ปรับสมดุลเกมจากไฟล์นี้ได้
-export const VERSION = '0.52.0';
+export const VERSION = '0.53.0';
 export const ALLOW_OFFLINE = false;   // v0.17.1: เล่นได้แบบออนไลน์เท่านั้น (เปิด true เฉพาะหน้าทดสอบ/พรีวิว)
 export const ZENY_INCOME = 1 / 3;   // v0.50: ตัวคูณ Zeny จากรางวัล (เควสต์/ดันเจี้ยน/เช็กอิน) — ทำให้ Zeny หายากขึ้น
 export const TILE = 16;            // ขนาดช่องแผนที่ (พิกเซลอาร์ต)

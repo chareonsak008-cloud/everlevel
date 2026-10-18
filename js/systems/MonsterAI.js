@@ -1,8 +1,8 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.52.0';
-import { MONSTERS } from '../data/monsters.js?v=0.52.0';
-import { Monster } from '../entities/Monster.js?v=0.52.0';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.52.0';
+import { TILE } from '../config.js?v=0.53.0';
+import { MONSTERS } from '../data/monsters.js?v=0.53.0';
+import { Monster } from '../entities/Monster.js?v=0.53.0';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.53.0';
 
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
@@ -80,7 +80,7 @@ export class MonsterManager {
         continue;
       }
       // Shared world boss remains in its arena. Server owns HP; no leash healing.
-      if (m.worldRun) {
+      if (m.worldRun || (m.shared && !m.dead)) {   // v0.53 MVP ร่วม ยืนประจำจุดเหมือนบอสโลก (ทุกเครื่องเห็นตรงกัน)
         m.moving=false;m.path=[];m.attackCd-=dt;
         if(player&&!player.dead&&Math.hypot(player.x-m.x,player.y-m.y)<m.data.aggroRange){
           m.target=player;m.face(player.x-m.x,player.y-m.y);

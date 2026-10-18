@@ -1,8 +1,8 @@
 // โรงตีเหล็ก (v0.10): ตีบวกอุปกรณ์ + ใส่การ์ด — ตรรกะล้วน ไม่ยุ่งกับ UI
 // ref = ตำแหน่งของชิ้นอุปกรณ์ { where: 'equip', slot, key } หรือ { where: 'bag', key }
-import { ITEMS, itemKey, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.52.0';
-import { canRefine, refineMaterial, refineFee, refineRate, rollRefine, failResult, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS } from '../data/refine.js?v=0.52.0';
-import { CARDS } from '../data/cards.js?v=0.52.0';
+import { ITEMS, itemKey, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.53.0';
+import { canRefine, refineMaterial, refineFee, refineRate, rollRefine, failResult, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS } from '../data/refine.js?v=0.53.0';
+import { CARDS } from '../data/cards.js?v=0.53.0';
 
 // อุปกรณ์ทั้งหมดของผู้เล่น (สวมอยู่ก่อน แล้วตามด้วยในกระเป๋า)
 export function gearList(player, test = () => true) {

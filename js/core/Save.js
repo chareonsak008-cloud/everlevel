@@ -1,6 +1,6 @@
 // ระบบเซฟ: ใช้ "อะแดปเตอร์" เพื่อสลับไปเซฟบนคลาวด์ได้ภายหลัง
 // อะแดปเตอร์ใดก็ได้ที่มี load(key) / save(key, data) แบบ async ใช้แทนกันได้
-import { SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js?v=0.52.0';
+import { SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js?v=0.53.0';
 
 export class LocalStorageAdapter {
   async load(key) {
