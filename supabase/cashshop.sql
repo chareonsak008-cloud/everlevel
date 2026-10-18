@@ -1,3 +1,4 @@
+-- หมายเหตุ v0.45: ถ้ารันไฟล์นี้ใหม่ ให้รัน supabase/vip.sql ตามอีกครั้ง (VIP)
 -- =====================================================================
 -- Everlevel v0.43 — ร้านเพชร + ระบบเติมเพชร (โอน + แอดมินอนุมัติ)
 -- รันหลัง setup.sql และ trade.sql (รันซ้ำได้ ไม่เสียข้อมูล · ไม่มีคีย์ลับ)
@@ -39,10 +40,8 @@ insert into public.cash_products (id, kind, ref, qty, price, cat, tag, sort) val
   ('f_wx_ascend',     'fashion', 'a_wx_ascend',      1, 499, 'fashion', null, 10),
   ('f_wx_heaven',     'fashion', 'a_wx_heaven',      1, 499, 'fashion', null, 11),
   ('f_wx_bloodscythe','fashion', 'a_wx_bloodscythe', 1, 299, 'fashion', null, 12),
-  ('f_wx_myriad',     'fashion', 'a_wx_myriad',      1, 299, 'fashion', null, 13),
   ('f_wx_soulscythe', 'fashion', 'a_wx_soulscythe',  1, 199, 'fashion', null, 14),
   ('f_wx_sunfire',    'fashion', 'a_wx_sunfire',     1, 199, 'fashion', null, 15),
-  ('f_wx_storm',      'fashion', 'a_wx_storm',       1, 129, 'fashion', null, 16),
   ('f_wx_qi',         'fashion', 'a_wx_qi',          1, 129, 'fashion', null, 17),
   ('f_wx_jade',       'fashion', 'a_wx_jade',        1,  79, 'fashion', null, 18),
   ('f_wx_iron',       'fashion', 'a_wx_iron',        1,  49, 'fashion', null, 19),
@@ -67,6 +66,81 @@ insert into public.cash_products (id, kind, ref, qty, price, cat, tag, sort) val
   ('x_drop2',         'item', 'drop_2',              1,  29, 'boost', null, 6),
   ('x_clover',        'item', 'card_clover',         1,  49, 'boost', null, 7)
 on conflict (id) do nothing;
+-- v0.44.4 เลิกขายค่ายกลกระบี่ (วายุ / หมื่นกระบี่)
+update public.cash_products set active = false where id in ('f_wx_storm', 'f_wx_myriad');
+-- v0.48 ร้านเพชรใหม่: สัตว์เลี้ยงรายตัว · หินตีบวก · ออร่าทุกชิ้น · ลดราคา (เลิกขายกล่อง/ไข่สุ่ม)
+insert into public.cash_products (id, kind, ref, qty, price, cat, tag, sort) values
+  ('f_dragon', 'fashion', 'o_px_dragon', 1, 199, 'fashion', 'ใหม่', 1),
+  ('f_wx_ascend', 'fashion', 'a_wx_ascend', 1, 329, 'fashion', null, 10),
+  ('f_wx_heaven', 'fashion', 'a_wx_heaven', 1, 329, 'fashion', null, 11),
+  ('f_wx_bloodscythe', 'fashion', 'a_wx_bloodscythe', 1, 199, 'fashion', null, 12),
+  ('f_wx_soulscythe', 'fashion', 'a_wx_soulscythe', 1, 129, 'fashion', null, 14),
+  ('f_wx_sunfire', 'fashion', 'a_wx_sunfire', 1, 129, 'fashion', null, 15),
+  ('f_wx_qi', 'fashion', 'a_wx_qi', 1, 79, 'fashion', null, 17),
+  ('f_wx_jade', 'fashion', 'a_wx_jade', 1, 49, 'fashion', null, 18),
+  ('f_wx_iron', 'fashion', 'a_wx_iron', 1, 29, 'fashion', null, 19),
+  ('f_constellation', 'fashion', 'a_constellation', 1, 199, 'fashion', null, 30),
+  ('f_heavenlight', 'fashion', 'a_heavenLight', 1, 199, 'fashion', null, 31),
+  ('f_supernova', 'fashion', 'a_supernova', 1, 199, 'fashion', null, 32),
+  ('f_blossomstorm', 'fashion', 'a_blossomStorm', 1, 199, 'fashion', null, 33),
+  ('f_inferno', 'fashion', 'a_inferno', 1, 129, 'fashion', null, 34),
+  ('f_bloodring', 'fashion', 'a_bloodRing', 1, 129, 'fashion', null, 35),
+  ('f_thundergod', 'fashion', 'a_thunderGod', 1, 129, 'fashion', null, 36),
+  ('f_prism', 'fashion', 'a_prism', 1, 129, 'fashion', null, 37),
+  ('f_voidrift', 'fashion', 'a_voidRift', 1, 129, 'fashion', null, 38),
+  ('f_soulfire', 'fashion', 'a_soulfire', 1, 79, 'fashion', null, 39),
+  ('f_coins', 'fashion', 'a_coins', 1, 79, 'fashion', null, 40),
+  ('f_fireworks', 'fashion', 'a_fireworks', 1, 79, 'fashion', null, 41),
+  ('f_fire', 'fashion', 'a_fire', 1, 49, 'fashion', null, 42),
+  ('f_sparks', 'fashion', 'a_sparks', 1, 49, 'fashion', null, 43),
+  ('f_butterflies', 'fashion', 'a_butterflies', 1, 49, 'fashion', null, 44),
+  ('f_circle', 'fashion', 'a_circle', 1, 49, 'fashion', null, 45),
+  ('f_shadow', 'fashion', 'a_shadow', 1, 49, 'fashion', null, 46),
+  ('f_pixels', 'fashion', 'a_pixels', 1, 49, 'fashion', null, 47),
+  ('f_fish', 'fashion', 'a_fish', 1, 49, 'fashion', null, 48),
+  ('f_lightning', 'fashion', 'a_lightning', 1, 49, 'fashion', null, 49),
+  ('f_sakura', 'fashion', 'a_sakura', 1, 29, 'fashion', null, 50),
+  ('f_snow', 'fashion', 'a_snow', 1, 29, 'fashion', null, 51),
+  ('f_stars', 'fashion', 'a_stars', 1, 29, 'fashion', null, 52),
+  ('f_maple', 'fashion', 'a_maple', 1, 29, 'fashion', null, 53),
+  ('f_sprinkles', 'fashion', 'a_sprinkles', 1, 29, 'fashion', null, 54),
+  ('f_roses', 'fashion', 'a_roses', 1, 29, 'fashion', null, 55),
+  ('f_goldleaf', 'fashion', 'a_goldleaf', 1, 29, 'fashion', null, 56),
+  ('f_hearts', 'fashion', 'a_hearts', 1, 19, 'fashion', null, 57),
+  ('f_notes', 'fashion', 'a_notes', 1, 19, 'fashion', null, 58),
+  ('f_bubbles', 'fashion', 'a_bubbles', 1, 19, 'fashion', null, 59),
+  ('p_hamster', 'item', 'pet_hamster', 1, 19, 'pet', null, 1),
+  ('p_squirrel', 'item', 'pet_squirrel', 1, 19, 'pet', null, 2),
+  ('p_turtle', 'item', 'pet_turtle', 1, 39, 'pet', null, 3),
+  ('p_finch', 'item', 'pet_finch', 1, 39, 'pet', null, 4),
+  ('p_golem', 'item', 'pet_golem', 1, 69, 'pet', null, 5),
+  ('p_fox', 'item', 'pet_fox', 1, 69, 'pet', null, 6),
+  ('p_wyrm', 'item', 'pet_wyrm', 1, 99, 'pet', null, 7),
+  ('p_fawn', 'item', 'pet_fawn', 1, 99, 'pet', null, 8),
+  ('p_phoenix', 'item', 'pet_phoenix', 1, 149, 'pet', null, 9),
+  ('p_kraken', 'item', 'pet_kraken', 1, 149, 'pet', null, 10),
+  ('p_whale', 'item', 'pet_whale', 1, 199, 'pet', 'ใหม่', 11),
+  ('p_qilin', 'item', 'pet_qilin', 1, 199, 'pet', 'ใหม่', 12),
+  ('r_guard', 'item', 'refine_guard', 1, 15, 'refine', null, 1),
+  ('r_guard5', 'item', 'refine_guard', 5, 65, 'refine', 'คุ้ม', 2),
+  ('r_luck', 'item', 'refine_luck', 1, 15, 'refine', 'ใหม่', 3),
+  ('r_luck5', 'item', 'refine_luck', 5, 65, 'refine', 'คุ้ม', 4),
+  ('c_bag', 'item', 'bag_expand', 1, 39, 'convenience', null, 1),
+  ('c_storage', 'item', 'storage_expand', 1, 39, 'convenience', null, 2),
+  ('c_name', 'item', 'name_change', 1, 59, 'convenience', null, 3),
+  ('c_stat', 'item', 'stat_reset', 1, 29, 'convenience', null, 4),
+  ('c_skill', 'item', 'skill_reset', 1, 29, 'convenience', null, 5),
+  ('c_mega10', 'item', 'megaphone', 10, 25, 'convenience', null, 6),
+  ('x_exp15', 'item', 'exp_15', 1, 9, 'boost', null, 1),
+  ('x_exp2', 'item', 'exp_2', 1, 19, 'boost', 'ขายดี', 2),
+  ('x_exp3', 'item', 'exp_3', 1, 39, 'boost', null, 3),
+  ('x_job2', 'item', 'job_2', 1, 19, 'boost', null, 4),
+  ('x_drop15', 'item', 'drop_15', 1, 9, 'boost', null, 5),
+  ('x_drop2', 'item', 'drop_2', 1, 19, 'boost', null, 6),
+  ('x_clover', 'item', 'card_clover', 1, 29, 'boost', null, 7)
+on conflict (id) do update set kind = excluded.kind, ref = excluded.ref, qty = excluded.qty, price = excluded.price, cat = excluded.cat, tag = excluded.tag, sort = excluded.sort, active = true;
+-- เลิกขายกล่องแฟชั่นสุ่ม / ไข่สุ่ม
+update public.cash_products set active = false where id in ('b_gold', 'b_gold11', 'b_silver', 'b_silver11', 'e_galaxy', 'e_moon', 'e_spot');
 
 -- ---------- คำขอเติมเพชร ----------
 create table if not exists public.topup_requests (

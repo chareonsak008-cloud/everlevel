@@ -201,14 +201,14 @@ export const CONSUMABLES = {
   },
   name_change: {
     name: 'ใบเปลี่ยนชื่อ', en: 'Name Quill', cat: 'system', rarity: 'rare', icon: ['scroll', '#4fb8a8', 'name'],
-    effect: 'เปลี่ยนชื่อตัวละคร 1 ครั้ง (ชื่อต้องไม่ซ้ำกับใคร)', use: { rename: true }, price: 100000, shop: 'tools', stack: 10,
-    from: [['shop', 'ร้านของใช้โทเบน · 100,000 z']],
+    effect: 'เปลี่ยนชื่อตัวละคร 1 ครั้ง (ชื่อต้องไม่ซ้ำกับใคร)', use: { rename: true }, price: 100000, stack: 10,
+    from: [['cash', 'ร้านเพชร']],
     desc: 'ขนนกที่เขียนทะเบียนนักผจญภัยใหม่ได้ ชื่อเดิมจะว่างให้คนอื่นใช้ทันที',
   },
   megaphone: {
     name: 'โทรโข่งประกาศ', en: 'Herald Horn', cat: 'system', rarity: 'uncommon', icon: ['megaphone', '#e8384f'],
-    effect: 'ส่งข้อความถึงผู้เล่นทุกคนที่ออนไลน์ทุกแผนที่ (สีทอง เด่นกว่าแชตปกติ)', use: { shout: 80 }, cd: 30, price: 5000, shop: 'tools',
-    from: [['shop', 'ร้านของใช้โทเบน · 5,000 z']],
+    effect: 'ส่งข้อความถึงผู้เล่นทุกคนที่ออนไลน์ทุกแผนที่ (สีทอง เด่นกว่าแชตปกติ)', use: { shout: 80 }, cd: 30, price: 5000,
+    from: [['cash', 'ร้านเพชร']],
     desc: 'หาปาร์ตี้ ขายของ หรือประกาศว่าเพิ่งได้การ์ดหายาก ให้ทั้งเซิร์ฟเวอร์รู้',
   },
   pet_snack: {
@@ -244,22 +244,40 @@ Object.assign(CONSUMABLES, {
   egg_spot: {
     name: 'ไข่ลายจุด', en: 'Speckled Egg', cat: 'pet', rarity: 'uncommon', icon: ['egg', '#f6ead0', '#8ac86a'],
     effect: 'ฟักได้สัตว์เลี้ยงช่วยเก็บของ 1 ตัว (ส่วนใหญ่ระดับธรรมดา–หายาก)', use: { hatch: 'egg_spot' }, price: 2000,
-    from: [['drop', 'มอนสเตอร์ทุกตัว 0.3%'], ['mvp', 'MVP 10%'], ['quest', 'รางวัลเควสต์ "สปอร์ปริศนา"']],
+    from: [['legacy', 'ของเก่า · เลิกแจกแล้ว (ซื้อสัตว์เลี้ยงได้ที่ร้านเพชร)']],
     desc: 'ไข่อุ่น ๆ ลายจุดสีเขียว ได้ยินเสียงเคาะเบา ๆ จากข้างใน',
   },
   egg_moon: {
     name: 'ไข่เงินแสงจันทร์', en: 'Moonsilver Egg', cat: 'pet', rarity: 'rare', icon: ['egg', '#e6ecf8', '#7fa8ff'],
     effect: 'ฟักได้สัตว์เลี้ยง 1 ตัว (โอกาสได้ระดับหายาก–ตำนานสูงขึ้น)', use: { hatch: 'egg_moon' }, price: 12000,
-    from: [['drop', 'มอนสเตอร์ Lv.20 ขึ้นไป 0.08%'], ['mvp', 'MVP 5%']],
+    from: [['legacy', 'ของเก่า · เลิกแจกแล้ว (ซื้อสัตว์เลี้ยงได้ที่ร้านเพชร)']],
     desc: 'เปลือกสีเงินที่เรืองแสงอ่อน ๆ ยามค่ำคืน',
   },
   egg_galaxy: {
     name: 'ไข่ทองดาราจักร', en: 'Galaxy Gold Egg', cat: 'pet', rarity: 'epic', icon: ['egg', '#ffd36b', '#7a4aff'],
     effect: 'ฟักได้สัตว์เลี้ยง 1 ตัว (ไม่มีระดับธรรมดา · มีโอกาส Mythical / Celestial)', use: { hatch: 'egg_galaxy' }, price: 60000,
-    from: [['drop', 'มอนสเตอร์ Lv.45 ขึ้นไป 0.02%'], ['mvp', 'MVP 2%'], ['quest', 'รางวัลเควสต์ "มังกรเพลิงอิกนารอก"']],
+    from: [['legacy', 'ของเก่า · เลิกแจกแล้ว (ซื้อสัตว์เลี้ยงได้ที่ร้านเพชร)']],
     desc: 'ไข่ทองคำที่มีดวงดาวหมุนวนอยู่ข้างใน ตำนานว่าสัตว์ในตำนานฟักจากไข่แบบนี้',
   },
 });
+
+
+// v0.48: ตั๋วสัตว์เลี้ยงจากร้านเพชร (เลือกตัวได้เอง ไม่ต้องสุ่มไข่) · ใช้แล้วได้สัตว์เลี้ยงตัวนั้น — มีแล้วได้ดาว +1 · ครบ ★5 รับ Zeny
+Object.assign(CONSUMABLES, {
+  pet_hamster: { name: 'ตั๋วสัตว์เลี้ยง: ปุกปุย', cat: 'pet', rarity: 'common', icon: ['petcoin', '#c8d0dc'], effect: 'ใช้แล้วได้สัตว์เลี้ยง ปุกปุย (มีแล้วได้ดาว +1)', use: { pet: 'hamster' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง ปุกปุย มาอยู่ด้วย' },
+  pet_squirrel: { name: 'ตั๋วสัตว์เลี้ยง: โอ๊คกี้', cat: 'pet', rarity: 'common', icon: ['petcoin', '#c8d0dc'], effect: 'ใช้แล้วได้สัตว์เลี้ยง โอ๊คกี้ (มีแล้วได้ดาว +1)', use: { pet: 'squirrel' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง โอ๊คกี้ มาอยู่ด้วย' },
+  pet_turtle: { name: 'ตั๋วสัตว์เลี้ยง: บ็อกซี่', cat: 'pet', rarity: 'rare', icon: ['petcoin', '#6fc8ff'], effect: 'ใช้แล้วได้สัตว์เลี้ยง บ็อกซี่ (มีแล้วได้ดาว +1)', use: { pet: 'turtle' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง บ็อกซี่ มาอยู่ด้วย' },
+  pet_finch: { name: 'ตั๋วสัตว์เลี้ยง: ปิ๊บ', cat: 'pet', rarity: 'rare', icon: ['petcoin', '#6fc8ff'], effect: 'ใช้แล้วได้สัตว์เลี้ยง ปิ๊บ (มีแล้วได้ดาว +1)', use: { pet: 'finch' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง ปิ๊บ มาอยู่ด้วย' },
+  pet_golem: { name: 'ตั๋วสัตว์เลี้ยง: แม็กนี่', cat: 'pet', rarity: 'epic', icon: ['petcoin', '#c08aff'], effect: 'ใช้แล้วได้สัตว์เลี้ยง แม็กนี่ (มีแล้วได้ดาว +1)', use: { pet: 'golem' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง แม็กนี่ มาอยู่ด้วย' },
+  pet_fox: { name: 'ตั๋วสัตว์เลี้ยง: ลูมิ', cat: 'pet', rarity: 'epic', icon: ['petcoin', '#c08aff'], effect: 'ใช้แล้วได้สัตว์เลี้ยง ลูมิ (มีแล้วได้ดาว +1)', use: { pet: 'fox' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง ลูมิ มาอยู่ด้วย' },
+  pet_wyrm: { name: 'ตั๋วสัตว์เลี้ยง: ออมทอง', cat: 'pet', rarity: 'legend', icon: ['petcoin', '#ffb347'], effect: 'ใช้แล้วได้สัตว์เลี้ยง ออมทอง (มีแล้วได้ดาว +1)', use: { pet: 'wyrm' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง ออมทอง มาอยู่ด้วย' },
+  pet_fawn: { name: 'ตั๋วสัตว์เลี้ยง: เซเรน', cat: 'pet', rarity: 'legend', icon: ['petcoin', '#ffb347'], effect: 'ใช้แล้วได้สัตว์เลี้ยง เซเรน (มีแล้วได้ดาว +1)', use: { pet: 'fawn' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง เซเรน มาอยู่ด้วย' },
+  pet_phoenix: { name: 'ตั๋วสัตว์เลี้ยง: เอมเบอร์', cat: 'pet', rarity: 'mythic', icon: ['petcoin', '#ff4a6a'], effect: 'ใช้แล้วได้สัตว์เลี้ยง เอมเบอร์ (มีแล้วได้ดาว +1)', use: { pet: 'phoenix' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง เอมเบอร์ มาอยู่ด้วย' },
+  pet_kraken: { name: 'ตั๋วสัตว์เลี้ยง: อบิส', cat: 'pet', rarity: 'mythic', icon: ['petcoin', '#ff4a6a'], effect: 'ใช้แล้วได้สัตว์เลี้ยง อบิส (มีแล้วได้ดาว +1)', use: { pet: 'kraken' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง อบิส มาอยู่ด้วย' },
+  pet_whale: { name: 'ตั๋วสัตว์เลี้ยง: โนวา', cat: 'pet', rarity: 'celestial', icon: ['petcoin', '#8af0ff'], effect: 'ใช้แล้วได้สัตว์เลี้ยง โนวา (มีแล้วได้ดาว +1)', use: { pet: 'whale' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง โนวา มาอยู่ด้วย' },
+  pet_qilin: { name: 'ตั๋วสัตว์เลี้ยง: เทียนหยุน', cat: 'pet', rarity: 'celestial', icon: ['petcoin', '#8af0ff'], effect: 'ใช้แล้วได้สัตว์เลี้ยง เทียนหยุน (มีแล้วได้ดาว +1)', use: { pet: 'qilin' }, price: 0, keep: true, from: [['cash', 'ร้านเพชร']], desc: 'เหรียญผูกพันจากร้านเพชร ใช้เพื่อรับสัตว์เลี้ยง เทียนหยุน มาอยู่ด้วย' },
+});
+export const PET_TICKETS = Object.keys(CONSUMABLES).filter((k) => CONSUMABLES[k].use && CONSUMABLES[k].use.pet);
 
 // โอกาสดรอปไอเทมใช้งานจากมอนสเตอร์ (รวมกับตารางดรอปเดิมของมอนแต่ละตัว) — mob = ข้อมูลใน data/monsters.js
 export function consumableDrops(mob) {
@@ -268,21 +286,20 @@ export function consumableDrops(mob) {
     return [
       ['exp_15', 0.3], ['exp_2', 0.15], ['exp_3', 0.02], ['job_2', 0.1], ['drop_15', 0.2], ['drop_2', 0.1], ['card_clover', 0.05],
       ['festival_cake', 0.15], ['elixir', 0.25], ['bag_expand', 0.03], ['storage_expand', 0.02], ['stat_reset', 0.01], ['skill_reset', 0.01],
-      ['blood_branch', 0.03], ['egg_spot', 0.1], ['egg_moon', 0.05], ['egg_galaxy', 0.02],
+      ['blood_branch', 0.03],
     ];
   }
-  const out = [['warp_leaf', 0.02], ['return_scroll', 0.005], ['swift_potion', 0.004], ['regen_candy', 0.005], ['pet_snack', 0.005], ['dead_branch', 0.005], ['egg_spot', 0.003]];
+  const out = [['warp_leaf', 0.02], ['return_scroll', 0.005], ['swift_potion', 0.004], ['regen_candy', 0.005], ['pet_snack', 0.005], ['dead_branch', 0.005]];
   if (lv >= 10) out.push(['exp_15', 0.001], ['drop_15', 0.0008]);
-  if (lv >= 20) out.push(['job_2', 0.0003], ['power_elixir', 0.003], ['iron_elixir', 0.003], ['sage_tea', 0.002], ['adventurer_box', 0.001], ['egg_moon', 0.0008]);
+  if (lv >= 20) out.push(['job_2', 0.0003], ['power_elixir', 0.003], ['iron_elixir', 0.003], ['sage_tea', 0.002], ['adventurer_box', 0.001]);
   if (lv >= 30) out.push(['exp_2', 0.0003], ['haste_potion', 0.002], ['hawk_eye', 0.002]);
   if (lv >= 40) out.push(['drop_2', 0.0002], ['phoenix_feather', 0.002]);
-  if (lv >= 45) out.push(['egg_galaxy', 0.0002]);
   return out;
 }
 
 // ของรางวัลเควสต์เพิ่มเติม (v0.13) — ต่อท้ายรางวัลเดิมใน data/quests.js
 export const QUEST_EXTRA_REWARDS = {
-  m2_spores: [['egg_spot', 1]],
+  m2_spores: [['pet_snack', 3]],
   m3_stingers: [['warp_leaf', 10], ['return_scroll', 3]],
   m5_whisperwood: [['bag_expand', 1], ['waypoint_scroll', 2]],
   m7_ancient_tree: [['exp_2', 1], ['bag_expand', 1], ['elixir', 1]],
@@ -291,7 +308,7 @@ export const QUEST_EXTRA_REWARDS = {
   m11_glacia: [['bag_expand', 1], ['elixir', 2]],
   m13_fire_trial: [['flame_tonic', 3], ['exp_2', 1]],
   m14_scales: [['storage_expand', 1]],
-  m15_ignarok: [['bag_expand', 1], ['card_clover', 1], ['egg_galaxy', 1]],
+  m15_ignarok: [['bag_expand', 1], ['card_clover', 1], ['refine_luck', 2]],
   s2_first_card: [['card_clover', 1]],
   d_bloblet: [['warp_leaf', 3]],
   d_jelly: [['regen_candy', 2]],

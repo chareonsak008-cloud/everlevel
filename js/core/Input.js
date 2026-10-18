@@ -150,5 +150,5 @@ export class Input {
   consumeTaps() { const t = this.taps; this.taps = []; return t; }
   consumePresses() { const t = this.presses; this.presses = []; return t; }
   consumeAttack() { const a = this.attackKey; this.attackKey = false; return a; }
-  consumeCamera() { const r = { rotate: this.rotate, zoom: this.zoom, tilt: this.tilt }; this.rotate = 0; this.zoom = 1; this.tilt = 0; return r; }
+  consumeCamera() { const r = { rotate: this.rotate, zoom: 1, tilt: this.tilt }; this.rotate = 0; this.zoom = 1; this.tilt = 0; return r; }   // v0.48: ปิดซูม (zoom = 1 เสมอ)
 }

@@ -104,7 +104,7 @@ begin
   select * into ac from accounts where user_id = uid for update;
   if not found or ac.vip_until is null or ac.vip_until <= now() then raise exception 'not_vip'; end if;
   if ac.vip_daily = public._bkk_today() then raise exception 'already_claimed'; end if;
-  perform public._apply(uid, p_slot, jsonb_build_object('inv', '[["box_wood",1],["warp_leaf",3],["regen_candy",2]]'::jsonb, 'zeny', 0, 'note', 'รางวัลรายวัน VIP'));
+  perform public._apply(uid, p_slot, jsonb_build_object('inv', '[["refine_w",1],["refine_a",1],["warp_leaf",3],["regen_candy",2]]'::jsonb, 'zeny', 0, 'note', 'รางวัลรายวัน VIP'));
   update accounts set gems = gems + 10, vip_daily = public._bkk_today() where user_id = uid;
   return jsonb_build_object('ok', true, 'gems', ac.gems + 10);
 end $$;

@@ -14,7 +14,9 @@ export const REFINE_ITEMS = {
   refine_w: { name: 'ผลึกตีบวกอาวุธ', type: 'etc', keep: true, icon: ['crystal', '#ff8a5a'], price: 600, rarity: 'uncommon', desc: 'ผลึกร้อนระอุที่ช่างใช้หลอมเสริมคมอาวุธ ใช้ 1 ก้อนต่อการตีบวกอาวุธ 1 ครั้ง' },
   refine_a: { name: 'ผลึกตีบวกเกราะ', type: 'etc', keep: true, icon: ['crystal', '#6ab8ff'], price: 900, rarity: 'uncommon', desc: 'ผลึกเย็นเฉียบที่ทำให้เกราะแข็งแกร่งขึ้น ใช้ 1 ก้อนต่อการตีบวกเกราะ/หมวก/โล่/ผ้าคลุม/รองเท้า 1 ครั้ง' },
   refine_guard: { name: 'คริสตัลพิทักษ์', type: 'etc', keep: true, icon: ['crystal', '#ffe08a'], price: 30000, rarity: 'rare', desc: 'ใช้คู่กับการตีบวก +8 ขึ้นไป ถ้าล้มเหลวอุปกรณ์จะไม่แตก (แต่ระดับยังลดลง 1) ใช้แล้วหมดไป' },
+  refine_luck: { name: 'หินนำโชค', type: 'etc', keep: true, icon: ['crystal', '#7dff9a'], price: 30000, rarity: 'rare', desc: 'ใช้คู่กับการตีบวก +5 ขึ้นไป เพิ่มโอกาสสำเร็จ +15% (สูงสุด 100%) ใช้แล้วหมดไป' },
 };
+export const LUCK_BONUS = 15;
 
 export const canRefine = (it) => !!it && it.type === 'equip' && REFINABLE.includes(it.slot);
 export const refineMaterial = (it) => (it.slot === 'weapon' ? 'refine_w' : 'refine_a');
@@ -43,7 +45,14 @@ export function refineBonus(it, n) {
 }
 
 // ทอยผลการตีบวก: 'success' | 'down' | 'break' (rnd ให้ทดสอบได้)
-export function rollRefine(target, guarded, rnd = Math.random) {
-  if (rnd() * 100 < refineRate(target)) return 'success';
+export function rollRefine(target, guarded, rnd = Math.random, bonus = 0) {
+  if (rnd() * 100 < Math.min(100, refineRate(target) + bonus)) return 'success';
   return failResult(target, guarded);
+}
+
+// v0.48: หินกันแตก/หินนำโชคดรอปจากมอนสเตอร์ทุกตัว (โอกาสต่ำมาก · MVP สูงขึ้น) — แทนกล่องแฟชั่นเดิม
+export function stoneDrops(mob) {
+  if (mob.mvp) return [['refine_guard', 0.06], ['refine_luck', 0.06]];
+  const lv = mob.level || 1, p = 0.0003 + lv * 0.000004;   // Lv.1 ≈ 0.03% · Lv.150 ≈ 0.09%
+  return [['refine_guard', p], ['refine_luck', p]];
 }

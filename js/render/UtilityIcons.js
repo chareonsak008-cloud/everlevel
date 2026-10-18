@@ -366,6 +366,18 @@ export const UTIL_DRAW = {
     if (gold) sparkle(g, 11, 52, 4, '#ffffff');
   },
 
+  // v0.48 ตั๋วสัตว์เลี้ยง (ร้านเพชร): เหรียญรอยเท้าสีตามระดับ
+  petcoin(g, c = '#6fc8ff') {
+    glow(g, 32, 32, 30, c, 0.5);
+    shape(g, (g) => g.arc(32, 32, 24, 0, TAU), grad(g, 10, 8, 54, 56, shadeHex(c, 0.5), c, shadeHex(c, -0.35)), 3);
+    shape(g, (g) => g.arc(32, 32, 18, 0, TAU), grad(g, 14, 14, 50, 50, shadeHex(c, -0.15), shadeHex(c, 0.25)), 2);
+    g.fillStyle = '#ffffff';
+    g.beginPath(); g.ellipse(32, 37, 7, 6, 0, 0, TAU); g.fill();
+    for (const [x, y, r] of [[23.5, 29, 3.2], [28.5, 23.5, 3.4], [35.5, 23.5, 3.4], [40.5, 29, 3.2]]) { g.beginPath(); g.ellipse(x, y, r * 0.85, r, 0, 0, TAU); g.fill(); }
+    shine(g, 21, 18, 5, 2.4, 0.6, -0.6);
+    sparkle(g, 52, 12, 5, '#ffffff'); sparkle(g, 11, 50, 3.5, '#fff6c0');
+  },
+
   // กล่องสุ่มนักผจญภัย: กล่องมีเครื่องหมายคำถาม + กระดาษสี
   luckybox(g, c = '#8a5ad8') {
     for (const [x, y, col, a] of [[10, 12, '#ffcf4a', 0.4], [54, 10, '#4ad8ff', -0.5], [56, 30, '#ff6a9a', 0.8], [8, 34, '#7ad86a', -0.3]]) { g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = col; g.fillRect(-3, -1.5, 6, 3); g.restore(); }

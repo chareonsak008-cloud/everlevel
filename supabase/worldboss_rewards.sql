@@ -1,8 +1,8 @@
 -- v0.47 รางวัลพิเศษบอสโลก (รันครั้งเดียว · รันซ้ำได้)
 -- วิธีใช้: Supabase → SQL Editor → วางทั้งไฟล์ → Run
--- ออเร็กซ์: นมผึ้ง×5 ผลึกตีบวก×3/×3 คริสตัลพิทักษ์×1 แกนผู้พิทักษ์×1 กล่องเงิน×2 50,000z + 15% ลุ้นอาวุธสเปกตรัล
--- น็อคธาร์: นมผึ้ง×8 ผลึกตีบวก×4/×4 คริสตัลพิทักษ์×2 มงกุฎสยอง×1 กล่องทอง×1 80,000z + 15% ลุ้นอาวุธจันทร์โลหิต
--- ดาเมจอันดับ 1–3: + กล่องทอง×1 คริสตัลพิทักษ์×1 และ Zeny +60,000/+40,000/+20,000
+-- ออเร็กซ์: นมผึ้ง×5 ผลึกตีบวก×3/×3 คริสตัลพิทักษ์×1 แกนผู้พิทักษ์×1 หินนำโชค×2 50,000z + 15% ลุ้นอาวุธสเปกตรัล
+-- น็อคธาร์: นมผึ้ง×8 ผลึกตีบวก×4/×4 คริสตัลพิทักษ์×2 มงกุฎสยอง×1 หินนำโชค×2 80,000z + 15% ลุ้นอาวุธจันทร์โลหิต
+-- ดาเมจอันดับ 1–3: + หินนำโชค×1 คริสตัลพิทักษ์×1 และ Zeny +60,000/+40,000/+20,000
 
 create or replace function public.world_boss_hit(p_id text,p_damage integer,p_slot integer)
 returns jsonb language plpgsql security definer set search_path=public as $$
@@ -32,13 +32,13 @@ begin
    insert into world_boss_rewards(run_id,user_id) values(p_id,w.user_id) on conflict do nothing;
    if found then
     if b.type='world_nocthar' then
-     items:='[["royal_jelly",8],["refine_w",4],["refine_a",4],["refine_guard",2],["dread_crown",1],["box_gold",1]]'::jsonb; z:=80000;
+     items:='[["royal_jelly",8],["refine_w",4],["refine_a",4],["refine_guard",2],["dread_crown",1],["refine_luck",2]]'::jsonb; z:=80000;
      if random()<0.15 then items:=items||jsonb_build_array(jsonb_build_array((array['bloodmoon_sword','bloodmoon_staff','bloodmoon_bow','bloodmoon_mace','bloodmoon_knife'])[1+floor(random()*5)::int],1)); end if;
     else
-     items:='[["royal_jelly",5],["refine_w",3],["refine_a",3],["refine_guard",1],["guardian_core",1],["box_silver",2]]'::jsonb; z:=50000;
+     items:='[["royal_jelly",5],["refine_w",3],["refine_a",3],["refine_guard",1],["guardian_core",1],["refine_luck",2]]'::jsonb; z:=50000;
      if random()<0.15 then items:=items||jsonb_build_array(jsonb_build_array((array['spectral_sword','spectral_staff','spectral_bow','spectral_mace','spectral_knife'])[1+floor(random()*5)::int],1)); end if;
     end if;
-    if w.rk<=3 then items:=items||'[["box_gold",1],["refine_guard",1]]'::jsonb; z:=z+(4-w.rk)*20000; end if;
+    if w.rk<=3 then items:=items||'[["refine_luck",1],["refine_guard",1]]'::jsonb; z:=z+(4-w.rk)*20000; end if;
     select jsonb_agg(jsonb_build_array(k,q)) into items from (select e->>0 k,sum((e->>1)::int) q from jsonb_array_elements(items) e group by 1) t;   -- รวมของชนิดเดียวกัน
     insert into mails(to_name,sender,title,body,items,zeny,per)
     values(w.name,'World Event',case when w.rk<=3 then 'รางวัลบอสโลก · ดาเมจอันดับ '||w.rk else 'รางวัลบอสโลก' end,
