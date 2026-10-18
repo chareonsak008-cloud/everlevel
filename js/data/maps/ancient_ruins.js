@@ -1,10 +1,10 @@
 // Ancient Ruins Lv.60–75; broad, connected lanes with a safe western camp.
-import { borderTrees, scatterTrees } from './helpers.js?v=0.41.1';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.41.2';
 const W=76,H=60;
 const lanes=[[0,28,W,4],[14,6,4,48],[38,8,4,44],[56,8,4,43],[14,8,48,4],[14,48,50,4]];
 const camp=[2,24,10,14],arena=[51,12,18,15];
 const look={hair:'#d7c5a0',skin:'#e8bd99',eye:'#32534d',tunic:'#5a8275',pants:'#423e45',boot:'#2a2a34',hairStyle:'short',accessory:'wizard',hatColor:'#405d53',orbColor:'#8addc9',weapon:'staff'};
-export const ANCIENT_RUINS={
+const RAW = {
  id:'ancient_ruins',name:'Ancient Ruins',subtitle:'ซากอารยธรรมอักขระ · Lv.60–75 · MVP ออเร็กซ์ Lv.78',levelRange:[60,75],width:W,height:H,fill:'GRASS',spawn:{x:5.5,y:29.5},music:'ruins',
  theme:{fog:'#71817b',fogNear:25,fogFar:70,outer:'#27382f',light:{hemi:.8,sky:'#dce8d2',ground:'#384936',sun:1.1,sunColor:'#ffe4b0',exposure:1.03},grass:{base:'#79835d',blobs:['#68754e','#89966c','#76815b'],blades:['#9caa76','#6c7e52','#b0b48c'],litter:['#cfba87','#d9d1ac','#ac956b']},dirt:{base:'#a99e84',blobs:['#b5aa91','#978e76','#c0b59a'],pebble:'#7e7e71',cracks:'#79745d'},trees:'normal',tufts:true,flowers:['#d6c499','#91dbcb','#a8c57b'],motes:'#8fe6db',moteCount:75,moteSize:.05,fx:{gain:.8,glow:.75,flash:.8},mini:{grass:'#76815b',dirt:'#b3a787',water:'#538e91',flowers:'#92c9b2',bridge:'#9a8a6b'}},
  prune:true,
@@ -34,3 +34,6 @@ export const ANCIENT_RUINS={
  spawns:[{mob:'ruin_scarab',count:8,areas:[[5,40,16,14],[5,5,10,16]]},{mob:'sand_basilisk',count:8,areas:[[20,4,16,10],[20,33,16,13]]},{mob:'rune_sentinel',count:8,areas:[[34,14,15,12],[34,34,9,12]]},{mob:'astral_wisp',count:7,areas:[[45,4,22,7],[52,33,18,11]]},{mob:'relic_knight',count:7,areas:[[51,46,20,9]]},{mob:'aurex',count:1,areas:[[57,18,3,3]]}],
  restSpots:[{x:7.5,y:33.5,r:3}]
 };
+
+// v0.41.2: ขยายทั้งแผนที่ 1.5 เท่า (เหมือนเมือง) · ต้นไม้/สิ่งของใหญ่ตาม · มอนเพิ่ม 1.5 เท่าให้ความหนาแน่นใกล้เดิม
+export const ANCIENT_RUINS = scaleMap(RAW, FIELD_SCALE, { treeScale: FIELD_SCALE, mobMul: 1.5 });

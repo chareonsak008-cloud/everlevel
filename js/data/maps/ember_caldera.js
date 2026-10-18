@@ -1,6 +1,6 @@
 // ข้อมูลแผนที่ Ember Caldera — ปล่องภูเขาไฟทางตะวันออกของ Frostveil Peaks (v0.11)
 // มอนสเตอร์ Lv.42–66 และ MVP Lv.80 "อิกนารอก มังกรเพลิง" ในปล่องลาวาทางตะวันออก
-import { borderTrees, scatterTrees } from './helpers.js?v=0.41.1';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.41.2';
 
 const W = 84, H = 64;
 
@@ -32,7 +32,7 @@ const VENTS = [[14, 6], [34, 8], [48, 20], [32, 38], [10, 44], [50, 52], [72, 52
 const SPIRES = [[6, 18], [20, 40], [30, 18], [46, 6], [52, 38], [34, 54], [66, 58], [80, 44], [20, 22]];
 const deco = [...VENTS, ...SPIRES].map(([x, y]) => [x, y, 1, 1]);
 
-export const EMBER_CALDERA = {
+const RAW = {
   id: 'ember_caldera',
   name: 'Ember Caldera',
   subtitle: 'ปล่องภูเขาไฟเอมเบอร์ — รังของมังกรเพลิง',
@@ -133,5 +133,8 @@ export const EMBER_CALDERA = {
 };
 
 // v0.20: clear the eastern exit and connect the high-level route.
-EMBER_CALDERA.objects = EMBER_CALDERA.objects.filter(o => !(o.x >= 78 && o.y >= 39 && o.y <= 43));
-EMBER_CALDERA.portals.push({ x:82,y:40,w:2,h:3,to:'ancient_ruins',arrive:{x:5.5,y:29.5,angle:Math.PI/2},label:'Ancient Ruins · Lv.60–75' });
+RAW.objects = RAW.objects.filter(o => !(o.x >= 78 && o.y >= 39 && o.y <= 43));
+RAW.portals.push({ x:82,y:40,w:2,h:3,to:'ancient_ruins',arrive:{x:5.5,y:29.5,angle:Math.PI/2},label:'Ancient Ruins · Lv.60–75' });
+
+// v0.41.2: ขยายทั้งแผนที่ 1.5 เท่า (เหมือนเมือง) · ต้นไม้/สิ่งของใหญ่ตาม · มอนเพิ่ม 1.5 เท่าให้ความหนาแน่นใกล้เดิม
+export const EMBER_CALDERA = scaleMap(RAW, FIELD_SCALE, { treeScale: FIELD_SCALE, mobMul: 1.5 });

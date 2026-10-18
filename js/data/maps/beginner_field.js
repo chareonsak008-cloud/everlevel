@@ -1,12 +1,12 @@
 // ข้อมูลแผนที่ Beginner Field — ทุ่งหญ้าฝึกฝีมือนอกเมือง
-import { borderTrees, treesAt } from './helpers.js?v=0.41.1';
+import { borderTrees, treesAt, scaleMap, FIELD_SCALE } from './helpers.js?v=0.41.2';
 
 const W = 72, H = 56;
 
 const IRIS = { hair: '#ff9a6a', skin: '#f6d2b0', eye: '#5a2a3a', tunic: '#7a2f4a', pants: '#3a2a3a', boot: '#2a1e24', belt: '#e8c050', hairStyle: 'ponytail', accessory: 'wizard', hatColor: '#7a2f4a', orbColor: '#7fe0ff' };
 const RANGER = { hair: '#7a4a2a', skin: '#eab993', eye: '#2a2030', tunic: '#4f7a3a', pants: '#5a4630', boot: '#3a2a1c', belt: '#a07a3a', hairStyle: 'ponytail', accessory: 'hat' };
 
-export const BEGINNER_FIELD = {
+const RAW = {
   id: 'beginner_field',
   name: 'Beginner Field',
   subtitle: 'ทุ่งหญ้าฝึกฝีมือ',
@@ -98,7 +98,7 @@ export const BEGINNER_FIELD = {
   ],
 
   portals: [
-    { x: 1, y: 26, w: 2, h: 2, to: 'asteria_town', arrive: { x: 98.25, y: 42, angle: -Math.PI / 2 }, label: 'Asteria Town' },
+    { x: 1, y: 26, w: 2, h: 2, to: 'asteria_town', arrive: { x: 65.5, y: 28, angle: -Math.PI / 2 }, label: 'Asteria Town' },
     { x: 69, y: 26, w: 2, h: 2, to: 'whisper_forest', arrive: { x: 5, y: 28.5, angle: Math.PI / 2 }, label: 'Whisperwood Forest' },
   ],
 
@@ -112,3 +112,6 @@ export const BEGINNER_FIELD = {
   // จุดพักฟื้น (เลือดฟื้นเร็วขึ้นเมื่ออยู่ใกล้)
   restSpots: [{ x: 8.5, y: 23.5, r: 3 }],
 };
+
+// v0.41.2: ขยายทั้งแผนที่ 1.5 เท่า (เหมือนเมือง) · ต้นไม้/สิ่งของใหญ่ตาม · มอนเพิ่ม 1.5 เท่าให้ความหนาแน่นใกล้เดิม
+export const BEGINNER_FIELD = scaleMap(RAW, FIELD_SCALE, { treeScale: FIELD_SCALE, mobMul: 1.5 });

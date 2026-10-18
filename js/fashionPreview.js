@@ -1,8 +1,8 @@
-import { THREE } from './render/three.js?v=0.41.1';
-import { CharacterView } from './render/Characters.js?v=0.41.1';
-import { costumeLook, wearCostume } from './render/Costumes.js?v=0.41.1';
-import { FASHION_SETS } from './data/fashionCollection.js?v=0.41.1';
-import { COSTUME_BY_ID } from './data/costumes.js?v=0.41.1';
+import { THREE } from './render/three.js?v=0.41.2';
+import { CharacterView } from './render/Characters.js?v=0.41.2';
+import { costumeLook, wearCostume } from './render/Costumes.js?v=0.41.2';
+import { FASHION_SETS } from './data/fashionCollection.js?v=0.41.2';
+import { COSTUME_BY_ID } from './data/costumes.js?v=0.41.2';
 
 const stage=document.getElementById('stage');
 try {

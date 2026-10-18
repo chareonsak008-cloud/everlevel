@@ -1,6 +1,6 @@
 // ข้อมูลแผนที่ Whisperwood Forest — ป่าทึบทางตะวันออกของ Beginner Field (v0.7)
 // มีมอนสเตอร์ระดับกลาง และ MVP "กนาร์ลรูท ต้นไม้เฒ่า" ที่ลานหินใจกลางป่า (มุมตะวันออกเฉียงใต้)
-import { borderTrees, scatterTrees } from './helpers.js?v=0.41.1';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.41.2';
 
 const W = 84, H = 64;
 
@@ -38,7 +38,7 @@ const lairPillars = [0, 45, 90, 135, 180, 270, 315].map((deg, i) => {
   return { kind: 'pillar', x: Math.round(LC.x + Math.cos(a) * 6.8 - 0.5), y: Math.round(LC.y + Math.sin(a) * 6.8 - 0.5), seed: 40 + i };
 });
 
-export const WHISPER_FOREST = {
+const RAW = {
   id: 'whisper_forest',
   name: 'Whisperwood Forest',
   subtitle: 'ป่ากระซิบ — ถิ่นของต้นไม้เฒ่า',
@@ -144,3 +144,6 @@ export const WHISPER_FOREST = {
 
   restSpots: [{ x: 7.5, y: 24.5, r: 3 }],
 };
+
+// v0.41.2: ขยายทั้งแผนที่ 1.5 เท่า (เหมือนเมือง) · ต้นไม้/สิ่งของใหญ่ตาม · มอนเพิ่ม 1.5 เท่าให้ความหนาแน่นใกล้เดิม
+export const WHISPER_FOREST = scaleMap(RAW, FIELD_SCALE, { treeScale: FIELD_SCALE, mobMul: 1.5 });

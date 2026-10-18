@@ -1,8 +1,8 @@
 // เอฟเฟกต์เคลื่อนไหว: ผิวน้ำ, ละอองน้ำพุ, ประตูมิติ, ละอองแสง, จุดหมายคลิก
-import { THREE } from './three.js?v=0.41.1';
-import { waterTexture, glowTexture, beamTexture, magicCircleTexture } from './Textures.js?v=0.41.1';
-import { rng } from '../core/util.js?v=0.41.1';
-import { lin, mergeGeometries } from './Geo.js?v=0.41.1';
+import { THREE } from './three.js?v=0.41.2';
+import { waterTexture, glowTexture, beamTexture, magicCircleTexture } from './Textures.js?v=0.41.2';
+import { rng } from '../core/util.js?v=0.41.2';
+import { lin, mergeGeometries } from './Geo.js?v=0.41.2';
 
 /* ---------- ผิวน้ำ: 2 ชั้นเลื่อนสวนทางกัน ดูเป็นคลื่นระยิบ ---------- */
 export class Water {
@@ -320,17 +320,17 @@ export class AutoZone {
 
 /* ---------- กองไฟ: เปลวไฟอนุภาค + แสงวูบวาบ ---------- */
 export class Campfire {
-  constructor(parent, x, z) {
-    this.x = x; this.z = z;
+  constructor(parent, x, z, sc = 1) {   // v0.41.2 sc = ขนาดตามกองไฟที่ขยาย
+    this.x = x; this.z = z; this.sc = sc;
     this.n = 60; this.seed = new Float32Array(this.n); const r = rng(13);
     for (let i = 0; i < this.n; i++) this.seed[i] = r();
     this.pos = new Float32Array(this.n * 3); this.col = new Float32Array(this.n * 3);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(this.col, 3));
-    this.points = new THREE.Points(geo, new THREE.PointsMaterial({ map: glowTexture(), size: 0.28, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    this.points = new THREE.Points(geo, new THREE.PointsMaterial({ map: glowTexture(), size: 0.28 * sc, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
     this.points.frustumCulled = false; parent.add(this.points);
-    this.light = new LightSpot(x, 0.8, z, '#ff9a40', 1.4, 7);
+    this.light = new LightSpot(x, 0.8 * sc, z, '#ff9a40', 1.4, 7 * sc);
     this.c0 = new THREE.Color('#ffe7a0'); this.c1 = new THREE.Color('#ff5a1a'); this.tc = new THREE.Color();
   }
   update(t) {
@@ -338,9 +338,9 @@ export class Campfire {
     for (let i = 0; i < this.n; i++) {
       const s = this.seed[i], k = (t * (0.9 + s * 0.6) + s) % 1;
       const a = s * 50;
-      const rad = 0.16 * (1 - k) + 0.02;
+      const rad = (0.16 * (1 - k) + 0.02) * this.sc;
       this.pos[i * 3] = this.x + Math.cos(a + t) * rad;
-      this.pos[i * 3 + 1] = 0.18 + k * (0.75 + s * 0.3);
+      this.pos[i * 3 + 1] = (0.18 + k * (0.75 + s * 0.3)) * this.sc;
       this.pos[i * 3 + 2] = this.z + Math.sin(a + t) * rad;
       c.copy(this.c0).lerp(this.c1, k).multiplyScalar(1 - k * 0.8);
       this.col[i * 3] = c.r; this.col[i * 3 + 1] = c.g; this.col[i * 3 + 2] = c.b;
@@ -395,8 +395,8 @@ export class MagicCircles {
 
 /* ---------- ผลึกวาร์ปลอยหมุน (ข้างนักเวทย์วาร์ป) ---------- */
 export class WarpCrystal {
-  constructor(parent, x, z, color = '#7fe0ff') {
-    this.g = new THREE.Group(); this.g.position.set(x, 0, z); parent.add(this.g);
+  constructor(parent, x, z, color = '#7fe0ff', sc = 1) {
+    this.g = new THREE.Group(); this.g.position.set(x, 0, z); if (sc !== 1) this.g.scale.setScalar(sc); parent.add(this.g);
     const c = lin(color);
     const geo = new THREE.OctahedronGeometry(0.26, 0); geo.scale(0.75, 1.5, 0.75);
     this.crystal = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.9, roughness: 0.2, metalness: 0.1, flatShading: true, transparent: true, opacity: 0.92 }));

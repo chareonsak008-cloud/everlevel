@@ -1,7 +1,7 @@
 // v0.32 หน้าทดลองดันเจี้ยนถ้ำ + หอคอย (โหลดเฉพาะ dungeon-trial.html) — ตัวละครทดลอง ไม่บันทึกเข้าบัญชีจริง
-import { SKILLS, jobSkills } from '../data/skills.js?v=0.41.1';
-import { JOBS } from '../data/progression.js?v=0.41.1';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.41.1';
+import { SKILLS, jobSkills } from '../data/skills.js?v=0.41.2';
+import { JOBS } from '../data/progression.js?v=0.41.2';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.41.2';
 
 const KIT = {
   swordsman: { w: 'astral_sword', attr: { str: 1, agi: 0.55, vit: 0.85, int: 0.2, dex: 0.6, luk: 0.25 } },
@@ -63,7 +63,7 @@ function init(g) {
   btn('go', 'หอคอยชั้น 1', () => { if (!D.active) D.startTower(1); }, 'go');
   btn('go', 'หอคอยชั้น 10 (บอสใหญ่)', () => { if (!D.active) D.startTower(10); });
   btn('go', 'หอคอยชั้น 50', () => { if (!D.active) D.startTower(50); });
-  btn('go', 'กลับเมือง', () => { if (D.active) D.finish('leave'); else g.warp('asteria_town', { x: 77.25, y: 27.75, angle: Math.PI }); });
+  btn('go', 'กลับเมือง', () => { if (D.active) D.finish('leave'); else g.warp('asteria_town', { x: 51.5, y: 18.5, angle: Math.PI }); });
 
   btn('cheat', 'กำจัดมอนในชั้น', () => {
     if (!D.active || !g.mobs) return log('ต้องอยู่ในดันเจี้ยนก่อน');

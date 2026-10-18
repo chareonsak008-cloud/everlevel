@@ -35,7 +35,10 @@ export function scatterTrees(W, H, count, avoid = [], seed = 4242, margin = 3, p
 
 // v0.41.1: ขยายทั้งแผนที่ (เมือง) ด้วยตัวคูณ S — พิกัด/ขนาดพื้นที่/ถนนคูณ S · สิ่งปลูกสร้างใหญ่ขึ้นทั้งโมเดล (vs) และพื้นที่ชน (fs)
 // เพื่อให้บ้าน ร้านค้า หอคอย สมดุลกับตัวละครพิกเซลที่สูงขึ้น · ความหนากำแพง (ring) คงเดิม
-export function scaleMap(def, S, { treeScale = 1.2, keepThick = true } = {}) {
+export const FIELD_SCALE = 1.5;   // v0.41.2: ตัวคูณขนาดแผนที่ทุ่ง/ป่า/ดันเจี้ยนเปิด
+// v0.41.2: ใช้กับทุกแผนที่ · spawns/restSpots ขยายตาม · mobMul = ตัวคูณจำนวนมอน (ไม่รวมบอส count 1)
+// พิกัด arrive ของประตู/วาร์ปเขียนเป็นพิกัดเดิม (ก่อนขยาย) แล้ว Game.loadMap คูณ scaled ของแผนที่ปลายทางให้เอง
+export function scaleMap(def, S, { treeScale = 1.2, keepThick = true, mobMul = 1 } = {}) {
   const R = (v) => Math.round(v * S);
   const span = (x, w) => { const a = R(x); return [a, Math.max(1, R(x + w) - a)]; };
   const reg = (g) => {
@@ -58,8 +61,10 @@ export function scaleMap(def, S, { treeScale = 1.2, keepThick = true } = {}) {
     districts: (def.districts || []).map(pt),
     regions: (def.regions || []).map(reg),
     objects: (def.objects || []).map(obj),
-    npcs: (def.npcs || []).map(pt),
+    npcs: (def.npcs || []).map((n) => ({ ...n, x: R(n.x), y: R(n.y) })),   // NPC ยืนบนช่องเต็ม (ช่องตันใต้ตัว)
     portals: (def.portals || []).map((p) => ({ ...p, x: R(p.x), y: R(p.y), w: R(p.w), h: R(p.h) })),
+    spawns: def.spawns && def.spawns.map((sp) => ({ ...sp, count: sp.count > 1 ? Math.round(sp.count * mobMul) : sp.count, areas: sp.areas.map(([x, y, w, h]) => { const [ax, aw] = span(x, w), [ay, ah] = span(y, h); return [ax, ay, aw, ah]; }) })),
+    restSpots: def.restSpots && def.restSpots.map((r) => ({ ...r, x: r.x * S, y: r.y * S, r: r.r * S })),
     scaled: S,
   };
 }

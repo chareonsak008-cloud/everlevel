@@ -1,6 +1,6 @@
-import { MONSTERS } from '../data/monsters.js?v=0.41.1';
-import { eventRate, localBossRuns, WORLD_BOSSES, weekKey } from '../data/events.js?v=0.41.1';
-import { TILE } from '../config.js?v=0.41.1';
+import { MONSTERS } from '../data/monsters.js?v=0.41.2';
+import { eventRate, localBossRuns, WORLD_BOSSES, weekKey } from '../data/events.js?v=0.41.2';
+import { TILE } from '../config.js?v=0.41.2';
 export class EventService {
  constructor(game) {
   this.storagePrefix=window.__contentPreview?'everlevel-preview':'everlevel-local';
@@ -67,7 +67,7 @@ export class EventService {
   const valid=(this.fresh?this.state?.runs||[]:[]).filter(r=>r.map_id===g.map.def.id&&r.status==='active'&&Date.parse(r.ends_at)>this.now());
   const ids=new Set(valid.map(r=>r.id));
   for(const m of [...g.mobs.list])if(m.worldRun&&!ids.has(m.worldRun)){if(g.player.target===m)g.clearTarget();g.gfx.removeActor(m);g.mobs.remove(m);}
-  for(const r of valid){let m=g.mobs.list.find(m=>m.worldRun===r.id);if(!m){m=g.mobs.spawnAt(r.type,r.tx*TILE+8,r.ty*TILE+8);m.worldRun=r.id;m.name=WORLD_BOSSES[r.type].name;m.maxHp=r.max_hp;g.gfx.addMonster(m);g.gfx.playRespawn(m);}m.hp=Math.min(m.hp,r.hp);}
+  for(const r of valid){let m=g.mobs.list.find(m=>m.worldRun===r.id);if(!m){const sc=g.map.def.scaled||1;m=g.mobs.spawnAt(r.type,Math.floor(r.tx*sc)*TILE+8,Math.floor(r.ty*sc)*TILE+8);m.worldRun=r.id;m.name=WORLD_BOSSES[r.type].name;m.maxHp=r.max_hp;g.gfx.addMonster(m);g.gfx.playRespawn(m);}m.hp=Math.min(m.hp,r.hp);}
  }
  async hit(m,r,magic) {
   if(!this.fresh)return;

@@ -1,6 +1,6 @@
 // ข้อมูลแผนที่ Frostveil Peaks — ยอดเขาหิมะทางเหนือของ Whisperwood Forest (v0.11)
 // มอนสเตอร์ Lv.20–37 และ MVP Lv.45 "กลาเซีย ราชินีหิมะ" ที่บัลลังก์น้ำแข็งทางเหนือสุด
-import { borderTrees, scatterTrees } from './helpers.js?v=0.41.1';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.41.2';
 
 const W = 84, H = 64;
 
@@ -37,7 +37,7 @@ const thronePillars = [0, 40, 80, 140, 180, 220, 260, 300, 330].map((deg, i) => 
   return { kind: 'icecrystal', x: Math.round(TC.x + Math.cos(a) * 7 - 0.5), y: Math.round(TC.y + Math.sin(a) * 5 - 0.5), seed: 300 + i, color: '#bff4ff' };
 }).filter((o) => !(o.y > 9 && Math.abs(o.x - 41.5) < 3));
 
-export const FROSTVEIL_PEAKS = {
+const RAW = {
   id: 'frostveil',
   name: 'Frostveil Peaks',
   subtitle: 'ยอดเขาฟรอสต์เวล — อาณาจักรของราชินีหิมะ',
@@ -139,3 +139,6 @@ export const FROSTVEIL_PEAKS = {
 
   restSpots: [{ x: 41.5, y: 54.5, r: 3 }],
 };
+
+// v0.41.2: ขยายทั้งแผนที่ 1.5 เท่า (เหมือนเมือง) · ต้นไม้/สิ่งของใหญ่ตาม · มอนเพิ่ม 1.5 เท่าให้ความหนาแน่นใกล้เดิม
+export const FROSTVEIL_PEAKS = scaleMap(RAW, FIELD_SCALE, { treeScale: FIELD_SCALE, mobMul: 1.5 });
