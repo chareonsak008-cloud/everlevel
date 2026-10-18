@@ -3,11 +3,12 @@
 // · ความสำเร็จ: ทำครบแล้วได้ฉายา (ใส่โชว์เหนือหัว) + โบนัสเล็กน้อย (ได้ทุกอันที่ปลดล็อก ไม่ต้องใส่ฉายา)
 // · อัลบั้มการ์ด: เคยได้การ์ดครบชุด → โบนัสชุด (ไม่ต้องใส่การ์ด ไม่เสียการ์ด)
 // · เช็กอินรายวัน: เข้าเกมวันละครั้ง → รางวัลวันที่ 1–7 วนรอบ ส่งเข้ากล่องจดหมาย
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.49.0';
-import { ASCEND_MONSTERS } from './ascendData.js?v=0.49.0';
-import { MONSTERS } from './monsters.js?v=0.49.0';
-import { CARDS } from './cards.js?v=0.49.0';
-import { MAPS } from './maps/index.js?v=0.49.0';
+import { ZENY_INCOME } from '../config.js?v=0.50.0';
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.50.0';
+import { ASCEND_MONSTERS } from './ascendData.js?v=0.50.0';
+import { MONSTERS } from './monsters.js?v=0.50.0';
+import { CARDS } from './cards.js?v=0.50.0';
+import { MAPS } from './maps/index.js?v=0.50.0';
 
 /* ---------- สมุดมอนสเตอร์ ---------- */
 export const BOOK_TIERS = [100, 500, 1000];
@@ -205,7 +206,7 @@ export const TIER_LABEL = { common: 'ธรรมดา', rare: 'หายาก
 export function loginReward(day, lv) {
   const hp = lv >= 60 ? 'white_potion' : lv >= 25 ? 'orange_potion' : 'red_potion';
   const sp = lv >= 50 ? 'mana_potion' : 'blue_potion';
-  const z = (n) => Math.round((n * (1 + lv / 25)) / 100) * 100;
+  const z = (n) => Math.round((n * (1 + lv / 25) * ZENY_INCOME) / 100) * 100;
   return [
     { items: [[hp, 10]], zeny: z(1000) },
     { items: [['return_scroll', 2], ['warp_leaf', 5]], zeny: 0 },

@@ -1,7 +1,7 @@
 // กล่องแฟชั่นสุ่ม (v0.9) — มอนสเตอร์ดรอปกล่อง → เปิดกล่องสุ่มได้ชิ้นแฟชั่น 1 ชิ้น
 // สุ่ม 2 ขั้น: (1) สุ่มระดับความหายากตาม odds ของกล่อง (2) สุ่มชิ้นในระดับนั้นแบบเท่ากันทุกชิ้น
 // ได้ชิ้นซ้ำ → แปลงเป็น Zeny ตามระดับ (DUP_ZENY)
-import { COSTUMES, RARITY as FASHION_RARITY } from './costumes.js?v=0.49.0';
+import { COSTUMES, RARITY as FASHION_RARITY } from './costumes.js?v=0.50.0';
 
 export { FASHION_RARITY };
 export const FASHION_TIERS = ['common', 'rare', 'epic', 'legend', 'mythic', 'celestial'];
@@ -15,7 +15,7 @@ export const BOX_ODDS = {
 };
 
 // ได้ชิ้นที่มีอยู่แล้ว → รับ Zeny แทน
-export const DUP_ZENY = { common: 200, rare: 800, epic: 3000, legend: 12000, mythic: 60000, celestial: 250000 };
+export const DUP_ZENY = { common: 70, rare: 270, epic: 1000, legend: 4000, mythic: 20000, celestial: 80000 };   // v0.50 ลดเหลือ 1/3
 
 export function fmtPct(p) {
   if (p >= 1) return +p.toFixed(1) + '%';

@@ -1,6 +1,7 @@
 // v0.32: ดันเจี้ยนถ้ำ + หอคอยไต่ชั้น — ข้อมูล · สูตรปรับความยากมอนสเตอร์ · สร้างแผนที่แต่ละชั้น (สุ่มตาม seed)
 // ปรับสมดุลได้จากไฟล์นี้ไฟล์เดียว
-import { MONSTERS } from './monsters.js?v=0.49.0';
+import { ZENY_INCOME } from '../config.js?v=0.50.0';
+import { MONSTERS } from './monsters.js?v=0.50.0';
 
 /* ---------- ค่าหลัก ---------- */
 export const CAVE = {
@@ -78,7 +79,7 @@ export const CAVE_MOB_DROPS = [['refine_w', 0.03], ['refine_a', 0.03], ['white_p
 export const CAVE_BOSS_DROPS = [['refine_w', 0.7], ['refine_a', 0.7], ['refine_guard', 0.04], ['exp_15', 0.12], ['drop_15', 0.08], ['refine_luck', 0.03]];
 export const CAVE_FINAL_DROPS = [['refine_w', 1], ['refine_a', 1], ['refine_guard', 0.12], ['exp_2', 0.15], ['refine_luck', 0.12], ['card_clover', 0.04]];
 export function caveChest(lv) {
-  return { zeny: 1500 + lv * 220, items: [['refine_w', 2], ['refine_a', 2], ...(lv >= 50 ? [['refine_guard', 1]] : []), ['exp_15', 1]] };
+  return { zeny: Math.round((1500 + lv * 220) * ZENY_INCOME), items: [['refine_w', 2], ['refine_a', 2], ...(lv >= 50 ? [['refine_guard', 1]] : []), ['exp_15', 1]] };
 }
 // หอคอย: จ่ายเงินทุกชั้นที่ผ่าน (ครั้งแรกของวัน) · ทุก 5 ชั้นได้ผลึก · ทุก 10 ชั้นได้ของพิเศษ
 export function towerFloorReward(floor) {
@@ -86,7 +87,7 @@ export function towerFloorReward(floor) {
   if (floor % 5 === 0) items.push([floor % 10 === 0 ? 'refine_w' : 'refine_a', 1 + Math.floor(floor / 30)]);
   if (floor % 10 === 0) items.push([floor >= 50 ? 'refine_luck' : 'refine_w', 1], [floor >= 30 ? 'exp_2' : 'exp_15', 1]);
   if (floor % 25 === 0) items.push(['refine_guard', 1]);
-  return { zeny: Math.round(40 * L * (floor % 10 === 0 ? 4 : floor % 5 === 0 ? 2 : 1)), items };
+  return { zeny: Math.round(40 * L * (floor % 10 === 0 ? 4 : floor % 5 === 0 ? 2 : 1) * ZENY_INCOME), items };
 }
 export const TOWER_MOB_DROPS = [['refine_w', 0.015], ['refine_a', 0.015]];
 

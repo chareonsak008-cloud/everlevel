@@ -5,8 +5,9 @@
 //        refine {n} ตีบวกสำเร็จ · socket {n} ใส่การ์ด · level {n}
 // give = ไอเทมที่ได้ทันทีตอนรับเควส · rewards = { exp: [base, job], zeny, items: [[id, จำนวน]] }
 
-import { WEEKLY_QUESTS } from './events.js?v=0.49.0';
-import { QUEST_EXTRA_REWARDS } from './consumables.js?v=0.49.0';
+import { ZENY_INCOME } from '../config.js?v=0.50.0';
+import { WEEKLY_QUESTS } from './events.js?v=0.50.0';
+import { QUEST_EXTRA_REWARDS } from './consumables.js?v=0.50.0';
 
 export const QUEST_KIND = {
   main: { name: 'เนื้อเรื่อง', color: '#ffd27a' },
@@ -256,6 +257,9 @@ export const QUESTS = {
   },
 };
 export const JOB2_QUEST = { swordsman: 'j2_knight', mage: 'j2_wizard', archer: 'j2_hunter', acolyte: 'j2_priest' };
+
+// v0.50: Zeny รางวัลเควสต์เหลือ 1/3
+for (const q of Object.values(QUESTS)) if (q.rewards && q.rewards.zeny && !q.rewards.zenyBase) { q.rewards.zenyBase = q.rewards.zeny; q.rewards.zeny = Math.max(10, Math.round((q.rewards.zeny * ZENY_INCOME) / 10) * 10); }
 
 // v0.13: ของรางวัลเพิ่ม (ใบคูณ ไข่สัตว์เลี้ยง กระเป๋าขยาย ฯลฯ — ดู data/consumables.js)
 for (const [id, extra] of Object.entries(QUEST_EXTRA_REWARDS)) {

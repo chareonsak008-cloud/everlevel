@@ -28,7 +28,7 @@ export const TIER_STATS = {
 // ดาว: แต่ละดาว รัศมี +10% และความเร็ว +5% · ★5 ได้ออร่าทองรอบตัวสัตว์เลี้ยง
 export const STAR_MAX = 5;
 export const STAR_BONUS = { radius: 0.1, speed: 0.05 };
-export const PET_DUP_ZENY = { common: 300, rare: 1500, epic: 6000, legend: 25000, mythic: 120000, celestial: 500000 };
+export const PET_DUP_ZENY = { common: 100, rare: 500, epic: 2000, legend: 8000, mythic: 40000, celestial: 160000 };   // v0.50 ลดเหลือ 1/3
 
 // mods: ค่าที่ระบบเกมจะอ่านไปใช้ (preview ยังไม่ผูกกับเกม)
 export const PETS = {
