@@ -1,9 +1,9 @@
 // v0.27: หน้าต่างแผนที่ (N) — แท็บ "แผนที่นี้" (ผังเมือง/ทุ่ง + ป้ายชื่อ NPC/ทางออก) และ "แผนที่โลก" (ภูมิภาค · เลเวล · มอนสเตอร์)
-import { TILE } from '../config.js?v=0.46.0';
-import { TILE_INFO } from '../data/tileTypes.js?v=0.46.0';
-import { MAPS } from '../data/maps/index.js?v=0.46.0';
-import { MONSTERS } from '../data/monsters.js?v=0.46.0';
-import { GameMap } from '../world/GameMap.js?v=0.46.0';
+import { TILE } from '../config.js?v=0.47.0';
+import { TILE_INFO } from '../data/tileTypes.js?v=0.47.0';
+import { MAPS } from '../data/maps/index.js?v=0.47.0';
+import { MONSTERS } from '../data/monsters.js?v=0.47.0';
+import { GameMap } from '../world/GameMap.js?v=0.47.0';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const SVC = { shop: ['#ff9a3a', 'ร้านค้า'], storage: ['#5ae0a8', 'คลัง'], warp: ['#7fe0ff', 'วาร์ป'], job: ['#d49bff', 'เปลี่ยนอาชีพ'] };
@@ -18,7 +18,13 @@ const WORLD = {
   ember_caldera: { x: 520, y: 150, land: '#6a3f36' },
   ancient_ruins: { x: 590, y: 280, land: '#cbb98a' },
   haunted_forest: { x: 560, y: 420, land: '#4f4866' },
+  // v0.46 หมู่เกาะเหนือขีดจำกัด (ทะเลตะวันออก)
+  sunken_coast: { x: 785, y: 425, land: '#dccb9a' },
+  crystal_valley: { x: 880, y: 270, land: '#8a7ab8' },
+  sky_citadel: { x: 790, y: 105, land: '#eef6ff', sky: true },
 };
+const WW = 980, WH = 500;   // v0.46 ขยายผืนผ้าใบให้มีที่สำหรับหมู่เกาะ
+const SEA_LINKS = [['haunted_forest', 'sunken_coast']];   // เส้นทางเรือ/วาร์ป (ไม่มีประตูมิติตรง)
 
 function shade(hex, k) {
   const n = parseInt(hex.slice(1), 16); const r = n >> 16, g = (n >> 8) & 255, b = n & 255;
@@ -46,11 +52,11 @@ export class MapWindow {
     this.cache = new Map();
     this.cv = this.$('#mwCanvas'); this.ctx = this.cv.getContext('2d');
     this.wcv = this.$('#wmCanvas'); this.wctx = this.wcv.getContext('2d');
-    this.wcv.width = 680; this.wcv.height = 500;
+    this.wcv.width = WW; this.wcv.height = WH;
     for (const b of this.el.querySelectorAll('[data-tab]')) b.addEventListener('click', () => this.show(b.dataset.tab));
     this.$('#mapClose').addEventListener('click', () => this.toggle(false));
     this.wcv.addEventListener('click', (e) => {
-      const r = this.wcv.getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * 680, y = ((e.clientY - r.top) / r.height) * 500;
+      const r = this.wcv.getBoundingClientRect(), x = ((e.clientX - r.left) / r.width) * WW, y = ((e.clientY - r.top) / r.height) * WH;
       let best = null, bd = 46;
       for (const [id, p] of Object.entries(WORLD)) { if (!MAPS[id]) continue; const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = id; } }
       if (best) { this.sel = best; this.selMob = null; this.renderInfo(); this.drawWorld(); }
@@ -187,16 +193,16 @@ export class MapWindow {
   /* ---------- แผนที่โลก ---------- */
   worldBase() {
     if (this.wbase) return this.wbase;
-    const c = document.createElement('canvas'); c.width = 680; c.height = 500; const g = c.getContext('2d'); const r = rng(20261013);
-    const sea = g.createLinearGradient(0, 0, 0, 500); sea.addColorStop(0, '#1d5a8c'); sea.addColorStop(1, '#123e6a'); g.fillStyle = sea; g.fillRect(0, 0, 680, 500);
-    for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(255,255,255,${0.03 + r() * 0.05})`; g.fillRect(r() * 680, r() * 500, 6 + r() * 14, 1); }
+    const c = document.createElement('canvas'); c.width = WW; c.height = WH; const g = c.getContext('2d'); const r = rng(20261013);
+    const sea = g.createLinearGradient(0, 0, 0, WH); sea.addColorStop(0, '#1d5a8c'); sea.addColorStop(1, '#123e6a'); g.fillStyle = sea; g.fillRect(0, 0, WW, WH);
+    for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(255,255,255,${0.03 + r() * 0.05})`; g.fillRect(r() * WW, r() * WH, 6 + r() * 14, 1); }
     // ผืนแผ่นดิน: ขอบชายหาด → สีตามภูมิภาค
     const ids = Object.keys(WORLD).filter((id) => MAPS[id]);
     const blob = (x, y, rr, col) => { for (let k = 0; k < 9; k++) { const a = r() * 6.28, d = r() * rr * 0.55; g.fillStyle = col; g.beginPath(); g.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, rr * (0.55 + r() * 0.35), 0, 7); g.fill(); } };
     const r0 = r;
-    for (const id of ids) { const p = WORLD[id]; blob(p.x, p.y, 92, '#e8d8a8'); }
-    for (const id of ids) { const p = WORLD[id]; blob(p.x, p.y, 80, shade(p.land, -0.12)); }
-    for (const id of ids) { const p = WORLD[id]; blob(p.x, p.y, 66, p.land); }
+    for (const id of ids) { const p = WORLD[id]; if (p.sky) { g.fillStyle = 'rgba(0,10,30,.35)'; g.beginPath(); g.ellipse(p.x + 10, p.y + 70, 70, 18, 0, 0, 7); g.fill(); blob(p.x, p.y + 30, 70, '#ffffff'); } else blob(p.x, p.y, 92, '#e8d8a8'); }
+    for (const id of ids) { const p = WORLD[id]; blob(p.x, p.y, p.sky ? 62 : 80, shade(p.land, -0.12)); }
+    for (const id of ids) { const p = WORLD[id]; blob(p.x, p.y, p.sky ? 50 : 66, p.land); }
     void r0;
     // ภูเขา/ต้นไม้ประดับตามธีม
     for (const id of ids) {
@@ -205,6 +211,9 @@ export class MapWindow {
         const a = r() * 6.28, d = 18 + r() * 44, x = p.x + Math.cos(a) * d, y = p.y + Math.sin(a) * d * 0.8;
         if (id === 'frostveil' || id === 'ember_caldera') { g.fillStyle = shade(p.land, -0.25); g.beginPath(); g.moveTo(x, y - 10); g.lineTo(x + 8, y + 5); g.lineTo(x - 8, y + 5); g.fill(); g.fillStyle = id === 'frostveil' ? '#fff' : '#ff8a3a'; g.beginPath(); g.moveTo(x, y - 10); g.lineTo(x + 3, y - 5); g.lineTo(x - 3, y - 5); g.fill(); }
         else if (id === 'ancient_ruins') { g.fillStyle = '#8a7a5a'; g.fillRect(x - 2, y - 6, 4, 9); }
+        else if (id === 'crystal_valley') { g.fillStyle = ['#e0c8ff', '#7fe0ff', '#ff9ae8'][i % 3]; g.beginPath(); g.moveTo(x, y - 11); g.lineTo(x + 4, y + 3); g.lineTo(x - 4, y + 3); g.fill(); }
+        else if (id === 'sky_citadel') { if (i < 6) { g.fillStyle = '#d8d0b8'; g.fillRect(x - 2, y - 8, 4, 10); g.fillStyle = '#fff1b0'; g.fillRect(x - 3, y - 10, 6, 2); } }
+        else if (id === 'sunken_coast') { if (d > 40) continue; g.fillStyle = '#3f9a6a'; g.beginPath(); g.arc(x, y, 3.5, 0, 7); g.fill(); g.fillStyle = '#7a5a3a'; g.fillRect(x - 1, y, 2, 5); }
         else if (id !== 'asteria_town') { g.fillStyle = shade(p.land, -0.3); g.beginPath(); g.arc(x, y, 4 + r() * 2, 0, 7); g.fill(); }
       }
     }
@@ -226,6 +235,9 @@ export class MapWindow {
         g.strokeStyle = '#f3dc95'; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke();
       }
     }
+    // v0.46 เส้นทางเรือ (เส้นประฟ้า)
+    g.strokeStyle = '#9adcff'; g.setLineDash([3, 6]);
+    for (const [a1, b1] of SEA_LINKS) { const a = WORLD[a1], b = WORLD[b1]; if (!MAPS[a1] || !MAPS[b1]) continue; g.beginPath(); g.moveTo(a.x, a.y); g.quadraticCurveTo((a.x + b.x) / 2, Math.max(a.y, b.y) + 40, b.x, b.y); g.stroke(); }
     g.setLineDash([]);
     for (const id of Object.keys(WORLD)) {
       const info = regionInfo(id); if (!info) continue;
@@ -242,7 +254,7 @@ export class MapWindow {
       if (id === cur) { g.font = '600 11px Mitr, sans-serif'; g.fillStyle = '#ff8a9a'; g.fillText('▼ คุณอยู่ที่นี่', p.x, p.y - 28); }
     }
     // เข็มทิศ
-    g.save(); g.translate(640, 46); g.fillStyle = '#0e1836cc'; g.beginPath(); g.arc(0, 0, 24, 0, 7); g.fill(); g.strokeStyle = '#d8b45c'; g.lineWidth = 2; g.stroke();
+    g.save(); g.translate(WW - 40, 46); g.fillStyle = '#0e1836cc'; g.beginPath(); g.arc(0, 0, 24, 0, 7); g.fill(); g.strokeStyle = '#d8b45c'; g.lineWidth = 2; g.stroke();
     g.fillStyle = '#f3dc95'; g.beginPath(); g.moveTo(0, -18); g.lineTo(5, 0); g.lineTo(-5, 0); g.fill(); g.fillStyle = '#9fb0d6'; g.beginPath(); g.moveTo(0, 18); g.lineTo(5, 0); g.lineTo(-5, 0); g.fill();
     g.font = '700 10px Cinzel, serif'; g.fillStyle = '#070d22'; g.fillText('N', 0, -8); g.restore();
   }

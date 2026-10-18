@@ -1,6 +1,6 @@
-import { MONSTERS } from '../data/monsters.js?v=0.46.0';
-import { eventRate, localBossRuns, WORLD_BOSSES, weekKey } from '../data/events.js?v=0.46.0';
-import { TILE } from '../config.js?v=0.46.0';
+import { MONSTERS } from '../data/monsters.js?v=0.47.0';
+import { eventRate, localBossRuns, WORLD_BOSSES, weekKey } from '../data/events.js?v=0.47.0';
+import { TILE } from '../config.js?v=0.47.0';
 export class EventService {
  constructor(game) {
   this.storagePrefix=window.__contentPreview?'everlevel-preview':'everlevel-local';
@@ -82,7 +82,7 @@ export class EventService {
    const b=this.state?.runs?.find(x=>x.id===m.worldRun);if(b)Object.assign(b,result);
    if(result.status==='defeated'){
     this.g.hud.log('🏆 บอสโลกถูกกำจัด! ผู้ร่วมต่อสู้รับรางวัลทางจดหมาย','r-epic');
-    if(!this.online){this.g.player.addZeny(30000);this.g.player.inventory.add('royal_jelly',5);this.credit(m.worldRun,result.defeated_at);this.g.hud.log('โหมดทดสอบ: ได้รับ 30,000 Zeny และรอยัลเจลลี่ 5 ชิ้น','sys');}
+    if(!this.online){const rw=WORLD_BOSSES[m.type]?.reward||{items:[['royal_jelly',5]],zeny:30000};this.g.player.addZeny(rw.zeny);for(const [id,q] of rw.items)this.g.player.inventory.add(id,q,true);this.g.refreshItemsUI();this.credit(m.worldRun,result.defeated_at);this.g.hud.log(`โหมดทดสอบ: ได้รับรางวัลบอสโลก (${rw.zeny.toLocaleString('en-US')} Zeny + ของ ${rw.items.length} ชนิด)`,'sys');}
     await this.refresh();
    }
   }catch(e){this.error=e.message;this.g.eventWin?.render();}

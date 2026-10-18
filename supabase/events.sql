@@ -103,7 +103,7 @@ grant execute on function public.gm_event_rate(text,integer,integer) to authenti
 
 create or replace function public.world_boss_hit(p_id text,p_damage integer,p_slot integer)
 returns jsonb language plpgsql security definer set search_path=public as $$
-declare b world_boss_runs; p world_boss_participants; c record; v_damage integer; mail bigint; w record;
+declare b world_boss_runs; p world_boss_participants; c record; v_damage integer; mail bigint; w record; items jsonb; z bigint;
 begin
  if auth.uid() is null then raise exception 'Login required' using errcode='42501';end if;
  if p_damage is null or p_damage<=0 then raise exception 'Invalid damage';end if;
@@ -122,11 +122,25 @@ begin
  update world_boss_runs set hp=hp-v_damage,defeated_at=case when hp-v_damage<=0 then now() else null end,status=case when hp-v_damage<=0 then 'defeated' else 'active' end where id=p_id returning * into b;
  if b.status='defeated' then
   insert into event_notices(message) values('บอสโลก '||(case b.type when 'world_aurex' then 'ออเร็กซ์ จอมทัพโลก' else 'น็อคธาร์ ราชันคราสโลก' end)||' ถูกกำจัดแล้ว! ผู้ร่วมต่อสู้รับรางวัลทางจดหมาย');
-  for w in select wp.user_id,ch.name from world_boss_participants wp join characters ch on ch.user_id=wp.user_id and ch.slot=wp.slot where wp.run_id=p_id and wp.damage>0 loop   -- v0.38: เดิมใช้ชื่อ p/c ซ้ำกับตัวแปร → error ตอนตีครั้งสุดท้าย บอสเลยไม่ตาย
+  -- v0.47 รางวัลพิเศษของแต่ละบอสโลก + โบนัสอันดับดาเมจ 1–3 + โอกาสลุ้นอาวุธ
+  for w in select wp.user_id,ch.name,row_number() over (order by wp.damage desc) as rk
+           from world_boss_participants wp join characters ch on ch.user_id=wp.user_id and ch.slot=wp.slot
+           where wp.run_id=p_id and wp.damage>0 loop
    insert into world_boss_rewards(run_id,user_id) values(p_id,w.user_id) on conflict do nothing;
    if found then
+    if b.type='world_nocthar' then
+     items:='[["royal_jelly",8],["refine_w",4],["refine_a",4],["refine_guard",2],["dread_crown",1],["box_gold",1]]'::jsonb; z:=80000;
+     if random()<0.15 then items:=items||jsonb_build_array(jsonb_build_array((array['bloodmoon_sword','bloodmoon_staff','bloodmoon_bow','bloodmoon_mace','bloodmoon_knife'])[1+floor(random()*5)::int],1)); end if;
+    else
+     items:='[["royal_jelly",5],["refine_w",3],["refine_a",3],["refine_guard",1],["guardian_core",1],["box_silver",2]]'::jsonb; z:=50000;
+     if random()<0.15 then items:=items||jsonb_build_array(jsonb_build_array((array['spectral_sword','spectral_staff','spectral_bow','spectral_mace','spectral_knife'])[1+floor(random()*5)::int],1)); end if;
+    end if;
+    if w.rk<=3 then items:=items||'[["box_gold",1],["refine_guard",1]]'::jsonb; z:=z+(4-w.rk)*20000; end if;
+    select jsonb_agg(jsonb_build_array(k,q)) into items from (select e->>0 k,sum((e->>1)::int) q from jsonb_array_elements(items) e group by 1) t;   -- รวมของชนิดเดียวกัน
     insert into mails(to_name,sender,title,body,items,zeny,per)
-    values(w.name,'World Event','รางวัลบอสโลก','ขอบคุณที่ร่วมพิชิต '||b.type||' · รอบ '||p_id,'[["royal_jelly",5],["refine_w",2],["refine_a",2]]'::jsonb,30000,'account') returning id into mail;
+    values(w.name,'World Event',case when w.rk<=3 then 'รางวัลบอสโลก · ดาเมจอันดับ '||w.rk else 'รางวัลบอสโลก' end,
+           'ขอบคุณที่ร่วมพิชิต '||(case b.type when 'world_aurex' then 'ออเร็กซ์ จอมทัพโลก' else 'น็อคธาร์ ราชันคราสโลก' end)||' · รอบ '||p_id||case when w.rk<=3 then ' · คุณทำดาเมจอันดับ '||w.rk||' ได้โบนัสเพิ่ม' else '' end,
+           items,z,'account') returning id into mail;
     update world_boss_rewards set mail_id=mail where run_id=p_id and user_id=w.user_id;
    end if;
   end loop;
