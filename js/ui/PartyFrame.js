@@ -1,6 +1,6 @@
 // v0.37 กรอบปาร์ตี้ใต้แผงตัวละคร (ชื่อ เลเวล เลือดเพื่อน · อยู่แมพไหน) + กล่องคำเชิญปาร์ตี้/กิลด์
-import { JOBS } from '../data/progression.js?v=0.44.5';
-import { MAPS } from '../data/maps/index.js?v=0.44.5';
+import { JOBS } from '../data/progression.js?v=0.44.6';
+import { MAPS } from '../data/maps/index.js?v=0.44.6';
 
 export class PartyFrame {
   constructor(root, game) {

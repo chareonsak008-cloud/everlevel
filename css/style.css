@@ -679,17 +679,60 @@ body.touch .dlg { z-index: 5; }
   .bossbar { top: calc(234px + env(safe-area-inset-top, 0px)); left: 8px; right: 8px; padding: 6px 10px; }
 }
 
-/* หน้าจอโหลด */
+/* หน้าจอโหลด — v0.44.6 ภาพเมืองเป็นฉากหลัง · โลโก้ · แถบทอง-น้ำเงินพร้อมปาร์ตี้ 4 อาชีพวิ่งตาม */
 .loading {
-  position: absolute; inset: 0; display: grid; place-content: center; gap: 10px; text-align: center;
-  background: radial-gradient(ellipse at 50% 40%, #3a2c4e, #15111c 70%);
-  transition: opacity 0.8s ease, visibility 0.8s;
+  position: absolute; inset: 0; z-index: 60; overflow: hidden; text-align: center; color: #f4e9d1;
+  background: #120d1c; transition: opacity 0.8s ease, visibility 0.8s;
 }
-.loading-title { font-family: var(--display); font-size: 46px; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5); }
-.loading-sub { color: var(--muted); font-size: 15px; letter-spacing: 0.08em; }
-.loading-bar { width: 220px; height: 4px; margin: 6px auto 0; border-radius: 4px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
-.loading-bar i { display: block; width: 40%; height: 100%; background: var(--gold); border-radius: 4px; animation: load 1.2s ease-in-out infinite; }
-@keyframes load { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+.ld-bg { position: absolute; inset: -3%; background: #1a1026 url('../assets/brand/title_bg.jpg') center 70% / cover no-repeat; animation: ldZoom 24s ease-in-out infinite alternate; }
+.ld-shade { position: absolute; inset: 0; background:
+  radial-gradient(ellipse 70% 55% at 50% 38%, rgba(18, 12, 30, 0.15), rgba(10, 8, 20, 0.7) 75%),
+  linear-gradient(180deg, rgba(10, 8, 22, 0.55) 0%, rgba(10, 8, 22, 0.05) 30%, rgba(8, 10, 26, 0.35) 62%, rgba(6, 8, 20, 0.92) 100%); }
+.ld-sparks { position: absolute; inset: 0; pointer-events: none; }
+.ld-sparks i { position: absolute; bottom: -10px; width: 6px; height: 6px; border-radius: 50%; background: #ffe7a0; box-shadow: 0 0 8px 2px rgba(255, 210, 120, 0.7);
+  transform: scale(var(--s, 1)); opacity: 0; animation: ldSpark 9s linear infinite; }
+.ld-center { position: absolute; left: 50%; top: 34%; translate: -50% -50%; width: min(760px, 88vw); display: grid; justify-items: center; gap: 10px; }
+.ld-logo { width: 100%; height: auto; filter: drop-shadow(0 6px 0 rgba(40, 18, 6, 0.55)) drop-shadow(0 0 26px rgba(255, 190, 90, 0.35)); animation: ldGlow 3.2s ease-in-out infinite; }
+.ld-tag { margin: 0; padding: 6px 18px; border-radius: 999px; font-size: clamp(12px, 1.6vw, 16px); letter-spacing: 0.04em; color: #fff3d2;
+  background: linear-gradient(90deg, rgba(14, 18, 44, 0), rgba(14, 18, 44, 0.78) 18%, rgba(14, 18, 44, 0.78) 82%, rgba(14, 18, 44, 0)); text-shadow: 0 1px 2px #000; }
+.ld-foot { position: absolute; left: 50%; bottom: calc(34px + env(safe-area-inset-bottom, 0px)); translate: -50% 0; width: min(640px, calc(100% - 48px)); display: grid; gap: 8px; }
+.ld-track { position: relative; padding-top: 74px; }
+.ld-party { position: absolute; top: 4px; left: 0; translate: -100% 0; display: flex; align-items: flex-end; transition: left 0.25s linear; }
+.ld-hero { display: block; width: 83px; height: 71px; margin-right: -38px; background: no-repeat 0 0 / 664px 71px; image-rendering: pixelated; animation: ldRun 0.72s steps(8) infinite; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.55)); }
+.ld-hero:last-child { margin-right: -22px; }
+.ld-hero.h-swordsman { background-image: url('../assets/ui/loading/run_swordsman.png'); }
+.ld-hero.h-archer { background-image: url('../assets/ui/loading/run_archer.png'); animation-delay: -0.18s; }
+.ld-hero.h-mage { background-image: url('../assets/ui/loading/run_mage.png'); animation-delay: -0.36s; }
+.ld-hero.h-acolyte { background-image: url('../assets/ui/loading/run_acolyte.png'); animation-delay: -0.54s; }
+.ld-bar { position: relative; height: 16px; border-radius: 10px; padding: 3px; box-sizing: border-box;
+  background: linear-gradient(#0d1430, #1b2550); border: 2px solid #c99a4a;
+  box-shadow: 0 0 0 1px #3a2610, inset 0 2px 6px rgba(0, 0, 0, 0.7), 0 0 18px rgba(255, 190, 90, 0.18); }
+.ld-bar::before, .ld-bar::after { content: ''; position: absolute; top: 50%; width: 14px; height: 14px; translate: 0 -50%; rotate: 45deg; background: linear-gradient(135deg, #fff1c0, #d9a441 55%, #8a5a1c); border: 1px solid #3a2610; }
+.ld-bar::before { left: -11px; } .ld-bar::after { right: -11px; }
+.ld-fill { display: block; height: 100%; width: 0; border-radius: 6px; position: relative; overflow: hidden;
+  background: linear-gradient(180deg, #fff2b8 0%, #ffcf5a 45%, #e08a1e 100%); box-shadow: 0 0 10px rgba(255, 200, 90, 0.7); }
+.ld-fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 0 35%, rgba(255, 255, 255, 0.75) 48%, transparent 60%); background-size: 200% 100%; animation: ldShine 1.6s linear infinite; }
+.ld-gem { position: absolute; top: 50%; left: 0; width: 18px; height: 18px; translate: -50% -50%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, #ffffff 0 18%, rgba(255, 230, 150, 0.9) 30%, rgba(255, 180, 60, 0) 70%); animation: ldPulse 1s ease-in-out infinite; }
+.ld-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 0 4px; }
+.ld-step { font-size: 14px; color: #e9dcbf; letter-spacing: 0.03em; text-shadow: 0 1px 3px #000; }
+.ld-pct { font-family: var(--display); font-size: 18px; font-weight: 700; color: #ffd982; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 #4a2a0a, 0 0 10px rgba(255, 190, 90, 0.4); }
+.ld-tip { margin: 2px 0 0; font-size: 13px; color: #cfc4ad; line-height: 1.5; text-shadow: 0 1px 2px #000; min-height: 2.6em; }
+.ld-tip b { display: inline-block; margin-right: 6px; padding: 1px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: #2a1d10; background: linear-gradient(#ffe9b0, #e0a640); }
+@keyframes ldRun { to { background-position: -664px 0; } }
+@keyframes ldZoom { from { transform: scale(1); } to { transform: scale(1.06) translateY(-1%); } }
+@keyframes ldGlow { 50% { filter: drop-shadow(0 6px 0 rgba(40, 18, 6, 0.55)) drop-shadow(0 0 40px rgba(255, 200, 110, 0.6)); } }
+@keyframes ldShine { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+@keyframes ldPulse { 50% { transform: scale(1.35); opacity: 0.7; } }
+@keyframes ldSpark { 0% { opacity: 0; transform: translateY(0) scale(var(--s, 1)); } 12% { opacity: 0.9; } 80% { opacity: 0.6; } 100% { opacity: 0; transform: translateY(-78vh) translateX(30px) scale(var(--s, 1)); } }
+@media (max-height: 480px) {
+  .ld-center { top: 30%; width: min(520px, 70vw); }
+  .ld-foot { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); gap: 4px; }
+  .ld-track { padding-top: 60px; } .ld-hero { transform: scale(0.85); transform-origin: bottom center; }
+  .ld-tip { display: none; }
+}
+/* เก่า: ยังใช้ชื่อคลาสเดิมบางส่วน */
+.loading-sub { color: var(--muted); }
 #game.ready .loading { opacity: 0; visibility: hidden; }
 
 .fatal { position: absolute; left: 16px; right: 16px; top: 45%; z-index: 5; padding: 16px; background: var(--panel-solid); border: 1px solid var(--hp); border-radius: 10px; text-align: center; }
@@ -709,7 +752,7 @@ body.touch .dlg { z-index: 5; }
 @media (max-width: 900px) and (min-width: 601px) { .target { top: calc(210px + env(safe-area-inset-top, 0px)); width: 220px; } }
 @media (prefers-reduced-motion: reduce) {
   .banner, .loading { transition: none; }
-  .loading-bar i { animation: none; }
+  .ld-bg, .ld-logo, .ld-fill::after, .ld-gem, .ld-sparks i { animation: none; }
 }
 
 /* ================= v0.9 แฟชั่น: กล่องสุ่ม · ตู้แฟชั่น ================= */

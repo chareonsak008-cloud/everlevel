@@ -1,10 +1,10 @@
 // v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → แอดมินอนุมัติ)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.44.5';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.44.5';
-import { iconURL } from '../render/ItemIcons.js?v=0.44.5';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.44.5';
-import { ready } from './TradeMarket.js?v=0.44.5';
+import { ITEMS, RARITY } from '../data/items.js?v=0.44.6';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.44.6';
+import { iconURL } from '../render/ItemIcons.js?v=0.44.6';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.44.6';
+import { ready } from './TradeMarket.js?v=0.44.6';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const QR_SRC = 'assets/ui/topup_qr.png';   // ภาพ QR พร้อมเพย์ของเจ้าของเกม (ใส่ไฟล์นี้เอง)

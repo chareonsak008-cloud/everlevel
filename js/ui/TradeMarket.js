@@ -1,8 +1,8 @@
 // v0.42 แลกของตัวต่อตัว + ตลาดฝากขาย
 // ทุกอย่างผ่านฟังก์ชันบนเซิร์ฟเวอร์ (supabase/trade.sql) — เครื่องผู้เล่นแค่ส่งคำขอ แล้วดึงผล (ledger) มาปรับกระเป๋า
-import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.44.5';
-import { iconURL } from '../render/ItemIcons.js?v=0.44.5';
-import { buyPrice, sellPrice } from '../data/shops.js?v=0.44.5';
+import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.44.6';
+import { iconURL } from '../render/ItemIcons.js?v=0.44.6';
+import { buyPrice, sellPrice } from '../data/shops.js?v=0.44.6';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

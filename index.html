@@ -17,11 +17,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Cinzel:wght@600;700&family=Lilita+One&family=Pixelify+Sans:wght@500;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=0.44.5">
-<link rel="stylesheet" href="css/nameplates.css?v=0.44.5">
-<link rel="stylesheet" href="css/events.css?v=0.44.5">
-<link rel="stylesheet" href="css/trade.css?v=0.44.5">
-<link rel="stylesheet" href="css/skin.css?v=0.44.5">
+<link rel="stylesheet" href="css/style.css?v=0.44.6">
+<link rel="stylesheet" href="css/nameplates.css?v=0.44.6">
+<link rel="stylesheet" href="css/events.css?v=0.44.6">
+<link rel="stylesheet" href="css/trade.css?v=0.44.6">
+<link rel="stylesheet" href="css/skin.css?v=0.44.6">
 </head>
 <body>
 <!--GAME-START-->
@@ -244,7 +244,7 @@
     <div class="tools">
       <span class="net" id="netStatus" data-s="offline" title="ออฟไลน์"><i aria-hidden="true"></i><span>ออฟไลน์</span></span>
       <span id="fps">60 FPS</span>
-      <span class="ver">v0.44.5</span>
+      <span class="ver">v0.44.6</span>
       <button id="btnBook" type="button" aria-label="สมุดสะสม" title="สมุดสะสม (B)">📖</button>
       <button id="btnOnline" type="button" aria-label="ผู้เล่นออนไลน์" title="ผู้เล่นออนไลน์">👥</button>
       <button id="btnSettings" type="button" aria-label="ตั้งค่า" title="ตั้งค่า">⚙</button>
@@ -277,14 +277,58 @@
   </div>
   <div class="hurt" id="hurt"></div>
   <div class="fade"></div>
-  <div class="loading" id="loading">
-    <div class="loading-title">Everlevel</div>
-    <div class="loading-sub">กำลังสร้างโลก…</div>
-    <div class="loading-bar"><i></i></div>
+  <div class="loading" id="loading" role="status" aria-live="polite">
+    <div class="ld-bg" aria-hidden="true"></div>
+    <div class="ld-shade" aria-hidden="true"></div>
+    <div class="ld-sparks" aria-hidden="true"></div>
+    <div class="ld-center">
+      <img class="ld-logo" src="assets/brand/logo.png" alt="Everlevel" width="1544" height="256">
+      <p class="ld-tag">MMORPG พิกเซลบนเบราว์เซอร์ · ผจญภัยไปกับเพื่อน</p>
+    </div>
+    <div class="ld-foot">
+      <div class="ld-track">
+        <div class="ld-party" aria-hidden="true"><i class="ld-hero h-acolyte"></i><i class="ld-hero h-mage"></i><i class="ld-hero h-archer"></i><i class="ld-hero h-swordsman"></i></div>
+        <div class="ld-bar"><i class="ld-fill"></i><b class="ld-gem"></b></div>
+      </div>
+      <div class="ld-row"><span class="loading-sub ld-step">กำลังสร้างโลก…</span><span class="ld-pct">0%</span></div>
+      <p class="ld-tip"><b>เคล็ดลับ</b> <span class="ld-tiptext"></span></p>
+    </div>
   </div>
+  <script>
+  // v0.44.6 หน้าโหลด: แถบเดินหน้าเรื่อย ๆ (ช้าลงเมื่อใกล้ 92%) · เกมพร้อม (#game.ready) → เต็ม 100% แล้วจางหาย · เปลี่ยนเคล็ดลับทุก 4 วิ
+  (function () {
+    var root = document.getElementById('game'), L = document.getElementById('loading'); if (!root || !L) return;
+    var fill = L.querySelector('.ld-fill'), gem = L.querySelector('.ld-gem'), party = L.querySelector('.ld-party'), pct = L.querySelector('.ld-pct'), step = L.querySelector('.ld-step'), tip = L.querySelector('.ld-tiptext');
+    var TIPS = ['ดับเบิลคลิกไอเทมในกระเป๋าเพื่อใช้หรือสวมใส่', 'ลากสกิลไปวางที่ปุ่มลัด F1–F9 ได้', 'แตะที่ผู้เล่นคนอื่นเพื่อขอแลกเปลี่ยนไอเทมหรือชวนเข้าปาร์ตี้', 'นายตลาดในเมืองรับฝากขายของ 7 วัน ใครซื้อเงินเข้าทันทีแม้ออฟไลน์', 'กด Z เพื่อเปิด/ปิดโหมดล่าอัตโนมัติ', 'เช็กอินทุกวันในหน้ากิจกรรมเพื่อรับของรางวัล', 'นั่งพักข้างกองไฟจะฟื้น HP/SP เร็วขึ้น', 'ตีบวกอุปกรณ์ได้ที่ช่างตีเหล็ก ยิ่งบวกสูงยิ่งเสี่ยง', 'ไข่สัตว์เลี้ยงฟักแล้วจะช่วยเก็บของให้อัตโนมัติ', 'เลื่อนลูกกลิ้งเมาส์เพื่อซูมกล้อง · Q / E หมุนกล้อง'];
+    var STEPS = [[0, 'กำลังโหลดไฟล์เกม…'], [22, 'กำลังวาดตัวละครและมอนสเตอร์…'], [45, 'กำลังเชื่อมต่อเซิร์ฟเวอร์…'], [65, 'กำลังสร้างโลก…'], [85, 'กำลังปลุกเหล่ามอนสเตอร์…']];
+    var p = 0, last = 0, shown = -1, ti = Math.floor(Math.random() * TIPS.length), tipAt = 0, raf = 0, done = false, fade = 0;
+    function setTip() { tip.textContent = TIPS[ti % TIPS.length]; ti++; }
+    function draw() {
+      var v = Math.round(p); if (v !== shown) { shown = v; pct.textContent = v + '%'; }
+      fill.style.width = p + '%'; gem.style.left = p + '%'; party.style.left = p + '%';
+      if (!done) { var s = STEPS[0][1]; for (var i = 0; i < STEPS.length; i++) if (p >= STEPS[i][0]) s = STEPS[i][1]; if (step.textContent !== s) step.textContent = s; }
+    }
+    function tick(t) {
+      raf = 0; var dt = last ? Math.min(0.1, (t - last) / 1000) : 0.016; last = t;
+      if (done) p += (100 - p) * 0.25 + 0.4; else p += (92 - p) * (1 - Math.exp(-dt / 7));   // ค่อย ๆ เข้าใกล้ 92% (ช้าลงเรื่อย ๆ) จนกว่าเกมจะพร้อม
+      if (p > 100) p = 100;
+      if (t > tipAt) { tipAt = t + 4000; setTip(); }
+      draw();
+      if (!(done && p >= 100) && !L.hidden) raf = requestAnimationFrame(tick);
+    }
+    function start(again) { done = false; p = again ? 8 : 0; step.textContent = again ? 'กำลังเข้าสู่โลก…' : STEPS[0][1]; if (!raf) raf = requestAnimationFrame(tick); }
+    function finish() { done = true; step.textContent = 'พร้อมผจญภัย!'; if (!raf) raf = requestAnimationFrame(tick); }
+    // ไว้ให้โค้ดเกมแจ้งความคืบหน้าจริงได้: window.__loadStep(ร้อยละ, ข้อความ)
+    window.__loadStep = function (v, text) { if (v > p) p = Math.min(96, v); if (text) step.textContent = text; };
+    var was = root.classList.contains('ready');
+    new MutationObserver(function () { var r = root.classList.contains('ready'); if (r === was) return; was = r; if (r) finish(); else start(true); }).observe(root, { attributes: true, attributeFilter: ['class'] });
+    var sp = L.querySelector('.ld-sparks'); for (var k = 0; k < 22; k++) { var e = document.createElement('i'); e.style.left = (Math.random() * 100) + '%'; e.style.animationDelay = (-Math.random() * 9) + 's'; e.style.animationDuration = (6 + Math.random() * 6) + 's'; e.style.setProperty('--s', (0.5 + Math.random()).toFixed(2)); sp.append(e); }
+    if (was) finish(); else start(false);
+  })();
+  </script>
 </div>
 <script src="vendor/three.min.js"></script>
-<script type="module" src="js/main.js?v=0.44.5"></script>
+<script type="module" src="js/main.js?v=0.44.6"></script>
 <!--GAME-END-->
 </body>
 </html>
