@@ -70,3 +70,18 @@
 /* v0.44.1 กันซ้อนทับ: กรอบไม่ล้นออกนอกกล่อง · เผื่อขอบในให้ข้อความไม่ชนกรอบทอง · เลื่อนกรอบเป้าหมาย/บอสลงใต้แถบไอคอน */
 .target { top: calc(84px + env(safe-area-inset-top, 0px)) !important; }
 .bossbar { top: calc(150px + env(safe-area-inset-top, 0px)) !important; }
+
+/* v0.44.2 หน้าต่างทุกบานเปิดกลางจอ (กระเป๋า · สกิล · สถานะ · ร้านค้า · คลัง · แผนที่ · เควส · สัตว์เลี้ยง · ตู้แฟชั่น · ตีบวก · จดหมาย
+   · สมุดสะสม · ออโต้ · กิจกรรม · ออนไลน์ · ตั้งค่า · เมนู · ตลาด · แลกของ · ร้านเพชร) — สูงเกินจอเลื่อนดูในหน้าต่างได้ */
+#game .inv, #game .shop, #game .stor, #game .skw, #game .mapwin, #game .status, #game .ward, #game .refine, #game .quest, #game .petw,
+#game .menu-panel, #game .settings, #game .online-win, #game .autow, #game .colw, #game .mailw, #game .tm, #game .event-window,
+.hud .inv, .hud .shop, .hud .stor, .hud .skw, .hud .mapwin, .hud .status, .hud .ward, .hud .refine, .hud .quest, .hud .petw,
+.hud .menu-panel, .hud .settings, .hud .online-win, .hud .autow, .hud .colw, .hud .mailw, .hud .tm, .hud .event-window {
+  position: absolute !important;
+  left: 50% !important; top: 50% !important; right: auto !important; bottom: auto !important;
+  transform: none !important; translate: -50% -50% !important;
+  max-width: calc(100% - 24px) !important;
+  max-height: calc(100% - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+  overflow: auto;
+  z-index: 8 !important; box-sizing: border-box !important;
+}

@@ -1,9 +1,9 @@
 // v0.28 พรีวิวออร่าระเบิดกระจาย — ใช้โมเดล สไปรต์พิกเซล และระบบอนุภาคเดียวกับในเกม
-import { THREE } from './render/three.js?v=0.44.1';
-import { CharacterView } from './render/Characters.js?v=0.44.1';
-import { costumeLook, wearCostume } from './render/Costumes.js?v=0.44.1';
-import { PixelSprites } from './render/PixelSprites.js?v=0.44.1';
-import { COSTUME_BY_ID } from './data/costumes.js?v=0.44.1';
+import { THREE } from './render/three.js?v=0.44.2';
+import { CharacterView } from './render/Characters.js?v=0.44.2';
+import { costumeLook, wearCostume } from './render/Costumes.js?v=0.44.2';
+import { PixelSprites } from './render/PixelSprites.js?v=0.44.2';
+import { COSTUME_BY_ID } from './data/costumes.js?v=0.44.2';
 
 const $ = (s) => document.querySelector(s);
 const AURAS = ['a_supernova', 'a_thunderGod', 'a_prism', 'a_voidRift', 'a_blossomStorm'];
