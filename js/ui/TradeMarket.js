@@ -1,8 +1,8 @@
 // v0.42 แลกของตัวต่อตัว + ตลาดฝากขาย
 // ทุกอย่างผ่านฟังก์ชันบนเซิร์ฟเวอร์ (supabase/trade.sql) — เครื่องผู้เล่นแค่ส่งคำขอ แล้วดึงผล (ledger) มาปรับกระเป๋า
-import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.42.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.42.0';
-import { buyPrice, sellPrice } from '../data/shops.js?v=0.42.0';
+import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.43.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.43.0';
+import { buyPrice, sellPrice } from '../data/shops.js?v=0.43.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -30,7 +30,7 @@ function slotBtn(id, qty, { sel = false, title = '' } = {}) {
 }
 
 // ตัวช่วยร่วม: เช็กว่าพร้อมใช้ระบบเซิร์ฟเวอร์ + เซฟให้ล่าสุดก่อนส่งคำขอ
-async function ready(g) {
+export async function ready(g) {
   if (!g.cloud || !g.online || !g.online.tradeRPC) return 'ต้องเล่นออนไลน์และเซฟบนคลาวด์จึงจะใช้ได้';
   g.dirty = true;
   await g.saveNow(false, true);
