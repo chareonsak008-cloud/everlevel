@@ -1,10 +1,10 @@
 // v0.17: มอนสเตอร์ออกแบบใหม่ทั้งหมด (ใช้ถ่ายเป็นสไปรต์พิกเซลแบบเกม RPG — render/PixelSprites.js)
 // แต่ละชนิด = build (สร้างโมเดลจากชิ้นรูปทรง) + anim (ท่าทางต่อเฟรม) · ส่วนกลาง: กระพริบตอนโดนตี ตาย เกิดใหม่ แช่แข็ง มึน ทุบพื้น
-import { THREE } from './three.js?v=0.46.0';
-import { lin, mergeGeometries } from './Geo.js?v=0.46.0';
-import { toon, toonOwn, addOutline } from './Toon.js?v=0.46.0';
-import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.46.0';
-import { lerpAngle, damp } from '../core/util.js?v=0.46.0';
+import { THREE } from './three.js?v=0.47.0';
+import { lin, mergeGeometries } from './Geo.js?v=0.47.0';
+import { toon, toonOwn, addOutline } from './Toon.js?v=0.47.0';
+import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.47.0';
+import { lerpAngle, damp } from '../core/util.js?v=0.47.0';
 
 const PI = Math.PI;
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -1079,7 +1079,9 @@ DEFS.eel = {
     for (const sx of [-1, 1]) add(head, featherFan(4, 0.3, 0.07, 0.9).scale(sx, 1, 1), fin, sx * 0.2, 0.05, -0.05, false);
     const jaw = grp(head, 0, -0.1, 0.12); add(jaw, new THREE.BoxGeometry(0.22, 0.05, 0.24), belly, 0, 0, 0.08);
     if (d.mvp) { for (let i = -2; i <= 2; i++) add(head, spike(V(i * 0.08, 0.2, -0.02), V(i * 0.15, 1, -0.2), 0.3 - Math.abs(i) * 0.05, 0.04, 5), gold); }
-    return { root, segs, head, jaw };
+    const P = { root, segs, head, jaw };
+    DEFS.eel.anim(v, P, { t: 0, moving: false, atk: 0 });   // วางท่ายืนตั้งแต่สร้าง (ใช้วัดกรอบสไปรต์ ไม่ให้หัวโดนตัด)
+    return P;
   },
   anim(v, P, { t, moving, atk }) {
     const N = P.segs.length, sp = moving ? 6 : 2.4;
@@ -1171,6 +1173,61 @@ DEFS.seraph = {
     P.halo.rotation.z = t * 0.8;
     P.arms[0].rotation.x = -atk * 1.4 + (slam >= 0 ? -Math.sin(slam * PI) * 1.8 : Math.sin(t * 1.3) * 0.06);
     P.arms[1].rotation.x = slam >= 0 ? -Math.sin(slam * PI) * 1.6 : Math.sin(t * 1.3 + 1) * 0.06;
+  },
+};
+
+/* ---------- v0.47: บอสโลก (โมเดลใหม่ ตัวใหญ่ ไม่ซ้ำมอนอื่น) ---------- */
+// โคลอสซัสโบราณ: ยักษ์ศิลามหึมา แกนอักขระเรืองกลางอก หินลอยวนรอบไหล่ มงกุฎเขาศิลา
+DEFS.colossus = {
+  build(v, d) {
+    const stone = v.own(d.color), dark = toon(shadeHex(d.color, -0.4)), moss = toon('#5a8a4a'), rune = toon('#9afff0', { emissive: '#3affd0', emissiveIntensity: 1.3 }), gold = shiny('#ffe08a', '#c8962a');
+    const base = grp(v.body); base.scale.setScalar(d.modelScale || 1);
+    const torso = grp(base, 0, 1.35), head = grp(torso, 0, 0.92, 0.05), arms = [], legs = [];
+    add(torso, ridges(lathe([[0.42, -0.55], [0.66, -0.3], [0.74, 0.25], [0.6, 0.6], [0.3, 0.72]], 10), 6, 0.05), stone);
+    add(torso, oct(0.2).scale(1, 1.3, 0.6), rune, 0, 0.12, 0.62);
+    for (let i = 0; i < 4; i++) add(torso, new THREE.BoxGeometry(0.1, 0.04, 0.02), rune, 0, -0.18 - i * 0.08, 0.66, false);
+    add(torso, sph(0.3, 10, 8).scale(1.4, 0.5, 1.2), moss, 0, 0.62, -0.1);
+    add(head, new THREE.BoxGeometry(0.5, 0.42, 0.46), dark, 0, 0.1, 0); add(head, new THREE.BoxGeometry(0.56, 0.12, 0.5), stone, 0, 0.32, 0);
+    eyes(head, 0.14, 0.235, 0.05, 0.13, { color: '#9afff0', glow: true });
+    for (let i = -2; i <= 2; i++) add(head, spike(V(i * 0.11, 0.38, 0), V(i * 0.25, 1, -0.1), 0.34 - Math.abs(i) * 0.06, 0.06, 5), gold);
+    for (const sx of [-1, 1]) {
+      const leg = grp(base, sx * 0.34, 0.86); add(leg, cyl(0.2, 0.26, 0.6, 8), dark, 0, -0.3); add(leg, new THREE.BoxGeometry(0.44, 0.22, 0.56), stone, 0, -0.68, 0.08); legs.push(leg);
+      const arm = grp(torso, sx * 0.86, 0.38); add(arm, sph(0.3, 10, 8), stone); add(arm, cyl(0.17, 0.22, 0.8, 8), dark, 0, -0.48); add(arm, new THREE.BoxGeometry(0.46, 0.4, 0.46), stone, 0, -0.98);
+      add(arm, oct(0.07), rune, sx * 0.12, -0.98, 0.24); arms.push(arm);
+      add(torso, spike(V(sx * 0.82, 0.6, 0), V(sx * 0.6, 1, 0), 0.4, 0.12, 5), stone);
+    }
+    const orbit = grp(torso, 0, 0.3);
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * PI * 2; add(orbit, oct(0.12 + (i % 2) * 0.05), i % 2 ? rune : stone, Math.cos(a) * 1.25, Math.sin(i) * 0.15, Math.sin(a) * 1.25); }
+    return { base, torso, head, arms, legs, orbit, y0: 1.35 };
+  },
+  anim(v, P, a) { animBrute(v, P, a, { stride: 0.35, armSwing: 0.3 }); P.orbit.rotation.y = a.t * 0.6; },
+};
+// มังกรคราส: มังกรเงามหึมา คอยาว ปีกพังผืดกว้าง วงคราสสุริยะสีแดงหลังศีรษะ หนามกระดูกตามหลัง
+DEFS.eclipsewyrm = {
+  build(v, d) {
+    const skin = v.own(d.color), belly = toon(shadeHex(d.color, 0.25)), bone = toon('#e8dcc8'), memb = toon('#3a1e3a', { side: THREE.DoubleSide, transparent: true, opacity: 0.9 }), ember = toon('#ff4a5a', { emissive: '#ff2a3a', emissiveIntensity: 1.4 });
+    const torso = grp(v.body, 0, 0.95); torso.scale.setScalar(d.modelScale || 1);
+    add(torso, sph(0.62, 16, 12).scale(0.8, 0.7, 1.35), skin); add(torso, sph(0.5, 14, 10).scale(0.72, 0.55, 1.2), belly, 0, -0.16, 0.06);
+    for (let j = 0; j < 7; j++) add(torso, spike(V(0, 0.42 - Math.abs(j - 3) * 0.02, -0.7 + j * 0.22), V(0, 1, -0.3), 0.26, 0.06, 5), bone);
+    const neck = grp(torso, 0, 0.3, 0.68); add(neck, tube([[0, 0, 0], [0, 0.35, 0.2], [0, 0.6, 0.45]], [0.22, 0.17, 0.14], 8, 10), skin);
+    const head = grp(neck, 0, 0.66, 0.52); add(head, sph(0.26, 12, 10).scale(0.85, 0.75, 1.4), skin); add(head, sph(0.17, 10, 8).scale(0.8, 0.5, 1.4), belly, 0, -0.1, 0.18);
+    eyes(head, 0.08, 0.24, 0.045, 0.12, { color: '#ff3a4a', glow: true, tilt: 0.3 });
+    for (const sx of [-1, 1]) { add(head, spike(V(sx * 0.12, 0.14, -0.12), V(sx * 0.4, 0.7, -0.9), 0.45, 0.06, 6), bone); add(head, spike(V(sx * 0.18, 0.02, -0.06), V(sx, 0.1, -0.6), 0.25, 0.04, 5), bone); }
+    const jaw = grp(head, 0, -0.12, 0.16); add(jaw, new THREE.BoxGeometry(0.24, 0.06, 0.3), belly, 0, 0, 0.1);
+    const halo = add(head, new THREE.TorusGeometry(0.5, 0.05, 6, 32), ember, 0, 0.18, -0.35, false); halo.rotation.x = -0.25;
+    add(head, new THREE.CircleGeometry(0.46, 28), toon('#0a0410'), 0, 0.18, -0.38, false).rotation.x = -0.25;
+    const legs = [], knees = [];
+    for (const sx of [-1, 1]) for (const z of [-0.45, 0.45]) { const l = grp(torso, sx * 0.38, -0.25, z), k = grp(l, 0, -0.32); add(l, cyl(0.13, 0.15, 0.36, 8), skin, 0, -0.14); add(k, cyl(0.09, 0.12, 0.34, 8), skin, 0, -0.15); add(k, sph(0.15, 8, 6).scale(1, 0.55, 1.4), bone, 0, -0.32, 0.08); legs.push(l); knees.push(k); }
+    const wings = [-1, 1].map((sx) => { const w = grp(torso, sx * 0.34, 0.4, 0.1); const { geo, tips } = membrane(1.5, 0.95, 5, 0.3); const m = add(w, geo.scale(sx, 1, 1), memb, 0, 0, 0, false); m.rotation.x = -0.35; for (const [x, y] of tips) add(w, tube([[0, 0, 0], [sx * x * 0.5, y * 0.6 + 0.05, 0], [sx * x, y, 0]], [0.04, 0.025, 0.008], 5, 6), bone).rotation.x = -0.35; return w; });
+    const tail = grp(torso, 0, -0.05, -0.8); add(tail, tube([[0, 0, 0], [0.15, 0.05, -0.5], [0.3, 0.15, -1.0], [0.38, 0.3, -1.35]], [0.18, 0.12, 0.06, 0.01], 8, 14), skin); add(tail, spike(V(0.38, 0.3, -1.35), V(0.2, 0.4, -1), 0.3, 0.07, 5), ember);
+    return { torso, head, jaw, legs, knees, tail, wings, halo, y0: 0.95 };
+  },
+  anim(v, P, a) {
+    animQuad(v, P, a, { stride: 0.45, rate: 0.8, bob: 0.04 });
+    const f = Math.sin(a.t * (a.moving ? 4 : 1.6)) * (a.moving ? 0.45 : 0.18);
+    P.wings[0].rotation.z = 0.3 + f; P.wings[1].rotation.z = -0.3 - f;
+    P.halo.rotation.z = a.t * 0.5;
+    if (a.slam >= 0) { P.head.rotation.x = -0.7 * Math.sin(a.slam * PI); P.wings[0].rotation.z = 0.9; P.wings[1].rotation.z = -0.9; }
   },
 };
 export const MONSTER_MODEL_IDS = Object.keys(DEFS);

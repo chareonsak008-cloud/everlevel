@@ -89,7 +89,7 @@ export const ASCEND_MONSTERS = {
   drowned_knight: mob('อัศวินจมทะเล', 111, 'sentinel', '#3f7f86', { hp: 1.2, def: 10, height: 2.0, drops: D('coral_shard', 'tide_pearl', 'abyssal', 0.0015) }),
   siren_eel: mob('ไซเรนอีล', 114, 'eel', '#2fd0c8', { atk: 1.15, flee: 10, crit: 0.06, height: 1.3, radius: 0.7, speed: 52, drops: D('coral_shard', 'tide_pearl', 'abyssal', 0.0018) }),
   tidalos: mvp('ไทดาลอส ราชันย์คลื่น', 117, 'eel', '#1fa0c0', {
-    scale: 2.3, height: 3.4, radius: 1.6,
+    scale: 1.7, height: 3.2, radius: 1.4,
     boss: { slam: { cd: [8, 11], radius: 3.6, windup: 1.5, mult: 1.5, knock: 2, color: '#3fe6d0', fx: 'ice' }, roots: { cd: [10, 14], radius: 1.8, windup: 1.4, mult: 1.25, secs: 1.4, color: '#3fe6d0', fx: 'icefall', effect: 'freeze' }, summon: { at: [0.65, 0.3], mob: 'siren_eel', count: 2 }, enrage: 0.25 },
     drops: [['leviathan_scale', 0.95], ['royal_jelly', 0.9], ['mana_potion', 0.8], ['refine_w', 1], ['refine_a', 1], ['refine_guard', 0.4], ...G('abyssal').map((id) => [id, 0.25]), ...ARM('abyssal').map((id) => [id, 0.12])],
     reward: reward('abyssal'),
@@ -102,7 +102,7 @@ export const ASCEND_MONSTERS = {
   crystal_drake: mob('ดราคผลึก', 129, 'drake', '#6ad8ff', { hp: 1.15, atk: 1.05, mdef: 12, height: 1.5, radius: 0.8, drops: D('geode_core', 'prism_shard', 'divine', 0.0007, G('abyssal').map((id) => [id, 0.0015])) }),
   prism_wisp: mob('วิญญาณปริซึม', 132, 'shade', '#ff9ae8', { hp: 0.85, def: -15, mdef: 30, flee: 16, range: 60, height: 1.8, drops: D('prism_shard', 'geode_core', 'divine', 0.0008) }),
   crysthar: mvp('คริสธาร์ มังกรผลึก', 134, 'drake', '#9ae8ff', {
-    scale: 2.4, height: 3.6, radius: 1.6,
+    scale: 1.55, height: 3.4, radius: 1.5,
     boss: { slam: { cd: [8, 11], radius: 3.8, windup: 1.5, mult: 1.55, knock: 2, color: '#d8b0ff', fx: 'ice' }, roots: { cd: [10, 13], radius: 2.0, windup: 1.3, mult: 1.3, secs: 1.4, color: '#9ae8ff', fx: 'icefall', effect: 'freeze' }, summon: { at: [0.65, 0.3], mob: 'crystal_drake', count: 2 }, enrage: 0.25 },
     drops: [['crystal_heart', 0.95], ['royal_jelly', 0.9], ['mana_potion', 0.8], ['refine_w', 1], ['refine_a', 1], ['refine_guard', 0.45], ...G('divine').map((id) => [id, 0.12]), ...G('abyssal').map((id) => [id, 0.3]), ...ARM('divine').map((id) => [id, 0.06]), ...ARM('abyssal').map((id) => [id, 0.15])],
     reward: reward('abyssal'),
@@ -115,7 +115,7 @@ export const ASCEND_MONSTERS = {
   tempest_shade: mob('วิญญาณพายุ', 146, 'shade', '#7ab4ff', { hp: 0.85, def: -12, mdef: 32, flee: 16, range: 60, height: 1.8, drops: D('storm_core', 'sky_feather', 'divine', 0.0014) }),
   celestial_titan: mob('ไททันสวรรค์', 149, 'sentinel', '#d8c48a', { hp: 1.6, atk: 1.1, def: 30, mdef: 16, speed: 34, delay: 1.9, scale: 1.4, height: 2.8, radius: 0.9, drops: D('storm_core', 'sky_feather', 'divine', 0.0018) }),
   aurelion: mvp('ออเรลิออน เทพบุตรสวรรค์', 150, 'seraph', '#fff0c0', {
-    scale: 2.2, height: 4.2, radius: 1.5,
+    scale: 1.6, height: 3.8, radius: 1.4,
     boss: { slam: { cd: [7, 10], radius: 4, windup: 1.5, mult: 1.6, knock: 2.2, color: '#fff1b0', fx: 'fire' }, roots: { cd: [9, 12], radius: 2.1, windup: 1.3, mult: 1.35, secs: 1.5, color: '#ffe08a', fx: 'meteor', effect: 'burn' }, summon: { at: [0.7, 0.4, 0.15], mob: 'seraph_knight', count: 2 }, enrage: 0.3 },
     drops: [['seraph_halo', 0.95], ['royal_jelly', 0.95], ['mana_potion', 0.9], ['refine_w', 1], ['refine_a', 1], ['refine_guard', 0.5], ...G('divine').map((id) => [id, 0.28]), ...ARM('divine').map((id) => [id, 0.14])],
     reward: reward('divine'),
