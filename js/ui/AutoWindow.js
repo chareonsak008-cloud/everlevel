@@ -1,12 +1,12 @@
 // หน้าต่างตีมอนออโต้ (v0.14 · ปุ่ม H) + ปุ่ม AUTO ลอยบนจอ (กดเริ่ม/หยุดได้ทันที)
 // ตั้งค่า: ยาเพิ่ม HP/SP อัตโนมัติ · ระยะการตี · ติ๊กมอนที่จะตี (มีรูปมอน) · ตีตัวที่โจมตีเราก่อน · สกิลที่ใช้ (v0.17.1: เอาเก็บของอัตโนมัติออก)
-import { MONSTERS } from '../data/monsters.js?v=0.43.1';
-import { ITEMS } from '../data/items.js?v=0.43.1';
-import { SKILLS, skillSp } from '../data/skills.js?v=0.43.1';
-import { iconURL } from '../render/ItemIcons.js?v=0.43.1';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.43.1';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.43.1';
-import { AUTO_RANGE, HP_POTS, SP_POTS, potHeal, mapMonsters, autoSkillRole } from '../systems/AutoHunt.js?v=0.43.1';
+import { MONSTERS } from '../data/monsters.js?v=0.43.2';
+import { ITEMS } from '../data/items.js?v=0.43.2';
+import { SKILLS, skillSp } from '../data/skills.js?v=0.43.2';
+import { iconURL } from '../render/ItemIcons.js?v=0.43.2';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.43.2';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.43.2';
+import { AUTO_RANGE, HP_POTS, SP_POTS, potHeal, mapMonsters, autoSkillRole } from '../systems/AutoHunt.js?v=0.43.2';
 
 const ROLE_LABEL = { attack: 'โจมตีเป้าหมาย', aoe: 'โจมตีรอบตัว', buff: 'บัฟ · ใช้ใหม่เมื่อหมดเวลา', heal: 'รักษา · ใช้เมื่อ HP ต่ำกว่าที่ตั้ง' };
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

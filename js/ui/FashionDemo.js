@@ -1,7 +1,7 @@
 // This module is loaded only by fashion-play.html. It never opens a real save.
-import { FASHION_COLLECTION, FASHION_SETS } from '../data/fashionCollection.js?v=0.43.1';
-import { JOBS } from '../data/progression.js?v=0.43.1';
-import { SKILLS } from '../data/skills.js?v=0.43.1';
+import { FASHION_COLLECTION, FASHION_SETS } from '../data/fashionCollection.js?v=0.43.2';
+import { JOBS } from '../data/progression.js?v=0.43.2';
+import { SKILLS } from '../data/skills.js?v=0.43.2';
 if(window.__contentPreview){
  const timer=setInterval(()=>{const g=window.asteria;if(!g?.started)return;clearInterval(timer);init(g);},50);
  window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
