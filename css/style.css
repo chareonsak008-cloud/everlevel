@@ -800,7 +800,7 @@ body:not(.touch) .char-btns .status-btn kbd { display: inline; }
 .ward > * { flex-shrink: 0; }
 .ward > .ward-grid { flex-shrink: 1; }
 .ward[hidden] { display: none; }
-.ward-worn { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px; margin-top: 10px; }
+.ward-worn { display: grid; grid-template-columns: repeat(2, 72px); gap: 5px; margin-top: 10px; }
 .wslot { --rc: #a8b4c8; aspect-ratio: 1; padding: 0; cursor: pointer; font: inherit; color: var(--text); display: grid; place-items: center; overflow: hidden; border-radius: 9px; background: rgba(0, 0, 0, 0.25); border: 1px solid color-mix(in srgb, var(--rc) 60%, transparent); }
 .wslot img { width: 100%; height: 100%; object-fit: cover; }
 .wslot img:not([src]) { animation: thumb-wait 1.1s ease-in-out infinite alternate; }
@@ -878,7 +878,7 @@ body:not(.touch) .char-btns .status-btn kbd { display: inline; }
 }
 @media (max-height: 560px) {
   .ward { top: calc(8px + env(safe-area-inset-top, 0px)); max-height: calc(100% - 16px); z-index: 4; padding: 8px 12px; }
-  .ward-worn { grid-template-columns: repeat(8, minmax(0, 40px)); margin-top: 6px; }
+  .ward-worn { grid-template-columns: repeat(2, 56px); margin-top: 6px; }
   .ward-tabs { margin-top: 6px; }
   .ward-grid { max-height: 150px; }
 }

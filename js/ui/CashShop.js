@@ -1,13 +1,13 @@
 // v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → แอดมินอนุมัติ)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.50.0';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.50.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.50.0';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.50.0';
-import { ready } from './TradeMarket.js?v=0.50.0';
-import { WARP_ROUTES } from '../data/shops.js?v=0.50.0';
-import { PETS, PET_RARITY } from '../data/pets.js?v=0.50.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.50.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.51.0';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.51.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.51.0';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.51.0';
+import { ready } from './TradeMarket.js?v=0.51.0';
+import { WARP_ROUTES } from '../data/shops.js?v=0.51.0';
+import { PETS, PET_RARITY } from '../data/pets.js?v=0.51.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.51.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const QR_SRC = 'assets/ui/topup_qr.png';
@@ -44,11 +44,31 @@ export class CashShopWindow {
     (root.querySelector('.hud') || root).append(el);
     el.querySelector('.st-close').addEventListener('click', () => this.close());
     this.body = el.querySelector('.tm-body');
+    // v0.51 แถบลองใส่แฟชั่น (ซ่อนร้านไว้ให้เห็นตัวละคร)
+    const bar = this.tryBar = document.createElement('div');
+    bar.className = 'panel cs-try'; bar.hidden = true;
+    bar.innerHTML = `<div class="cs-try-info"><b></b><small>กำลังลองใส่ · กด Q / E หมุนกล้องดูรอบตัว · ผู้เล่นอื่นไม่เห็น</small></div><button type="button" class="primary cs-try-buy"></button><button type="button" class="cs-try-back">กลับร้าน</button><button type="button" class="st-close cs-try-x" aria-label="ถอดและปิด">✕</button>`;
+    for (const ev of ['pointerdown', 'wheel', 'contextmenu', 'touchstart']) bar.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
+    (root.querySelector('.hud') || root).append(bar);
+    bar.querySelector('.cs-try-back').addEventListener('click', () => { this.endTry(); this.el.hidden = false; this.render(); });
+    bar.querySelector('.cs-try-x').addEventListener('click', () => this.endTry());
+    bar.querySelector('.cs-try-buy').addEventListener('click', () => { const p = this.trying; this.endTry(); this.el.hidden = false; this.tab = 'fashion'; if (p) this.buy(p); });
   }
+
+  tryOn(p) {
+    const it = COSTUME_BY_ID[p.ref]; if (!it) return;
+    this.trying = p;
+    this.g.tryFashion(p.ref);
+    this.el.hidden = true;
+    const b = this.tryBar; b.hidden = false;
+    const nm = b.querySelector('.cs-try-info b'); nm.textContent = it.name; nm.style.color = (FASHION_RARITY[it.rarity] || {}).color || '';
+    b.querySelector('.cs-try-buy').textContent = `ซื้อ 💎 ${fmt(p.price)}`;
+  }
+  endTry() { if (this.trying) this.g.tryFashion(null); this.trying = null; this.tryBar.hidden = true; }
 
   get open() { return !this.el.hidden; }
   toggle(on = !this.open) { if (on) this.show(); else this.close(); }
-  close() { this.el.hidden = true; }
+  close() { this.el.hidden = true; this.endTry(); }
   log(m) { this.msg = m; this.render(); }
 
   async show(tab) {
@@ -237,6 +257,11 @@ export class CashShopWindow {
       btn.textContent = have ? 'มีแล้ว' : this.confirmId === p.id ? `ยืนยัน 💎 ${fmt(p.price)}` : `💎 ${fmt(p.price)}`;
       btn.disabled = have || this.busy;
       btn.addEventListener('click', () => this.buy(p));
+      if (fashion) {   // v0.51 ลองใส่ก่อนซื้อ
+        const t = document.createElement('button'); t.type = 'button'; t.className = 'cs-tryb'; t.textContent = '👁 ลองใส่';
+        t.addEventListener('click', () => this.tryOn(p));
+        btn.before(t);
+      }
       grid.append(card);
     }
     pane.append(grid);

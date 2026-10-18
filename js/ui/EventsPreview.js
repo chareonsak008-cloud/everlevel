@@ -1,5 +1,5 @@
 // Offline demo only. Never imported by the production entry point.
-import { WORLD_BOSSES } from '../data/events.js?v=0.50.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.51.0';
 const timer=setInterval(()=>{const g=window.asteria;if(!g?.started||!document.querySelector('#contentPreview'))return;clearInterval(timer);init(g);},100);
 function init(g){
  const p=g.player,events=g.events;let fakeTime=Date.parse('2026-10-11T12:05:00+07:00'),anchor=performance.now();

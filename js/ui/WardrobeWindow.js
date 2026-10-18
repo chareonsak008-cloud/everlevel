@@ -1,10 +1,10 @@
 // ตู้แฟชั่น (v0.9): ดูชิ้นที่สะสมได้ สวม/ถอดแฟชั่น ดูชุดเซ็ต · เปิดด้วย O
 // ชิ้นที่ยังไม่มีจะแสดงเป็นภาพสีเทาพร้อมแม่กุญแจ (ได้จากการเปิดกล่องแฟชั่นเท่านั้น)
-import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.50.0';
-import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.50.0';
-import { SLOT_INFO } from '../render/Costumes.js?v=0.50.0';
-import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.50.0';
-import { FASHION_SLOTS } from '../entities/Player.js?v=0.50.0';
+import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.51.0';
+import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.51.0';
+import { SLOT_INFO } from '../render/Costumes.js?v=0.51.0';
+import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.51.0';
+import { FASHION_SLOTS } from '../entities/Player.js?v=0.51.0';
 
 // v0.35: แสดงเฉพาะช่องที่มีชิ้นแฟชั่นในเกม (ชิ้น 3 มิติถูกถอดออก รอออกแบบใหม่) · แท็บชุดเซ็ตซ่อนเมื่อไม่มีเซ็ต
 const TABS = [...FASHION_SLOTS.filter((s) => COSTUMES.some((c) => c.slot === s)).map((s) => [s, SLOT_INFO[s].name]), ...(SETS.length ? [['set', 'ชุดเซ็ต']] : [])];
@@ -19,7 +19,7 @@ export class WardrobeWindow {
     this.el = root.querySelector('#ward');
     this.$ = (id) => root.querySelector('#' + id);
     this.open = false;
-    this.tab = 'wings';
+    this.tab = 'outfit';
     this.sel = null;          // id ชิ้นแฟชั่น หรือ id ชุดเซ็ต
     this.ownedOnly = false;
 
@@ -58,7 +58,7 @@ export class WardrobeWindow {
   render() {
     if (!this.open) return;
     const p = this.player, F = p.fashion;
-    this.$('wardSub').textContent = `สะสมแล้ว ${F.owned.size} / ${COSTUMES.length} ชิ้น · เปิดกล่องไปแล้ว ${F.opened.toLocaleString('en-US')} กล่อง`;
+    this.$('wardSub').textContent = `สะสมแล้ว ${F.owned.size} / ${COSTUMES.length} ชิ้น · ซื้อและลองใส่ก่อนซื้อได้ที่ร้านเพชร 💎`;
     this.$('wardHide').textContent = F.hidden ? 'แสดงแฟชั่น' : 'ซ่อนแฟชั่น';
     this.$('wardHide').setAttribute('aria-pressed', String(F.hidden));
     this.$('wardTabs').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === this.tab)));

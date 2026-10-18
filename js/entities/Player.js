@@ -1,26 +1,26 @@
 // ผู้เล่น: เดินด้วยคีย์บอร์ด / จอย / คลิกตามเส้นทาง + เลเวล EXP และค่าสถานะ
-import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.50.0';
-import { Entity } from './Entity.js?v=0.50.0';
-import { PLAYER_SPEED, TILE } from '../config.js?v=0.50.0';
+import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.51.0';
+import { Entity } from './Entity.js?v=0.51.0';
+import { PLAYER_SPEED, TILE } from '../config.js?v=0.51.0';
 import {
   derive, baseExpToNext, jobExpToNext, statPointsForLevel, statCost,
   START_STAT_POINTS, MAX_STAT, STAT_KEYS, JOBS, jobStatBonus, JOB_CHANGE_JOB_LEVEL, FIRST_JOBS, SECOND_OF, JOB2_JOB_LEVEL, jobTier,
-} from '../data/progression.js?v=0.50.0';
-import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.50.0';
-import { setInfo } from '../data/affixes.js?v=0.50.0';
-import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.50.0';
-import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.50.0';
-import { Inventory } from '../systems/Inventory.js?v=0.50.0';
-import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.50.0';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.50.0';
-import { CONSUMABLES } from '../data/consumables.js?v=0.50.0';
-import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.50.0';
-import { normAuto } from '../systems/AutoHunt.js?v=0.50.0';
-import { normPick } from '../systems/PetPick.js?v=0.50.0';
-import { normDungeon } from '../data/dungeons.js?v=0.50.0';
-import { normCol } from '../systems/Collection.js?v=0.50.0';
-import { ACH_BY_ID } from '../data/collection.js?v=0.50.0';
-import { normMail } from '../data/mail.js?v=0.50.0';
+} from '../data/progression.js?v=0.51.0';
+import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.51.0';
+import { setInfo } from '../data/affixes.js?v=0.51.0';
+import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.51.0';
+import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.51.0';
+import { Inventory } from '../systems/Inventory.js?v=0.51.0';
+import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.51.0';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.51.0';
+import { CONSUMABLES } from '../data/consumables.js?v=0.51.0';
+import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.51.0';
+import { normAuto } from '../systems/AutoHunt.js?v=0.51.0';
+import { normPick } from '../systems/PetPick.js?v=0.51.0';
+import { normDungeon } from '../data/dungeons.js?v=0.51.0';
+import { normCol } from '../systems/Collection.js?v=0.51.0';
+import { ACH_BY_ID } from '../data/collection.js?v=0.51.0';
+import { normMail } from '../data/mail.js?v=0.51.0';
 
 // v0.15: รหัสสุ่มประจำตัวละคร (ตัวละครใหม่ = รหัสใหม่ · รับจดหมาย "ทุกตัวละคร" ได้ตัวละ 1 ครั้ง)
 export const newCid = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 16);
@@ -32,7 +32,7 @@ export const MAX_ITEM_BUFF = 3 * 3600;               // ต่อเวลาใ
 export const BAG_BASE = 60;
 
 // ช่องแฟชั่น (v0.9) — ชุดทับ ไม่เพิ่มค่าสถานะ
-export const FASHION_SLOTS = ['wings', 'outfit', 'head', 'face', 'back', 'weapon', 'aura', 'pet'];
+export const FASHION_SLOTS = ['outfit', 'aura'];   // v0.51: เหลือเฉพาะชุด + ออร่า (ช่องอื่นเลิกใช้)
 // อาวุธแฟชั่นจะแสดงเมื่อถืออาวุธจริงประเภทที่เข้ากัน (ท่าโจมตีจะได้ตรงกับอาวุธ)
 export const FASHION_WEAPON_FIT = { sword: ['sword', 'knife'], dual: ['knife', 'sword'], staff: ['staff'], mace: ['mace'], bow: ['bow'] };
 
@@ -216,13 +216,15 @@ export class Player extends Entity {
   }
 
   // ชิ้นแฟชั่นที่แสดงบนตัวจริง (slot → ข้อมูลชิ้น) — อาวุธแฟชั่นที่ไม่เข้ากับอาวุธที่ถือจะถูกซ่อน
-  fashionItems() {
+  // withTry = รวมชิ้นที่กำลังลองใส่จากร้านเพชร (แสดงบนเครื่องตัวเองเท่านั้น ไม่ส่งให้ผู้เล่นอื่น)
+  fashionItems(withTry = true) {
     const out = {};
-    if (this.fashion.hidden) return out;
-    for (const [slot, id] of Object.entries(this.fashion.worn)) {
+    if (!this.fashion.hidden) for (const [slot, id] of Object.entries(this.fashion.worn)) {
       const it = COSTUME_BY_ID[id];
-      if (it && it.slot === slot && this.fashion.owned.has(id) && this.fashionFits(it)) out[slot] = it;
+      if (it && it.slot === slot && FASHION_SLOTS.includes(slot) && this.fashion.owned.has(id) && this.fashionFits(it)) out[slot] = it;
     }
+    const t = withTry && this.tryOn && COSTUME_BY_ID[this.tryOn];
+    if (t) out[t.slot] = t;
     return out;
   }
 
