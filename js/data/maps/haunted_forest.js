@@ -1,4 +1,4 @@
-import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.43.0';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.43.1';
 const W=80,H=64,lanes=[[0,30,80,4],[16,7,4,50],[38,8,4,49],[60,8,4,49],[16,10,49,4],[16,50,55,4]],camp=[2,25,11,15],arena=[64,40,12,18];
 const look={hair:'#a59ab4',skin:'#e5c4b4',eye:'#684a89',tunic:'#676581',pants:'#353746',boot:'#282635',hairStyle:'long',accessory:'wizard',hatColor:'#45405d',orbColor:'#c2a8ff',weapon:'staff'};
 const RAW = {
