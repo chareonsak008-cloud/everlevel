@@ -38,3 +38,7 @@
 .tag.np.np-party .np-name { color: #9dffb4 !important; -webkit-text-fill-color: #9dffb4; text-shadow: 0 1px 0 #000, 0 0 5px rgba(80, 255, 140, 0.7); }
 .np-lv.sm { height: 10px; min-width: 12px; padding: 0 2px; font-size: 8px; }
 .np-in { gap: 3px; }
+/* v0.45 VIP: ชื่อสีทอง + ป้าย VIP มุมบน */
+.np-vip .np-name { color: #ffd65a !important; text-shadow: 0 1px 0 #3a2200, 0 0 6px rgba(255, 190, 60, 0.75); }
+.np-vipb { position: absolute; right: calc(100% + 3px); translate: 0 -50%; padding: 0 5px; border-radius: 4px; font: 700 9px/12px Kanit, sans-serif; letter-spacing: 0.06em;
+  color: #3a2200; background: linear-gradient(#fff1b0, #f2b63a); box-shadow: 0 0 0 1px #6a4210, 0 0 6px rgba(255, 200, 80, 0.7); pointer-events: none; z-index: 2; }
