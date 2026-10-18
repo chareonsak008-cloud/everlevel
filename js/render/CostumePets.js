@@ -1,11 +1,11 @@
 // v0.17: ผู้ติดตามแฟชั่น (สัตว์เลี้ยงแฟชั่น) ออกแบบใหม่ทั้งหมด — ตัวใหญ่ขึ้น หน้าตาเป็นโมเดลจริง (ไม่ใช้ภาพแปะ)
 // จึงเห็นชัดทั้งโหมด 3D และโหมดสไปรต์พิกเซล · ใช้แทนชุด PET เดิมใน Costumes.js (Object.assign)
 // สัญญาเดิม: builder(rig, p, rt) · rig.root = ตัวละคร · rt.on(fn({t, dt})) · rt.ps(kind).emit(...) · rt.worldPos(obj)
-import { THREE } from './three.js?v=0.53.0';
-import { toon, bake } from './Toon.js?v=0.53.0';
-import { shadeHex } from './Textures.js?v=0.53.0';
-import { mergeGeometries } from './Geo.js?v=0.53.0';
-import * as TX from './FxTextures.js?v=0.53.0';
+import { THREE } from './three.js?v=0.54.0';
+import { toon, bake } from './Toon.js?v=0.54.0';
+import { shadeHex } from './Textures.js?v=0.54.0';
+import { mergeGeometries } from './Geo.js?v=0.54.0';
+import * as TX from './FxTextures.js?v=0.54.0';
 
 const PI = Math.PI;
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);

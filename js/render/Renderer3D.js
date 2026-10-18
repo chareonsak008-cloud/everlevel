@@ -1,33 +1,33 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.53.0';
-import { PixelWingSprite } from './PixelWings.js?v=0.53.0';
-import { paintPlate } from '../ui/Nameplates.js?v=0.53.0';
-import { PixelVfx } from './PixelVfx.js?v=0.53.0';
-import { THREE } from './three.js?v=0.53.0';
-import { TILE } from '../config.js?v=0.53.0';
-import { T } from '../data/tileTypes.js?v=0.53.0';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.53.0';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.53.0';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.53.0';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.54.0';
+import { PixelWingSprite } from './PixelWings.js?v=0.54.0';
+import { paintPlate } from '../ui/Nameplates.js?v=0.54.0';
+import { PixelVfx } from './PixelVfx.js?v=0.54.0';
+import { THREE } from './three.js?v=0.54.0';
+import { TILE } from '../config.js?v=0.54.0';
+import { T } from '../data/tileTypes.js?v=0.54.0';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.54.0';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.54.0';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.54.0';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.53.0';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.53.0';
-import { iconCanvas } from './ItemIcons.js?v=0.53.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.53.0';
-import { MonsterView } from './Monsters.js?v=0.53.0';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.53.0';
-import { SkillFX } from './SkillFX.js?v=0.53.0';
-import { PostFX } from './PostFX.js?v=0.53.0';
-import { costumeLook, wearCostume } from './Costumes.js?v=0.53.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.53.0';
-import { PetView } from './Pets.js?v=0.53.0';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.53.0';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.53.0';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.53.0';
-import { gradientMap } from './Toon.js?v=0.53.0';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.53.0';
+} from './Models.js?v=0.54.0';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.54.0';
+import { iconCanvas } from './ItemIcons.js?v=0.54.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.54.0';
+import { MonsterView } from './Monsters.js?v=0.54.0';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.54.0';
+import { SkillFX } from './SkillFX.js?v=0.54.0';
+import { PostFX } from './PostFX.js?v=0.54.0';
+import { costumeLook, wearCostume } from './Costumes.js?v=0.54.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.54.0';
+import { PetView } from './Pets.js?v=0.54.0';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.54.0';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.54.0';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.54.0';
+import { gradientMap } from './Toon.js?v=0.54.0';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.54.0';
 const PX_BASE = (() => { const a = new THREE.Color('#dcefff'), b = new THREE.Color('#fff0d6'); return { r: a.r * 0.72 + b.r * 1.45 * 0.5, g: a.g * 0.72 + b.g * 1.45 * 0.5, b: a.b * 0.72 + b.b * 1.45 * 0.5 }; })();   // v0.17: สไปรต์พิกเซลอาร์ต   // v0.13: สัตว์เลี้ยงช่วยเก็บของ
 
 // ความแรงแสงเรืองของแฟชั่นระดับล้ำค่าขึ้นไป (ตอนไม่มีเอฟเฟกต์สกิล)
@@ -615,6 +615,18 @@ export class Renderer3D {
   }
 
   pixelVfx() { return this.pxvfx || (this.pxvfx = new PixelVfx(this.scene, this.camera)); }
+  // v0.54 เอฟเฟกต์สกิล "เงียบ": ใช้ตรรกะเดิม (จังหวะตี/ผลัก/สั่นจอ) แต่ไม่วาดภาพ — ให้ภาพจาก Night Forge แทน
+  fxGhost() {
+    if (this._fxGhost) return this._fxGhost;
+    const stub = { emit() {}, update() {}, wasAlive: false, points: new THREE.Object3D(), mat: { uniforms: { scale: { value: 1 }, gain: { value: 1 } } } };
+    const g = Object.create(this.fx);
+    g.root = new THREE.Group();   // ไม่ได้ใส่ในฉาก = มองไม่เห็น
+    g.fx = g.smoke = g.snow = g.feathers = g.stars = stub;
+    g.hd = new THREE.Group(); g.hdFx = g.hdStars = g.hdFeathers = stub; g.hdSys = [];
+    g.hdInit = function () {};
+    g.light = function () {};
+    return (this._fxGhost = g);
+  }
 
   // v0.35: เงาตกค้างของตัวละครพิกเซล (ท่าสกิลแบบอนิเมะ) — สำเนาสไปรต์เฟรมปัจจุบัน ย้อมสี จางหายใน life วินาที
   afterimage(entity, { color = '#5aa8ff', life = 0.4, at = null, opacity = 0.75, grow = 0.08 } = {}) {
