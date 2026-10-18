@@ -1,12 +1,13 @@
 // หน้าต่างสัตว์เลี้ยง (v0.13 · ปุ่ม P) — สัตว์ที่ฟักได้ · เรียกออกมา/เก็บกลับ · ตัวกรองการเก็บของ · ไข่ในกระเป๋า
-import { PETS, PET_ORDER, PET_RARITY, PET_EGGS, petStats, STAR_MAX, fmtPct, petsOfTier } from '../data/pets.js?v=0.47.0';
-import { ITEMS } from '../data/items.js?v=0.47.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.47.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.47.0';
-import { PICK_CATS, PICK_GRADES } from '../systems/PetPick.js?v=0.47.0';
-import { RARITY } from '../data/items.js?v=0.47.0';
+import { PETS, PET_ORDER, PET_RARITY, PET_EGGS, petStats, STAR_MAX, fmtPct, petsOfTier } from '../data/pets.js?v=0.49.0';
+import { ITEMS } from '../data/items.js?v=0.49.0';
+import { PET_TICKETS } from '../data/consumables.js?v=0.49.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.49.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.49.0';
+import { PICK_CATS, PICK_GRADES } from '../systems/PetPick.js?v=0.49.0';
+import { RARITY } from '../data/items.js?v=0.49.0';
 
-const EGGS = ['egg_spot', 'egg_moon', 'egg_galaxy'];
+const EGGS = ['egg_spot', 'egg_moon', 'egg_galaxy', ...PET_TICKETS];   // v0.48: ไข่เก่า + ตั๋วสัตว์เลี้ยงจากร้านเพชร
 
 export class PetWindow {
   constructor(root, player, act) {
@@ -52,7 +53,7 @@ export class PetWindow {
       <div class="pp-cats">${PICK_CATS.map(([k, n]) => `<label><input type="checkbox" data-cat="${k}"${P[k] ? ' checked' : ''}> ${n}</label>`).join('')}</div>
       <div class="pp-eq${P.equip ? '' : ' off'}"><span>อุปกรณ์ เก็บตั้งแต่ระดับ</span>
         <div class="pp-grades">${PICK_GRADES.map(([k, n], i) => `<button type="button" data-eq="${i}" class="pp-g${i >= (P.eqMin || 0) ? ' on' : ''}${i === (P.eqMin || 0) ? ' cur' : ''}" style="--gc:${RARITY[k].color}" title="${n}${i ? 'ขึ้นไป' : ' (ทุกระดับ)'}">${n}</button>`).join('')}</div>
-        <small>${P.equip ? `เก็บอุปกรณ์ระดับ <b style="color:${RARITY[PICK_GRADES[P.eqMin || 0][0]].color}">${PICK_GRADES[P.eqMin || 0][1]}</b>${(P.eqMin || 0) === 0 ? ' ขึ้นไป (ทุกระดับ)' : (P.eqMin || 0) === 6 ? ' เท่านั้น' : ' ขึ้นไป'}` : 'ไม่เก็บอุปกรณ์ (ติ๊ก "อุปกรณ์" ด้านบนเพื่อเปิด)'}</small></div>
+        <small>${P.equip ? `เก็บอุปกรณ์ระดับ <b style="color:${RARITY[PICK_GRADES[P.eqMin || 0][0]].color}">${PICK_GRADES[P.eqMin || 0][1]}</b>${(P.eqMin || 0) === 0 ? ' ขึ้นไป (ทุกระดับ)' : (P.eqMin || 0) === PICK_GRADES.length - 1 ? ' เท่านั้น' : ' ขึ้นไป'}` : 'ไม่เก็บอุปกรณ์ (ติ๊ก "อุปกรณ์" ด้านบนเพื่อเปิด)'}</small></div>
       <small class="pp-note">ของตีบวก ยา วัตถุดิบ การ์ด และกล่อง เก็บทั้งหมดตามหมวดที่ติ๊กไว้ — ไม่ต้องการชิ้นไหน แตะเลือกด้านล่าง</small>
       <h3>ไม่เก็บไอเทมเหล่านี้ <small>แตะเพื่อสลับ · มีขีดฆ่า = ไม่เก็บ</small></h3>
       <div class="pp-items">${ids.length ? ids.map((id) => `<button type="button" class="pp-item${P.skip.includes(id) ? ' off' : ''}" data-skip="${id}" title="${esc(ITEMS[id].name)}"><img alt="" src="${iconURL(id)}"><span>${esc(ITEMS[id].name)}</span></button>`).join('') : '<small class="pp-empty">ยังไม่มีของตกบนพื้น — ออกไปล่ามอนแล้วกลับมาเลือกได้</small>'}</div>`;
@@ -76,12 +77,12 @@ export class PetWindow {
     // ไข่ในกระเป๋า
     const eggs = EGGS.filter((e) => this.p.inventory.count(e) > 0);
     const eb = this.$('petEggs');
-    eb.innerHTML = eggs.length ? '' : '<span class="pet-noegg">ยังไม่มีไข่ในกระเป๋า — ไข่ดรอปจากมอนสเตอร์และ MVP</span>';
+    eb.innerHTML = eggs.length ? '' : '<span class="pet-noegg">ยังไม่มีตั๋วสัตว์เลี้ยงในกระเป๋า — เลือกซื้อสัตว์เลี้ยงตัวที่ชอบได้ที่ร้านเพชร 💎</span>';
     for (const e of eggs) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'pet-egg';
-      b.innerHTML = `<img alt="" src="${iconURL(e)}"><span><b></b><small>มี ${this.p.inventory.count(e)} ใบ · กดเพื่อฟัก</small></span>`;
+      b.innerHTML = `<img alt="" src="${iconURL(e)}"><span><b></b><small>มี ${this.p.inventory.count(e)} ใบ · กดเพื่อ${ITEMS[e].use && ITEMS[e].use.pet ? 'รับสัตว์เลี้ยง' : 'ฟัก'}</small></span>`;
       b.querySelector('b').textContent = ITEMS[e].name;
-      b.addEventListener('click', () => this.act.hatch(e));
+      b.addEventListener('click', () => (ITEMS[e].use && ITEMS[e].use.pet ? this.act.adopt(e) : this.act.hatch(e)));
       eb.append(b);
     }
 
@@ -109,17 +110,16 @@ export class PetWindow {
     if (!d) { box.innerHTML = ''; return; }
     const P = this.p.pets, has = P.owned[id] != null, stars = P.owned[id] || 0, col = PET_RARITY[d.tier].color;
     const st = has ? this.act.stats(id) : petStats(id, 0);
-    const chance = PET_EGGS && Object.entries(PET_EGGS).map(([e, g]) => `${g.name} ${fmtPct((g.odds[d.tier] || 0) / petsOfTier(d.tier).length)}`).join(' · ');
     box.innerHTML = `
       <div class="d-head"><img alt="" src="${petThumb(id) || ''}" class="${has ? '' : 'locked'}"><div><b style="color:${col}"></b>
       <small>${PET_RARITY[d.tier].name} · ${d.en}${has ? ` · ${stars ? '★'.repeat(stars) : 'ยังไม่มีดาว'}${stars >= STAR_MAX ? ' (สูงสุด)' : ''}` : ' · ยังไม่มี'}</small></div></div>
       <p class="d-desc"></p>
       <p class="d-stats">รัศมีเก็บของ <b>${st.radius}</b> ช่อง · ความเร็ว <b>${st.speed}%</b> · ขนต่อรอบ <b>${st.carry || 'ไม่จำกัด'}</b><br><small>อาชีพตีไกล (นักธนู/นักเวทย์) วิ่งไปเก็บได้ไกลขึ้นอีก 9 ช่อง (สูงสุด 14 ช่อง)</small></p>
       <p class="d-skill"><b></b><br><span></span></p>
-      ${has ? '' : `<p class="d-price">ฟักได้จาก: ${chance}</p>`}
+      ${has ? '' : '<p class="d-price">💎 ซื้อได้ที่ร้านเพชร (หมวดสัตว์เลี้ยง)</p>'}
       <div class="d-actions"></div>`;
     box.querySelector('.d-head b').textContent = has ? d.name : '???';
-    box.querySelector('.d-desc').textContent = has ? d.flavor : 'ยังไม่เคยฟักได้ตัวนี้ — ลองฟักไข่ดูนะ';
+    box.querySelector('.d-desc').textContent = has ? d.flavor : 'ยังไม่มีตัวนี้ — เลือกซื้อได้ที่ร้านเพชร';
     box.querySelector('.d-skill b').textContent = `ความสามารถพิเศษ: ${d.skill.name}`;
     box.querySelector('.d-skill span').textContent = d.skill.desc;
     const actions = box.querySelector('.d-actions');

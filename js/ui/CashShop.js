@@ -1,11 +1,13 @@
 // v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → แอดมินอนุมัติ)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.47.0';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.47.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.47.0';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.47.0';
-import { ready } from './TradeMarket.js?v=0.47.0';
-import { WARP_ROUTES } from '../data/shops.js?v=0.47.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.49.0';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.49.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.49.0';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.49.0';
+import { ready } from './TradeMarket.js?v=0.49.0';
+import { WARP_ROUTES } from '../data/shops.js?v=0.49.0';
+import { PETS, PET_RARITY } from '../data/pets.js?v=0.49.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.49.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const QR_SRC = 'assets/ui/topup_qr.png';
@@ -14,14 +16,14 @@ export const VIP_PERKS = [
   ['🧪', 'ซื้อยาอัตโนมัติระหว่างบอท', 'ยาใกล้หมดกระเป๋า ระบบซื้อเติมให้เองด้วย Zeny (ตั้งค่าที่หน้าต่างออโต้)'],
   ['🏪', 'ตลาด 5 รายการ · ค่าธรรมเนียม 3%', 'คนทั่วไปลงขายได้ 2 รายการ ค่าธรรมเนียม 7%'],
   ['🌀', 'วาร์ป · คลัง · ร้านค้า ได้ทุกที่', 'กดจากแท็บนี้ ไม่ต้องเดินไปหา NPC · วาร์ปฟรี'],
-  ['🎁', 'รางวัลรายวัน', '10 เพชร + กล่องไม้ · ใบวาร์ป ×3 · ลูกอมฟื้นฟู ×2 ทุกวัน · รางวัลเช็กอินคูณ 2'],
+  ['🎁', 'รางวัลรายวัน', '10 เพชร + ผลึกตีบวกอาวุธ/เกราะ · ใบวาร์ป ×3 · ลูกอมฟื้นฟู ×2 ทุกวัน · รางวัลเช็กอินคูณ 2'],
   ['⚡', 'EXP / ดรอป +20%', 'ซ้อนกับใบคูณและอีเวนต์ได้'],
   ['👑', 'ป้าย VIP + ชื่อสีทอง', 'ทั้งบนป้ายชื่อและในแชต'],
 ];
 const dateTH = (ms) => new Date(ms).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 // ปลายทางวาร์ป VIP: รวมทุกเส้นทางของนักเวทย์ (ไม่ซ้ำ)
 const VIP_WARPS = (() => { const seen = new Set(), out = []; for (const list of Object.values(WARP_ROUTES)) for (const r of list) { const k = r.map + '|' + r.label; if (!seen.has(k)) { seen.add(k); out.push(r); } } return out; })();   // ภาพ QR พร้อมเพย์ของเจ้าของเกม (ใส่ไฟล์นี้เอง)
-const TABS = [['vip', '👑 VIP'], ['fashion', 'แฟชั่น'], ['box', 'กล่อง & สัตว์เลี้ยง'], ['convenience', 'สะดวกสบาย'], ['boost', 'เร่งเลเวล'], ['topup', '💎 เติมเพชร']];
+const TABS = [['vip', '👑 VIP'], ['fashion', 'แฟชั่น'], ['pet', '🐾 สัตว์เลี้ยง'], ['refine', '🔨 ตีบวก'], ['convenience', 'สะดวกสบาย'], ['boost', 'เร่งเลเวล'], ['topup', '💎 เติมเพชร']];
 
 // ย่อรูปสลิปเป็น JPEG ไม่เกิน 1400px (ไฟล์เล็ก อัปโหลดเร็ว)
 async function shrink(file) {
@@ -37,7 +39,7 @@ export class CashShopWindow {
     this.g = game; this.tab = 'vip'; this.st = null; this.busy = false; this.msg = ''; this.pack = null; this.file = null; this.adminRows = null; this.slips = {};
     const el = this.el = document.createElement('section');
     el.className = 'panel tm cs'; el.hidden = true;
-    el.innerHTML = `<header class="st-head"><div><h2>ร้านเพชร</h2><p>แฟชั่น · กล่องสุ่ม · ไอเทมสะดวกสบาย · เพชรใช้ร่วมทุกตัวละครในบัญชี</p></div><div class="cs-gems" title="เพชรของคุณ">💎 <b>0</b></div><button type="button" class="st-close" aria-label="ปิด">✕</button></header><div class="tm-body"></div>`;
+    el.innerHTML = `<header class="st-head"><div><h2>ร้านเพชร</h2><p>แฟชั่น · สัตว์เลี้ยง · หินตีบวก · ไอเทมสะดวกสบาย · เพชรใช้ร่วมทุกตัวละครในบัญชี</p></div><div class="cs-gems" title="เพชรของคุณ">💎 <b>0</b></div><button type="button" class="st-close" aria-label="ปิด">✕</button></header><div class="tm-body"></div>`;
     for (const ev of ['pointerdown', 'wheel', 'contextmenu', 'touchstart']) el.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
     (root.querySelector('.hud') || root).append(el);
     el.querySelector('.st-close').addEventListener('click', () => this.close());
@@ -146,7 +148,7 @@ export class CashShopWindow {
       await this.g.online.syncLedger();
       this.st.gems = r.data.gems; this.st.vip_claimed = true; this.g.vip.claimed = true;
       this.g.sfx('coin');
-      this.msg = '🎁 รับรางวัลรายวัน VIP แล้ว: 10 เพชร · กล่องไม้ · ใบวาร์ป ×3 · ลูกอมฟื้นฟู ×2';
+      this.msg = '🎁 รับรางวัลรายวัน VIP แล้ว: 10 เพชร · ผลึกตีบวก ×2 · ใบวาร์ป ×3 · ลูกอมฟื้นฟู ×2';
     } finally { this.busy = false; this.render(); }
   }
 
@@ -218,15 +220,17 @@ export class CashShopWindow {
     if (!list.length) grid.innerHTML = '<p class="tm-empty">ยังไม่มีสินค้าในหมวดนี้</p>';
     const owned = this.g.player.fashion.owned;
     for (const p of list) {
-      const fashion = p.kind === 'fashion', it = fashion ? COSTUME_BY_ID[p.ref] : ITEMS[p.ref];
+      const fashion = p.kind === 'fashion'; let it = fashion ? COSTUME_BY_ID[p.ref] : ITEMS[p.ref];
       if (!it) continue;
       const rar = fashion ? (FASHION_RARITY[it.rarity] || {}) : (RARITY[it.rarity || 'common'] || {});
       const card = document.createElement('div'); card.className = 'cs-card';
       card.innerHTML = `${p.tag ? '<span class="cs-tag"></span>' : ''}<div class="cs-pic"><img alt=""></div><b class="cs-name"></b><small class="cs-desc"></small><button type="button" class="primary"></button>`;
       if (p.tag) card.querySelector('.cs-tag').textContent = p.tag;
       const img = card.querySelector('img');
-      if (fashion) requestThumb(it, img, 96); else img.src = iconURL(p.ref);
+      const petId = !fashion && it.use && it.use.pet;
+      if (fashion) requestThumb(it, img, 96); else img.src = (petId && petThumb(petId)) || iconURL(p.ref);
       const nm = card.querySelector('.cs-name'); nm.textContent = it.name + (p.qty > 1 ? ` ×${p.qty}` : ''); if (rar.color) nm.style.color = rar.color;
+      if (petId) { const P = PETS[petId], st = this.g.player.pets.owned[petId]; it = { ...it, name: P.name, effect: `${PET_RARITY[P.tier].name} · ${P.skill.name}: ${P.skill.desc}`, desc: st == null ? '' : `มีแล้ว ★${st} — ซื้อซ้ำได้ดาว +1` }; nm.textContent = P.name; nm.style.color = PET_RARITY[P.tier].color; }
       card.querySelector('.cs-desc').textContent = fashion ? it.desc : (it.effect ? it.effect + (it.desc ? ' · ' : '') : '') + (it.desc || '');
       const btn = card.querySelector('button');
       const have = fashion && owned.has(p.ref);

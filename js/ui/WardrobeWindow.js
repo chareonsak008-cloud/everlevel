@@ -1,10 +1,10 @@
 // ตู้แฟชั่น (v0.9): ดูชิ้นที่สะสมได้ สวม/ถอดแฟชั่น ดูชุดเซ็ต · เปิดด้วย O
 // ชิ้นที่ยังไม่มีจะแสดงเป็นภาพสีเทาพร้อมแม่กุญแจ (ได้จากการเปิดกล่องแฟชั่นเท่านั้น)
-import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.47.0';
-import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.47.0';
-import { SLOT_INFO } from '../render/Costumes.js?v=0.47.0';
-import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.47.0';
-import { FASHION_SLOTS } from '../entities/Player.js?v=0.47.0';
+import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.49.0';
+import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.49.0';
+import { SLOT_INFO } from '../render/Costumes.js?v=0.49.0';
+import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.49.0';
+import { FASHION_SLOTS } from '../entities/Player.js?v=0.49.0';
 
 // v0.35: แสดงเฉพาะช่องที่มีชิ้นแฟชั่นในเกม (ชิ้น 3 มิติถูกถอดออก รอออกแบบใหม่) · แท็บชุดเซ็ตซ่อนเมื่อไม่มีเซ็ต
 const TABS = [...FASHION_SLOTS.filter((s) => COSTUMES.some((c) => c.slot === s)).map((s) => [s, SLOT_INFO[s].name]), ...(SETS.length ? [['set', 'ชุดเซ็ต']] : [])];
@@ -139,7 +139,7 @@ export class WardrobeWindow {
     const set = this.tab === 'set' && SETS.find((s) => s.id === this.sel);
     const it = !set && this.sel && COSTUME_BY_ID[this.sel];
     if (!set && !it) {
-      box.innerHTML = `<p class="hint">เลือกชิ้นแฟชั่นเพื่อดูรายละเอียด · ดับเบิลคลิกเพื่อสวม/ถอด · แฟชั่นเป็นชุดทับ ไม่เปลี่ยนค่าสถานะ<br>โอกาสต่อกล่อง: ${this.oddsLine()}</p>`;
+      box.innerHTML = `<p class="hint">เลือกชิ้นแฟชั่นเพื่อดูรายละเอียด · ดับเบิลคลิกเพื่อสวม/ถอด · แฟชั่นเป็นชุดทับ ไม่เปลี่ยนค่าสถานะ<br>ชิ้นแฟชั่นซื้อได้ที่ร้านเพชร 💎</p>`;
       return;
     }
     if (set) return this.renderSetDetail(set);
@@ -155,7 +155,7 @@ export class WardrobeWindow {
       <p class="d-desc"></p>
       ${owned
         ? `<p class="wd-own">${worn ? (fit ? '✔ กำลังสวมใส่' : '⚠ สวมอยู่แต่ซ่อนไว้ — ต้องถืออาวุธประเภท' + WTYPE[it.wtype]) : '✔ อยู่ในตู้แฟชั่นแล้ว'}</p>`
-        : `<p class="wd-lock">🔒 ยังไม่มี · ได้จากการเปิดกล่องแฟชั่น — โอกาสต่อกล่องที่จะได้ชิ้นนี้: ${this.chanceLine(it.rarity, per)}</p>`}
+        : `<p class="wd-lock">🔒 ยังไม่มี · ซื้อได้ที่ร้านเพชร 💎 (หมวดแฟชั่น)</p>`}
       ${it.slot === 'weapon' && owned && !worn ? `<p class="wd-note">แสดงเมื่อถืออาวุธประเภท${WTYPE[it.wtype]}</p>` : ''}
       <div class="d-actions"></div>`;
     box.querySelector('.wd-name').textContent = it.name;

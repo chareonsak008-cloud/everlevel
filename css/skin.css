@@ -26,7 +26,7 @@
 }
 .inv-tabs button[aria-selected="true"] { filter: brightness(1.35) saturate(1.2); }
 /* ปุ่มทั่วไปในหน้าต่างบริการ */
-.shop-btns button, .stor-foot button, .stor-act .go, .stepper button, .dlg-opt, .tm button:not(.slot):not(.st-close):not([role="tab"]), .d-actions button, .g-actions button {
+.shop-btns button, .stor-foot button, .stor-act .go, .stepper button, .dlg-opt, .tm button:not(.slot):not(.st-close):not([role="tab"]):not(.wk-it), .d-actions button, .g-actions button {
   border-style: solid !important; border-color: transparent !important; border-width: 0 !important; border-image: url("../assets/ui/skin/btn.png") 16 fill / 10px / 0 stretch !important; background: transparent !important; image-rendering: pixelated;
 }
 .shop-btns .primary, .stor-act .go, .tm button.primary, .d-actions .primary, .g-actions .primary, .dlg-opt.primary { color: #ffe9a8 !important; filter: brightness(1.2) saturate(1.3); }

@@ -1,8 +1,8 @@
 // โรงตีเหล็ก (v0.10): ตีบวกอุปกรณ์ + ใส่การ์ด — ตรรกะล้วน ไม่ยุ่งกับ UI
 // ref = ตำแหน่งของชิ้นอุปกรณ์ { where: 'equip', slot, key } หรือ { where: 'bag', key }
-import { ITEMS, itemKey, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.47.0';
-import { canRefine, refineMaterial, refineFee, refineRate, rollRefine, failResult, REFINE_MAX, BREAK_FROM } from '../data/refine.js?v=0.47.0';
-import { CARDS } from '../data/cards.js?v=0.47.0';
+import { ITEMS, itemKey, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.49.0';
+import { canRefine, refineMaterial, refineFee, refineRate, rollRefine, failResult, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS } from '../data/refine.js?v=0.49.0';
+import { CARDS } from '../data/cards.js?v=0.49.0';
 
 // อุปกรณ์ทั้งหมดของผู้เล่น (สวมอยู่ก่อน แล้วตามด้วยในกระเป๋า)
 export function gearList(player, test = () => true) {
@@ -21,38 +21,43 @@ export function gearList(player, test = () => true) {
 export const refineTargets = (player) => gearList(player, (it) => canRefine(it));
 
 // ตรวจเงื่อนไขก่อนตีบวก → { ok, reason, target, mat, fee, rate, fail }
-export function refineCheck(player, ref, guard = false) {
+export function refineCheck(player, ref, guard = false, luck = false, extra = 0) {
   // v0.38: ชิ้นที่เลือกต้องยังอยู่ที่เดิม (กันสวม/ถอดระหว่างรอค้อนตี → ของงอกเป็น 2 ชิ้น)
   if (!gearOwned(player, ref)) return { ok: false, reason: 'ไม่พบอุปกรณ์ชิ้นนี้แล้ว (ถูกสวม/ถอดไป) เลือกใหม่อีกครั้ง' };
   const it = ITEMS[ref.key];
   if (!canRefine(it)) return { ok: false, reason: 'อุปกรณ์ชิ้นนี้ตีบวกไม่ได้' };
   const { refine } = itemMods(ref.key);
   const target = refine + 1;
-  const mat = refineMaterial(it), fee = refineFee(target), rate = refineRate(target);
+  const mat = refineMaterial(it), fee = refineFee(target);
   const useGuard = guard && target >= BREAK_FROM;
-  const info = { target, mat, fee, rate, useGuard, fail: failResult(target, useGuard) };
+  const useLuck = luck && target > SAFE_LIMIT;
+  const bonus = target > SAFE_LIMIT ? (useLuck ? LUCK_BONUS : 0) + extra : 0;
+  const rate = Math.min(100, refineRate(target) + bonus);
+  const info = { target, mat, fee, rate, bonus, useGuard, useLuck, fail: failResult(target, useGuard) };
   if (refine >= REFINE_MAX) return { ...info, ok: false, reason: `ตีบวกสูงสุด +${REFINE_MAX} แล้ว` };
   if (player.inventory.count(mat) < 1) return { ...info, ok: false, reason: `ต้องใช้${ITEMS[mat].name} 1 ก้อน` };
   if (player.zeny < fee) return { ...info, ok: false, reason: 'Zeny ไม่พอสำหรับค่าตีบวก' };
   if (useGuard && player.inventory.count('refine_guard') < 1) return { ...info, ok: false, reason: 'ไม่มีคริสตัลพิทักษ์' };
+  if (useLuck && player.inventory.count('refine_luck') < 1) return { ...info, ok: false, reason: 'ไม่มีหินนำโชค' };
   // ของในกระเป๋าที่ซ้อนกันหลายชิ้น: ชิ้นที่ตีแล้วต้องมีช่องว่างแยก
   if (ref.where === 'bag' && player.inventory.count(ref.key) > 1 && player.inventory.stacks.length >= player.inventory.capacity) return { ...info, ok: false, reason: 'กระเป๋าเต็ม ต้องมีช่องว่าง 1 ช่อง' };
   return { ...info, ok: true };
 }
 
 // ตีบวก 1 ครั้ง → { result: 'success'|'down'|'break', oldKey, newKey, from, to }
-export function doRefine(player, ref, guard = false, rnd = Math.random) {
-  const chk = refineCheck(player, ref, guard);
+export function doRefine(player, ref, guard = false, rnd = Math.random, luck = false, extra = 0) {
+  const chk = refineCheck(player, ref, guard, luck, extra);
   if (!chk.ok) return { error: chk.reason };
   const { base, refine, cards, roll } = itemMods(ref.key);
   player.inventory.remove(chk.mat, 1);
   player.spendZeny(chk.fee);
   if (chk.useGuard) player.inventory.remove('refine_guard', 1);
-  const result = rollRefine(chk.target, chk.useGuard, rnd);
+  if (chk.useLuck) player.inventory.remove('refine_luck', 1);
+  const result = rollRefine(chk.target, chk.useGuard, rnd, chk.bonus);
   const to = result === 'success' ? chk.target : result === 'down' ? Math.max(0, refine - 1) : result === 'none' ? refine : -1;
   const newKey = to < 0 ? null : itemKey(base, to, cards, roll);   // v0.25: เก็บค่าสุ่มไว้
   replaceGear(player, ref, newKey);
-  return { result, oldKey: ref.key, newKey, from: refine, to, guarded: chk.useGuard };
+  return { result, oldKey: ref.key, newKey, from: refine, to, guarded: chk.useGuard, lucky: chk.useLuck };
 }
 
 export const gearOwned = (player, ref) => !!ref && !!ref.key && (ref.where === 'equip' ? player.equip[ref.slot] === ref.key : player.inventory.count(ref.key) > 0);

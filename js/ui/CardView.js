@@ -1,5 +1,5 @@
 // v0.29: การ์ดมอนสเตอร์แบบใหญ่ (หน้าการ์ดเต็ม + เอียงตามนิ้ว/เมาส์) · หน้าจอได้รับการ์ด
-import { CARD_COMBOS, CARD_MAPS, CARD_RANKS, SLOT_TH, CLASS_TH, ROLE_TH, effectText, isDrawback, traitTH, CARD_BY_ID } from '../data/cardCatalog.js?v=0.47.0';
+import { CARD_COMBOS, CARD_MAPS, CARD_RANKS, SLOT_TH, CLASS_TH, ROLE_TH, effectText, isDrawback, traitTH, CARD_BY_ID } from '../data/cardCatalog.js?v=0.49.0';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pct = (r) => (r * 100).toFixed(r * 100 < 0.01 ? 3 : 2).replace(/0+$/, '').replace(/\.$/, '') + '%';
@@ -186,7 +186,7 @@ export class CardModal {
     const R = CARD_RANKS[c.rank], M = CARD_MAPS[c.monster.map], combo = CARD_COMBOS.find((x) => x.combo_id === c.combo_id);
     this.el.querySelector('.ecm-cap').innerHTML = `<b>${esc(c.name_th)}</b><span>${c.effects.map((e) => esc(effectText(e))).join(' · ')}</span><small>แตะที่ใดก็ได้เพื่อปิด</small>`;
     this.el.querySelector('.ecm-info').innerHTML = `<h2>${esc(c.name_th)}</h2><div class="en">${esc(c.name_en)} · ${c.no} · ${R.th}</div>
-      <div class="ecm-tags"><span>ตำแหน่ง ${SLOT_TH[c.slot]}</span><span>ดรอป ${pct(c.drop_rate)}</span><span>แนว ${ROLE_TH[c.role]}</span><span>${c.stackable ? 'ซ้อนได้ ' + c.max_stack + ' ใบ' : 'ไม่ซ้อน'}</span></div>
+      <div class="ecm-tags"><span>ตำแหน่ง ${SLOT_TH[c.slot]}</span><span>ดรอป ${pct(c.drop_rate * 0.5)}</span><span>แนว ${ROLE_TH[c.role]}</span><span>${c.stackable ? 'ซ้อนได้ ' + c.max_stack + ' ใบ' : 'ไม่ซ้อน'}</span></div>
       <h3>เอฟเฟกต์</h3><ul>${c.effects.map((e) => `<li class="${isDrawback(e) ? 'bad' : ''}">${esc(effectText(e))}</li>`).join('')}</ul>
       <h3>มอนสเตอร์</h3><p>${esc(c.monster.name)} · Lv.${c.monster.level} · เผ่า${traitTH(c.monster.race)} · ธาตุ${traitTH(c.monster.element)} · ขนาด${traitTH(c.monster.size)} · ${M.th}</p>
       <h3>เหมาะกับ</h3><p>${c.recommended_class.map((k) => CLASS_TH[k]).join(' · ')}</p>

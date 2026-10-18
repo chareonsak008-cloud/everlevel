@@ -1,9 +1,9 @@
 // หน้าต่างตีบวกอุปกรณ์ (v0.10) — เปิดจากการ์ธ ช่างตีเหล็ก
-import { ITEMS, BASE_ITEMS, itemMods, describeBonus, EQUIP_SLOTS } from '../data/items.js?v=0.47.0';
-import { REFINE_RATE, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, refineBonus } from '../data/refine.js?v=0.47.0';
-import { refineTargets, refineCheck } from '../systems/Forge.js?v=0.47.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.47.0';
-import { fmtZ } from '../data/shops.js?v=0.47.0';
+import { ITEMS, BASE_ITEMS, itemMods, describeBonus, EQUIP_SLOTS } from '../data/items.js?v=0.49.0';
+import { REFINE_RATE, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS, refineBonus } from '../data/refine.js?v=0.49.0';
+import { refineTargets, refineCheck } from '../systems/Forge.js?v=0.49.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.49.0';
+import { fmtZ } from '../data/shops.js?v=0.49.0';
 
 const HAMMER = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M30 30 L52 52" stroke="#8a5a32" stroke-width="7" stroke-linecap="round"/><path d="M14 14 l18 -6 l10 10 l-6 18 z" fill="#c8d0dc" stroke="#2a1d2c" stroke-width="3" stroke-linejoin="round"/><path d="M18 16 l12 -4" stroke="#fff" stroke-width="2" opacity=".7"/></svg>';
 const slotName = (id) => (EQUIP_SLOTS.find((s) => s.id === id) || {}).name || id;
@@ -16,14 +16,14 @@ export class RefineWindow {
     this.$ = (id) => root.querySelector('#' + id);
     this.open = false;
     this.sel = null;
-    this.guard = false;
+    this.guard = false; this.luck = false;
     this.confirm = false;
     this.busy = false;
     this.$('refClose').addEventListener('click', () => this.close());
     for (const ev of ['pointerdown', 'wheel', 'contextmenu']) this.el.addEventListener(ev, (e) => e.stopPropagation());
   }
 
-  show() { this.open = true; this.el.hidden = false; this.sel = null; this.guard = false; this.confirm = false; this.$('refResult').innerHTML = ''; this.render(); }
+  show() { this.open = true; this.el.hidden = false; this.sel = null; this.guard = false; this.luck = false; this.confirm = false; this.$('refResult').innerHTML = ''; this.render(); }
 
   close() {
     if (!this.open) return;
@@ -52,7 +52,7 @@ export class RefineWindow {
     }
     if (!list.length) box.innerHTML = '<p class="inv-empty">ไม่มีอุปกรณ์ที่ตีบวกได้ (เครื่องประดับตีบวกไม่ได้)</p>';
     this.$('refZeny').textContent = fmtZ(p.zeny);
-    this.$('refMats').textContent = `ผลึกอาวุธ ${p.inventory.count('refine_w')} · ผลึกเกราะ ${p.inventory.count('refine_a')} · คริสตัลพิทักษ์ ${p.inventory.count('refine_guard')}`;
+    this.$('refMats').textContent = `ผลึกอาวุธ ${p.inventory.count('refine_w')} · ผลึกเกราะ ${p.inventory.count('refine_a')} · คริสตัลพิทักษ์ ${p.inventory.count('refine_guard')} · หินนำโชค ${p.inventory.count('refine_luck')}`;
     this.renderDetail();
   }
 
@@ -60,7 +60,7 @@ export class RefineWindow {
     const box = this.$('refDetail'), p = this.player, r = this.sel;
     if (!r) { box.innerHTML = '<p class="hint">เลือกอุปกรณ์ที่ต้องการตีบวก</p>'; return; }
     const it = ITEMS[r.key], { base, refine } = itemMods(r.key), B = BASE_ITEMS[base];
-    const chk = refineCheck(p, r, this.guard);
+    const chk = refineCheck(p, r, this.guard, this.luck, this.act.bonus ? this.act.bonus() : 0);
     const max = refine >= REFINE_MAX;
     const failTxt = { none: 'ล้มเหลว: ไม่เสียอะไร', down: 'ล้มเหลว: ระดับลดลง 1', break: 'ล้มเหลว: อุปกรณ์แตกหาย!' }[chk.fail] || '';
     const now = describeBonus(refineBonus(B, refine)) || '-', after = max ? '' : describeBonus(refineBonus(B, refine + 1));
@@ -76,12 +76,15 @@ export class RefineWindow {
         <p class="ref-bonus">ตีบวกตอนนี้: ${now}<br>หลังตีบวก: <b>${after}</b></p>
         <p class="ref-fail ${chk.fail}">${failTxt}</p>
         <p class="ref-cost"><img alt="" src="${iconURL(chk.mat)}"> ${ITEMS[chk.mat].name} x1 <small>(มี ${p.inventory.count(chk.mat)})</small> · ค่าตีบวก ${fmtZ(chk.fee)}</p>
-        ${chk.target >= BREAK_FROM ? `<label class="ref-guard"><input type="checkbox" ${this.guard ? 'checked' : ''}> ใช้คริสตัลพิทักษ์กันแตก <small>(มี ${p.inventory.count('refine_guard')})</small></label>` : ''}`}
+        ${chk.target >= BREAK_FROM ? `<label class="ref-guard"><input type="checkbox" ${this.guard ? 'checked' : ''}> ใช้คริสตัลพิทักษ์กันแตก <small>(มี ${p.inventory.count('refine_guard')})</small></label>` : ''}
+        ${chk.target > SAFE_LIMIT ? `<label class="ref-guard ref-luck"><input type="checkbox" ${this.luck ? 'checked' : ''}> ใช้หินนำโชค +${LUCK_BONUS}% <small>(มี ${p.inventory.count('refine_luck')})</small></label>` : ''}`}
         <div class="d-actions"></div>
         <p class="ref-msg">${!max && !chk.ok ? chk.reason : ''}</p>
       </div>`;
     box.querySelector('.ref-name').textContent = it.name;
-    const g = box.querySelector('.ref-guard input');
+    const lk = box.querySelector('.ref-luck input');
+    if (lk) lk.addEventListener('change', (e) => { this.luck = e.target.checked; this.confirm = false; this.renderDetail(); });
+    const g = box.querySelector('.ref-guard:not(.ref-luck) input');
     if (g) g.addEventListener('change', (e) => { this.guard = e.target.checked; this.confirm = false; this.renderDetail(); });
     if (max) return;
     const a = box.querySelector('.d-actions');
@@ -108,12 +111,13 @@ export class RefineWindow {
     this.$('refResult').innerHTML = '';
     this.renderButtonsDisabled();
     setTimeout(() => {
-      const res = this.act.refine(this.sel, this.guard);
+      const res = this.act.refine(this.sel, this.guard, this.luck);
       this.busy = false;
       if (!res || res.error) { this.$('refResult').innerHTML = `<p class="bad">${res ? res.error : 'ตีบวกไม่สำเร็จ'}</p>`; this.render(); return; }
       if (res.newKey) this.sel = { ...this.sel, key: res.newKey };
       else this.sel = null;
       if (this.guard && res.guarded) this.guard = this.player.inventory.count('refine_guard') > 0 && this.guard;
+      if (this.luck && res.lucky) this.luck = this.player.inventory.count('refine_luck') > 0;
       this.render();
       const out = this.$('refResult');
       const msg = res.result === 'success' ? `<p class="ok">สำเร็จ! ได้ ${ITEMS[res.newKey].name}</p>`
