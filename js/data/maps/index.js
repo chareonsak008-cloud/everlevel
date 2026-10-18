@@ -1,11 +1,11 @@
-import { ANCIENT_RUINS } from './ancient_ruins.js?v=0.44.1';
-import { HAUNTED_FOREST } from './haunted_forest.js?v=0.44.1';
+import { ANCIENT_RUINS } from './ancient_ruins.js?v=0.44.2';
+import { HAUNTED_FOREST } from './haunted_forest.js?v=0.44.2';
 // ทะเบียนแผนที่ทั้งหมด — เพิ่มแผนที่ใหม่ที่นี่
-import { ASTERIA_TOWN } from './asteria_town.js?v=0.44.1';
-import { BEGINNER_FIELD } from './beginner_field.js?v=0.44.1';
-import { WHISPER_FOREST } from './whisper_forest.js?v=0.44.1';
-import { FROSTVEIL_PEAKS } from './frostveil_peaks.js?v=0.44.1';
-import { EMBER_CALDERA } from './ember_caldera.js?v=0.44.1';
+import { ASTERIA_TOWN } from './asteria_town.js?v=0.44.2';
+import { BEGINNER_FIELD } from './beginner_field.js?v=0.44.2';
+import { WHISPER_FOREST } from './whisper_forest.js?v=0.44.2';
+import { FROSTVEIL_PEAKS } from './frostveil_peaks.js?v=0.44.2';
+import { EMBER_CALDERA } from './ember_caldera.js?v=0.44.2';
 
 export const MAPS = {
   ancient_ruins: ANCIENT_RUINS,
