@@ -1,23 +1,23 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.49.0';
-import { MONSTERS } from '../data/monsters.js?v=0.49.0';
-import { MAPS } from '../data/maps/index.js?v=0.49.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.49.0';
-import { CARD_SETS } from '../data/collection.js?v=0.49.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.49.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.49.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.49.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.49.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.49.0';
-import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.49.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.49.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.49.0';
-import { statsToBonus } from '../data/affixes.js?v=0.49.0';
-import { VIP_PERKS } from './CashShop.js?v=0.49.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.49.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.49.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.49.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.50.0';
+import { MONSTERS } from '../data/monsters.js?v=0.50.0';
+import { MAPS } from '../data/maps/index.js?v=0.50.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.50.0';
+import { CARD_SETS } from '../data/collection.js?v=0.50.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.50.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.50.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.50.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.50.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.50.0';
+import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.50.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.50.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.50.0';
+import { statsToBonus } from '../data/affixes.js?v=0.50.0';
+import { VIP_PERKS } from './CashShop.js?v=0.50.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.50.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.50.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.50.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -384,7 +384,7 @@ const GUIDES = [
   { id: 'auto', title: '🤖 ล่าอัตโนมัติ', sub: 'บอทในตัวเกม', html: () =>
     UL(['กด ' + K('Z') + ' เริ่ม/หยุด · ' + K('H') + ' ตั้งค่า', 'เลือกมอนที่จะล่า ระยะการล่า สกิลที่ใช้ และใช้ยาเมื่อ HP/SP ต่ำกว่ากี่ %', 'บอทจะหยุดเองเมื่อยาหมดหรือกระเป๋าเต็ม (VIP: ซื้อยาเติมให้อัตโนมัติ)', 'ใช้คู่กับสัตว์เลี้ยงเก็บของ จะเก็บเลเวลได้สบายมาก']) },
   { id: 'economy', title: '💰 Zeny · ร้านค้า · ตลาด · เทรด', sub: 'หาเงิน ซื้อขาย แลกของ', html: () =>
-    UL([`ขายของให้ร้านค้า NPC ได้ ${Math.round(SELL_RATE * 100)}% ของราคา`, `คลังเก็บของ (NPC) เก็บได้ ${STORAGE_CAPACITY} ช่อง ใช้ร่วมได้`, '<b>ตลาด</b> (นายตลาดในเมือง): ฝากขายได้แม้ออฟไลน์ อยู่ 7 วัน มีคนซื้อเงินเข้าทันที · คนทั่วไปลงได้ 2 รายการ ค่าธรรมเนียม 7% · VIP 5 รายการ 3%', '<b>แลกเปลี่ยน</b>: คลิกผู้เล่น → แลกเปลี่ยน วางของ/Zeny แล้วทั้งคู่กดยืนยัน · ให้ของฝ่ายเดียวได้', 'ของจากร้านเพชรบางชิ้นซื้อขายในตลาดได้ — หาเพชรได้โดยไม่ต้องเติมเงิน']) },
+    UL([`ขายของให้ร้านค้า NPC ได้ ${Math.round(SELL_RATE * 100)}% ของราคา`, `คลังเก็บของ (NPC) เก็บได้ ${STORAGE_CAPACITY} ช่อง ใช้ร่วมได้`, '<b>ตลาด</b> (นายตลาดในเมือง): ฝากขายได้แม้ออฟไลน์ อยู่ 7 วัน มีคนซื้อเงินเข้าทันที · คนทั่วไปลงได้ 2 รายการ ค่าธรรมเนียม 7% · VIP 5 รายการ 3%', '<b>แลกเปลี่ยน</b>: คลิกผู้เล่น → แลกเปลี่ยน วางของ/Zeny แล้วทั้งคู่กดยืนยัน · ให้ของฝ่ายเดียวได้', 'ของจากร้านเพชรบางชิ้นซื้อขายในตลาดได้ — หาเพชรได้โดยไม่ต้องเติมเงิน', '<b>ตลาดแลกเพชร</b> (ปุ่ม "แลกเพชร" ด้านบน): ซื้อ/ขายเพชรกับผู้เล่นด้วย Zeny ได้ทุกที่ · ซื้อขายทันทีหรือตั้งราคารอ · มีกราฟราคาและความลึกตลาด · ค่าธรรมเนียมฝั่งละ 7% (VIP 3%)', 'Zeny หายาก: ขายของให้ NPC ได้น้อย — ของดีควรขายผ่านตลาดให้ผู้เล่น']) },
   { id: 'boss', title: '👹 บอสโลก & MVP', sub: 'เวลาเกิด · รางวัล', html: () =>
     `<h4>บอสโลก</h4>` + table(['บอส', 'เวลาเกิด (ไทย)', 'แผนที่', 'HP'], Object.values(WORLD_BOSSES).map((b) => [esc(b.name), `${b.hour}:00 น. (อยู่ 30 นาที)`, mapLink(b.map), fmt(b.hp)])) +
     UL(['ทุกคนที่ตีโดนได้รางวัลทางจดหมาย · ดาเมจอันดับ 1–3 ได้โบนัสเพิ่ม · มีโอกาส 15% ได้อาวุธพิเศษ', 'กดปุ่ม "บอส" ด้านบนเพื่อดูเวลาที่เหลือและรางวัล']) +

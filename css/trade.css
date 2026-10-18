@@ -230,3 +230,48 @@
   .wk-body { grid-template-columns: 1fr; grid-template-rows: 34% minmax(0, 1fr); height: 74vh; }
   .wk-q { flex: 1 1 100%; }
 }
+
+/* v0.50 ตลาดแลกเพชร */
+.gxw { width: min(760px, calc(100vw - 24px)); }
+.gxw .st-head { align-items: center; }
+.gx-bal { margin-left: auto; margin-right: 10px; display: flex; gap: 8px; }
+.gx-bal span { padding: 4px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 220, 150, 0.3); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; }
+.gx-bal b { color: #ffe8a8; font-weight: 600; }
+.gx-body { display: flex; flex-direction: column; gap: 8px; max-height: 72vh; overflow-y: auto; padding-right: 2px; }
+.gx-card { padding: 8px 10px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 220, 150, 0.16); }
+.gx-ch { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(255, 220, 150, 0.14); }
+.gx-ch b { font-size: 14.5px; color: #ffe8a8; font-weight: 600; }
+.gx-ch span { font-size: 12px; color: var(--muted); }
+.gx-chart { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 8px; }
+.gx-plot { position: relative; height: 160px; border-radius: 8px; background: linear-gradient(180deg, #1c2a52, #142040); border: 1px solid rgba(120, 160, 255, 0.25); overflow: hidden; }
+.gx-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gx-plot .tm-empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; }
+.gx-ax { stroke: rgba(160, 190, 255, 0.35); stroke-width: 1.5; }
+.gx-ln { fill: none; stroke: #e0583a; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.gx-pt { fill: #ffc84a; stroke: #6a3a10; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.gx-hi, .gx-lo { position: absolute; left: 8px; font-style: normal; font-size: 12.5px; color: #c8d6ff; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px #000; }
+.gx-hi { top: 4px; } .gx-lo { bottom: 4px; }
+.gx-rng { display: flex; flex-direction: column; gap: 6px; }
+.gx-rng button { padding: 6px 4px !important; font-size: 12.5px; }
+.gx-depth { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gx-dh { display: flex; justify-content: space-between; margin: 0 0 4px; font-size: 12.5px; color: var(--muted); }
+.gx-g { color: #8fe08a; } .gx-r { color: #ff8a7a; }
+.gx-dr { position: relative; display: grid; grid-template-columns: 34px 1fr auto; gap: 6px; align-items: center; padding: 3px 8px; margin: 2px 0; border-radius: 6px; background: rgba(255, 255, 255, 0.03); font-size: 12.5px; overflow: hidden; font-variant-numeric: tabular-nums; }
+.gx-dr::before { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: var(--w); opacity: 0.22; pointer-events: none; }
+.gx-dr.bid::before { background: #6ad86a; } .gx-dr.ask::before { background: #ff6a5a; }
+.gx-dr small { color: var(--muted); } .gx-dr b { font-weight: 600; position: relative; }
+.gx-dr.bid b { color: #9af09a; } .gx-dr.ask b { color: #ffa090; }
+.gx-trade { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gx-side { display: flex; flex-direction: column; gap: 7px; }
+.gx-best { margin: 0; font-size: 12.5px; color: var(--muted); } .gx-best b { color: #ffe8a8; }
+.gx-mode { display: flex; } .gx-mode button { flex: 1; }
+.gx-in { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; }
+.gx-in input { width: 55%; padding: 6px 8px; border-radius: 7px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.35); color: #fff; font: inherit; text-align: right; }
+.gx-sum { margin: 0; min-height: 18px; font-size: 12px; color: #ffe08a; }
+.gx-go { margin-top: auto; padding: 8px !important; }
+.gx-mine { display: flex; flex-direction: column; gap: 5px; }
+.gx-o { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 5px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); }
+.gx-o span:nth-child(2) { display: flex; flex-direction: column; } .gx-o b { font-size: 13px; font-weight: 500; } .gx-o small { font-size: 11.5px; color: var(--muted); }
+.gx-tag { padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.gx-tag.buy { background: rgba(106, 216, 106, 0.2); color: #9af09a; } .gx-tag.sell { background: rgba(255, 106, 90, 0.2); color: #ffa090; }
+@media (max-width: 600px) { .gx-trade, .gx-depth { grid-template-columns: 1fr; } .gx-chart { grid-template-columns: 1fr; } .gx-rng { flex-direction: row; } .gx-bal { display: none; } }

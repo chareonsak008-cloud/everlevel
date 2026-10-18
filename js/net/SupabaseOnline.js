@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.49.0';
-import { SideChannel } from './SideChannel.js?v=0.49.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.50.0';
+import { SideChannel } from './SideChannel.js?v=0.50.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -62,7 +62,7 @@ const TRADE_ERR = {
   peer_zeny_full: 'Zeny ของอีกฝ่ายจะเกินเพดาน ลดจำนวน Zeny ลง', empty_trade: 'ยังไม่มีของหรือ Zeny บนโต๊ะเลย (วางฝ่ายเดียวก็ได้)', bad_zeny: 'จำนวน Zeny ไม่ถูกต้อง',
   not_enough_gems: 'เพชรไม่พอ', already_owned: 'มีชิ้นนี้ในตู้แฟชั่นแล้ว', no_product: 'สินค้านี้ปิดขายแล้ว', bad_pack: 'แพ็กนี้ไม่มีแล้ว',
   bad_slip: 'อัปโหลดสลิปไม่สำเร็จ ลองใหม่อีกครั้ง', too_many_pending: 'มีคำขอเติมรออนุมัติอยู่ 3 รายการแล้ว รอแอดมินตรวจก่อนนะ',
-  already_decided: 'คำขอนี้ถูกตัดสินไปแล้ว', not_admin: 'บัญชีนี้ไม่ใช่แอดมิน', no_save: 'ยังไม่มีเซฟบนเซิร์ฟเวอร์ ลองเล่นสักครู่แล้วซื้อใหม่', no_listing: 'ไม่พบรายการนี้', no_character: 'ไม่พบตัวละคร', bad_qty: 'จำนวนไม่ถูกต้อง',
+  already_decided: 'คำขอนี้ถูกตัดสินไปแล้ว', not_admin: 'บัญชีนี้ไม่ใช่แอดมิน', no_save: 'ยังไม่มีเซฟบนเซิร์ฟเวอร์ ลองเล่นสักครู่แล้วซื้อใหม่', no_listing: 'ไม่พบรายการนี้', no_character: 'ไม่พบตัวละคร', bad_qty: 'จำนวนไม่ถูกต้อง', no_liquidity: 'ตอนนี้ยังไม่มีคำสั่งฝั่งตรงข้าม ลองตั้งคำสั่งรอไว้แทน', too_many_orders: 'มีคำสั่งค้างครบ 10 รายการแล้ว ยกเลิกคำสั่งเก่าก่อน', no_order: 'คำสั่งนี้จับคู่หรือยกเลิกไปแล้ว', bad_order: 'คำสั่งไม่ถูกต้อง',
 };
 function tradeError(e) {
   const msg = String((e && e.message) || ''), key = msg.split(':')[0].trim();
