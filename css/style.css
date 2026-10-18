@@ -1937,6 +1937,8 @@ body:not(.touch) .menu-btn {display:grid;place-items:center;position:absolute;ri
 .d-stats .wi-style i { color: #ff9a9a; font-style: normal; }
 .d-stats .wi-roll { color: #8fe0ff; }
 .d-stats .wi-roll small { color: #7a90a8; }
+.wi-roll .rgood { color: #9af09a; } .wi-roll .rbad { color: #ff7a7a; }
+.wi-roll .rg { padding: 0 6px; border-radius: 5px; font-weight: 600; } .rg.g4 { background: rgba(255, 200, 80, 0.25); color: #ffd86a; } .rg.g3 { background: rgba(120, 220, 255, 0.2); color: #9adcff; } .rg.g2 { background: rgba(140, 230, 140, 0.18); color: #a8f0a8; } .rg.g1 { background: rgba(255, 255, 255, 0.08); color: #ddd; } .rg.g0 { background: rgba(255, 90, 90, 0.2); color: #ff9a9a; }
 .d-stats .wi-passive { color: #ffd86a; }
 .d-stats .wi-set { color: #ff8a9a; font-size: 11.5px; }
 .d-stats .wi-set .on { color: #ffd0d8; font-weight: 700; }

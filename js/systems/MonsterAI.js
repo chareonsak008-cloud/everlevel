@@ -1,10 +1,15 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.51.0';
-import { Monster } from '../entities/Monster.js?v=0.51.0';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.51.0';
+import { TILE } from '../config.js?v=0.52.0';
+import { MONSTERS } from '../data/monsters.js?v=0.52.0';
+import { Monster } from '../entities/Monster.js?v=0.52.0';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.52.0';
 
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
+
+// v0.52: มอนเกิดเยอะขึ้น/เร็วขึ้น (มอนปกติ) — MVP/บอสคงเดิม
+export const SPAWN_MUL = 1.5, RESPAWN_MUL = 0.45;
+const isBossDef = (def) => { const d = MONSTERS[def.mob]; return !d || d.mvp || d.worldBoss || d.boss; };
 
 export class MonsterManager {
   constructor(map, spawns = [], avoid = null) {
@@ -12,7 +17,8 @@ export class MonsterManager {
     this.avoid = avoid;       // จุดที่ไม่ให้เกิดใกล้ (เช่น ทางเข้าแผนที่)
     this.list = [];
     for (const def of spawns) {
-      for (let i = 0; i < def.count; i++) {
+      const n = isBossDef(def) ? def.count : Math.ceil(def.count * SPAWN_MUL);
+      for (let i = 0; i < n; i++) {
         const p = this.randomSpot(def);
         if (p) this.list.push(new Monster(def.mob, p.x, p.y, def));
       }
@@ -45,8 +51,8 @@ export class MonsterManager {
   kill(m, time) {
     m.dead = true; m.moving = false; m.target = null; m.path = [];
     m.frozen = m.stunned = false; m.frozenUntil = m.stunUntil = 0; m.slowUntil = 0; m.pulledUntil = 0;
-    const [a, b] = m.data.respawn;
-    m.respawnAt = time + a + Math.random() * (b - a);
+    const [a, b] = m.data.respawn, k = m.data.mvp || m.data.worldBoss || m.data.boss ? 1 : RESPAWN_MUL;
+    m.respawnAt = time + Math.max(2, (a + Math.random() * (b - a)) * k);
   }
 
   aggro(m, target) {

@@ -1,8 +1,9 @@
 // v0.42 แลกของตัวต่อตัว + ตลาดฝากขาย
 // ทุกอย่างผ่านฟังก์ชันบนเซิร์ฟเวอร์ (supabase/trade.sql) — เครื่องผู้เล่นแค่ส่งคำขอ แล้วดึงผล (ledger) มาปรับกระเป๋า
-import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.51.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.51.0';
-import { buyPrice, sellPrice } from '../data/shops.js?v=0.51.0';
+import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.52.0';
+import { rollScore, rollGrade } from '../data/affixes.js?v=0.52.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.52.0';
+import { buyPrice, sellPrice } from '../data/shops.js?v=0.52.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -371,7 +372,7 @@ export class MarketWindow {
     const r = document.createElement('div'); r.className = 'tm-row';
     r.innerHTML = `<span class="slot r-${rarityOf(id)}"><img alt="" src="${iconURL(id)}"></span><div class="tm-info"><b></b><small></small></div><div class="tm-right"></div>`;
     r.querySelector('b').textContent = itemName(id); r.querySelector('b').style.color = rar.color;
-    r.querySelector('small').textContent = sub || (it.bonus ? describeBonus(it.bonus) : it.desc || '');
+    r.querySelector('small').textContent = sub || (it.bonus ? (it.rolled && it.rolled.length ? `ค่าสุ่ม${rollGrade(rollScore(it, it.rolled))[0]} · ` : '') + describeBonus(it.bonus) : it.desc || '');
     r.querySelector('.tm-right').append(...right);
     return r;
   }
