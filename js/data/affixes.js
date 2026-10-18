@@ -1,6 +1,6 @@
 // v0.25.0: สเตตัสรอง (ค่าสุ่ม) · ธาตุ/เผ่า/ขนาดมอนสเตอร์ · แปลงอาวุธจาก weapons.js เป็นไอเทมในเกม
-import { WEAPON_DEFS, WEAPON_FORMS } from './weapons.js?v=0.44.3';
-import { OFFHAND_BLOODMOON } from './offhand.js?v=0.44.3';
+import { WEAPON_DEFS, WEAPON_FORMS } from './weapons.js?v=0.44.5';
+import { OFFHAND_BLOODMOON } from './offhand.js?v=0.44.5';
 
 // ชื่อสเตตัสในสเปก → คีย์โบนัสในเกม (scale = ตัวคูณตอนแปลง)
 export const STAT_DEF = {

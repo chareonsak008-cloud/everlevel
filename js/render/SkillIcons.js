@@ -1,8 +1,8 @@
 // ไอคอนสกิล วาดด้วย Canvas: เหรียญสีประจำสกิล + สัญลักษณ์สีขาวตัดเส้นเข้ม
-import { SKILLS } from '../data/skills.js?v=0.44.3';
-import { shadeHex } from './Textures.js?v=0.44.3';
-import { PIXEL } from './PixelSprites.js?v=0.44.3';
-import { pixelizeCanvas } from './PixelArt.js?v=0.44.3';
+import { SKILLS } from '../data/skills.js?v=0.44.5';
+import { shadeHex } from './Textures.js?v=0.44.5';
+import { PIXEL } from './PixelSprites.js?v=0.44.5';
+import { pixelizeCanvas } from './PixelArt.js?v=0.44.5';
 
 const S = 64;
 const LINE = '#1c1222';
