@@ -3,10 +3,10 @@
 // · ความสำเร็จ: ทำครบแล้วได้ฉายา (ใส่โชว์เหนือหัว) + โบนัสเล็กน้อย (ได้ทุกอันที่ปลดล็อก ไม่ต้องใส่ฉายา)
 // · อัลบั้มการ์ด: เคยได้การ์ดครบชุด → โบนัสชุด (ไม่ต้องใส่การ์ด ไม่เสียการ์ด)
 // · เช็กอินรายวัน: เข้าเกมวันละครั้ง → รางวัลวันที่ 1–7 วนรอบ ส่งเข้ากล่องจดหมาย
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.43.2';
-import { MONSTERS } from './monsters.js?v=0.43.2';
-import { CARDS } from './cards.js?v=0.43.2';
-import { MAPS } from './maps/index.js?v=0.43.2';
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.44.0';
+import { MONSTERS } from './monsters.js?v=0.44.0';
+import { CARDS } from './cards.js?v=0.44.0';
+import { MAPS } from './maps/index.js?v=0.44.0';
 
 /* ---------- สมุดมอนสเตอร์ ---------- */
 export const BOOK_TIERS = [100, 500, 1000];

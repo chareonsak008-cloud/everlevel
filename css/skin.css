@@ -1,0 +1,68 @@
+/* v0.44 สกิน UI ทอง-น้ำเงินเข้ม (ภาพจาก PixelLab) — กรอบหน้าต่าง 9 ช่อง · ปุ่ม · ช่องไอเทม · เหรียญกรอบรูปอาชีพ
+   ปิดสกินได้โดยลบบรรทัด <link ... skin.css> ใน index.html */
+.panel {
+  border-style: solid !important; border-color: transparent !important; border-width: 0 !important;
+  border-image: url("../assets/ui/skin/frame.png") 72 fill / 24px / 10px round !important;
+  background: transparent !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 6px 10px rgba(5, 3, 15, 0.55));
+}
+/* ปุ่มเครื่องมือมุมขวาล่าง = ปุ่มกลม */
+.tools button, .menu-btn {
+  border: 0 !important; background: url("../assets/ui/skin/round.png") center / 100% 100% no-repeat !important;
+  image-rendering: pixelated; min-width: 40px; min-height: 40px; padding: 4px 10px !important;
+}
+/* ช่องไอเทม + ปุ่มลัด */
+.slot, .hk {
+  border: 0 !important; box-shadow: none !important; border-radius: 0 !important;
+  background: url("../assets/ui/skin/slot.png") center / 100% 100% no-repeat !important; image-rendering: pixelated;
+}
+.slot.sel, .hk.over { outline: 2px solid var(--gold); outline-offset: -2px; filter: brightness(1.25); }
+.slot.empty { opacity: 0.55; }
+/* แท็บ */
+.inv-tabs button {
+  border-style: solid !important; border-color: transparent !important; border-width: 0 !important; border-image: url("../assets/ui/skin/tab.png") 14 fill / 10px / 0 stretch !important; background: transparent !important; image-rendering: pixelated;
+}
+.inv-tabs button[aria-selected="true"] { filter: brightness(1.35) saturate(1.2); }
+/* ปุ่มทั่วไปในหน้าต่างบริการ */
+.shop-btns button, .stor-foot button, .stor-act .go, .stepper button, .dlg-opt, .tm button:not(.slot):not(.st-close):not([role="tab"]), .d-actions button, .g-actions button {
+  border-style: solid !important; border-color: transparent !important; border-width: 0 !important; border-image: url("../assets/ui/skin/btn.png") 16 fill / 10px / 0 stretch !important; background: transparent !important; image-rendering: pixelated;
+}
+.shop-btns .primary, .stor-act .go, .tm button.primary, .d-actions .primary, .g-actions .primary, .dlg-opt.primary { color: #ffe9a8 !important; filter: brightness(1.2) saturate(1.3); }
+/* กรอบรูปอาชีพ = เหรียญทอง */
+.crest { position: relative; }
+.crest::after {
+  content: ""; position: absolute; inset: -9px; pointer-events: none;
+  background: url("../assets/ui/skin/medallion.png") center / 100% 100% no-repeat; image-rendering: pixelated;
+}
+
+/* v0.44 แถบไอคอนด้านบน (ร้านเพชร · จดหมาย · กิจกรรม) */
+.topbar {
+  position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px; align-items: flex-start; pointer-events: auto; z-index: 2;
+}
+.tb-btn {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 0; width: 76px; padding: 0;
+  background: none; border: 0; cursor: pointer; font: inherit; color: #fff;
+}
+.tb-btn img { width: 52px; height: 52px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.6)); transition: transform 0.12s; }
+.tb-btn span {
+  margin-top: -4px; font-size: 13px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; line-height: 1.2;
+  padding: 1px 8px 2px; border-radius: 8px; background: rgba(10, 8, 20, 0.78);
+  text-shadow: 0 1px 0 #000; box-shadow: 0 0 0 1px rgba(255, 214, 140, 0.25);
+}
+.tb-btn:hover img { transform: translateY(-2px) scale(1.06); }
+.tb-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 8px; }
+.tb-badge {
+  position: absolute; top: -2px; right: 6px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box;
+  display: grid; place-items: center; border-radius: 999px; font-size: 12px; font-weight: 700; color: #fff;
+  background: #e8384f; box-shadow: 0 0 0 2px #fff, 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+.tb-badge[hidden] { display: none; }
+@media (max-width: 720px) {
+  .topbar { top: calc(6px + env(safe-area-inset-top, 0px)); gap: 2px; }
+  .tb-btn { width: 54px; }
+  .tb-btn img { width: 36px; height: 36px; }
+  .tb-btn span { font-size: 10.5px; padding: 0 5px 1px; }
+}

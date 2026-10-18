@@ -1,4 +1,4 @@
-import {BASE_ITEMS} from '../data/items.js?v=0.43.2';
+import {BASE_ITEMS} from '../data/items.js?v=0.44.0';
 const images=new Map();let pending;
 export const equipmentPortrait=id=>images.get(String(id).split('*')[0]);
 export function preloadEquipmentPortraits(){

@@ -1,7 +1,7 @@
 // ร้านค้า · เงิน Zeny · คลังเก็บของ · เส้นทางวาร์ป
 // ปรับเศรษฐกิจของเกมได้จากไฟล์นี้
-import { ITEMS } from './items.js?v=0.43.2';
-import { CONSUMABLES } from './consumables.js?v=0.43.2';
+import { ITEMS } from './items.js?v=0.44.0';
+import { CONSUMABLES } from './consumables.js?v=0.44.0';
 
 export const START_ZENY = 200;          // เงินเริ่มต้นของตัวละครใหม่
 export const MAX_ZENY = 999999999;
