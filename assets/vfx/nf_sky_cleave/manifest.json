@@ -1,0 +1,44 @@
+{
+ "app": "Night Forge VFX Lab → Everlevel",
+ "name": "Everlevel · ดาบสวรรค์ (Sky Cleave)",
+ "fps": 15,
+ "frames": 69,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 192,
+  "h": 192
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 96,
+  "y": 140
+ },
+ "skip": 0,
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 69,
+   "frame": {
+    "w": 192,
+    "h": 192
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 69,
+     "columns": 8,
+     "rows": 9
+    }
+   ],
+   "offset": {
+    "x": -96,
+    "y": -140
+   }
+  }
+ ]
+}

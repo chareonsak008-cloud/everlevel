@@ -1,0 +1,44 @@
+{
+ "app": "Night Forge VFX Lab → Everlevel",
+ "name": "Everlevel · หอกมังกรสวรรค์ (Heaven's Lan",
+ "fps": 15,
+ "frames": 45,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 192,
+  "h": 192
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 96,
+  "y": 140
+ },
+ "skip": 1,
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 45,
+   "frame": {
+    "w": 192,
+    "h": 192
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 45,
+     "columns": 8,
+     "rows": 6
+    }
+   ],
+   "offset": {
+    "x": -96,
+    "y": -140
+   }
+  }
+ ]
+}
