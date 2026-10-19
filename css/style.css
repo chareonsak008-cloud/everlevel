@@ -2337,3 +2337,31 @@ body.touch .qnav-tip { font-size: 10px; }
 .dmg.loot.f-divine { color: #fff6d0; font-size: 28px; font-family: 'Lilita One', var(--display); text-shadow: 0 0 12px rgba(255, 236, 160, 1), 0 1px 0 #2a2010; }
 .g-rar[data-rarity="abyssal"] { color: #3fe6d0; }
 .g-rar[data-rarity="divine"] { color: #fff1b0; }
+
+/* ---------- v0.58 มือถือ (iOS/Android): ย่อ HUD ทั้งหมดให้พอดีจอ ไม่บังเกม ----------
+   ใช้ zoom ย่อทั้งก้อน (ตำแหน่ง/ปุ่ม/ตัวอักษรย่อตามกัน) · จอยสติ๊กคำนวณจาก getBoundingClientRect จึงยังแม่น */
+@media (orientation: landscape) and (max-height: 520px) {
+  body.touch { --hudz: 0.7; }
+}
+@media (orientation: landscape) and (max-height: 400px) {
+  body.touch { --hudz: 0.62; }
+}
+@media (orientation: portrait) and (max-width: 520px) {
+  body.touch { --hudz: 0.8; }
+}
+body.touch .hud > :is(.panel.char, .buffs, .panel.mini, .topbar, .qtrack, .hotbar, .skill-arc, .attack-btn, .menu-btn, .tools, .joystick, .chat-wrap, .target, .bossbar, .auto-dock, .banner, .party-row, .pf-row) {
+  zoom: var(--hudz, 1);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  body.touch .qtrack { max-height: 46vh; max-width: 260px; }
+  body.touch .qtrack .qt-list { max-height: 34vh; overflow-y: auto; }
+}
+@media (orientation: landscape) and (max-height: 520px), (orientation: portrait) and (max-width: 520px) {
+  body.touch .tag { font-size: 10.5px; }
+  body.touch .tag small { font-size: 8.5px; }
+  body.touch .tag-mob, body.touch .tag-item { font-size: 10px; }
+}
+/* แนวตั้ง: แถบไอคอนด้านบนย้ายลงมาใต้กรอบตัวละคร/มินิแมป ไม่ทับกัน */
+@media (orientation: portrait) and (max-width: 520px) {
+  body.touch .topbar { top: calc(178px + env(safe-area-inset-top, 0px)); width: max-content; max-width: calc(100vw / var(--hudz, 1) - 8px); flex-wrap: wrap; justify-content: center; }
+}

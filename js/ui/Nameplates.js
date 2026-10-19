@@ -1,6 +1,6 @@
 // v0.36 กรอบป้ายชื่อตัวละคร 7 ระดับตามเลเวล (ภาพพิกเซลจาก PixelLab · assets/ui/nameplate/tN.png)
 // ป้ายเป็นภาพขนาดคงที่ · ชื่ออยู่ในช่องกลางกรอบ (ย่อตัวอักษรเองเมื่อชื่อยาว) · ระดับสูงมีปีก/มงกุฎ/เปลวไฟกินพื้นที่รอบกรอบ
-import { emblemSvg } from '../data/guildEmblems.js?v=0.57.0';
+import { emblemSvg } from '../data/guildEmblems.js?v=0.58.0';
 
 export const PLATE_TIERS = [
   { t: 1, min: 1, name: 'ไม้', color: '#c9a27a' },
@@ -26,15 +26,17 @@ const fitSize = (text, maxW, base) => {
 
 // วาด/อัปเดตป้ายชื่อบน element label (คืน true ถ้ามีการเปลี่ยนแปลง) · คืนค่าเรขาคณิตไว้ใช้วางแถบ HP
 // v0.37: guild = { name, emblem } (ป้ายกิลด์เหนือกรอบ) · party = เพื่อนร่วมปาร์ตี้ (ชื่อสีเขียว)
+// v0.58 มือถือจอเล็ก: ย่อป้ายชื่อลงอีก (ไม่บังตัวละคร)
+const mobileK = () => (typeof document !== 'undefined' && document.body && document.body.classList.contains('touch') && Math.min(innerWidth, innerHeight) <= 520 ? 0.72 : 1);
 export function paintPlate(el, name, lv, guild = null, party = false, vip = false) {
-  const t = plateTier(lv), sig = `${t}|${name}|${lv}|${guild ? guild.name + guild.emblem : ''}|${party ? 1 : 0}|${vip ? 1 : 0}`;
+  const mk = mobileK(), t = plateTier(lv), sig = `${mk}|${t}|${name}|${lv}|${guild ? guild.name + guild.emblem : ''}|${party ? 1 : 0}|${vip ? 1 : 0}`;
   if (el._npSig === sig) return el._npGeo;
   el._npSig = sig;
-  const k = PLATE_SCALE[t] || 1, [W, H, ix, iy, iw, ih] = PLATE_GEO[t].map((v) => Math.round(v * k));
+  const k = (PLATE_SCALE[t] || 1) * mk, [W, H, ix, iy, iw, ih] = PLATE_GEO[t].map((v) => Math.round(v * k));
   el.classList.add('np'); el.classList.toggle('np-party', !!party); el.classList.toggle('np-vip', !!vip); for (let k = 1; k <= 7; k++) el.classList.toggle('np-t' + k, k === t);
   el.style.width = W + 'px'; el.style.height = H + 'px';
   const lvTxt = String(lv || 1), lvW = 6 + lvTxt.length * 6;
-  const fs = fitSize(name, iw - lvW - 8, ih >= 18 ? 12 : ih >= 15 ? 11 : 10);
+  const fs = fitSize(name, iw - lvW - 8, ih >= 18 ? 12 : ih >= 15 ? 11 : ih >= 12 ? 10 : 8.5);
   el.innerHTML = `<span class="np-in" style="left:${ix}px;top:${iy}px;width:${iw}px;height:${ih}px"><b class="np-lv${ih < 15 ? ' sm' : ''}">${lvTxt}</b><span class="np-name" style="font-size:${fs}px"></span></span>${vip ? `<b class="np-vipb" style="top:${iy + Math.round(ih / 2)}px">VIP</b>` : ''}${guild ? `<span class="np-guild" style="top:${iy + ih + 10}px"><i>${emblemSvg(guild.emblem)}</i><span></span></span>` : ''}${t === 7 ? '<i class="np-star" style="left:18%;top:20%"></i><i class="np-star" style="right:16%;top:34%;animation-delay:-.7s"></i><i class="np-star" style="left:48%;top:4%;animation-delay:-1.3s"></i>' : ''}`;
   el.querySelector('.np-name').textContent = name;
   if (guild) el.querySelector('.np-guild > span').textContent = guild.name;

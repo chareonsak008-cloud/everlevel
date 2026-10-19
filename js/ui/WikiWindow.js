@@ -1,25 +1,25 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.57.0';
-import { MONSTERS } from '../data/monsters.js?v=0.57.0';
-import { MAPS } from '../data/maps/index.js?v=0.57.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.57.0';
-import { CARD_SETS } from '../data/collection.js?v=0.57.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.57.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.57.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.57.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.57.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.57.0';
-import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.57.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.57.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.57.0';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.57.0';
-import { rollFits } from '../data/affixes.js?v=0.57.0';
-import { statsToBonus } from '../data/affixes.js?v=0.57.0';
-import { VIP_PERKS } from './CashShop.js?v=0.57.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.57.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.57.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.57.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.58.0';
+import { MONSTERS } from '../data/monsters.js?v=0.58.0';
+import { MAPS } from '../data/maps/index.js?v=0.58.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.58.0';
+import { CARD_SETS } from '../data/collection.js?v=0.58.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.58.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.58.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.58.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.58.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.58.0';
+import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.58.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.58.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.58.0';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.58.0';
+import { rollFits } from '../data/affixes.js?v=0.58.0';
+import { statsToBonus } from '../data/affixes.js?v=0.58.0';
+import { VIP_PERKS } from './CashShop.js?v=0.58.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.58.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.58.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.58.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -218,7 +218,7 @@ function equipPage(id) {
   if (it.passive && it.passive.text) h += `<h4>ความสามารถพิเศษ</h4><p>✨ ${esc(it.passive.text)}</p>`;
   if (it.rolls && it.rolls.pool && it.rolls.pool.length) {
     const [a, b] = it.rolls.count || [0, 1];
-    h += `<h4>ค่าสุ่มพิเศษ (ได้ ${a}–${b} ค่าตอนดรอป/ซื้อ · ✦ = ตรงสายอาวุธนี้)</h4><div class="wk-chips">${it.rolls.pool.map((r) => `<span class="wk-chip">${rollFits(it, r.stat) ? '✦ ' : ''}${esc(r.stat)} <span class="${r.min < 0 ? 'wk-bad' : 'wk-good'}">${r.min}</span>~<span class="wk-good">+${r.max}</span></span>`).join('')}</div><p class="wk-muted">ค่าติดลบ = ค่าสุ่มไม่ดี · ดูหัวข้อ "ค่าสุ่มอาวุธ" ในคู่มือ</p>`;
+    h += `<h4>ค่าสุ่มพิเศษ (ได้ ${a}–${b} ค่าตอนดรอป/ซื้อ · ✦ = ตรงสายของชิ้นนี้)</h4><div class="wk-chips">${it.rolls.pool.map((r) => `<span class="wk-chip">${rollFits(it, r.stat) ? '✦ ' : ''}${esc(r.stat)} <span class="${r.min < 0 ? 'wk-bad' : 'wk-good'}">${r.min}</span>~<span class="wk-good">+${r.max}</span></span>`).join('')}</div><p class="wk-muted">ค่าติดลบ = ค่าสุ่มไม่ดี · ดูหัวข้อ "ค่าสุ่มอาวุธ" ในคู่มือ</p>`;
   }
   if (it.set) h += `<h4>ชุดเซ็ต: ${esc(it.set.name)}</h4><p>${Object.entries(it.set.bonus).map(([n, b]) => `สวม ${n} ชิ้น: <b>${esc(statsBonusText(b))}</b>`).join('<br>')}</p><div class="wk-chips">${it.set.pieces.map((p) => (ITEMS[p] ? itemLink(p) : '')).join('')}</div>`;
   if (canRefine(it)) {
@@ -375,18 +375,18 @@ const GUIDES = [
       const lv = m.level ? `Lv.${m.level[0]}–${m.level[1]}` : (() => { const ls = mobs.filter((x) => !MONSTERS[x].mvp).map((x) => MONSTERS[x].level); return ls.length ? `Lv.${Math.min(...ls)}–${Math.max(...ls)}` : '-'; })();
       return [link('map', id, m.name), lv, mvp.length ? 'MVP: ' + mvp.map((x) => link('mob', x, MONSTERS[x].name)).join(', ') : `${mobs.length} ชนิด`];
     })) + UL(['ล่ามอนที่เลเวลใกล้เคียงตัวเองได้ EXP คุ้มที่สุด', 'ใช้ใบคูณ EXP + ทำเควสต์รายวัน/รายสัปดาห์ เร่งเลเวลได้มาก', 'วาร์ปไปแผนที่ไกล ๆ ได้ที่ NPC นักเวทย์วาร์ป (เสีย Zeny) หรือใบวาร์ป']) },
-  { id: 'rolls', title: '🎲 ค่าสุ่มอาวุธ', sub: 'สุ่มดี/ไม่ดี · ตรงสาย · เกรด', html: () =>
-    P('อาวุธ<b>ทุกชิ้นทุกระดับ</b> ได้ค่าสุ่มพิเศษ <b>1–3 ค่า</b> ตอนดรอปจากมอนหรือซื้อจากร้าน — อาวุธชื่อเดียวกันแต่ละชิ้นจึงเก่งไม่เท่ากัน เลือกเก็บชิ้นที่เข้ากับบิลด์ แล้วเอาชิ้นที่ไม่ใช้ไปขายในตลาดได้') +
+  { id: 'rolls', title: '🎲 ค่าสุ่มอาวุธ & อุปกรณ์', sub: 'สุ่มดี/ไม่ดี · ตรงสาย · เกรด', html: () =>
+    P('อาวุธ<b>และอุปกรณ์สวมใส่ทุกชิ้นทุกระดับ</b> (หัว · ชุด · มือรอง · ผ้าคลุม · รองเท้า · เครื่องประดับ) ได้ค่าสุ่มพิเศษ <b>1–3 ค่า</b> ตอนดรอปจากมอนหรือซื้อจากร้าน — ชื่อเดียวกันแต่ละชิ้นจึงเก่งไม่เท่ากัน เลือกเก็บชิ้นที่เข้ากับบิลด์ แล้วเอาชิ้นที่ไม่ใช้ไปขายในตลาดได้') +
     UL(['<span class="wk-good">ค่าบวก</span> = ค่าสุ่มดี · <span class="wk-bad">ค่าติดลบ</span> = ค่าสุ่มไม่ดี (ประมาณ 3 ใน 10 บรรทัดออกติดลบ)', 'สุ่มได้จาก STR · AGI · VIT · INT · DEX · LUK · ATK · MATK · HIT · FLEE · DEF · CRIT · Max HP · Max SP · ASPD% · Cast Time', 'ยิ่งเลเวลอาวุธสูงและหายาก ค่าสุ่มยิ่งมาก และมีโอกาสได้ 2–3 ค่าบ่อยขึ้น',
-      '<b>✦ ตรงสาย</b> = สเตตัสที่อาวุธประเภทนั้นใช้ได้ดี เช่น ดาบ/มีด/กระบอง → STR AGI DEX ATK CRIT ASPD · ไม้เท้า → INT DEX MATK Cast Time Max SP · ธนู → DEX AGI LUK ATK HIT CRIT', 'ค่าที่ไม่ตรงสายยังใช้ได้กับบิลด์แปลก ๆ หรืออาชีพอื่น ลองจัดสเตตัสให้เข้ากัน']) +
+      '<b>✦ ตรงสาย</b> = สเตตัสที่อาวุธประเภทนั้นใช้ได้ดี เช่น ดาบ/มีด/กระบอง → STR AGI DEX ATK CRIT ASPD · ไม้เท้า → INT DEX MATK Cast Time Max SP · ธนู → DEX AGI LUK ATK HIT CRIT', '<b>อุปกรณ์สวมใส่</b>: ค่าสุ่มเล็กกว่าอาวุธเล็กน้อย เน้นสายป้องกัน (DEF · FLEE · Max HP/SP · ฟื้น HP/SP%) แต่มี ATK/MATK/CRIT/ASPD ให้ลุ้นด้วย · ✦ ตรงสาย: หัว → INT DEX DEF Max SP · ชุด → VIT STR DEF Max HP · มือรอง → VIT DEF Max HP · ผ้าคลุม → AGI LUK FLEE CRIT · รองเท้า → AGI DEX FLEE ASPD · เครื่องประดับ → ทุกค่า', 'อุปกรณ์ที่มีอยู่ก่อนอัปเดตยังไม่มีค่าสุ่ม ใช้งานได้ปกติ · ชิ้นใหม่ที่ได้หลังอัปเดตจะสุ่มให้เอง', 'ค่าที่ไม่ตรงสายยังใช้ได้กับบิลด์แปลก ๆ หรืออาชีพอื่น ลองจัดสเตตัสให้เข้ากัน']) +
     table(['เกรดค่าสุ่ม', 'ความหมาย'], [['<b class="rgx g4">ยอดเยี่ยม</b>', 'หลายค่า ค่าสูง ตรงสาย — ของหายาก ราคาดี'], ['<b class="rgx g3">ดีมาก</b>', 'ค่าดีเกือบเต็ม'], ['<b class="rgx g2">ดี</b>', 'ค่าบวกพอใช้'], ['<b class="rgx g1">ธรรมดา</b>', 'บวกน้อยหรือหักลบกันพอดี'], ['<b class="rgx g0">แย่</b>', 'ติดลบรวม — ขาย NPC หรือเก็บไว้ตีบวกทดลอง']]) +
-    P('ดูค่าสุ่มของชิ้นที่มีได้ในกระเป๋า (สีเขียว/แดง + เกรด) · ในตลาดฝากขายจะแสดงเกรดค่าสุ่มต่อท้ายชื่อด้วย · ดูช่วงค่าที่สุ่มได้ของอาวุธแต่ละชิ้นในแท็บ "อุปกรณ์"') },
+    P('ดูค่าสุ่มของชิ้นที่มีได้ในกระเป๋า (สีเขียว/แดง + เกรด) · ในตลาดฝากขายจะแสดงเกรดค่าสุ่มต่อท้ายชื่อด้วย · ดูช่วงค่าที่สุ่มได้ของอาวุธ/อุปกรณ์แต่ละชิ้นในแท็บ "อุปกรณ์"') },
   { id: 'spawn', title: '👾 การเกิดของมอนสเตอร์', sub: 'จำนวน · เวลาเกิดใหม่', html: () =>
     UL([`มอนปกติในทุกแผนที่เกิดมากขึ้น ×${SPAWN_MUL} และเกิดใหม่เร็วขึ้น (ใช้เวลาเหลือราว ${Math.round(RESPAWN_MUL * 100)}% ของเดิม)`, 'มอนแต่ละตัวเกิดใหม่สุ่มจุดในโซนของมัน · MVP สุ่มจุดเกิดทั่วแผนที่และเกิดตามเวลาเดิม', 'ดูเวลาเกิดใหม่ของมอนแต่ละตัวได้ในแท็บ "มอนสเตอร์"']) },
   { id: 'equipguide', title: '⚔ อุปกรณ์ & ระดับความหายาก', sub: 'เกรดสี · ช่องสวมใส่ · ค่าสุ่ม', html: () =>
     P(`อุปกรณ์มี 7 ช่อง: ${EQUIP_SLOTS.map((s) => s.name).join(' · ')} · แต่ละชิ้นมีเลเวลที่ต้องการและอาชีพที่ใช้ได้`) +
     table(['เกรด', 'สี'], Object.entries(RARITY).map(([k, r]) => [`<b style="color:${r.color}">${esc(r.name || k)}</b>`, `<span class="wk-sw" style="background:${r.color}"></span>`])) +
-    UL(['อาวุธที่ดรอปจากมอนมี <b>ค่าสุ่ม</b> เพิ่ม (เช่น STR +2, HIT +5) — ชิ้นเดียวกันอาจเก่งไม่เท่ากัน', 'บางชิ้นเป็นชุดเซ็ต สวมครบตามจำนวนได้โบนัสเพิ่ม', 'ยิ่งเกรดสูง โบนัสตีบวกยิ่งมาก', 'ดูรายชื่ออุปกรณ์ทั้งหมด ค่าสถานะ ดรอปจากไหน และโบนัส +1~+10 ได้ในแท็บ "อุปกรณ์"']) },
+    UL(['อาวุธและอุปกรณ์สวมใส่ทุกชิ้นมี <b>ค่าสุ่ม</b> เพิ่ม 1–3 ค่า (เช่น STR +2, DEF +3) — ชิ้นเดียวกันอาจเก่งไม่เท่ากัน', 'บางชิ้นเป็นชุดเซ็ต สวมครบตามจำนวนได้โบนัสเพิ่ม', 'ยิ่งเกรดสูง โบนัสตีบวกยิ่งมาก', 'ดูรายชื่ออุปกรณ์ทั้งหมด ค่าสถานะ ดรอปจากไหน และโบนัส +1~+10 ได้ในแท็บ "อุปกรณ์"']) },
   { id: 'pets', title: '🐾 สัตว์เลี้ยง', sub: 'ช่วยเก็บของอัตโนมัติ', html: () =>
     P(`สัตว์เลี้ยง ${PET_ORDER.length} ตัว ซื้อได้ที่ <b>ร้านเพชร → สัตว์เลี้ยง</b> (เลือกตัวเองได้ ไม่ต้องสุ่ม) · เรียกออกมาแล้วจะวิ่งเก็บของที่ดรอปให้อัตโนมัติ · ไม่ต่อสู้ ไม่ตาย`) +
     table(['ระดับ', 'รัศมี', 'ความเร็ว', 'ขนต่อรอบ', 'ตัว'], Object.entries(TIER_STATS).map(([t, s]) => [`<b style="color:${PET_RARITY[t].color}">${PET_RARITY[t].name}</b>`, `${s.radius} ช่อง`, `${s.speed}%`, s.carry || 'ไม่จำกัด', PET_ORDER.filter((p) => PETS[p].tier === t).map((p) => link('pet', p, PETS[p].name)).join(', ')])) +

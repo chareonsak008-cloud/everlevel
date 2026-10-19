@@ -1,7 +1,7 @@
 // v0.32 หน้าทดลองดันเจี้ยนถ้ำ + หอคอย (โหลดเฉพาะ dungeon-trial.html) — ตัวละครทดลอง ไม่บันทึกเข้าบัญชีจริง
-import { SKILLS, jobSkills } from '../data/skills.js?v=0.57.0';
-import { JOBS } from '../data/progression.js?v=0.57.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.57.0';
+import { SKILLS, jobSkills } from '../data/skills.js?v=0.58.0';
+import { JOBS } from '../data/progression.js?v=0.58.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.58.0';
 
 const KIT = {
   swordsman: { w: 'astral_sword', attr: { str: 1, agi: 0.55, vit: 0.85, int: 0.2, dex: 0.6, luk: 0.25 } },
