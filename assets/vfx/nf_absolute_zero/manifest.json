@@ -1,0 +1,74 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "ศูนย์องศาสัมบูรณ์",
+ "fps": 24,
+ "frames": 108,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 269,
+  "h": 188
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 134,
+  "y": 154
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0,
+   "type": "darken_screen",
+   "strength": 0.5,
+   "duration": 4.4
+  },
+  {
+   "t": 1.208,
+   "type": "shake_ramp",
+   "from": 0.06,
+   "to": 0.31,
+   "duration": 1.25
+  },
+  {
+   "t": 2.458,
+   "type": "hit",
+   "label": "climax"
+  },
+  {
+   "t": 2.458,
+   "type": "flash",
+   "strength": 1
+  },
+  {
+   "t": 2.458,
+   "type": "shake",
+   "strength": 1
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 108,
+   "frame": {
+    "w": 269,
+    "h": 188
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 108,
+     "columns": 15,
+     "rows": 8
+    }
+   ],
+   "offset": {
+    "x": -134,
+    "y": -154
+   }
+  }
+ ]
+}

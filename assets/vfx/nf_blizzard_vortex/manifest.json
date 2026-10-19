@@ -1,0 +1,66 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "พายุหิมะหมุน",
+ "fps": 24,
+ "frames": 66,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 202,
+  "h": 202
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 101,
+  "y": 169
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.153,
+   "type": "hit",
+   "label": "vortex_start"
+  },
+  {
+   "t": 2.208,
+   "type": "hit",
+   "label": "vortex_burst"
+  },
+  {
+   "t": 2.208,
+   "type": "flash",
+   "strength": 0.25
+  },
+  {
+   "t": 2.208,
+   "type": "shake",
+   "strength": 0.35
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 66,
+   "frame": {
+    "w": 202,
+    "h": 202
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 66,
+     "columns": 20,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -101,
+    "y": -169
+   }
+  }
+ ]
+}

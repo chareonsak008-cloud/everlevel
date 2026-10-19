@@ -1,0 +1,61 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "หนามธารน้ำแข็ง",
+ "fps": 24,
+ "frames": 42,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 190,
+  "h": 149
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 95,
+  "y": 119
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.333,
+   "type": "hit",
+   "label": "spikes"
+  },
+  {
+   "t": 0.333,
+   "type": "flash",
+   "strength": 0.3
+  },
+  {
+   "t": 0.333,
+   "type": "shake",
+   "strength": 0.4
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 42,
+   "frame": {
+    "w": 190,
+    "h": 149
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 42,
+     "columns": 21,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -95,
+    "y": -119
+   }
+  }
+ ]
+}

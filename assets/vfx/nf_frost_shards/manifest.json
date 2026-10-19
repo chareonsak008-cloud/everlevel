@@ -1,0 +1,71 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "เกล็ดน้ำแข็ง",
+ "fps": 24,
+ "frames": 30,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 246,
+  "h": 123
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 200,
+  "y": 98
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.583,
+   "type": "hit",
+   "label": "shard"
+  },
+  {
+   "t": 0.653,
+   "type": "hit",
+   "label": "shard"
+  },
+  {
+   "t": 0.75,
+   "type": "hit",
+   "label": "shard"
+  },
+  {
+   "t": 0.806,
+   "type": "hit",
+   "label": "shard"
+  },
+  {
+   "t": 0.903,
+   "type": "hit",
+   "label": "shard"
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 30,
+   "frame": {
+    "w": 246,
+    "h": 123
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 30,
+     "columns": 16,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -200,
+    "y": -98
+   }
+  }
+ ]
+}

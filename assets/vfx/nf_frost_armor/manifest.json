@@ -1,0 +1,69 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "เกราะน้ำแข็ง",
+ "fps": 24,
+ "frames": 80,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 140,
+  "h": 140
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 70,
+  "y": 112
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.111,
+   "type": "buff_on"
+  },
+  {
+   "t": 0.111,
+   "type": "flash",
+   "strength": 0.15
+  },
+  {
+   "t": 2.958,
+   "type": "buff_off"
+  },
+  {
+   "t": 2.958,
+   "type": "flash",
+   "strength": 0.15
+  },
+  {
+   "t": 2.958,
+   "type": "shake",
+   "strength": 0.15
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 80,
+   "frame": {
+    "w": 140,
+    "h": 140
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 80,
+     "columns": 29,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -70,
+    "y": -112
+   }
+  }
+ ]
+}
