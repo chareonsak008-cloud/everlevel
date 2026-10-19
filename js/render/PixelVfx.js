@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.54.0';
+import { THREE } from './three.js?v=0.55.1';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -36,7 +36,7 @@ export class PixelVfx {
 
   // เล่นเอฟเฟกต์ที่จุด pos (Vector3 โลก, ที่ระดับพื้น) · scale ขยายทั้งเอฟเฟกต์ · delay วินาที
   // follow = ตัวละคร (มี x,y เป็นพิกัดโลก/16) → เอฟเฟกต์วนตามตัวไม่จบจนกว่าจะ stop() (ออร่าแฟชั่น)
-  play(name, pos, { scale = 1, delay = 0, life = 3, lift = 0, follow = null, flip = false, once = false, speed = 1, maxT = 0, behind = false } = {}) {
+  play(name, pos, { scale = 1, delay = 0, life = 3, lift = 0, follow = null, flip = false, once = false, speed = 1, maxT = 0, behind = false, opacity = 1 } = {}) {
     const h = { name, stopped: false, e: null, stop() { this.stopped = true; if (this.e) this.e.dead = true; } };
     h.ready = this.load(name).then((d) => {
       if (!d || h.stopped) return false;
@@ -49,14 +49,14 @@ export class PixelVfx {
         const sm = !!d.m.smooth;   // v0.54 ภาพเรืองแสงจาก Night Forge: กรองภาพแบบนุ่ม ไม่ตัดขอบโปร่ง
         tex.encoding = THREE.sRGBEncoding; tex.magFilter = sm ? THREE.LinearFilter : THREE.NearestFilter; tex.minFilter = sm ? THREE.LinearFilter : THREE.NearestFilter; tex.generateMipmaps = false;
         tex.repeat.set(1 / L.sh.columns, 1 / L.sh.rows);
-        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: sm ? 0.01 : 0.08, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity, alphaTest: sm ? 0.01 : 0.08, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
         const mesh = new THREE.Mesh(geo, mat); mesh.renderOrder = L.push > 0.5 && !behind ? 45 : 35; mesh.frustumCulled = false; mesh.visible = false;
         this.scene.add(mesh);
         return { mesh, tex, L, push: behind ? 0.15 : L.push };   // behind = วาดหลังตัวละคร (บัฟรอบตัว ไม่ให้ตัวละครถูกแสงกลืน)
       });
       const up = d.m.anchor && d.m.anchor.kind === 'origin' ? (lift || 1.0) : lift;
       const at = (pos || new THREE.Vector3()).clone(); at.y += up;
-      h.e = { d, meshes, pos: at, t: -delay, speed, maxT, life: follow && !once ? Infinity : life, follow, up, hidden: false, flip };
+      h.e = { d, meshes, pos: at, t: -delay, speed, maxT, opacity, life: follow && !once ? Infinity : life, follow, up, hidden: false, flip };
       this.live.push(h.e);
       return true;
     });
@@ -83,7 +83,7 @@ export class PixelVfx {
         o.mesh.position.copy(e.pos).addScaledVector(toCam, push);
         o.mesh.quaternion.copy(cam.quaternion);
         const k = (dist - push) / dist; o.mesh.scale.set(e.flip ? -k : k, k, 1);
-        if (endT) o.mesh.material.opacity = Math.min(1, (endT - e.t) / 0.35);
+        if (endT) o.mesh.material.opacity = e.opacity * Math.min(1, (endT - e.t) / 0.35);
       }
     }
   }
@@ -105,4 +105,17 @@ export const SKILL_VFX = {
   crescent_sweep: { name: 'nf_crescent_sweep', at: 'self', scale: 1.6, delay: 0, speed: 1.3, maxT: 1.3, solo: true },
   aegis_aura: { name: 'nf_aegis_aura', at: 'self', scale: 1.1, delay: 0, speed: 1, maxT: 2.1, behind: true, solo: true },
   heavens_lance: { name: 'nf_heavens_lance', at: 'target', scale: 1.2, delay: 0, speed: 1.6, solo: true },
+  // ธนู (Archer) · สกิลยิงไกลไม่ใส่ solo เพื่อให้ลูกธนู/นกที่บินไปหาเป้ายังอยู่ แล้วซ้อนภาพ Night Forge ตอนโดน
+  twin_shot: { name: 'nf_twin_shot', at: 'target', scale: 1.1, delay: 0.3 },
+  arrow_rain: { name: 'nf_arrow_rain', at: 'target', scale: 1.25, delay: 0.33, opacity: 0.7, solo: true },
+  gale_arrow: { name: 'nf_gale_arrow', at: 'target', scale: 1.3, delay: 1.2 },
+  phoenix_shot: { name: 'nf_phoenix_shot', at: 'target', scale: 1.4, delay: 1.35 },
+  frost_trap: { name: 'nf_frost_trap', at: 'target', scale: 1.3, delay: 0.62, solo: true },
+  eagle_focus: { name: 'nf_eagle_focus', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
+  // นักล่า (Hunter)
+  falcon_assault: { name: 'nf_falcon_assault', at: 'target', scale: 1.2, delay: 0.42 },
+  blast_trap: { name: 'nf_blast_trap', at: 'target', scale: 1.4, delay: 0.33, solo: true },
+  split_volley: { name: 'nf_split_volley', at: 'target', scale: 1.3, delay: 0.13 },
+  predator_focus: { name: 'nf_predator_focus', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
+  talon_tempest: { name: 'nf_talon_tempest', at: 'target', scale: 1.2, delay: 0, opacity: 0.8, behind: true, solo: true },
 };

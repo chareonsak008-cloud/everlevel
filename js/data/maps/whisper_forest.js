@@ -1,6 +1,6 @@
 // ข้อมูลแผนที่ Whisperwood Forest — ป่าทึบทางตะวันออกของ Beginner Field (v0.7)
 // มีมอนสเตอร์ระดับกลาง และ MVP "กนาร์ลรูท ต้นไม้เฒ่า" ที่ลานหินใจกลางป่า (มุมตะวันออกเฉียงใต้)
-import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.54.0';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.55.1';
 
 const W = 84, H = 64;
 
