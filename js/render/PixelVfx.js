@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.55.1';
+import { THREE } from './three.js?v=0.56.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -118,4 +118,18 @@ export const SKILL_VFX = {
   split_volley: { name: 'nf_split_volley', at: 'target', scale: 1.3, delay: 0.13 },
   predator_focus: { name: 'nf_predator_focus', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
   talon_tempest: { name: 'nf_talon_tempest', at: 'target', scale: 1.2, delay: 0, opacity: 0.8, behind: true, solo: true },
+  // นักเวท (Mage) · ลูกไฟ/หอกน้ำแข็ง/ไฟร์บอลไม่ใส่ solo (ยังเห็นกระสุนเวทบินไปหาเป้า แล้วซ้อนภาพตอนโดน)
+  flame_bolt: { name: 'nf_flame_bolt', at: 'target', scale: 1.15, delay: 0.39, opacity: 0.85 },
+  frost_lance: { name: 'nf_frost_lance', at: 'target', scale: 1.2, delay: 0.33 },
+  fire_ball: { name: 'nf_fire_ball', at: 'target', scale: 1.3, delay: 0.99, opacity: 0.8 },
+  meteor_storm: { name: 'nf_meteor_storm', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.7, behind: true, solo: true },
+  frost_storm: { name: 'nf_frost_storm', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.7, behind: true, solo: true },
+  thunder_storm: { name: 'nf_thunder_storm', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.7, behind: true, solo: true },
+  arcane_shield: { name: 'nf_arcane_shield', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
+  // จอมเวท (Wizard)
+  arcane_blades: { name: 'nf_arcane_blades', at: 'target', scale: 1.15, delay: 0.22, opacity: 0.75 },
+  gravity_well: { name: 'nf_gravity_well', at: 'target', scale: 1.5, delay: 0.07, behind: true, solo: true },
+  chrono_rift: { name: 'nf_chrono_rift', at: 'target', scale: 1.4, delay: 0.07, opacity: 0.8, behind: true, solo: true },
+  astral_form: { name: 'nf_astral_form', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
+  supernova: { name: 'nf_supernova', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.75, behind: true, solo: true },
 };
