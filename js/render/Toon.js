@@ -1,7 +1,7 @@
 // สไตล์อนิเมะ: แรเงาแบบเซล (toon), เส้นขอบดำ (outline), ใบหน้าตาโต และกะพริบตา
-import { THREE } from './three.js?v=0.60.0';
-import { lin, mergeGeometries } from './Geo.js?v=0.60.0';
-import { shadeHex } from './Textures.js?v=0.60.0';
+import { THREE } from './three.js?v=0.61.0';
+import { lin, mergeGeometries } from './Geo.js?v=0.61.0';
+import { shadeHex } from './Textures.js?v=0.61.0';
 
 /* ---------- แรเงา 3 ระดับแบบการ์ตูน ---------- */
 let grad = null;

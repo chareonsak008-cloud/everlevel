@@ -6,8 +6,8 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.60.0';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.60.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+import { JOBS } from './progression.js?v=0.61.0';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.61.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
@@ -158,7 +158,7 @@ export const SKILLS = {
     effect: (lv) => `3 × ${pct(1.3 + lv * 0.25)}% + ลูกยักษ์ ${pct((1.3 + lv * 0.25) * 2.6)}% MATK รอบเป้า 3.4 ช่อง · ร่าย ${(1.6 - lv * 0.12).toFixed(2)} วิ · คูลดาวน์ 10 วิ`,
   },
 
-  /* ---------- Archer · v0.60 ชุดใหม่ "ศรดารา" (ภาพ Night Forge · ดาเมจตามจังหวะใน sk.nf) ---------- */
+  /* ---------- Archer · v0.60.1 ชุดใหม่ "พรานศรทะลวง" (ลูกธนูจริง + ภาพ Night Forge · ดาเมจตามจังหวะใน sk.nf) ---------- */
   keen_eye: {
     job: 'archer', name: 'ตาคม', maxLv: 10, kind: 'passive', icon: ['eye', '#8fe08a'],
     desc: 'สายตาที่มองเห็นจุดอ่อนของทุกสิ่ง แม่นยำและคริติคอลบ่อยขึ้น',
@@ -171,53 +171,46 @@ export const SKILLS = {
     effect: (lv) => `ระยะยิง +${lv * 0.5} ช่อง · FLEE +${lv * 2} · ASPD +${Math.ceil(lv / 2)}%`,
     passive: (lv) => ({ rangeTiles: lv * 0.5, flee: lv * 2, aspdPct: Math.ceil(lv / 2) }),
   },
-  piercing_light: {
-    job: 'archer', name: 'ศรเจาะแสง', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['arrow2', '#ffe08a'],
-    sp: (lv) => 9 + lv, cast: 0, cd: 0.6, range: 9, vfx: 'nf', ref: 1, lock: 0.5, delay: 0.3, engage: true, element: 'holy',
-    mult: (lv) => 0.85 + lv * 0.11, hitBonus: (lv) => lv * 4, knock: 0.4,
-    nf: { anim: 'shoot', hits: [{ t: 0.3, m: 1 }, { t: 0.52, m: 1, knock: 1, shake: 0.1 }] },
-    desc: 'ยิงศรแสงทองหมุนเกลียว 2 ดอกติดกันใส่ศัตรู ดอกที่สองระเบิดเป็นแฉกดาวผลักถอย — สกิลยิงหลัก',
-    effect: (lv) => `2 ดอก × ${pct(0.85 + lv * 0.11)}% · HIT +${lv * 4} · ดอกที่ 2 ผลักถอย`,
+  quick_shot: {
+    job: 'archer', name: 'ศรเร็ว', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['arrow2', '#9ac8ff'],
+    sp: (lv) => 6 + lv, cast: 0, cd: 0.4, range: 9, vfx: 'nf', ref: 1, lock: 0.35, delay: 0.25, engage: true,
+    mult: (lv) => 1.25 + lv * 0.15, hitBonus: (lv) => lv * 5,
+    nf: { anim: 'shoot', hits: [{ t: 0.4, m: 1, shake: 0.06 }] },
+    desc: 'ง้างสายแล้วปล่อยศรเส้นตรงพุ่งเข้าเป้าเร็วและแม่น ระเบิดเป็นแฉกแสงตอนปัก — สกิลยิงหลัก ใช้ได้ถี่',
+    effect: (lv) => `${pct(1.25 + lv * 0.15)}% ATK · HIT +${lv * 5} · คูลดาวน์ 0.4 วิ`,
   },
-  starfall_volley: {
-    job: 'archer', name: 'ห่าฝนดาวตก', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['rain', '#c9b8ff'], req: { piercing_light: 5 },
-    sp: (lv) => 20 + lv * 2, cast: 0.4, cd: 3, range: 9, vfx: 'nf', ref: 1, lock: 0.6, delay: 0.5, element: 'holy', hitBonus: () => 15,
-    mult: (lv) => 0.5 + lv * 0.07,
-    nf: { hits: [{ t: 0.45, r: 2.6, m: 1 }, { t: 0.7, r: 2.6, m: 1 }, { t: 0.95, r: 2.6, m: 1 }, { t: 1.2, r: 2.6, m: 1 }, { t: 1.4, r: 2.8, m: 1, shake: 0.12 }] },
-    desc: 'ยิงศรขึ้นฟ้า กลายเป็นห่าฝนดาวตกบนดาวห้าแฉก ตกใส่ศัตรูในวง 5 ระลอก — เก็บกลุ่มระยะไกล',
-    effect: (lv) => `5 ระลอก × ${pct(0.5 + lv * 0.07)}% รอบเป้า 2.6 ช่อง`,
+  piercing_shot: {
+    job: 'archer', name: 'ศรเจาะเกราะ', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['lance', '#7ab0ff'], req: { quick_shot: 3 },
+    sp: (lv) => 16 + lv * 2, cast: 0.3, cd: 2.5, range: 10, vfx: 'nf', ref: 1, lock: 0.7, delay: 0.4, element: 'wind', hitBonus: () => 40, knock: 1,
+    mult: (lv) => 2.4 + lv * 0.26,
+    nf: { anim: 'shoot', animDur: 0.6, hits: [{ t: 0.8, line: { len: 11, w: 0.9 }, m: 1, knock: 1, shake: 0.18 }] },
+    desc: 'ล็อกเป้า ชาร์จศรครึ่งวินาทีแล้วยิงศรเกลียวลมทะลุทุกตัวในแนวยาว 11 ช่อง ผลักศัตรูถอย — ศรเดียวที่แรงที่สุด',
+    effect: (lv) => `${pct(2.4 + lv * 0.26)}% ATK ทุกตัวในแนว 11 ช่อง · HIT +40 · ผลักถอย`,
   },
-  cyclone_arrow: {
-    job: 'archer', name: 'ศรพายุหมุน', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['gale', '#3ac06a'], req: { starfall_volley: 3 },
-    sp: (lv) => 24 + lv * 2, cast: 0.3, cd: 5, range: 10, vfx: 'nf', ref: 1, lock: 0.6, delay: 0.5, element: 'wind', hitBonus: () => 20, knock: 2,
-    mult: (lv) => 0.55 + lv * 0.08,
-    nf: { hits: [{ t: 0.35, r: 2, m: 1 }, { t: 0.7, r: 2.2, m: 1, slow: { pct: 0.4, secs: 2 } }, { t: 1.05, r: 2.2, m: 1 }, { t: 1.4, r: 2.4, m: 1 }, { t: 1.55, r: 2.8, m: 1.5, knock: 1, shake: 0.18 }] },
-    desc: 'ศรลมเจาะเป้าแล้วแตกเป็นทอร์นาโด ดูดศัตรูไว้ ตีต่อเนื่อง 4 ครั้งแล้วระเบิดผลักกระเด็น ศัตรูช้าลง',
-    effect: (lv) => `4 × ${pct(0.55 + lv * 0.08)}% + ระเบิด ${pct((0.55 + lv * 0.08) * 1.5)}% รอบเป้า 2.4 ช่อง · ช้าลง 40% · ผลักกระเด็น`,
+  scatter_shot: {
+    job: 'archer', name: 'ศรกระจาย', maxLv: 10, kind: 'active', target: 'self', bow: true, icon: ['fan', '#9ae8ff'], req: { quick_shot: 3 },
+    sp: (lv) => 18 + lv * 2, cast: 0, cd: 3, vfx: 'nf', ref: 1, lock: 0.45, delay: 0.4, hitBonus: () => 20, knock: 2,
+    mult: (lv) => 0.8 + lv * 0.1,
+    nf: { at: 'self', anim: 'shoot', hits: [{ t: 0.1, r: 3, m: 1, knock: 1, slow: { pct: 0.3, secs: 2 }, shake: 0.12 }, { t: 0.3, r: 3.2, m: 0.6 }] },
+    desc: 'กระโดดถอยแล้วปล่อยศร 24 ดอกระเบิดออกรอบตัว ผลักศัตรูที่เข้าประชิดให้กระเด็นและช้าลง — ใช้หนีตอนโดนล้อม',
+    effect: (lv) => `${pct(0.8 + lv * 0.1)}% + ${pct((0.8 + lv * 0.1) * 0.6)}% ATK รอบตัว 3 ช่อง · ผลักกระเด็น · ช้าลง 30% 2 วิ`,
   },
-  thunder_snare: {
-    job: 'archer', name: 'กับดักสายฟ้า', maxLv: 10, kind: 'active', target: 'enemy', icon: ['trap', '#5ab8ff'], req: { keen_eye: 3 },
-    sp: (lv) => 16 + lv * 2, cast: 0.2, cd: 4, range: 8, vfx: 'nf', ref: 1, lock: 0.5, delay: 0.5, element: 'wind', hitBonus: () => 30,
-    mult: (lv) => 1.2 + lv * 0.12, stun: () => 1, stunSecs: (lv) => 1.5 + lv * 0.15,
-    nf: { hits: [{ t: 0.68, r: 2, m: 1, stun: 1, shake: 0.15 }] },
-    desc: 'วางตราสายฟ้าใต้เป้า เสาสายฟ้าฟาดลง โซ่พลังรัดศัตรูในวงให้มึนงง — ใช้คุมศัตรูก่อนยิงซ้ำ',
-    effect: (lv) => `${pct(1.2 + lv * 0.12)}% รอบเป้า 2 ช่อง · มึน ${(1.5 + lv * 0.15).toFixed(1)} วิ`,
-  },
-  starlit_eye: {
-    job: 'archer', name: 'สายตาดาว', maxLv: 10, kind: 'active', target: 'self', icon: ['eye', '#ffe9b8'], req: { keen_eye: 5 },
-    sp: 22, cast: 0, cd: 1, vfx: 'nf', lock: 0.6, delay: 0.5,
+  eagle_eye: {
+    job: 'archer', name: 'ตาเหยี่ยว', maxLv: 10, kind: 'active', target: 'self', icon: ['eye', '#9ac8ff'], req: { keen_eye: 3 },
+    sp: 24, cast: 0, cd: 1, vfx: 'nf', lock: 0.4, delay: 0.4,
     nf: { at: 'self', anim: 'cast' },
-    duration: (lv) => 60 + lv * 6, bonus: (lv) => ({ dex: 2 + lv, agi: 2 + lv, crit: lv * 0.004, rangedPct: lv }),
-    desc: 'ดาวห้าแฉกลอยขึ้นหน้าดวงตา เพิ่มความแม่นยำ ความว่องไว โอกาสคริติคอล และดาเมจระยะไกล',
-    effect: (lv) => `DEX/AGI +${2 + lv} · คริ +${(lv * 0.4).toFixed(1)}% · ดาเมจระยะไกล +${lv}% นาน ${60 + lv * 6} วิ`,
+    duration: (lv) => 90 + lv * 9, bonus: (lv) => ({ dex: 2 + lv, crit: lv * 0.005, rangeTiles: 1 + Math.floor(lv / 4), aspdPct: lv * 1.5, rangedPct: lv }),
+    desc: 'เพ่งสมาธิจนมองเห็นทุกจุดอ่อน ยิงได้ไกลขึ้น ยิงเร็วขึ้น คริติคอลบ่อยขึ้น และดาเมจระยะไกลสูงขึ้น',
+    effect: (lv) => `DEX +${2 + lv} · คริ +${(lv * 0.5).toFixed(1)}% · ระยะยิง +${1 + Math.floor(lv / 4)} ช่อง · ASPD +${lv * 1.5}% · ดาเมจระยะไกล +${lv}% นาน ${90 + lv * 9} วิ`,
   },
-  phoenix_barrage: {
-    job: 'archer', name: 'หงส์เพลิงทะยาน', maxLv: 5, kind: 'active', target: 'enemy', bow: true, icon: ['phoenix', '#ff6a2a'], req: { cyclone_arrow: 3, piercing_light: 7 },
-    sp: (lv) => 45 + lv * 3, cast: 0.5, cd: 9, range: 9, vfx: 'nf', ref: 1, lock: 1.0, delay: 0.9, element: 'fire', hitBonus: () => 30, knock: 1.5,
-    mult: (lv) => 1.4 + lv * 0.3,
-    nf: { anim: 'shoot', hits: [{ t: 0.5, m: 1 }, { t: 0.8, r: 3, m: 1.5, knock: 1, shake: 0.3 }, { t: 1.2, r: 3.2, m: 0.6, shake: 0.1 }] },
-    desc: 'ยิงศรที่กลายเป็นหงส์เพลิงพุ่งทะยานใส่เป้า พร้อมห่าศรเพลิงตกตาม แล้วดอกบัวไฟบานระเบิดทั่ววง (ไม้ตาย)',
-    effect: (lv) => `${pct(1.4 + lv * 0.3)}% + ระเบิด ${pct((1.4 + lv * 0.3) * 1.5)}% + คลื่น ${pct((1.4 + lv * 0.3) * 0.6)}% รอบเป้า 3 ช่อง · คูลดาวน์ 9 วิ`,
+  arrow_storm: {
+    job: 'archer', name: 'พายุศรฟ้า', maxLv: 5, kind: 'active', target: 'enemy', bow: true, icon: ['rain', '#7ab0ff'], req: { piercing_shot: 5, scatter_shot: 3 },
+    sp: (lv) => 50 + lv * 4, cast: 0.6, cd: 10, range: 10, vfx: 'nf', ref: 1, lock: 1.0, delay: 0.9, element: 'wind', hitBonus: () => 30, knock: 1.5,
+    mult: (lv) => 0.9 + lv * 0.18,
+    nf: { anim: 'shoot', animDur: 0.6, hits: [{ t: 0.95, r: 2.6, m: 1 }, { t: 1.15, r: 2.6, m: 1 }, { t: 1.55, r: 2.8, m: 1 }, { t: 1.8, r: 2.8, m: 1 }, { t: 2.17, r: 3.2, m: 3, knock: 1, stun: 1, shake: 0.35 }] },
+    stun: () => 0.5, stunSecs: 1.5,
+    desc: 'ยิงศรขึ้นฟ้า วงเป้าหมายใหญ่ปรากฏ ห่าศร 2 ระลอกเทลงถล่มทั่ววง แล้วลำแสงพิพากษาฟาดลงกลางวง ระเบิดสายฟ้าผลักศัตรูกระเด็น (ไม้ตาย)',
+    effect: (lv) => `4 × ${pct(0.9 + lv * 0.18)}% + ระเบิด ${pct((0.9 + lv * 0.18) * 3)}% ATK รอบเป้า 2.6–3.2 ช่อง · มึน 50% · คูลดาวน์ 10 วิ`,
   },
 
   /* ---------- Acolyte · v0.60 ชุดใหม่ "แสงศรัทธา" (ภาพ Night Forge · ดาเมจ/ฮีลตามจังหวะใน sk.nf) ---------- */

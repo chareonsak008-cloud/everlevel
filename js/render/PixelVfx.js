@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.60.0';
+import { THREE } from './three.js?v=0.61.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -106,18 +106,17 @@ export const SKILL_VFX = {
   aegis_crown: { name: 'nf_aegis_crown', at: 'self', scale: 1.15, delay: 0.07, behind: true, solo: true },
   sky_dragon_lance: { name: 'nf_sky_dragon_lance', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
   // ธนู (Archer) · v0.60 ชุดใหม่ "ศรดารา"
-  piercing_light: { name: 'nf_piercing_light', at: 'target', scale: 1.15, delay: 0, solo: true },
-  starfall_volley: { name: 'nf_starfall_volley', at: 'target', scale: 1.4, delay: 0.07, behind: true, solo: true },
-  cyclone_arrow: { name: 'nf_cyclone_arrow', at: 'target', scale: 1.3, delay: 0, behind: true, solo: true },
-  thunder_snare: { name: 'nf_thunder_snare', at: 'target', scale: 1.25, delay: 0.07, behind: true, solo: true },
-  starlit_eye: { name: 'nf_starlit_eye', at: 'self', scale: 1.15, delay: 0.07, behind: true, solo: true },
-  phoenix_barrage: { name: 'nf_phoenix_barrage', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
+  quick_shot: { name: 'nf_quick_shot', at: 'target', scale: 1.45, delay: 0, solo: true, flipToCaster: true },
+  piercing_shot: { name: 'nf_piercing_shot', at: 'target', scale: 1.55, delay: 0, solo: true, flipToCaster: true },
+  scatter_shot: { name: 'nf_scatter_shot', at: 'self', scale: 1.6, delay: 0, solo: true },
+  eagle_eye: { name: 'nf_eagle_eye', at: 'self', scale: 1.4, delay: 0, behind: true, solo: true },
+  arrow_storm: { name: 'nf_arrow_storm', at: 'target', scale: 1.8, delay: 0, behind: true, solo: true },
   // นักล่า (Hunter) · v0.60 ชุดใหม่ "เหยี่ยวเงา"
-  shadow_hawk: { name: 'nf_shadow_hawk', at: 'target', scale: 1.2, delay: 0, solo: true },
-  meteor_trap: { name: 'nf_meteor_trap', at: 'target', scale: 1.4, delay: 0.07, behind: true, solo: true },
-  crystal_scatter: { name: 'nf_crystal_scatter', at: 'target', scale: 1.35, delay: 0, behind: true, solo: true },
-  predator_instinct: { name: 'nf_predator_instinct', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
-  talon_storm: { name: 'nf_talon_storm', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
+  double_shot: { name: 'nf_double_shot', at: 'target', scale: 1.45, delay: 0, solo: true, flipToCaster: true },
+  gale_rift_arrow: { name: 'nf_gale_rift_arrow', at: 'target', scale: 1.5, delay: 0, solo: true, flipToCaster: true },
+  cyclone_trap: { name: 'nf_cyclone_trap', at: 'target', scale: 1.5, delay: 0, behind: true, solo: true },
+  tailwind_step: { name: 'nf_tailwind_step', at: 'self', scale: 1.4, delay: 0, behind: true, solo: true },
+  storm_king_volley: { name: 'nf_storm_king_volley', at: 'target', scale: 1.85, delay: 0, behind: true, solo: true },
   // นักเวท (Mage) · v0.60 ชุดใหม่ "เวทพิศวงสีม่วง"
   violet_flare: { name: 'nf_violet_flare', at: 'target', scale: 1.15, delay: 0, solo: true },
   glacial_spikes: { name: 'nf_glacial_spikes', at: 'target', scale: 1.35, delay: 0.07, behind: true, solo: true },

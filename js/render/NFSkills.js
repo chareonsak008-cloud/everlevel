@@ -8,6 +8,8 @@
 //   heals: [วินาที, ...]   (เรียก c.heal ตามเวลา)
 //   pull: { from, to, r, step }  (ดูดศัตรูในรัศมี r เข้าหาจุดกลาง ความเร็ว step ช่อง/วิ ระหว่างเวลา from→to)
 //   sky: { t, dark, dur }  (ฟ้ามืดลง) · lift: { t, h, dur, hold } (ตัวลอย)
+//   dash: { t, dist, dur, back }  (พุ่งตัว dist หน่วยโลก · back = ถอยหนีเป้า/ถอยหลัง)
+//   arrows: [{ t, n, gap, all, arc }]  (ยิงลูกธนูจริงไปหาเป้าหลัก n ดอก ห่างกัน gap วิ · all = ยิงใส่ทุกเป้าในรัศมี r แทน)
 // }
 export function installNFSkills(proto) {
   proto.fx_nf = function (c) {
@@ -41,6 +43,17 @@ export function installNFSkills(proto) {
       const P = S.pull, cen = center(P.at);
       this.after(P.from || 0, () => this.anim((P.to || 1) - (P.from || 0), (k, dt) => { c.pull(cen, P.r || 3, (P.step || 4) * dt); }));
     }
+    if (S.arrows && c.shoot) for (const A of S.arrows) this.after(A.t || 0, () => {
+      if (A.all) { for (const [, i] of this.inRadius(c, center(A.at), A.r || 3)) c.shoot(i, A); return; }
+      for (let k = 0; k < (A.n || 1); k++) this.after(k * (A.gap || 0.12), () => { if (c.targets[c.main]) c.shoot(c.main, A); });
+    });
+    if (S.dash && c.move) this.after(S.dash.t || 0, () => {
+      const from = c.caster.pos.clone().setY(0), t = c.targets[c.main];
+      const dir = t ? from.clone().sub(t.pos.clone().setY(0)) : c.caster.facing.clone().negate();
+      if (dir.lengthSq() < 1e-4) dir.copy(c.caster.facing).negate();
+      dir.setY(0).normalize(); if (!S.dash.back) dir.negate();
+      c.move(from.addScaledVector(dir, S.dash.dist || 3), S.dash.dur || 0.25);
+    });
     if (S.sky && c.sky) this.after(S.sky.t || 0, () => c.sky(S.sky.dark ?? 0.6, S.sky.dur || 2));
     if (S.lift && c.lift) this.after(S.lift.t || 0, () => c.lift(S.lift.h || 1, S.lift.dur || 0.5, S.lift.hold || 0));
     const end = Math.max(0.6, ...hits.map((h) => h.t || 0), ...(S.heals || [0]), S.pull ? S.pull.to || 0 : 0);
