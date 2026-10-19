@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.61.0';
+import { THREE } from './three.js?v=0.62.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -124,12 +124,12 @@ export const SKILL_VFX = {
   blizzard: { name: 'nf_blizzard', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
   arcane_ward: { name: 'nf_arcane_ward', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
   void_meteor: { name: 'nf_void_meteor', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
-  // จอมเวท (Wizard) · v0.60 ชุดใหม่ "วันสิ้นดารา"
-  comet_strike: { name: 'nf_comet_strike', at: 'target', scale: 1.2, delay: 0, solo: true },
-  black_hole: { name: 'nf_black_hole', at: 'target', scale: 1.55, delay: 0.07, behind: true, solo: true },
-  astral_blades: { name: 'nf_astral_blades', at: 'target', scale: 1.3, delay: 0.07, behind: true, solo: true },
-  astral_ascension: { name: 'nf_astral_ascension', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true },
-  starfall_cataclysm: { name: 'nf_starfall_cataclysm', at: 'target', scale: 1.7, delay: 0.07, behind: true, solo: true },
+  // จอมเวท (Wizard) · v0.62 ชุดใหม่ "จอมเวทน้ำแข็ง" (sprite sheet 24 fps จากผู้พัฒนา)
+  frost_shards: { name: 'nf_frost_shards', at: 'target', scale: 1.15, delay: 0, solo: true, flipToCaster: true },
+  glacier_spike: { name: 'nf_glacier_spike', at: 'target', scale: 1.1, delay: 0, behind: true, solo: true },
+  blizzard_vortex: { name: 'nf_blizzard_vortex', at: 'target', scale: 1.2, delay: 0, behind: true, solo: true },
+  frost_armor: { name: 'nf_frost_armor', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
+  absolute_zero: { name: 'nf_absolute_zero', at: 'target', scale: 1.15, delay: 0, behind: true, solo: true },
   // นักบวช (Acolyte) · v0.60 ชุดใหม่ "แสงศรัทธา"
   lumen_heal: { name: 'nf_lumen_heal', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
   radiant_lance: { name: 'nf_radiant_lance', at: 'target', scale: 1.2, delay: 0, solo: true, maxT: 1.6 },
