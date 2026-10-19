@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.56.0';
+import { THREE } from './three.js?v=0.57.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -132,4 +132,17 @@ export const SKILL_VFX = {
   chrono_rift: { name: 'nf_chrono_rift', at: 'target', scale: 1.4, delay: 0.07, opacity: 0.8, behind: true, solo: true },
   astral_form: { name: 'nf_astral_form', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
   supernova: { name: 'nf_supernova', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.75, behind: true, solo: true },
+  // นักบวช (Acolyte) · สกิลรอบตัว/บัฟ/ฮีลวาดหลังตัวละคร
+  holy_heal: { name: 'nf_holy_heal', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
+  blessing: { name: 'nf_blessing', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
+  swift_wind: { name: 'nf_swift_wind', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
+  holy_smite: { name: 'nf_holy_smite', at: 'target', scale: 1.2, delay: 0, opacity: 0.9, solo: true },
+  sanctuary: { name: 'nf_sanctuary', at: 'self', scale: 1.6, delay: 0.07, opacity: 0.85, behind: true, solo: true },
+  divine_judgment: { name: 'nf_divine_judgment', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.8, behind: true, solo: true },
+  // นักบวชชั้นสูง (Priest)
+  grand_heal: { name: 'nf_grand_heal', at: 'self', scale: 1.5, delay: 0.07, opacity: 0.85, behind: true, solo: true },
+  sacred_barrier: { name: 'nf_sacred_barrier', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
+  radiant_spears: { name: 'nf_radiant_spears', at: 'target', scale: 1.4, delay: 0.07, opacity: 0.85, behind: true, solo: true },
+  purge_circle: { name: 'nf_purge_circle', at: 'self', scale: 1.6, delay: 0.07, opacity: 0.75, behind: true, solo: true },
+  seraph_descent: { name: 'nf_seraph_descent', at: 'self', scale: 1.7, delay: 0.07, opacity: 0.8, behind: true, solo: true },
 };
