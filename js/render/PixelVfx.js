@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.57.0';
+import { THREE } from './three.js?v=0.58.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -49,7 +49,7 @@ export class PixelVfx {
         const sm = !!d.m.smooth;   // v0.54 ภาพเรืองแสงจาก Night Forge: กรองภาพแบบนุ่ม ไม่ตัดขอบโปร่ง
         tex.encoding = THREE.sRGBEncoding; tex.magFilter = sm ? THREE.LinearFilter : THREE.NearestFilter; tex.minFilter = sm ? THREE.LinearFilter : THREE.NearestFilter; tex.generateMipmaps = false;
         tex.repeat.set(1 / L.sh.columns, 1 / L.sh.rows);
-        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity, alphaTest: sm ? 0.01 : 0.08, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity, alphaTest: sm ? 0.01 : 0.08, depthWrite: false, depthTest: !sm, toneMapped: false, side: THREE.DoubleSide });
         const mesh = new THREE.Mesh(geo, mat); mesh.renderOrder = L.push > 0.5 && !behind ? 45 : 35; mesh.frustumCulled = false; mesh.visible = false;
         this.scene.add(mesh);
         return { mesh, tex, L, push: behind ? 0.15 : L.push };   // behind = วาดหลังตัวละคร (บัฟรอบตัว ไม่ให้ตัวละครถูกแสงกลืน)
@@ -94,20 +94,20 @@ export const SKILL_VFX = {
   // v0.54 Night Forge VFX (solo = ไม่วาดเอฟเฟกต์เดิมซ้อน · speed = เร่งให้จังหวะกระแทกตรงกับจังหวะตีจริง)
   // ดาบ (Swordsman)
   power_slash: { name: 'nf_power_slash', at: 'target', scale: 1.6, delay: 0, speed: 1, solo: true },
-  ground_burst: { name: 'nf_ground_burst', at: 'self', scale: 1.5, delay: 0.3, speed: 1.1, maxT: 1.7, solo: true },
-  blade_cyclone: { name: 'nf_blade_cyclone', at: 'self', scale: 1.25, delay: 0, speed: 1.2, maxT: 1.5, solo: true },
+  ground_burst: { name: 'nf_ground_burst', at: 'self', scale: 1.5, delay: 0.3, speed: 1.1, maxT: 1.7, behind: true, solo: true },
+  blade_cyclone: { name: 'nf_blade_cyclone', at: 'self', scale: 1.25, delay: 0, speed: 1.2, maxT: 1.5, behind: true, solo: true },
   sky_cleave: { name: 'nf_sky_cleave', at: 'target', scale: 1.4, delay: 0, speed: 1.1, maxT: 1.9, solo: true },
   battle_cry: { name: 'nf_battle_cry', at: 'self', scale: 1.1, delay: 0, speed: 1.4, maxT: 1.6, behind: true, solo: true },
   iron_will: { name: 'nf_iron_will', at: 'self', scale: 1.05, delay: 0, speed: 1.4, maxT: 1.8, behind: true, solo: true },
   // อัศวิน (Knight)
   lance_pierce: { name: 'nf_lance_pierce', at: 'target', scale: 1.1, delay: 0, speed: 1.3, maxT: 1.2, solo: true },
   steel_charge: { name: 'nf_steel_charge', at: 'target', scale: 1.6, delay: 0, speed: 1.8, maxT: 1.3, solo: true },
-  crescent_sweep: { name: 'nf_crescent_sweep', at: 'self', scale: 1.6, delay: 0, speed: 1.3, maxT: 1.3, solo: true },
+  crescent_sweep: { name: 'nf_crescent_sweep', at: 'self', scale: 1.6, delay: 0, speed: 1.3, maxT: 1.3, behind: true, solo: true },
   aegis_aura: { name: 'nf_aegis_aura', at: 'self', scale: 1.1, delay: 0, speed: 1, maxT: 2.1, behind: true, solo: true },
   heavens_lance: { name: 'nf_heavens_lance', at: 'target', scale: 1.2, delay: 0, speed: 1.6, solo: true },
   // ธนู (Archer) · สกิลยิงไกลไม่ใส่ solo เพื่อให้ลูกธนู/นกที่บินไปหาเป้ายังอยู่ แล้วซ้อนภาพ Night Forge ตอนโดน
   twin_shot: { name: 'nf_twin_shot', at: 'target', scale: 1.1, delay: 0.3 },
-  arrow_rain: { name: 'nf_arrow_rain', at: 'target', scale: 1.25, delay: 0.33, opacity: 0.7, solo: true },
+  arrow_rain: { name: 'nf_arrow_rain', at: 'target', scale: 1.25, delay: 0.33, solo: true },
   gale_arrow: { name: 'nf_gale_arrow', at: 'target', scale: 1.3, delay: 1.2 },
   phoenix_shot: { name: 'nf_phoenix_shot', at: 'target', scale: 1.4, delay: 1.35 },
   frost_trap: { name: 'nf_frost_trap', at: 'target', scale: 1.3, delay: 0.62, solo: true },
@@ -117,32 +117,32 @@ export const SKILL_VFX = {
   blast_trap: { name: 'nf_blast_trap', at: 'target', scale: 1.4, delay: 0.33, solo: true },
   split_volley: { name: 'nf_split_volley', at: 'target', scale: 1.3, delay: 0.13 },
   predator_focus: { name: 'nf_predator_focus', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
-  talon_tempest: { name: 'nf_talon_tempest', at: 'target', scale: 1.2, delay: 0, opacity: 0.8, behind: true, solo: true },
+  talon_tempest: { name: 'nf_talon_tempest', at: 'target', scale: 1.2, delay: 0, behind: true, solo: true },
   // นักเวท (Mage) · ลูกไฟ/หอกน้ำแข็ง/ไฟร์บอลไม่ใส่ solo (ยังเห็นกระสุนเวทบินไปหาเป้า แล้วซ้อนภาพตอนโดน)
-  flame_bolt: { name: 'nf_flame_bolt', at: 'target', scale: 1.15, delay: 0.39, opacity: 0.85 },
+  flame_bolt: { name: 'nf_flame_bolt', at: 'target', scale: 1.15, delay: 0.39 },
   frost_lance: { name: 'nf_frost_lance', at: 'target', scale: 1.2, delay: 0.33 },
-  fire_ball: { name: 'nf_fire_ball', at: 'target', scale: 1.3, delay: 0.99, opacity: 0.8 },
-  meteor_storm: { name: 'nf_meteor_storm', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.7, behind: true, solo: true },
-  frost_storm: { name: 'nf_frost_storm', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.7, behind: true, solo: true },
-  thunder_storm: { name: 'nf_thunder_storm', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.7, behind: true, solo: true },
+  fire_ball: { name: 'nf_fire_ball', at: 'target', scale: 1.3, delay: 0.99 },
+  meteor_storm: { name: 'nf_meteor_storm', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
+  frost_storm: { name: 'nf_frost_storm', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
+  thunder_storm: { name: 'nf_thunder_storm', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
   arcane_shield: { name: 'nf_arcane_shield', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
   // จอมเวท (Wizard)
-  arcane_blades: { name: 'nf_arcane_blades', at: 'target', scale: 1.15, delay: 0.22, opacity: 0.75 },
+  arcane_blades: { name: 'nf_arcane_blades', at: 'target', scale: 1.15, delay: 0.22 },
   gravity_well: { name: 'nf_gravity_well', at: 'target', scale: 1.5, delay: 0.07, behind: true, solo: true },
-  chrono_rift: { name: 'nf_chrono_rift', at: 'target', scale: 1.4, delay: 0.07, opacity: 0.8, behind: true, solo: true },
+  chrono_rift: { name: 'nf_chrono_rift', at: 'target', scale: 1.4, delay: 0.07, behind: true, solo: true },
   astral_form: { name: 'nf_astral_form', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
-  supernova: { name: 'nf_supernova', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.75, behind: true, solo: true },
+  supernova: { name: 'nf_supernova', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
   // นักบวช (Acolyte) · สกิลรอบตัว/บัฟ/ฮีลวาดหลังตัวละคร
   holy_heal: { name: 'nf_holy_heal', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
   blessing: { name: 'nf_blessing', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
   swift_wind: { name: 'nf_swift_wind', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
-  holy_smite: { name: 'nf_holy_smite', at: 'target', scale: 1.2, delay: 0, opacity: 0.9, solo: true },
-  sanctuary: { name: 'nf_sanctuary', at: 'self', scale: 1.6, delay: 0.07, opacity: 0.85, behind: true, solo: true },
-  divine_judgment: { name: 'nf_divine_judgment', at: 'target', scale: 1.6, delay: 0.07, opacity: 0.8, behind: true, solo: true },
+  holy_smite: { name: 'nf_holy_smite', at: 'target', scale: 1.2, delay: 0, solo: true },
+  sanctuary: { name: 'nf_sanctuary', at: 'self', scale: 1.6, delay: 0.07, behind: true, solo: true },
+  divine_judgment: { name: 'nf_divine_judgment', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
   // นักบวชชั้นสูง (Priest)
-  grand_heal: { name: 'nf_grand_heal', at: 'self', scale: 1.5, delay: 0.07, opacity: 0.85, behind: true, solo: true },
+  grand_heal: { name: 'nf_grand_heal', at: 'self', scale: 1.5, delay: 0.07, behind: true, solo: true },
   sacred_barrier: { name: 'nf_sacred_barrier', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
-  radiant_spears: { name: 'nf_radiant_spears', at: 'target', scale: 1.4, delay: 0.07, opacity: 0.85, behind: true, solo: true },
-  purge_circle: { name: 'nf_purge_circle', at: 'self', scale: 1.6, delay: 0.07, opacity: 0.75, behind: true, solo: true },
-  seraph_descent: { name: 'nf_seraph_descent', at: 'self', scale: 1.7, delay: 0.07, opacity: 0.8, behind: true, solo: true },
+  radiant_spears: { name: 'nf_radiant_spears', at: 'target', scale: 1.4, delay: 0.07, behind: true, solo: true },
+  purge_circle: { name: 'nf_purge_circle', at: 'self', scale: 1.6, delay: 0.07, behind: true, solo: true },
+  seraph_descent: { name: 'nf_seraph_descent', at: 'self', scale: 1.7, delay: 0.07, behind: true, solo: true },
 };

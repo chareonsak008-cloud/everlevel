@@ -1,6 +1,6 @@
 // v0.25.0: สเตตัสรอง (ค่าสุ่ม) · ธาตุ/เผ่า/ขนาดมอนสเตอร์ · แปลงอาวุธจาก weapons.js เป็นไอเทมในเกม
-import { WEAPON_DEFS, WEAPON_FORMS } from './weapons.js?v=0.57.0';
-import { OFFHAND_BLOODMOON } from './offhand.js?v=0.57.0';
+import { WEAPON_DEFS, WEAPON_FORMS } from './weapons.js?v=0.58.0';
+import { OFFHAND_BLOODMOON } from './offhand.js?v=0.58.0';
 
 // ชื่อสเตตัสในสเปก → คีย์โบนัสในเกม (scale = ตัวคูณตอนแปลง)
 export const STAT_DEF = {
@@ -97,13 +97,37 @@ export function extraRollPool(it) {
     P('ASPD%', -2, Math.max(2, h)), P('Cast Time -%', -2, Math.max(2, h)),
   ];
 }
+// ---------- v0.58 ค่าสุ่มพิเศษของอุปกรณ์สวมใส่ทุกชิ้น (หัว ชุด มือรอง ผ้าคลุม รองเท้า เครื่องประดับ) ----------
+// ค่าเล็กกว่าอาวุธ (×0.7) · เน้นสายป้องกัน แต่มีค่าโจมตีเล็ก ๆ ด้วย · ติดลบได้เหมือนอาวุธ
+export const GEAR_ROLL_SLOTS = ['head', 'body', 'shield', 'garment', 'shoes', 'accessory'];
+export function gearRollPool(it) {
+  const L = it.reqLevel || 1, k = Math.max(1, Math.round((1 + L / 20) * (RMUL[it.rarity] || 1) * 0.7));
+  const h = Math.ceil(k / 2), P = (stat, min, max) => ({ stat, min, max, extra: true }), sm = Math.max(1, Math.ceil(h / 2));
+  return [
+    P('STR', -h, k), P('AGI', -h, k), P('VIT', -h, k), P('INT', -h, k), P('DEX', -h, k), P('LUK', -h, k),
+    P('DEF', -h, k + 1), P('FLEE', -k, k * 2), P('MaxHP', -k * 12, k * 25), P('MaxSP', -k * 4, k * 8),
+    P('ATK', -k, k * 2), P('MATK', -k, k * 2), P('HIT', -k, k), P('CRIT', -1, Math.max(1, Math.ceil(k / 4))),
+    P('ASPD%', -1, sm), P('Cast Time -%', -1, sm), P('HP Regen%', -2, Math.max(2, k)), P('SP Regen%', -2, Math.max(2, k)),
+  ];
+}
+const GEAR_FIT = {
+  head: ['INT', 'DEX', 'VIT', 'DEF', 'MaxSP', 'HIT', 'MaxHP', 'SP Regen%', 'Cast Time -%'],
+  body: ['VIT', 'STR', 'INT', 'DEF', 'MaxHP', 'MaxSP', 'FLEE', 'HP Regen%'],
+  shield: ['VIT', 'STR', 'DEF', 'MaxHP', 'FLEE', 'HP Regen%', 'MATK', 'INT'],
+  garment: ['AGI', 'LUK', 'FLEE', 'DEF', 'MaxHP', 'CRIT', 'ASPD%'],
+  shoes: ['AGI', 'DEX', 'FLEE', 'MaxHP', 'MaxSP', 'ASPD%', 'HIT'],
+};
 // สเตตัสที่ "ตรงสาย" กับอาวุธแต่ละประเภท
 const FIT = {
   melee: ['STR', 'AGI', 'DEX', 'VIT', 'LUK', 'ATK', 'HIT', 'CRIT', 'ASPD%', 'MaxHP', 'DEF', 'FLEE'],
   staff: ['INT', 'DEX', 'VIT', 'MATK', 'Cast Time -%', 'MaxSP', 'MaxHP', 'DEF'],
   bow: ['DEX', 'AGI', 'LUK', 'STR', 'ATK', 'HIT', 'CRIT', 'ASPD%', 'FLEE'],
 };
-export const rollFits = (it, stat) => (FIT[it.wtype === 'staff' ? 'staff' : it.wtype === 'bow' ? 'bow' : 'melee'] || []).includes(stat) || !STAT_DEF[stat];
+export const rollFits = (it, stat) => {
+  if (!STAT_DEF[stat]) return true;
+  if (it && it.slot && it.slot !== 'weapon') return it.slot === 'accessory' || (GEAR_FIT[it.slot] || []).includes(stat);
+  return (FIT[it && it.wtype === 'staff' ? 'staff' : it && it.wtype === 'bow' ? 'bow' : 'melee'] || []).includes(stat);
+};
 // คะแนนค่าสุ่ม: ค่าบวกเต็ม = +1 ต่อบรรทัด · ค่าลบเต็ม = −1 · ไม่ตรงสายนับครึ่ง
 export function rollScore(it, rolled) {
   let s = 0;

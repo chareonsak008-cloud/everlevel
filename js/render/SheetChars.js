@@ -2,8 +2,8 @@
 // แผ่นละอาชีพ = 8 คอลัมน์ × 8 แถว (ช่องละ 128px)
 //   แถว: N · NE · E · SE · S · SW · W · NW  (ทิศตัวละครหันเทียบจอ)
 //   คอลัมน์ 0–3 = เดิน 4 เฟรม · 4–7 = โจมตี 4 เฟรม (นักบวช = ท่าร่าย/ฮีล)
-import { THREE } from './three.js?v=0.57.0';
-import { VERSION } from '../config.js?v=0.57.0';
+import { THREE } from './three.js?v=0.58.0';
+import { VERSION } from '../config.js?v=0.58.0';
 
 // แผ่นวาดมือ 8×8 (ช่อง 128px): คอลัมน์ 0–3 เดิน · 4–7 โจมตี
 const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1, 2, 3], attack: [4, 5, 6, 7] } };
