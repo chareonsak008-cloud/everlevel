@@ -2,7 +2,7 @@
  "app": "Night Forge VFX Lab → Everlevel",
  "name": "Everlevel แสงพิพากษา (Holy Smite)",
  "fps": 15,
- "frames": 16,
+ "frames": 17,
  "loop": false,
  "smooth": true,
  "canvas": {
@@ -21,7 +21,7 @@
    "depth": "both",
    "loop": false,
    "start_frame": 0,
-   "frames": 16,
+   "frames": 17,
    "frame": {
     "w": 192,
     "h": 192
@@ -30,9 +30,9 @@
     {
      "file": "whole.png",
      "first_frame": 0,
-     "frames": 16,
+     "frames": 17,
      "columns": 8,
-     "rows": 2
+     "rows": 3
     }
    ],
    "offset": {

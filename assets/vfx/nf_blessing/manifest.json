@@ -2,7 +2,7 @@
  "app": "Night Forge VFX Lab → Everlevel",
  "name": "Everlevel พรแห่งดวงดาว (Blessing)",
  "fps": 15,
- "frames": 30,
+ "frames": 31,
  "loop": false,
  "smooth": true,
  "canvas": {
@@ -21,7 +21,7 @@
    "depth": "both",
    "loop": false,
    "start_frame": 0,
-   "frames": 30,
+   "frames": 31,
    "frame": {
     "w": 192,
     "h": 192
@@ -30,7 +30,7 @@
     {
      "file": "whole.png",
      "first_frame": 0,
-     "frames": 30,
+     "frames": 31,
      "columns": 8,
      "rows": 4
     }

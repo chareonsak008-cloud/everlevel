@@ -2,7 +2,7 @@
  "app": "Night Forge VFX Lab → Everlevel",
  "name": "Everlevel ฝนลูกธนู (Arrow Rain)",
  "fps": 15,
- "frames": 23,
+ "frames": 24,
  "loop": false,
  "smooth": true,
  "canvas": {
@@ -14,14 +14,14 @@
   "x": 96,
   "y": 140
  },
- "skip": 5,
+ "skip": 4,
  "clips": [
   {
    "name": "whole",
    "depth": "both",
    "loop": false,
    "start_frame": 0,
-   "frames": 23,
+   "frames": 24,
    "frame": {
     "w": 192,
     "h": 192
@@ -30,7 +30,7 @@
     {
      "file": "whole.png",
      "first_frame": 0,
-     "frames": 23,
+     "frames": 24,
      "columns": 8,
      "rows": 3
     }

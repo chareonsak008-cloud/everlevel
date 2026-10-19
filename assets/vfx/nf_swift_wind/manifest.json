@@ -2,7 +2,7 @@
  "app": "Night Forge VFX Lab → Everlevel",
  "name": "Everlevel สายลมเร่งฝีเท้า (Swift Wind)",
  "fps": 15,
- "frames": 24,
+ "frames": 25,
  "loop": false,
  "smooth": true,
  "canvas": {
@@ -21,7 +21,7 @@
    "depth": "both",
    "loop": false,
    "start_frame": 0,
-   "frames": 24,
+   "frames": 25,
    "frame": {
     "w": 192,
     "h": 192
@@ -30,9 +30,9 @@
     {
      "file": "whole.png",
      "first_frame": 0,
-     "frames": 24,
+     "frames": 25,
      "columns": 8,
-     "rows": 3
+     "rows": 4
     }
    ],
    "offset": {
