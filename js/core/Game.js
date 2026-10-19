@@ -1,107 +1,107 @@
 // ตัวควบคุมหลักของเกม: ลูป, แผนที่/วาร์ป, การเดิน, การต่อสู้ → ส่งต่อให้ Renderer3D วาด
-import { SKILL_VFX } from '../render/PixelVfx.js?v=0.60.0';
-import { EventService } from '../systems/EventService.js?v=0.60.0';
-import { EventWindow } from '../ui/EventWindow.js?v=0.60.0';
-import { MvpService } from '../systems/MvpService.js?v=0.60.0';   // v0.53 MVP ร่วม
-import { GemExchange } from '../ui/GemExchange.js?v=0.60.0';   // v0.50 ตลาดแลกเพชร
-import { WikiWindow } from '../ui/WikiWindow.js?v=0.60.0';   // v0.49 วิกิ
-import { BossWindow } from '../ui/BossWindow.js?v=0.60.0';   // v0.47 เช็กบอสโลก/MVP
-import { TILE, AUTOSAVE_SECONDS, SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js?v=0.60.0';
-import { GameMap } from '../world/GameMap.js?v=0.60.0';
-import { MAPS, START_MAP } from '../data/maps/index.js?v=0.60.0';
-import { Player } from '../entities/Player.js?v=0.60.0';
-import { NPC } from '../entities/NPC.js?v=0.60.0';
-import { Input, isTyping } from './Input.js?v=0.60.0';
-import { SaveManager } from './Save.js?v=0.60.0';
-import { findPath, smoothPath, nearestWalkable } from './Pathfinder.js?v=0.60.0';
-import { HUD } from '../ui/HUD.js?v=0.60.0';
-import { Minimap } from '../ui/Minimap.js?v=0.60.0';
-import { MapWindow, regionInfo } from '../ui/MapWindow.js?v=0.60.0';
-import { CardModal } from '../ui/CardView.js?v=0.60.0';
-import { Renderer3D } from '../render/Renderer3D.js?v=0.60.0';
-import { MonsterManager } from '../systems/MonsterAI.js?v=0.60.0';
-import { rollAttack, rollSkill } from '../systems/Combat.js?v=0.60.0';
-import * as WeaponFx from '../systems/WeaponFx.js?v=0.60.0';   // v0.25: ธาตุ/เผ่า/ขนาด + พาสซีฟอาวุธ
-import { skillElement, mobTraits } from '../data/affixes.js?v=0.60.0';
-import { StatusWindow } from '../ui/StatusWindow.js?v=0.60.0';
-import { InventoryWindow } from '../ui/InventoryWindow.js?v=0.60.0';
-import { Hotbar } from '../ui/Hotbar.js?v=0.60.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.60.0';
-import { rollDrops } from '../systems/Loot.js?v=0.60.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.60.0';
-import { Inventory } from '../systems/Inventory.js?v=0.60.0';
-import { NpcDialog } from '../ui/Dialog.js?v=0.60.0';
-import { ShopWindow } from '../ui/ShopWindow.js?v=0.60.0';
-import { StorageWindow } from '../ui/StorageWindow.js?v=0.60.0';
-import { SHOPS, WARP_ROUTES, STORAGE_CAPACITY, buyPrice, sellPrice, fmtZ, MAX_ZENY } from '../data/shops.js?v=0.60.0';
-import { SKILLS, skillSp, skillCast, sval } from '../data/skills.js?v=0.60.0';
-import { JOBS, FIRST_JOBS } from '../data/progression.js?v=0.60.0';
-import { JOB2_QUEST } from '../data/quests.js?v=0.60.0';
-import { SkillWindow } from '../ui/SkillWindow.js?v=0.60.0';
-import { isSkillKey } from '../entities/Player.js?v=0.60.0';
-import { clamp } from './util.js?v=0.60.0';
-import { Social } from '../systems/Social.js?v=0.60.0';
+import { SKILL_VFX } from '../render/PixelVfx.js?v=0.61.0';
+import { EventService } from '../systems/EventService.js?v=0.61.0';
+import { EventWindow } from '../ui/EventWindow.js?v=0.61.0';
+import { MvpService } from '../systems/MvpService.js?v=0.61.0';   // v0.53 MVP ร่วม
+import { GemExchange } from '../ui/GemExchange.js?v=0.61.0';   // v0.50 ตลาดแลกเพชร
+import { WikiWindow } from '../ui/WikiWindow.js?v=0.61.0';   // v0.49 วิกิ
+import { BossWindow } from '../ui/BossWindow.js?v=0.61.0';   // v0.47 เช็กบอสโลก/MVP
+import { TILE, AUTOSAVE_SECONDS, SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js?v=0.61.0';
+import { GameMap } from '../world/GameMap.js?v=0.61.0';
+import { MAPS, START_MAP } from '../data/maps/index.js?v=0.61.0';
+import { Player } from '../entities/Player.js?v=0.61.0';
+import { NPC } from '../entities/NPC.js?v=0.61.0';
+import { Input, isTyping } from './Input.js?v=0.61.0';
+import { SaveManager } from './Save.js?v=0.61.0';
+import { findPath, smoothPath, nearestWalkable } from './Pathfinder.js?v=0.61.0';
+import { HUD } from '../ui/HUD.js?v=0.61.0';
+import { Minimap } from '../ui/Minimap.js?v=0.61.0';
+import { MapWindow, regionInfo } from '../ui/MapWindow.js?v=0.61.0';
+import { CardModal } from '../ui/CardView.js?v=0.61.0';
+import { Renderer3D } from '../render/Renderer3D.js?v=0.61.0';
+import { MonsterManager } from '../systems/MonsterAI.js?v=0.61.0';
+import { rollAttack, rollSkill } from '../systems/Combat.js?v=0.61.0';
+import * as WeaponFx from '../systems/WeaponFx.js?v=0.61.0';   // v0.25: ธาตุ/เผ่า/ขนาด + พาสซีฟอาวุธ
+import { skillElement, mobTraits } from '../data/affixes.js?v=0.61.0';
+import { StatusWindow } from '../ui/StatusWindow.js?v=0.61.0';
+import { InventoryWindow } from '../ui/InventoryWindow.js?v=0.61.0';
+import { Hotbar } from '../ui/Hotbar.js?v=0.61.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.61.0';
+import { rollDrops } from '../systems/Loot.js?v=0.61.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.61.0';
+import { Inventory } from '../systems/Inventory.js?v=0.61.0';
+import { NpcDialog } from '../ui/Dialog.js?v=0.61.0';
+import { ShopWindow } from '../ui/ShopWindow.js?v=0.61.0';
+import { StorageWindow } from '../ui/StorageWindow.js?v=0.61.0';
+import { SHOPS, WARP_ROUTES, STORAGE_CAPACITY, buyPrice, sellPrice, fmtZ, MAX_ZENY } from '../data/shops.js?v=0.61.0';
+import { SKILLS, skillSp, skillCast, sval } from '../data/skills.js?v=0.61.0';
+import { JOBS, FIRST_JOBS } from '../data/progression.js?v=0.61.0';
+import { JOB2_QUEST } from '../data/quests.js?v=0.61.0';
+import { SkillWindow } from '../ui/SkillWindow.js?v=0.61.0';
+import { isSkillKey } from '../entities/Player.js?v=0.61.0';
+import { clamp } from './util.js?v=0.61.0';
+import { Social } from '../systems/Social.js?v=0.61.0';
 const DROP_GATE = 0.4;   // v0.38: โอกาสที่มอนธรรมดาจะดรอปของ (ก่อนลุ้นทีละชิ้น)
-import { PartyFrame } from '../ui/PartyFrame.js?v=0.60.0';
-import { PlayerMenu } from '../ui/PlayerMenu.js?v=0.60.0';
-import { TradeWindow, MarketWindow } from '../ui/TradeMarket.js?v=0.60.0';   // v0.42
-import { CashShopWindow } from '../ui/CashShop.js?v=0.60.0';   // v0.43 ร้านเพชร
-import { QuestNav } from '../systems/QuestNav.js?v=0.60.0';
-import { MONSTERS } from '../data/monsters.js?v=0.60.0';
-import { THREE } from '../render/three.js?v=0.60.0';
-import { WardrobeWindow } from '../ui/WardrobeWindow.js?v=0.60.0';
-import { BoxOpenWindow } from '../ui/BoxOpenWindow.js?v=0.60.0';
-import { rollBox, DUP_ZENY, FASHION_RARITY, TIER_RANK } from '../data/fashionBoxes.js?v=0.60.0';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.60.0';
-import { FASHION_SLOTS, FASHION_WEAPON_FIT } from '../entities/Player.js?v=0.60.0';
-import { QUESTS } from '../data/quests.js?v=0.60.0';
-import { QuestLog, rewardText, npcWhere, goalText } from '../systems/Quests.js?v=0.60.0';
-import { QuestWindow } from '../ui/QuestWindow.js?v=0.60.0';
-import { RefineWindow } from '../ui/RefineWindow.js?v=0.60.0';
-import { doRefine, doSocket } from '../systems/Forge.js?v=0.60.0';
-import { stoneDrops } from '../data/refine.js?v=0.60.0';
-import { cardDrops, CARDS } from '../data/cards.js?v=0.60.0';
-import { statResetCost } from '../data/progression.js?v=0.60.0';
+import { PartyFrame } from '../ui/PartyFrame.js?v=0.61.0';
+import { PlayerMenu } from '../ui/PlayerMenu.js?v=0.61.0';
+import { TradeWindow, MarketWindow } from '../ui/TradeMarket.js?v=0.61.0';   // v0.42
+import { CashShopWindow } from '../ui/CashShop.js?v=0.61.0';   // v0.43 ร้านเพชร
+import { QuestNav } from '../systems/QuestNav.js?v=0.61.0';
+import { MONSTERS } from '../data/monsters.js?v=0.61.0';
+import { THREE } from '../render/three.js?v=0.61.0';
+import { WardrobeWindow } from '../ui/WardrobeWindow.js?v=0.61.0';
+import { BoxOpenWindow } from '../ui/BoxOpenWindow.js?v=0.61.0';
+import { rollBox, DUP_ZENY, FASHION_RARITY, TIER_RANK } from '../data/fashionBoxes.js?v=0.61.0';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.61.0';
+import { FASHION_SLOTS, FASHION_WEAPON_FIT } from '../entities/Player.js?v=0.61.0';
+import { QUESTS } from '../data/quests.js?v=0.61.0';
+import { QuestLog, rewardText, npcWhere, goalText } from '../systems/Quests.js?v=0.61.0';
+import { QuestWindow } from '../ui/QuestWindow.js?v=0.61.0';
+import { RefineWindow } from '../ui/RefineWindow.js?v=0.61.0';
+import { doRefine, doSocket } from '../systems/Forge.js?v=0.61.0';
+import { stoneDrops } from '../data/refine.js?v=0.61.0';
+import { cardDrops, CARDS } from '../data/cards.js?v=0.61.0';
+import { statResetCost } from '../data/progression.js?v=0.61.0';
 // v0.11: เสียง · ตั้งค่า · ออนไลน์ · แชต · เมนูมือถือ
-import { AudioEngine } from '../audio/AudioEngine.js?v=0.60.0';
-import { loadSettings, saveSettings } from '../systems/Settings.js?v=0.60.0';
-import { SettingsWindow } from '../ui/SettingsWindow.js?v=0.60.0';
-import { RemotePlayers } from '../net/RemotePlayers.js?v=0.60.0';
-import { OnlineWindow } from '../ui/OnlineWindow.js?v=0.60.0';
-import { ChatBox } from '../ui/ChatBox.js?v=0.60.0';
-import { MenuPanel } from '../ui/MenuPanel.js?v=0.60.0';
+import { AudioEngine } from '../audio/AudioEngine.js?v=0.61.0';
+import { loadSettings, saveSettings } from '../systems/Settings.js?v=0.61.0';
+import { SettingsWindow } from '../ui/SettingsWindow.js?v=0.61.0';
+import { RemotePlayers } from '../net/RemotePlayers.js?v=0.61.0';
+import { OnlineWindow } from '../ui/OnlineWindow.js?v=0.61.0';
+import { ChatBox } from '../ui/ChatBox.js?v=0.61.0';
+import { MenuPanel } from '../ui/MenuPanel.js?v=0.61.0';
 // v0.13: สัตว์เลี้ยงช่วยเก็บของ · ไอเทมใช้งานชุดใหม่
-import { PetSystem } from '../systems/PetSystem.js?v=0.60.0';
-import { useConsumable, STORAGE_UP } from '../systems/ItemUse.js?v=0.60.0';
-import { CONSUMABLES, consumableDrops } from '../data/consumables.js?v=0.60.0';
-import { PETS, PET_RARITY, hatchEgg as rollHatch } from '../data/pets.js?v=0.60.0';
-import { PetWindow } from '../ui/PetWindow.js?v=0.60.0';
-import { HatchWindow } from '../ui/HatchWindow.js?v=0.60.0';
-import { pickOfTier, FASHION_TIERS } from '../data/fashionBoxes.js?v=0.60.0';
+import { PetSystem } from '../systems/PetSystem.js?v=0.61.0';
+import { useConsumable, STORAGE_UP } from '../systems/ItemUse.js?v=0.61.0';
+import { CONSUMABLES, consumableDrops } from '../data/consumables.js?v=0.61.0';
+import { PETS, PET_RARITY, hatchEgg as rollHatch } from '../data/pets.js?v=0.61.0';
+import { PetWindow } from '../ui/PetWindow.js?v=0.61.0';
+import { HatchWindow } from '../ui/HatchWindow.js?v=0.61.0';
+import { pickOfTier, FASHION_TIERS } from '../data/fashionBoxes.js?v=0.61.0';
 // v0.14: ตีมอนออโต้
-import { AutoHunt } from '../systems/AutoHunt.js?v=0.60.0';
-import { AutoWindow } from '../ui/AutoWindow.js?v=0.60.0';
+import { AutoHunt } from '../systems/AutoHunt.js?v=0.61.0';
+import { AutoWindow } from '../ui/AutoWindow.js?v=0.61.0';
 // v0.15: จดหมาย + ของขวัญต้อนรับ
-import { Mailbox } from '../systems/Mailbox.js?v=0.60.0';
-import { MailWindow } from '../ui/MailWindow.js?v=0.60.0';
-import { Collection } from '../systems/Collection.js?v=0.60.0';          // v0.18: ระบบสะสม
-import { CollectionWindow } from '../ui/CollectionWindow.js?v=0.60.0';
-import { Dungeons } from '../systems/Dungeons.js?v=0.60.0';              // v0.32: ดันเจี้ยนถ้ำ + หอคอย
+import { Mailbox } from '../systems/Mailbox.js?v=0.61.0';
+import { MailWindow } from '../ui/MailWindow.js?v=0.61.0';
+import { Collection } from '../systems/Collection.js?v=0.61.0';          // v0.18: ระบบสะสม
+import { CollectionWindow } from '../ui/CollectionWindow.js?v=0.61.0';
+import { Dungeons } from '../systems/Dungeons.js?v=0.61.0';              // v0.32: ดันเจี้ยนถ้ำ + หอคอย
 
 // เสียงตอนใช้สกิล (เริ่ม) และตอนกระแทก (จังหวะกล้องสั่น)
 const SKILL_SFX = {
   comet_strike: 'cast', black_hole: 'cast', astral_blades: 'cast', astral_ascension: 'skill', starfall_cataclysm: 'cast',
-  shadow_hawk: 'skill', meteor_trap: 'shoot', crystal_scatter: 'shoot', predator_instinct: 'skill', talon_storm: 'skill', lotus_renewal: 'heal', aegis_of_light: 'skill', judgement_blades: 'cast', purifying_dawn: 'cast', seraph_judgement: 'cast',
+  double_shot: 'shoot', gale_rift_arrow: 'shoot', cyclone_trap: 'cast', tailwind_step: 'skill', storm_king_volley: 'shoot', lotus_renewal: 'heal', aegis_of_light: 'skill', judgement_blades: 'cast', purifying_dawn: 'cast', seraph_judgement: 'cast',
   first_aid: 'heal', crimson_cleave: 'swing', flame_dash: 'swing', inferno_spin: 'swing', war_cry: 'skill', iron_bastion: 'skill', meteor_blade: 'cast',
   thunder_thrust: 'swing', storm_rush: 'swing', judgement_wheel: 'swing', aegis_crown: 'skill', sky_dragon_lance: 'cast',
   violet_flare: 'cast', glacial_spikes: 'iceBlast', chain_lightning: 'cast', blizzard: 'iceBlast', arcane_ward: 'skill', void_meteor: 'cast',
-  piercing_light: 'shoot', starfall_volley: 'shoot', cyclone_arrow: 'shoot', phoenix_barrage: 'shoot', thunder_snare: 'cast', starlit_eye: 'skill',
+  quick_shot: 'shoot', piercing_shot: 'shoot', scatter_shot: 'shoot', arrow_storm: 'shoot', eagle_eye: 'skill',
   lumen_heal: 'heal', star_blessing: 'heal', radiant_lance: 'cast', holy_ground: 'heal', sacred_chains: 'cast', heavens_cross: 'cast',
 };
 const IMPACT_SFX = {
-  comet_strike: 'explosion', black_hole: 'explosion', astral_blades: 'slam', starfall_cataclysm: 'explosion', meteor_trap: 'explosion', talon_storm: 'slam', thunder_snare: 'thunder', cyclone_arrow: 'slam', seraph_judgement: 'explosion', judgement_blades: 'slam', sacred_chains: 'thunder', heavens_cross: 'explosion', radiant_lance: 'thunder',
-  void_meteor: 'explosion', violet_flare: 'explosion', chain_lightning: 'thunder', phoenix_barrage: 'explosion', 
-  blizzard: 'iceBlast', glacial_spikes: 'iceBlast', crystal_scatter: 'iceBlast',
+  comet_strike: 'explosion', black_hole: 'explosion', astral_blades: 'slam', starfall_cataclysm: 'explosion', gale_rift_arrow: 'slam', cyclone_trap: 'slam', storm_king_volley: 'thunder', seraph_judgement: 'explosion', judgement_blades: 'slam', sacred_chains: 'thunder', heavens_cross: 'explosion', radiant_lance: 'thunder',
+  void_meteor: 'explosion', violet_flare: 'explosion', chain_lightning: 'thunder', piercing_shot: 'slam', arrow_storm: 'thunder', scatter_shot: 'slam', 
+  blizzard: 'iceBlast', glacial_spikes: 'iceBlast', 
   crimson_cleave: 'slam', flame_dash: 'explosion', inferno_spin: 'slam', meteor_blade: 'explosion', thunder_thrust: 'slam', storm_rush: 'thunder', judgement_wheel: 'thunder', sky_dragon_lance: 'thunder',
 };
 
@@ -1691,6 +1691,8 @@ export class Game {
       done: () => { pl.lockUntil = Math.min(pl.lockUntil, this.time); },
       freeze: (i) => { const m = list[i] && list[i].m; if (!m || m.dead) return; const ch = sk.freeze != null ? sval(sk.freeze, lv) : 1; if (Math.random() < ch) this.freezeMob(m, (sval(sk.freezeSecs, lv) || 2) * (m.data.mvp ? 0.4 : 1)); },
       shieldLeft: () => (pl.shield && pl.shield.id === id ? pl.shield.charges : 0),
+      // v0.60.1: ยิงลูกธนูจริงจากตัวผู้เล่นไปหาเป้า (สกิลสายธนู) — คืนเวลาที่ลูกธนูถึง
+      shoot: (i, o = {}) => { const m = list[i] && list[i].m; if (!m || m.dead) return 0; const dur = Math.min(0.45, Math.max(0.12, Math.hypot(m.x - pl.x, m.y - pl.y) / (TILE * (o.speed || 16)))); this.gfx.projectile(pl, m, { kind: 'arrow', dur, arc: o.arc ?? 0.14 }); return dur; },
     };
     // v0.31: สกิลพุ่งตัว (พุ่งทะยานเหล็กกล้า) — เลื่อนผู้เล่นไปหยุดหน้าเป้าหมาย
     if (sk.dash && t) {
@@ -1706,7 +1708,7 @@ export class Game {
     if (opts.vfx) { this.dirty = true; return; }   // v0.35: เอฟเฟกต์เสริม (ขนนกแตก / ปาฏิหาริย์) ไม่ล็อกท่า ไม่ให้บัฟ
     // v0.34: ซ้อนเอฟเฟกต์ภาพพิกเซล (PixelLab) ถ้าสกิลนี้มี
     const pv = SKILL_VFX[id];
-    if (pv) { const at = pv.at === 'self' || !t ? casterPos : new THREE.Vector3(t.x * S, 0, t.y * S); this.gfx.pixelVfx().play(pv.name, at, pv.at === 'self' ? { ...pv, follow: pl, once: true } : pv); }
+    if (pv) { const at = pv.at === 'self' || !t ? casterPos : new THREE.Vector3(t.x * S, 0, t.y * S); this.gfx.pixelVfx().play(pv.name, at, pv.at === 'self' ? { ...pv, follow: pl, once: true } : (pv.flipToCaster && t && pl.x > t.x ? { ...pv, flip: true } : pv)); }   // v0.60.1 flipToCaster: กลับด้านภาพให้ลูกธนูในชีตพุ่งมาจากฝั่งผู้เล่น
     // v0.35: โล่นับจำนวนฮิต (คำสัตย์ขนนก)
     if (sk.shield) { const sh = sk.shield(lv); pl.shield = { id, lv, charges: sh.charges, until: this.time + sh.secs }; pl.addBuff(id, lv, {}, sh.secs); this.hud.setBuffs(pl.buffs); }
     // บัฟเข้าทันที (เอฟเฟกต์เป็นแค่ภาพ)

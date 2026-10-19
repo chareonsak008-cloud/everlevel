@@ -1,0 +1,44 @@
+{
+ "app": "Night Forge VFX Lab → Everlevel",
+ "name": "Archer_2_PiercingShot",
+ "fps": 30,
+ "frames": 52,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 192,
+  "h": 192
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 148,
+  "y": 128
+ },
+ "skip": 1,
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 52,
+   "frame": {
+    "w": 192,
+    "h": 192
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 52,
+     "columns": 8,
+     "rows": 7
+    }
+   ],
+   "offset": {
+    "x": -148,
+    "y": -128
+   }
+  }
+ ]
+}
