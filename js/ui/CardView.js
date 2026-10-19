@@ -1,5 +1,5 @@
 // v0.29: การ์ดมอนสเตอร์แบบใหญ่ (หน้าการ์ดเต็ม + เอียงตามนิ้ว/เมาส์) · หน้าจอได้รับการ์ด
-import { CARD_COMBOS, CARD_MAPS, CARD_RANKS, SLOT_TH, CLASS_TH, ROLE_TH, effectText, isDrawback, traitTH, CARD_BY_ID } from '../data/cardCatalog.js?v=0.56.0';
+import { CARD_COMBOS, CARD_MAPS, CARD_RANKS, SLOT_TH, CLASS_TH, ROLE_TH, effectText, isDrawback, traitTH, CARD_BY_ID } from '../data/cardCatalog.js?v=0.57.0';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pct = (r) => (r * 100).toFixed(r * 100 < 0.01 ? 3 : 2).replace(/0+$/, '').replace(/\.$/, '') + '%';
