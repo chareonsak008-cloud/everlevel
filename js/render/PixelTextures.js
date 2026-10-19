@@ -1,7 +1,7 @@
 // v0.17: เท็กซ์เจอร์วัสดุแบบภาพพิกเซล (หิน ปูน กระเบื้องหลังคา ไม้ ลังไม้ ผ้าใบลายทาง)
 // 48×48 พิกเซลต่อ 1 หน่วยโลก = 1 พิกเซลภาพที่ระยะกล้องปกติ · กรองแบบ nearest (ขอบคม)
-import { THREE } from './three.js?v=0.58.0';
-import { rng } from '../core/util.js?v=0.58.0';
+import { THREE } from './three.js?v=0.59.0';
+import { rng } from '../core/util.js?v=0.59.0';
 
 const N = 48;
 const hex = (h) => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
