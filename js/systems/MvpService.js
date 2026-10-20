@@ -1,7 +1,7 @@
 // v0.53 MVP ร่วม — ทุกคนในแผนที่เห็น/ตี MVP ตัวเดียวกัน (เซิร์ฟเวอร์ถือเลือดกลาง · ต้องรัน supabase/mvp_shared.sql)
 // ไม่มีเซิร์ฟเวอร์/ยังไม่ติดตั้ง → MVP กลับไปทำงานแบบเดิม (แยกเครื่องใครเครื่องมัน)
-import { MONSTERS } from '../data/monsters.js?v=0.71.1';
-import { TILE } from '../config.js?v=0.71.1';
+import { MONSTERS } from '../data/monsters.js?v=0.72.0';
+import { TILE } from '../config.js?v=0.72.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 

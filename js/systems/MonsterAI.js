@@ -1,14 +1,14 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.71.1';
-import { MONSTERS } from '../data/monsters.js?v=0.71.1';
-import { Monster } from '../entities/Monster.js?v=0.71.1';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.71.1';
+import { TILE } from '../config.js?v=0.72.0';
+import { MONSTERS } from '../data/monsters.js?v=0.72.0';
+import { Monster } from '../entities/Monster.js?v=0.72.0';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.72.0';
 
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
 
 // v0.52: มอนเกิดเยอะขึ้น/เร็วขึ้น (มอนปกติ) — MVP/บอสคงเดิม
-export const SPAWN_MUL = 1.5, RESPAWN_MUL = 0.45;
+export const SPAWN_MUL = 2, RESPAWN_MUL = 0.25;   // v0.72 เกิดเยอะขึ้น (×2) และเร็วขึ้น (เวลาเกิดใหม่ ×0.25 · ต่ำสุด 2 วิ)
 const isBossDef = (def) => { const d = MONSTERS[def.mob]; return !d || d.mvp || d.worldBoss || d.boss; };
 
 export class MonsterManager {
