@@ -1,5 +1,5 @@
 // Pre-rendered portraits of the exact game models; no offscreen WebGL per card.
-import { CARDS } from '../data/cards.js?v=0.71.0';
+import { CARDS } from '../data/cards.js?v=0.71.1';
 const portraits=new Map(),listeners=new Set();let pending;
 export const CARD_FRAME_COLORS={common:'#f2ece0',uncommon:'#8fe08a',rare:'#7fc4ff',epic:'#d49bff',legend:'#ffb347',mythic:'#ffd85e',celestial:'#ff5266'};
 export const monsterPortrait=mob=>portraits.get(mob);
