@@ -4,7 +4,7 @@
 //   at: 'self' | 'target' (จุดศูนย์กลางของวงดาเมจ), magic,
 //   anim: 'melee' | 'cast' | 'spin' | 'jump' | 'castHold', animDur,
 //   hits: [{ t: วินาที, r: รัศมี (ช่อง · 0 = เฉพาะเป้าหลัก), m: ตัวคูณของฮิตนี้, at: 'self'|'target',
-//            line: { len, w } (โดนทุกตัวในแนวหน้าผู้เล่น), knock, stun, slow, freeze (วิ · โอกาสตาม sk.freeze), shake }],
+//            line: { len, w } (โดนทุกตัวในแนวหน้าผู้เล่น), knock, stun, slow, freeze (วิ · โอกาสตาม sk.freeze), shake, stop (hitstop วิ) }],
 //   heals: [วินาที, ...]   (เรียก c.heal ตามเวลา)
 //   pull: { from, to, r, step }  (ดูดศัตรูในรัศมี r เข้าหาจุดกลาง ความเร็ว step ช่อง/วิ ระหว่างเวลา from→to)
 //   sky: { t, dark, dur }  (ฟ้ามืดลง) · lift: { t, h, dur, hold } (ตัวลอย)
@@ -38,6 +38,7 @@ export function installNFSkills(proto) {
         if (h.stun && r && r.stun && i === c.main) this.stunStars(t, r.stun);
       }
       if (h.shake) c.shake(h.shake);
+      if (h.stop && c.hitstop && list.length) c.hitstop(h.stop);
     }));
     for (const t of S.heals || []) this.after(t, () => c.heal());
     if (S.pull && c.pull) {

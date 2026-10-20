@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.63.0';
+import { THREE } from './three.js?v=0.64.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -92,19 +92,18 @@ export class PixelVfx {
 // สกิล → เอฟเฟกต์พิกเซล (at: 'target' ที่ตัวเป้าหมาย · 'self' ที่ตัวผู้เล่น)
 export const SKILL_VFX = {
   // v0.54 Night Forge VFX (solo = ไม่วาดเอฟเฟกต์เดิมซ้อน · speed = เร่งให้จังหวะกระแทกตรงกับจังหวะตีจริง)
-  // ดาบ (Swordsman) · v0.60 ชุดใหม่ "เพลิงชาด"
-  crimson_cleave: { name: 'nf_crimson_cleave', at: 'target', scale: 1.15, delay: 0.07, solo: true },
-  flame_dash: { name: 'nf_flame_dash', at: 'target', scale: 1.35, delay: 0, behind: true, solo: true },
-  inferno_spin: { name: 'nf_inferno_spin', at: 'self', scale: 1.4, delay: 0.07, behind: true, solo: true },
-  war_cry: { name: 'nf_war_cry', at: 'self', scale: 1.15, delay: 0.07, behind: true, solo: true },
-  iron_bastion: { name: 'nf_iron_bastion', at: 'self', scale: 1.15, delay: 0.07, behind: true, solo: true },
-  meteor_blade: { name: 'nf_meteor_blade', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
-  // อัศวิน (Knight) · v0.60 ชุดใหม่ "อัสนีราชันย์"
-  thunder_thrust: { name: 'nf_thunder_thrust', at: 'target', scale: 1.15, delay: 0.07, solo: true },
-  storm_rush: { name: 'nf_storm_rush', at: 'target', scale: 1.35, delay: 0, behind: true, solo: true },
-  judgement_wheel: { name: 'nf_judgement_wheel', at: 'self', scale: 1.55, delay: 0.07, behind: true, solo: true },
-  aegis_crown: { name: 'nf_aegis_crown', at: 'self', scale: 1.15, delay: 0.07, behind: true, solo: true },
-  sky_dragon_lance: { name: 'nf_sky_dragon_lance', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
+  // ดาบ (Swordsman) · v0.64 ชุดใหม่ (sprite sheet มุมข้าง 24 fps จากผู้พัฒนา · side = วางที่เท้าผู้ร่าย หันหาเป้า ย่อ/ขยายตามระยะ)
+  triple_slash: { name: 'nf_triple_slash', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
+  flame_wave: { name: 'nf_flame_wave', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
+  blazing_dash: { name: 'nf_blazing_dash', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
+  inferno_whirl: { name: 'nf_inferno_whirl', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
+  crimson_judgement: { name: 'nf_crimson_judgement', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
+  // อัศวิน (Knight) · v0.64 ชุดใหม่
+  thunder_cut: { name: 'nf_thunder_cut', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
+  sword_qi_barrage: { name: 'nf_sword_qi_barrage', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
+  flash_step: { name: 'nf_flash_step', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
+  thousand_blades: { name: 'nf_thousand_blades', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
+  heaven_splitter: { name: 'nf_heaven_splitter', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
   // ธนู (Archer) · v0.60 ชุดใหม่ "ศรดารา"
   quick_shot: { name: 'nf_quick_shot', at: 'target', scale: 1.45, delay: 0, solo: true, flipToCaster: true },
   piercing_shot: { name: 'nf_piercing_shot', at: 'target', scale: 1.55, delay: 0, solo: true, flipToCaster: true },

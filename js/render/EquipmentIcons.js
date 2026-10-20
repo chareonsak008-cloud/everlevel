@@ -1,8 +1,8 @@
 // v0.25.0: ไอคอนอุปกรณ์ — ทุกชิ้นมีทรงของตัวเอง (form + shape) และสีของตัวเอง
 // form = ประเภท 12 แบบตามสเปก (ดาบมือเดียว/สองมือ/หอก, คทา/ไม้เท้า/ออร์บ, กระบอง/คทาศักดิ์สิทธิ์/หนังสือ, ธนูสั้น/ยาว/หน้าไม้)
 // เกรดสูงขึ้นเพิ่มลายทอง อัญมณี ปีก รัศมี ประกาย — วาดบนพิกัด 64x64
-import { shadeHex } from './Textures.js?v=0.63.0';
-import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.63.0';
+import { shadeHex } from './Textures.js?v=0.64.0';
+import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.64.0';
 
 const LINE = '#21151f';
 const TAU = Math.PI * 2;
