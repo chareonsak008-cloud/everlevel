@@ -1,25 +1,25 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.69.0';
-import { MONSTERS } from '../data/monsters.js?v=0.69.0';
-import { MAPS } from '../data/maps/index.js?v=0.69.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.69.0';
-import { CARD_SETS } from '../data/collection.js?v=0.69.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.69.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.69.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.69.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.69.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.69.0';
-import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.69.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.69.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.69.0';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.69.0';
-import { rollFits } from '../data/affixes.js?v=0.69.0';
-import { statsToBonus } from '../data/affixes.js?v=0.69.0';
-import { VIP_PERKS } from './CashShop.js?v=0.69.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.69.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.69.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.69.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.70.0';
+import { MONSTERS } from '../data/monsters.js?v=0.70.0';
+import { MAPS } from '../data/maps/index.js?v=0.70.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.70.0';
+import { CARD_SETS } from '../data/collection.js?v=0.70.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.70.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.70.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.70.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.70.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.70.0';
+import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.70.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.70.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.70.0';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.70.0';
+import { rollFits } from '../data/affixes.js?v=0.70.0';
+import { statsToBonus } from '../data/affixes.js?v=0.70.0';
+import { VIP_PERKS } from './CashShop.js?v=0.70.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.70.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.70.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.70.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');

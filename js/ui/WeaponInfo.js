@@ -1,8 +1,8 @@
 // v0.25.0: รายละเอียดอาวุธชุดใหม่ในหน้าต่างกระเป๋า (ประเภท ธาตุ ค่าสุ่ม พาสซีฟ เซ็ต ตีบวก แหล่งดรอป)
-import { describeBonus, bonusText, weaponTypeName } from '../data/items.js?v=0.69.0';
-import { TRAIT_TH, ELEMENT_COLOR, statToBonus, setInfo, statsToBonus, rollFits, rollScore, rollGrade } from '../data/affixes.js?v=0.69.0';
-import { REFINE_RATE } from '../data/refine.js?v=0.69.0';
-import { MONSTERS } from '../data/monsters.js?v=0.69.0';
+import { describeBonus, bonusText, weaponTypeName } from '../data/items.js?v=0.70.0';
+import { TRAIT_TH, ELEMENT_COLOR, statToBonus, setInfo, statsToBonus, rollFits, rollScore, rollGrade } from '../data/affixes.js?v=0.70.0';
+import { REFINE_RATE } from '../data/refine.js?v=0.70.0';
+import { MONSTERS } from '../data/monsters.js?v=0.70.0';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const one = (stat, v) => { const o = statToBonus(stat, v); const [k, x] = Object.entries(o)[0] || []; return k ? bonusText(k, x) : stat; };

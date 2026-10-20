@@ -1,8 +1,8 @@
 // แผนที่ (ตรรกะ): พื้น, จุดชน, วัตถุ, ประตูมิติ — ไม่ยุ่งกับการวาด
-import { TILE } from '../config.js?v=0.69.0';
-import { T, TILE_INFO } from '../data/tileTypes.js?v=0.69.0';
-import { footprint } from '../data/objects.js?v=0.69.0';
-import { rng } from '../core/util.js?v=0.69.0';
+import { TILE } from '../config.js?v=0.70.0';
+import { T, TILE_INFO } from '../data/tileTypes.js?v=0.70.0';
+import { footprint } from '../data/objects.js?v=0.70.0';
+import { rng } from '../core/util.js?v=0.70.0';
 
 export const EDGE = { WALL_FACE: 1, SHADOW: 2, BANK: 4 };
 
