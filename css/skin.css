@@ -90,3 +90,23 @@
 .tb-vip span { color: #ffe08a; }
 #game.is-vip .tb-vip img { animation: vipGlow 2.4s ease-in-out infinite; }
 @keyframes vipGlow { 50% { filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 10px rgba(255, 210, 90, 0.9)); } }
+
+/* v0.71.1 มือถือแนวนอน: ย่อหน้าต่างทุกบาน (กระเป๋า · สกิล · สถานะ ฯลฯ) ให้เล็กลงพอดีจอ ไม่บังกรอบตัวละคร/มินิแมป
+   ใช้ scale รอบจุดกลาง (หน้าต่างอยู่กลางจอด้วย translate -50%) แล้วขยายกรอบเพดานกลับด้วย 1/scale ให้ใช้พื้นที่จอได้เต็ม
+   · แตะ/ลากยังแม่นเพราะเบราว์เซอร์คิดพิกัดผ่าน transform ให้เอง */
+@media (orientation: landscape) and (max-height: 520px) {
+  body.touch { --winz: 0.72; }
+}
+@media (orientation: landscape) and (max-height: 400px) {
+  body.touch { --winz: 0.64; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  body.touch :is(#game, .hud) :is(.inv, .shop, .stor, .skw, .mapwin, .status, .ward, .refine, .quest, .petw,
+  .menu-panel, .settings, .online-win, .autow, .colw, .mailw, .tm, .event-window) {
+    scale: var(--winz, 1) !important;
+    transform-origin: 50% 50% !important;
+    max-width: calc((100% - 24px) / var(--winz, 1)) !important;
+    max-height: calc((100% - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / var(--winz, 1)) !important;
+  }
+  body.touch .dlg { scale: var(--winz, 1); transform-origin: 50% 0; }
+}

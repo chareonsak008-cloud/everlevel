@@ -1,5 +1,5 @@
 // หน้าต่างสถานะตัวละคร: เลเวล, EXP, อัปสเตตัส 6 ค่า, ค่าต่อสู้ที่คำนวณได้
-import { STAT_KEYS, STAT_INFO, statCost, MAX_STAT, statResetCost, STAT_RESET_FREE_LEVEL } from '../data/progression.js?v=0.71.0';
+import { STAT_KEYS, STAT_INFO, statCost, MAX_STAT, statResetCost, STAT_RESET_FREE_LEVEL } from '../data/progression.js?v=0.71.1';
 
 const fmt = (n) => n.toLocaleString('en-US');
 // v0.27: ไอคอนสเตตัส (สีประจำค่า)
