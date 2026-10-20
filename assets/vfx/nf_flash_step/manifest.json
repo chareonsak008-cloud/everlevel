@@ -1,0 +1,196 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "สายฟ้าแลบ",
+ "fps": 24,
+ "frames": 44,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 269,
+  "h": 151
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 36,
+  "y": 121
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.125,
+   "type": "flash",
+   "strength": 0.2,
+   "color": "150,228,255"
+  },
+  {
+   "t": 0.125,
+   "type": "caster_set",
+   "x": -1.6,
+   "visible": false,
+   "px": 104
+  },
+  {
+   "t": 0.222,
+   "type": "caster_set",
+   "x": 0.4,
+   "visible": true,
+   "px": 264
+  },
+  {
+   "t": 0.278,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 690,
+   "crit": false
+  },
+  {
+   "t": 0.278,
+   "type": "hitstop",
+   "duration": 0.04
+  },
+  {
+   "t": 0.278,
+   "type": "caster_set",
+   "x": 0.4,
+   "visible": false,
+   "px": 264
+  },
+  {
+   "t": 0.431,
+   "type": "caster_set",
+   "x": 3.3,
+   "visible": true,
+   "px": 496
+  },
+  {
+   "t": 0.486,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 740,
+   "crit": false
+  },
+  {
+   "t": 0.486,
+   "type": "hitstop",
+   "duration": 0.04
+  },
+  {
+   "t": 0.486,
+   "type": "caster_set",
+   "x": 3.3,
+   "visible": false,
+   "px": 496
+  },
+  {
+   "t": 0.625,
+   "type": "caster_set",
+   "x": 3.4,
+   "visible": true,
+   "px": 504
+  },
+  {
+   "t": 0.681,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 710,
+   "crit": true
+  },
+  {
+   "t": 0.681,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 0.681,
+   "type": "hitstop",
+   "duration": 0.04
+  },
+  {
+   "t": 0.681,
+   "type": "caster_set",
+   "x": 3.4,
+   "visible": true,
+   "px": 504
+  },
+  {
+   "t": 0.958,
+   "type": "caster_set",
+   "x": -1.6,
+   "visible": true,
+   "px": 104
+  },
+  {
+   "t": 0.958,
+   "type": "flash",
+   "strength": 0.2,
+   "color": "150,228,255"
+  },
+  {
+   "t": 1.264,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 980,
+   "crit": true
+  },
+  {
+   "t": 1.264,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 1.319,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 1100,
+   "crit": true
+  },
+  {
+   "t": 1.319,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 1.375,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 1020,
+   "crit": true
+  },
+  {
+   "t": 1.375,
+   "type": "shake",
+   "strength": 0.35
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 44,
+   "frame": {
+    "w": 269,
+    "h": 151
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 44,
+     "columns": 15,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -36,
+    "y": -121
+   }
+  }
+ ],
+ "casterPx": [
+  36,
+  121
+ ],
+ "fitPx": 76
+}

@@ -1,0 +1,177 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "วงเวียนดาบไฟ",
+ "fps": 24,
+ "frames": 39,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 269,
+  "h": 151
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 36,
+  "y": 121
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0,
+   "type": "caster_move",
+   "fromX": -1.6,
+   "toX": 2.45,
+   "toY": 0,
+   "duration": 0.16,
+   "fromPx": 104,
+   "toPx": {
+    "x": 428,
+    "y": 346
+   }
+  },
+  {
+   "t": 0.278,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 420,
+   "crit": false
+  },
+  {
+   "t": 0.278,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 460,
+   "crit": false
+  },
+  {
+   "t": 0.278,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 410,
+   "crit": false
+  },
+  {
+   "t": 0.5,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 450,
+   "crit": false
+  },
+  {
+   "t": 0.5,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 490,
+   "crit": false
+  },
+  {
+   "t": 0.5,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 440,
+   "crit": false
+  },
+  {
+   "t": 0.708,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 480,
+   "crit": false
+  },
+  {
+   "t": 0.708,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 520,
+   "crit": false
+  },
+  {
+   "t": 0.708,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 470,
+   "crit": false
+  },
+  {
+   "t": 0.958,
+   "type": "flash",
+   "strength": 0.25,
+   "color": "255,172,70"
+  },
+  {
+   "t": 0.958,
+   "type": "hitstop",
+   "duration": 0.06
+  },
+  {
+   "t": 0.958,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 980,
+   "crit": false
+  },
+  {
+   "t": 0.958,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 1120,
+   "crit": true
+  },
+  {
+   "t": 0.958,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 0.958,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 960,
+   "crit": false
+  },
+  {
+   "t": 1.306,
+   "type": "caster_move",
+   "fromX": 2.45,
+   "toX": -1.6,
+   "toY": 0,
+   "duration": 0.22,
+   "fromPx": 428,
+   "toPx": {
+    "x": 104,
+    "y": 346
+   }
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 39,
+   "frame": {
+    "w": 269,
+    "h": 151
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 39,
+     "columns": 15,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -36,
+    "y": -121
+   }
+  }
+ ],
+ "casterPx": [
+  36,
+  121
+ ],
+ "fitPx": 76
+}

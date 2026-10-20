@@ -1,0 +1,82 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "คลื่นดาบเพลิง",
+ "fps": 24,
+ "frames": 39,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 269,
+  "h": 151
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 36,
+  "y": 121
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.528,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 1240,
+   "crit": false
+  },
+  {
+   "t": 0.694,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 1320,
+   "crit": true
+  },
+  {
+   "t": 0.694,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 0.694,
+   "type": "hitstop",
+   "duration": 0.06
+  },
+  {
+   "t": 0.861,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 1180,
+   "crit": false
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 39,
+   "frame": {
+    "w": 269,
+    "h": 151
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 39,
+     "columns": 15,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -36,
+    "y": -121
+   }
+  }
+ ],
+ "casterPx": [
+  36,
+  121
+ ],
+ "fitPx": 76
+}

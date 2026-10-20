@@ -1,0 +1,101 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "ฟันสายฟ้า",
+ "fps": 24,
+ "frames": 18,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 269,
+  "h": 151
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 36,
+  "y": 121
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0,
+   "type": "caster_move",
+   "fromX": -1.6,
+   "toX": -0.2,
+   "toY": 0,
+   "duration": 0.1,
+   "fromPx": 104,
+   "toPx": {
+    "x": 216,
+    "y": 346
+   }
+  },
+  {
+   "t": 0.208,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 388,
+   "crit": false
+  },
+  {
+   "t": 0.278,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 402,
+   "crit": true
+  },
+  {
+   "t": 0.278,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 0.278,
+   "type": "hitstop",
+   "duration": 0.05
+  },
+  {
+   "t": 0.75,
+   "type": "caster_move",
+   "fromX": -0.2,
+   "toX": -1.6,
+   "toY": 0,
+   "duration": 0.16,
+   "fromPx": 216,
+   "toPx": {
+    "x": 104,
+    "y": 346
+   }
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 18,
+   "frame": {
+    "w": 269,
+    "h": 151
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 18,
+     "columns": 15,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -36,
+    "y": -121
+   }
+  }
+ ],
+ "casterPx": [
+  36,
+  121
+ ],
+ "fitPx": 76
+}

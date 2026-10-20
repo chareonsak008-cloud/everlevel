@@ -1,0 +1,119 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "พุ่งทะลวง",
+ "fps": 24,
+ "frames": 42,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 269,
+  "h": 151
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 36,
+  "y": 121
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.153,
+   "type": "caster_move",
+   "fromX": -1.6,
+   "toX": 5.4,
+   "toY": 0,
+   "duration": 0.15,
+   "fromPx": 104,
+   "toPx": {
+    "x": 664,
+    "y": 346
+   }
+  },
+  {
+   "t": 0.847,
+   "type": "flash",
+   "strength": 0.25,
+   "color": "255,172,70"
+  },
+  {
+   "t": 0.847,
+   "type": "hitstop",
+   "duration": 0.09
+  },
+  {
+   "t": 0.847,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 1980,
+   "crit": true
+  },
+  {
+   "t": 0.847,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 0.847,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 2460,
+   "crit": true
+  },
+  {
+   "t": 0.847,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 0.847,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 2110,
+   "crit": false
+  },
+  {
+   "t": 1.361,
+   "type": "caster_move",
+   "fromX": 5.4,
+   "toX": -1.6,
+   "toY": 0,
+   "duration": 0.25,
+   "fromPx": 664,
+   "toPx": {
+    "x": 104,
+    "y": 346
+   }
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 42,
+   "frame": {
+    "w": 269,
+    "h": 151
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 42,
+     "columns": 15,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -36,
+    "y": -121
+   }
+  }
+ ],
+ "casterPx": [
+  36,
+  121
+ ],
+ "fitPx": 76
+}

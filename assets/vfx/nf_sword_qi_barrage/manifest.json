@@ -1,0 +1,176 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "ดาบลมปราณ",
+ "fps": 24,
+ "frames": 33,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 269,
+  "h": 151
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 36,
+  "y": 121
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.25,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 260,
+   "crit": false
+  },
+  {
+   "t": 0.347,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 272,
+   "crit": false
+  },
+  {
+   "t": 0.361,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 280,
+   "crit": false
+  },
+  {
+   "t": 0.431,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 284,
+   "crit": false
+  },
+  {
+   "t": 0.458,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 292,
+   "crit": false
+  },
+  {
+   "t": 0.472,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 250,
+   "crit": false
+  },
+  {
+   "t": 0.528,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 296,
+   "crit": false
+  },
+  {
+   "t": 0.542,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 304,
+   "crit": false
+  },
+  {
+   "t": 0.569,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 262,
+   "crit": false
+  },
+  {
+   "t": 0.611,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 308,
+   "crit": false
+  },
+  {
+   "t": 0.611,
+   "type": "hitstop",
+   "duration": 0.04
+  },
+  {
+   "t": 0.639,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 316,
+   "crit": false
+  },
+  {
+   "t": 0.653,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 274,
+   "crit": false
+  },
+  {
+   "t": 0.722,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 328,
+   "crit": true
+  },
+  {
+   "t": 0.722,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 0.722,
+   "type": "hitstop",
+   "duration": 0.04
+  },
+  {
+   "t": 0.75,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 286,
+   "crit": false
+  },
+  {
+   "t": 0.833,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 298,
+   "crit": false
+  },
+  {
+   "t": 0.833,
+   "type": "hitstop",
+   "duration": 0.04
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 33,
+   "frame": {
+    "w": 269,
+    "h": 151
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 33,
+     "columns": 15,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -36,
+    "y": -121
+   }
+  }
+ ],
+ "casterPx": [
+  36,
+  121
+ ],
+ "fitPx": 76
+}

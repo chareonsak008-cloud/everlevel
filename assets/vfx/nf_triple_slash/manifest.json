@@ -1,0 +1,128 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "ฟันสามจังหวะ",
+ "fps": 24,
+ "frames": 32,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 269,
+  "h": 151
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 36,
+  "y": 121
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0,
+   "type": "caster_move",
+   "fromX": -1.6,
+   "toX": -0.3,
+   "toY": 0,
+   "duration": 0.12,
+   "fromPx": 104,
+   "toPx": {
+    "x": 208,
+    "y": 346
+   }
+  },
+  {
+   "t": 0.181,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 312,
+   "crit": false
+  },
+  {
+   "t": 0.403,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 298,
+   "crit": false
+  },
+  {
+   "t": 0.569,
+   "type": "caster_move",
+   "fromX": -0.3,
+   "toX": 0.1,
+   "toY": 0,
+   "duration": 0.08,
+   "fromPx": 208,
+   "toPx": {
+    "x": 240,
+    "y": 346
+   }
+  },
+  {
+   "t": 0.653,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 845,
+   "crit": true
+  },
+  {
+   "t": 0.653,
+   "type": "shake",
+   "strength": 0.35
+  },
+  {
+   "t": 0.653,
+   "type": "hitstop",
+   "duration": 0.07
+  },
+  {
+   "t": 0.653,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 620,
+   "crit": false
+  },
+  {
+   "t": 1.014,
+   "type": "caster_move",
+   "fromX": 0.1,
+   "toX": -1.6,
+   "toY": 0,
+   "duration": 0.2,
+   "fromPx": 240,
+   "toPx": {
+    "x": 104,
+    "y": 346
+   }
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 32,
+   "frame": {
+    "w": 269,
+    "h": 151
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 32,
+     "columns": 15,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -36,
+    "y": -121
+   }
+  }
+ ],
+ "casterPx": [
+  36,
+  121
+ ],
+ "fitPx": 76
+}
