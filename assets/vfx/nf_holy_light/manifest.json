@@ -1,0 +1,52 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "แสงศักดิ์สิทธิ์",
+ "fps": 24,
+ "frames": 32,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 241,
+  "h": 120
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 209,
+  "y": 99
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.736,
+   "type": "heal",
+   "ally": 1,
+   "amount": 820
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 32,
+   "frame": {
+    "w": 241,
+    "h": 120
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 32,
+     "columns": 16,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -209,
+    "y": -99
+   }
+  }
+ ]
+}

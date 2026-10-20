@@ -1,0 +1,100 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "ฝนชโลมใจ",
+ "fps": 24,
+ "frames": 72,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 179,
+  "h": 179
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 90,
+  "y": 154
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.819,
+   "type": "heal",
+   "ally": 0,
+   "amount": 640
+  },
+  {
+   "t": 0.875,
+   "type": "heal",
+   "ally": 1,
+   "amount": 640
+  },
+  {
+   "t": 0.931,
+   "type": "heal",
+   "ally": 2,
+   "amount": 640
+  },
+  {
+   "t": 1.417,
+   "type": "heal",
+   "ally": 0,
+   "amount": 640
+  },
+  {
+   "t": 1.472,
+   "type": "heal",
+   "ally": 1,
+   "amount": 640
+  },
+  {
+   "t": 1.528,
+   "type": "heal",
+   "ally": 2,
+   "amount": 640
+  },
+  {
+   "t": 2.014,
+   "type": "heal",
+   "ally": 0,
+   "amount": 640
+  },
+  {
+   "t": 2.069,
+   "type": "heal",
+   "ally": 1,
+   "amount": 640
+  },
+  {
+   "t": 2.125,
+   "type": "heal",
+   "ally": 2,
+   "amount": 640
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 72,
+   "frame": {
+    "w": 179,
+    "h": 179
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 72,
+     "columns": 22,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -90,
+    "y": -154
+   }
+  }
+ ]
+}

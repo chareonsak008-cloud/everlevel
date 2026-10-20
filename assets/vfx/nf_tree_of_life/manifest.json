@@ -1,0 +1,109 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "ต้นไม้แห่งชีวิต",
+ "fps": 24,
+ "frames": 120,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 263,
+  "h": 211
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 132,
+  "y": 181
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0,
+   "type": "screen_tint",
+   "color": "70,228,170",
+   "strength": 0.3,
+   "duration": 4.9
+  },
+  {
+   "t": 1.889,
+   "type": "shake_ramp",
+   "from": 0.1,
+   "to": 0.25,
+   "duration": 0.8
+  },
+  {
+   "t": 2.708,
+   "type": "flash",
+   "strength": 1,
+   "color": "185,255,225"
+  },
+  {
+   "t": 2.708,
+   "type": "shake",
+   "strength": 0.8
+  },
+  {
+   "t": 2.708,
+   "type": "shake",
+   "strength": 0.25
+  },
+  {
+   "t": 2.764,
+   "type": "heal",
+   "ally": 0,
+   "amount": 9999
+  },
+  {
+   "t": 2.764,
+   "type": "text",
+   "text": "REVIVE"
+  },
+  {
+   "t": 2.833,
+   "type": "heal",
+   "ally": 1,
+   "amount": 9999
+  },
+  {
+   "t": 2.833,
+   "type": "text",
+   "text": "REVIVE"
+  },
+  {
+   "t": 2.903,
+   "type": "heal",
+   "ally": 2,
+   "amount": 9999
+  },
+  {
+   "t": 2.903,
+   "type": "text",
+   "text": "REVIVE"
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 120,
+   "frame": {
+    "w": 263,
+    "h": 211
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 120,
+     "columns": 15,
+     "rows": 8
+    }
+   ],
+   "offset": {
+    "x": -132,
+    "y": -181
+   }
+  }
+ ]
+}

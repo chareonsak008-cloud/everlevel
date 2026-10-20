@@ -1,0 +1,69 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "บุปผาฟื้นฟู",
+ "fps": 24,
+ "frames": 53,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 106,
+  "h": 106
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 53,
+  "y": 88
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.5,
+   "type": "heal",
+   "ally": 1,
+   "amount": 1120
+  },
+  {
+   "t": 0.5,
+   "type": "text",
+   "text": "HoT"
+  },
+  {
+   "t": 1,
+   "type": "heal",
+   "ally": 1,
+   "amount": 1120
+  },
+  {
+   "t": 1.5,
+   "type": "heal",
+   "ally": 1,
+   "amount": 1120
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 53,
+   "frame": {
+    "w": 106,
+    "h": 106
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 53,
+     "columns": 38,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -53,
+    "y": -88
+   }
+  }
+ ]
+}

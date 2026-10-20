@@ -1,0 +1,58 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "ลำแสงฟื้นฟู",
+ "fps": 24,
+ "frames": 42,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 101,
+  "h": 151
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 50,
+  "y": 126
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.306,
+   "type": "flash",
+   "strength": 0.12,
+   "color": "255,228,150"
+  },
+  {
+   "t": 0.458,
+   "type": "heal",
+   "ally": 0,
+   "amount": 2480
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 42,
+   "frame": {
+    "w": 101,
+    "h": 151
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 42,
+     "columns": 40,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -50,
+    "y": -126
+   }
+  }
+ ]
+}

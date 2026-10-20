@@ -1,0 +1,67 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "พรแห่งแสง",
+ "fps": 24,
+ "frames": 56,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 174,
+  "h": 136
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 87,
+  "y": 109
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.306,
+   "type": "flash",
+   "strength": 0.12,
+   "color": "255,228,150"
+  },
+  {
+   "t": 0.319,
+   "type": "text",
+   "text": "ATK ▲"
+  },
+  {
+   "t": 0.389,
+   "type": "text",
+   "text": "ATK ▲"
+  },
+  {
+   "t": 0.472,
+   "type": "text",
+   "text": "ATK ▲"
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 56,
+   "frame": {
+    "w": 174,
+    "h": 136
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 56,
+     "columns": 23,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -87,
+    "y": -109
+   }
+  }
+ ]
+}

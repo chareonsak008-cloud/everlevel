@@ -1,0 +1,62 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "สระบัวพิทักษ์",
+ "fps": 24,
+ "frames": 77,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 190,
+  "h": 143
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 95,
+  "y": 114
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.153,
+   "type": "flash",
+   "strength": 0.15,
+   "color": "185,255,225"
+  },
+  {
+   "t": 0.153,
+   "type": "shake",
+   "strength": 0.1
+  },
+  {
+   "t": 0.306,
+   "type": "text",
+   "text": "BARRIER"
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 77,
+   "frame": {
+    "w": 190,
+    "h": 143
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 77,
+     "columns": 21,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -95,
+    "y": -114
+   }
+  }
+ ]
+}

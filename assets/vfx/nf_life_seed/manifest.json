@@ -1,0 +1,52 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "เมล็ดชีวิต",
+ "fps": 24,
+ "frames": 36,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 258,
+  "h": 150
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 230,
+  "y": 118
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.875,
+   "type": "heal",
+   "ally": 2,
+   "amount": 760
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 36,
+   "frame": {
+    "w": 258,
+    "h": 150
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 36,
+     "columns": 15,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -230,
+    "y": -118
+   }
+  }
+ ]
+}
