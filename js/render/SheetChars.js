@@ -2,8 +2,8 @@
 // แผ่นละอาชีพ = 8 คอลัมน์ × 8 แถว (ช่องละ 128px)
 //   แถว: N · NE · E · SE · S · SW · W · NW  (ทิศตัวละครหันเทียบจอ)
 //   คอลัมน์ 0–3 = เดิน 4 เฟรม · 4–7 = โจมตี 4 เฟรม (นักบวช = ท่าร่าย/ฮีล)
-import { THREE } from './three.js?v=0.65.0';
-import { VERSION } from '../config.js?v=0.65.0';
+import { THREE } from './three.js?v=0.66.0';
+import { VERSION } from '../config.js?v=0.66.0';
 
 // แผ่นวาดมือ 8×8 (ช่อง 128px): คอลัมน์ 0–3 เดิน · 4–7 โจมตี
 const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1, 2, 3], attack: [4, 5, 6, 7] } };
@@ -126,7 +126,10 @@ export class SheetSprite {
     const ang = Math.atan2(sx, sy);                                           // 0 = หันหน้าเข้าจอ · +90° = ขวา
     const raw = ((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8;
     const centre = raw * Math.PI / 4, diff = Math.abs(Math.atan2(Math.sin(ang - centre), Math.cos(ang - centre)));
-    if (raw !== this.dir && diff < Math.PI / 8 - 0.06) this.dir = raw;            // กันสั่นตรงรอยต่อทิศ
+    // กันสั่นตรงรอยต่อทิศ — แต่ถ้าทิศเดิมห่างจากทิศจริงเกินครึ่งช่อง (หันกลับหลัง/หันไปตีเป้าที่อยู่ตรงรอยต่อ) ต้องเปลี่ยนทันที
+    // v0.65.2 เดิมเช็กแค่ diff ทำให้เป้าที่อยู่ใกล้รอยต่อทิศ (~15% ของทุกมุม) ไม่เคยเปลี่ยนท่า ตัวละครค้างหันทิศเก่า (อาวุธชี้ผิดทาง)
+    const now = this.dir * Math.PI / 4, off = Math.abs(Math.atan2(Math.sin(ang - now), Math.cos(ang - now)));
+    if (raw !== this.dir && (diff < Math.PI / 8 - 0.06 || off > Math.PI / 8 + 0.06)) this.dir = raw;
     const d = DIR8[this.dir];
     // เฟรม
     const A = fpsOf(S, this.anim), cols = framesOf(S, this.anim), n = cols.length;

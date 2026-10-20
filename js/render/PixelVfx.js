@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.65.0';
+import { THREE } from './three.js?v=0.66.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -11,6 +11,22 @@ export class PixelVfx {
     this.defs = new Map();      // ชื่อ → Promise<def | null>
     this.live = [];
     this._v = new THREE.Vector3();
+    this._p1 = new THREE.Vector3(); this._p2 = new THREE.Vector3();
+    this._q = new THREE.Quaternion(); this._z = new THREE.Vector3(0, 0, 1);
+  }
+
+  // v0.65.2 หันชีตหาเป้าบนหน้าจอ: ชีตวาดให้ผู้ร่ายซ้าย เป้าขวา (แกน +x) → ฉายจุดผู้ร่าย/เป้าลงจอ แล้วหมุนแผ่นป้ายรอบแกนมองกล้อง
+  // เป้าอยู่ซ้ายจอ = กลับด้านภาพแล้วหมุน (ภาพไม่คว่ำ) · จำกัดมุมเอียงด้วย aim.max (ชีตที่มีวงเวทบนพื้นไม่ตั้งฉากเกินไป)
+  aimOf(e) {
+    const A = e.aim, cam = this.camera;
+    const from = typeof A.from === 'function' ? A.from() : A.from, to = typeof A.to === 'function' ? A.to() : A.to;
+    if (!from || !to) return null;
+    const p1 = this._p1.copy(from).project(cam), p2 = this._p2.copy(to).project(cam);
+    const dx = (p2.x - p1.x) * (cam.aspect || 1), dy = p2.y - p1.y;
+    if (dx * dx + dy * dy < 1e-6) return null;
+    const flip = dx < 0, max = A.max ?? 1.2;
+    const rot = Math.max(-max, Math.min(max, flip ? -Math.atan2(dy, -dx) : Math.atan2(dy, dx)));
+    return { rot, flip };
   }
 
   load(name) {
@@ -36,7 +52,8 @@ export class PixelVfx {
 
   // เล่นเอฟเฟกต์ที่จุด pos (Vector3 โลก, ที่ระดับพื้น) · scale ขยายทั้งเอฟเฟกต์ · delay วินาที
   // follow = ตัวละคร (มี x,y เป็นพิกัดโลก/16) → เอฟเฟกต์วนตามตัวไม่จบจนกว่าจะ stop() (ออร่าแฟชั่น)
-  play(name, pos, { scale = 1, delay = 0, life = 3, lift = 0, follow = null, flip = false, once = false, speed = 1, maxT = 0, behind = false, opacity = 1 } = {}) {
+  // aim = { from, to, max } (Vector3 หรือฟังก์ชันคืน Vector3) → หันชีตหาเป้าบนจอทุกเฟรม แทน flip
+  play(name, pos, { scale = 1, delay = 0, life = 3, lift = 0, follow = null, flip = false, once = false, speed = 1, maxT = 0, behind = false, opacity = 1, aim = null } = {}) {
     const h = { name, stopped: false, e: null, stop() { this.stopped = true; if (this.e) this.e.dead = true; } };
     h.ready = this.load(name).then((d) => {
       if (!d || h.stopped) return false;
@@ -56,7 +73,7 @@ export class PixelVfx {
       });
       const up = d.m.anchor && d.m.anchor.kind === 'origin' ? (lift || 1.0) : lift;
       const at = (pos || new THREE.Vector3()).clone(); at.y += up;
-      h.e = { d, meshes, pos: at, t: -delay, speed, maxT, opacity, life: follow && !once ? Infinity : life, follow, up, hidden: false, flip };
+      h.e = { d, meshes, pos: at, t: -delay, speed, maxT, opacity, life: follow && !once ? Infinity : life, follow, up, hidden: false, flip, aim };
       this.live.push(h.e);
       return true;
     });
@@ -73,6 +90,8 @@ export class PixelVfx {
       if (e.dead || (m.loop ? e.t > (e.life || 3) : f >= m.frames || (endT && e.t >= endT))) { for (const o of e.meshes) { this.scene.remove(o.mesh); o.mesh.geometry.dispose(); o.mesh.material.dispose(); o.tex.dispose(); } this.live.splice(i, 1); continue; }
       if (e.follow) { const F = e.follow; e.pos.set(F.x / 16, (F.lift || 0) + e.up, F.y / 16); }
       const toCam = this._v.copy(cam.position).sub(e.pos); const dist = toCam.length(); toCam.multiplyScalar(1 / dist);
+      let rot = 0, flip = e.flip;
+      if (e.aim) { const a = this.aimOf(e); if (a) { rot = a.rot; flip = a.flip; } }
       for (const o of e.meshes) {
         const c = o.L.clip, sh = o.L.sh, lf = f - (c.start_frame || 0);
         const on = !e.hidden && e.t >= 0 && lf >= 0 && lf < c.frames;
@@ -82,7 +101,8 @@ export class PixelVfx {
         const push = o.push;
         o.mesh.position.copy(e.pos).addScaledVector(toCam, push);
         o.mesh.quaternion.copy(cam.quaternion);
-        const k = (dist - push) / dist; o.mesh.scale.set(e.flip ? -k : k, k, 1);
+        if (rot) o.mesh.quaternion.multiply(this._q.setFromAxisAngle(this._z, rot));
+        const k = (dist - push) / dist; o.mesh.scale.set(flip ? -k : k, k, 1);
         if (endT) o.mesh.material.opacity = e.opacity * Math.min(1, (endT - e.t) / 0.35);
       }
     }
@@ -105,17 +125,20 @@ export const SKILL_VFX = {
   thousand_blades: { name: 'nf_thousand_blades', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
   heaven_splitter: { name: 'nf_heaven_splitter', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
   // ธนู (Archer) · v0.60 ชุดใหม่ "ศรดารา"
-  quick_shot: { name: 'nf_quick_shot', at: 'target', scale: 1.45, delay: 0, solo: true, flipToCaster: true },
-  piercing_shot: { name: 'nf_piercing_shot', at: 'target', scale: 1.55, delay: 0, solo: true, flipToCaster: true },
-  scatter_shot: { name: 'nf_scatter_shot', at: 'self', scale: 1.6, delay: 0, solo: true },
-  eagle_eye: { name: 'nf_eagle_eye', at: 'self', scale: 1.4, delay: 0, behind: true, solo: true },
-  arrow_storm: { name: 'nf_arrow_storm', at: 'target', scale: 1.8, delay: 0, behind: true, solo: true },
+  // v0.66 ชุดใหม่ "นักธนูแสงดาว" (sprite sheet มุมข้าง 24 fps จากผู้พัฒนา · fit 135 = ระยะผู้ร่าย→ศัตรูตัวแรกในภาพ ~5 ช่อง)
+  // aimMax เล็ก = สกิลที่มีของบนฟ้า/วงบนพื้น (ไม่ให้เอียงตามเป้ามาก)
+  star_shot: { name: 'nf_star_shot', side: true, fit: 135, scale: 1, delay: 0, solo: true },
+  comet_pierce: { name: 'nf_comet_pierce', side: true, fit: 135, scale: 1, delay: 0, solo: true },
+  starburst_volley: { name: 'nf_starburst_volley', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.3 },
+  constellation_mark: { name: 'nf_constellation_mark', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.3 },
+  starfall_rain: { name: 'nf_starfall_rain', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.25 },
   // นักล่า (Hunter) · v0.60 ชุดใหม่ "เหยี่ยวเงา"
-  double_shot: { name: 'nf_double_shot', at: 'target', scale: 1.45, delay: 0, solo: true, flipToCaster: true },
-  gale_rift_arrow: { name: 'nf_gale_rift_arrow', at: 'target', scale: 1.5, delay: 0, solo: true, flipToCaster: true },
-  cyclone_trap: { name: 'nf_cyclone_trap', at: 'target', scale: 1.5, delay: 0, behind: true, solo: true },
-  tailwind_step: { name: 'nf_tailwind_step', at: 'self', scale: 1.4, delay: 0, behind: true, solo: true },
-  storm_king_volley: { name: 'nf_storm_king_volley', at: 'target', scale: 1.85, delay: 0, behind: true, solo: true },
+  // v0.66 ชุดใหม่ "พรานเงาจันทรา"
+  twin_shadow: { name: 'nf_twin_shadow', side: true, fit: 135, scale: 1, delay: 0, solo: true },
+  moon_hawk: { name: 'nf_moon_hawk', side: true, fit: 135, scale: 1, delay: 0, solo: true },
+  shadow_snare: { name: 'nf_shadow_snare', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.3 },
+  phantom_step: { name: 'nf_phantom_step', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.5 },
+  eclipse_barrage: { name: 'nf_eclipse_barrage', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.2 },
   // นักเวท (Mage) · v0.60 ชุดใหม่ "เวทพิศวงสีม่วง"
   violet_flare: { name: 'nf_violet_flare', at: 'target', scale: 1.15, delay: 0, solo: true },
   glacial_spikes: { name: 'nf_glacial_spikes', at: 'target', scale: 1.35, delay: 0.07, behind: true, solo: true },
@@ -130,17 +153,17 @@ export const SKILL_VFX = {
   frost_armor: { name: 'nf_frost_armor', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
   absolute_zero: { name: 'nf_absolute_zero', at: 'target', scale: 1.15, delay: 0, behind: true, solo: true },
   // นักบวช (Acolyte) · v0.63 ชุดใหม่ "นักบวชแสง" (sprite sheet 24 fps จากผู้พัฒนา)
-  holy_light: { name: 'nf_holy_light', at: 'target', scale: 1.15, delay: 0, solo: true, flipToCaster: true },
-  healing_pillar: { name: 'nf_healing_pillar', at: 'self', scale: 1.4, delay: 0, behind: true, solo: true },
-  light_blessing: { name: 'nf_light_blessing', at: 'self', scale: 1.25, delay: 0, behind: true, solo: true },
-  holy_bulwark: { name: 'nf_holy_bulwark', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
-  judgement_rays: { name: 'nf_judgement_rays', at: 'target', scale: 1.3, delay: 0, behind: true, solo: true },
-  divine_descent: { name: 'nf_divine_descent', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true, also: [{ name: 'nf_divine_wings', at: 'self', scale: 1.15, delay: 0, behind: true }, { name: 'nf_divine_smite', at: 'target', scale: 1.3, delay: 2.583, behind: true }] },
+  holy_light: { speed: 1.6, name: 'nf_holy_light', at: 'target', scale: 1.15, delay: 0, solo: true, flipToCaster: true },
+  healing_pillar: { speed: 1.6, name: 'nf_healing_pillar', at: 'self', scale: 1.4, delay: 0, behind: true, solo: true },
+  light_blessing: { speed: 1.6, name: 'nf_light_blessing', at: 'self', scale: 1.25, delay: 0, behind: true, solo: true },
+  holy_bulwark: { speed: 1.6, name: 'nf_holy_bulwark', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
+  judgement_rays: { speed: 1.6, name: 'nf_judgement_rays', at: 'target', scale: 1.3, delay: 0, behind: true, solo: true },
+  divine_descent: { speed: 1.6, name: 'nf_divine_descent', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true, also: [{ speed: 1.6, name: 'nf_divine_wings', at: 'self', scale: 1.15, delay: 0, behind: true }, { speed: 1.6, name: 'nf_divine_smite', at: 'target', scale: 1.3, delay: 2.583, behind: true }] },
   // นักบวชชั้นสูง (Priest) · v0.63 ชุดใหม่ "ผู้พิทักษ์ชีวิต"
-  life_seed: { name: 'nf_life_seed', at: 'target', scale: 1.15, delay: 0, solo: true, flipToCaster: true },
-  regrowth_bloom: { name: 'nf_regrowth_bloom', at: 'self', scale: 1.25, delay: 0, behind: true, solo: true },
-  healing_rain: { name: 'nf_healing_rain', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true },
-  lotus_sanctuary: { name: 'nf_lotus_sanctuary', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
-  thorn_bloom: { name: 'nf_thorn_bloom', at: 'target', scale: 1.3, delay: 0, behind: true, solo: true },
-  tree_of_life: { name: 'nf_tree_of_life', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true, also: [{ name: 'nf_tree_thorns', at: 'target', scale: 1.3, delay: 2.75, behind: true }] },
+  life_seed: { speed: 1.6, name: 'nf_life_seed', at: 'target', scale: 1.15, delay: 0, solo: true, flipToCaster: true },
+  regrowth_bloom: { speed: 1.6, name: 'nf_regrowth_bloom', at: 'self', scale: 1.25, delay: 0, behind: true, solo: true },
+  healing_rain: { speed: 1.6, name: 'nf_healing_rain', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true },
+  lotus_sanctuary: { speed: 1.6, name: 'nf_lotus_sanctuary', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
+  thorn_bloom: { speed: 1.6, name: 'nf_thorn_bloom', at: 'target', scale: 1.3, delay: 0, behind: true, solo: true },
+  tree_of_life: { speed: 1.6, name: 'nf_tree_of_life', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true, also: [{ speed: 1.6, name: 'nf_tree_thorns', at: 'target', scale: 1.3, delay: 2.75, behind: true }] },
 };

@@ -6,8 +6,8 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.65.0';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.65.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+import { JOBS } from './progression.js?v=0.66.0';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.66.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
@@ -163,46 +163,47 @@ export const SKILLS = {
     effect: (lv) => `ระยะยิง +${lv * 0.5} ช่อง · FLEE +${lv * 2} · ASPD +${Math.ceil(lv / 2)}%`,
     passive: (lv) => ({ rangeTiles: lv * 0.5, flee: lv * 2, aspdPct: Math.ceil(lv / 2) }),
   },
-  quick_shot: {
-    job: 'archer', name: 'ศรเร็ว', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['arrow2', '#9ac8ff'],
-    sp: (lv) => 6 + lv, cast: 0, cd: 0.4, range: 9, vfx: 'nf', ref: 1, lock: 0.35, delay: 0.25, engage: true,
-    mult: (lv) => 1.25 + lv * 0.15, hitBonus: (lv) => lv * 5,
-    nf: { anim: 'shoot', hits: [{ t: 0.4, m: 1, shake: 0.06 }] },
-    desc: 'ง้างสายแล้วปล่อยศรเส้นตรงพุ่งเข้าเป้าเร็วและแม่น ระเบิดเป็นแฉกแสงตอนปัก — สกิลยิงหลัก ใช้ได้ถี่',
-    effect: (lv) => `${pct(1.25 + lv * 0.15)}% ATK · HIT +${lv * 5} · คูลดาวน์ 0.4 วิ`,
+  /* v0.66 Archer ชุดใหม่ "นักธนูแสงดาว" (sprite sheet มุมข้าง 24 fps จากผู้พัฒนา · วางที่เท้าผู้ร่าย หันหาเป้า) — แทนชุด "พรานศรทะลวง" */
+  star_shot: {
+    job: 'archer', name: 'ยิงดารา', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['starshot', '#ffd06a'],
+    sp: (lv) => 6 + lv, cast: 0, cd: 0.4, range: 9, vfx: 'nf', ref: 1, lock: 0.4, delay: 0.25, engage: true, hitBonus: (lv) => lv * 5,
+    mult: (lv) => 1.3 + lv * 0.16,
+    nf: { anim: 'shoot', hits: [{ t: 0.56, r: 1, m: 1, shake: 0.1, stop: 0.05 }] },
+    desc: 'รวมแสงดาวที่คันธนูแล้วปล่อยศรทองพุ่งเข้าเป้า ปักแล้วแตกเป็นดาวแปดแฉก — สกิลยิงหลัก ใช้ได้ถี่',
+    effect: (lv) => `${pct(1.3 + lv * 0.16)}% ATK (ลามรอบเป้า 1 ช่อง) · HIT +${lv * 5} · คูลดาวน์ 0.4 วิ`,
   },
-  piercing_shot: {
-    job: 'archer', name: 'ศรเจาะเกราะ', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['lance', '#7ab0ff'], req: { quick_shot: 3 },
-    sp: (lv) => 16 + lv * 2, cast: 0.3, cd: 2.5, range: 10, vfx: 'nf', ref: 1, lock: 0.7, delay: 0.4, element: 'wind', hitBonus: () => 40, knock: 1,
+  comet_pierce: {
+    job: 'archer', name: 'ศรดาวหาง', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['comet', '#ffc04a'], req: { star_shot: 3 },
+    sp: (lv) => 16 + lv * 2, cast: 0.3, cd: 2.5, range: 10, vfx: 'nf', ref: 1, lock: 0.7, delay: 0.4, hitBonus: () => 40, knock: 1,
     mult: (lv) => 2.4 + lv * 0.26,
-    nf: { anim: 'shoot', animDur: 0.6, hits: [{ t: 0.8, line: { len: 11, w: 0.9 }, m: 1, knock: 1, shake: 0.18 }] },
-    desc: 'ล็อกเป้า ชาร์จศรครึ่งวินาทีแล้วยิงศรเกลียวลมทะลุทุกตัวในแนวยาว 11 ช่อง ผลักศัตรูถอย — ศรเดียวที่แรงที่สุด',
+    nf: { anim: 'shoot', animDur: 0.6, sky: { t: 0, dark: 0.3, dur: 1.4 }, hits: [{ t: 0.86, line: { len: 11, w: 1 }, m: 1, knock: 1, shake: 0.3, stop: 0.05 }] },
+    desc: 'ฟ้ามืดลง ชาร์จแสงดาวเต็มแรงแล้วยิงศรดาวหาง ทะลุทุกตัวในแนวยาว 11 ช่อง แต่ละตัวที่โดนแตกเป็นดาว — ศรเดียวที่แรงที่สุด',
     effect: (lv) => `${pct(2.4 + lv * 0.26)}% ATK ทุกตัวในแนว 11 ช่อง · HIT +40 · ผลักถอย`,
   },
-  scatter_shot: {
-    job: 'archer', name: 'ศรกระจาย', maxLv: 10, kind: 'active', target: 'self', bow: true, icon: ['fan', '#9ae8ff'], req: { quick_shot: 3 },
-    sp: (lv) => 18 + lv * 2, cast: 0, cd: 3, vfx: 'nf', ref: 1, lock: 0.45, delay: 0.4, hitBonus: () => 20, knock: 2,
-    mult: (lv) => 0.8 + lv * 0.1,
-    nf: { at: 'self', anim: 'shoot', hits: [{ t: 0.1, r: 3, m: 1, knock: 1, slow: { pct: 0.3, secs: 2 }, shake: 0.12 }, { t: 0.3, r: 3.2, m: 0.6 }] },
-    desc: 'กระโดดถอยแล้วปล่อยศร 24 ดอกระเบิดออกรอบตัว ผลักศัตรูที่เข้าประชิดให้กระเด็นและช้าลง — ใช้หนีตอนโดนล้อม',
-    effect: (lv) => `${pct(0.8 + lv * 0.1)}% + ${pct((0.8 + lv * 0.1) * 0.6)}% ATK รอบตัว 3 ช่อง · ผลักกระเด็น · ช้าลง 30% 2 วิ`,
+  starburst_volley: {
+    job: 'archer', name: 'ศรกระจายดารา', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['starburst', '#ffe08a'], req: { star_shot: 3 },
+    sp: (lv) => 20 + lv * 2, cast: 0.2, cd: 3, range: 10, vfx: 'nf', ref: 1, lock: 0.5, delay: 0.45, hitBonus: () => 20,
+    mult: (lv) => 0.7 + lv * 0.09,
+    nf: { anim: 'shoot', flashes: [{ t: 0.61, a: 0.15, color: '#ffe8aa' }], hits: [{ t: 1.03, r: 2.8, m: 1 }, { t: 1.19, r: 2.8, m: 1 }, { t: 1.37, r: 3, m: 1.2, shake: 0.15 }] },
+    desc: 'ยิงศรขึ้นฟ้า ศรแตกเป็นดาว แล้วกลายเป็นศร 14 ดอกโค้งตกใส่ศัตรูรอบเป้า 3 ระลอก — สกิลยิงหมู่',
+    effect: (lv) => `2 × ${pct(0.7 + lv * 0.09)}% + ${pct((0.7 + lv * 0.09) * 1.2)}% ATK รอบเป้า 2.8–3 ช่อง`,
   },
-  eagle_eye: {
-    job: 'archer', name: 'ตาเหยี่ยว', maxLv: 10, kind: 'active', target: 'self', icon: ['eye', '#9ac8ff'], req: { keen_eye: 3 },
+  constellation_mark: {
+    job: 'archer', name: 'ผูกกลุ่มดาว', maxLv: 10, kind: 'active', target: 'self', icon: ['constellation', '#bcd2ff'], req: { keen_eye: 3 },
     sp: 24, cast: 0, cd: 1, vfx: 'nf', lock: 0.4, delay: 0.4,
-    nf: { at: 'self', anim: 'cast' },
-    duration: (lv) => 90 + lv * 9, bonus: (lv) => ({ dex: 2 + lv, crit: lv * 0.005, rangeTiles: 1 + Math.floor(lv / 4), aspdPct: lv * 1.5, rangedPct: lv }),
-    desc: 'เพ่งสมาธิจนมองเห็นทุกจุดอ่อน ยิงได้ไกลขึ้น ยิงเร็วขึ้น คริติคอลบ่อยขึ้น และดาเมจระยะไกลสูงขึ้น',
-    effect: (lv) => `DEX +${2 + lv} · คริ +${(lv * 0.5).toFixed(1)}% · ระยะยิง +${1 + Math.floor(lv / 4)} ช่อง · ASPD +${lv * 1.5}% · ดาเมจระยะไกล +${lv}% นาน ${90 + lv * 9} วิ`,
+    nf: { at: 'self', anim: 'cast', texts: [{ t: 0.31, text: 'CRIT ▲' }] },
+    duration: (lv) => 90 + lv * 9, bonus: (lv) => ({ dex: 2 + lv, crit: lv * 0.006, critDmgPct: lv * 3, rangeTiles: 1 + Math.floor(lv / 4), rangedPct: lv }),
+    desc: 'วงกลุ่มดาวหมุนใต้เท้า เส้นแสงผูกศัตรูรอบตัวเป็นกลุ่มดาวแล้วล็อกเป้า คริติคอลบ่อยขึ้น แรงขึ้น และยิงได้ไกลขึ้น',
+    effect: (lv) => `DEX +${2 + lv} · คริ +${(lv * 0.6).toFixed(1)}% · คริดาเมจ +${lv * 3}% · ระยะยิง +${1 + Math.floor(lv / 4)} ช่อง · ดาเมจระยะไกล +${lv}% นาน ${90 + lv * 9} วิ`,
   },
-  arrow_storm: {
-    job: 'archer', name: 'พายุศรฟ้า', maxLv: 5, kind: 'active', target: 'enemy', bow: true, icon: ['rain', '#7ab0ff'], req: { piercing_shot: 5, scatter_shot: 3 },
-    sp: (lv) => 50 + lv * 4, cast: 0.6, cd: 10, range: 10, vfx: 'nf', ref: 1, lock: 1.0, delay: 0.9, element: 'wind', hitBonus: () => 30, knock: 1.5,
-    mult: (lv) => 0.9 + lv * 0.18,
-    nf: { anim: 'shoot', animDur: 0.6, hits: [{ t: 0.95, r: 2.6, m: 1 }, { t: 1.15, r: 2.6, m: 1 }, { t: 1.55, r: 2.8, m: 1 }, { t: 1.8, r: 2.8, m: 1 }, { t: 2.17, r: 3.2, m: 3, knock: 1, stun: 1, shake: 0.35 }] },
-    stun: () => 0.5, stunSecs: 1.5,
-    desc: 'ยิงศรขึ้นฟ้า วงเป้าหมายใหญ่ปรากฏ ห่าศร 2 ระลอกเทลงถล่มทั่ววง แล้วลำแสงพิพากษาฟาดลงกลางวง ระเบิดสายฟ้าผลักศัตรูกระเด็น (ไม้ตาย)',
-    effect: (lv) => `4 × ${pct(0.9 + lv * 0.18)}% + ระเบิด ${pct((0.9 + lv * 0.18) * 3)}% ATK รอบเป้า 2.6–3.2 ช่อง · มึน 50% · คูลดาวน์ 10 วิ`,
+  starfall_rain: {
+    job: 'archer', name: 'ฝนดาวตก', maxLv: 5, kind: 'active', target: 'enemy', bow: true, icon: ['starfall', '#ffd06a'], req: { comet_pierce: 5, starburst_volley: 3 },
+    sp: (lv) => 55 + lv * 4, cast: 0.6, cd: 10, range: 10, vfx: 'nf', ref: 1, lock: 1.2, delay: 0.9, element: 'holy', hitBonus: () => 40, knock: 1.5,
+    mult: (lv) => 0.9 + lv * 0.18, stun: () => 0.5, stunSecs: 1.5,
+    nf: { anim: 'shoot', animDur: 0.6, sky: { t: 0, dark: 0.6, dur: 4 }, flashes: [{ t: 0.61, a: 0.15, color: '#ffe8aa' }, { t: 2.89, a: 0.5, color: '#ffe8aa' }],
+      hits: [{ t: 1.39, r: 3, m: 0.6 }, { t: 1.67, r: 3, m: 0.6 }, { t: 1.94, r: 3, m: 0.6 }, { t: 2.22, r: 3, m: 0.6, shake: 0.1 }, { t: 2.5, r: 3, m: 0.6, shake: 0.1 }, { t: 2.89, r: 3.4, m: 4, knock: 1, stun: 1, shake: 1, stop: 0.14 }] },
+    desc: 'ฟ้ามืดลง ยิงศร 3 ดอกขึ้นฟ้าเปิดวงกลุ่มดาว ฝนศรดาวหลายสิบดอกเทลงทั่ววง แล้วศรอุกกาบาตยักษ์ดิ่งลงกลางวง ระเบิดแสงดาวผลักทุกตัวกระเด็น (ไม้ตาย)',
+    effect: (lv) => `5 × ${pct((0.9 + lv * 0.18) * 0.6)}% + อุกกาบาต ${pct((0.9 + lv * 0.18) * 4)}% ATK รอบเป้า 3–3.4 ช่อง · ธาตุศักดิ์สิทธิ์ · มึน 50% · คูลดาวน์ 10 วิ`,
   },
 
   /* ---------- Acolyte · v0.60 ชุดใหม่ "แสงศรัทธา" (ภาพ Night Forge · ดาเมจ/ฮีลตามจังหวะใน sk.nf) ---------- */
@@ -220,40 +221,40 @@ export const SKILLS = {
   },
   holy_light: {
     job: 'acolyte', name: 'แสงศักดิ์สิทธิ์', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['holyorb', '#ffd86b'], req: { faith_heart: 1 },
-    sp: (lv) => 10 + lv * 2, cast: 0.3, cd: 0.8, range: 9, vfx: 'nf', ref: 1, lock: 0.5, delay: 0.35, engage: true, element: 'holy',
+    sp: (lv) => 10 + lv * 2, cast: 0.18, cd: 0.8, range: 9, vfx: 'nf', ref: 1, lock: 0.3, delay: 0.24, engage: true, element: 'holy',
     mult: (lv) => 1.2 + lv * 0.15, heal: (lv, pl) => Math.round(healAmount(lv, pl) * 0.25),
-    nf: { magic: true, anim: 'cast', hits: [{ t: 0.51, r: 1.2, m: 1, shake: 0.08 }], heals: [0.51] },
+    nf: { speed: 1.6, magic: true, anim: 'cast', hits: [{ t: 0.51, r: 1.2, m: 1, shake: 0.08 }], heals: [0.51] },
     desc: 'ปั้นลูกแสงทองในมือแล้วปล่อยพุ่งเข้าเป้า ระเบิดเป็นแสงศักดิ์สิทธิ์ แสงที่สะท้อนกลับมาฟื้นฟูตัวเองเล็กน้อย — สกิลโจมตีหลัก (แรงพิเศษต่ออันเดด)',
     effect: (lv, pl) => `${pct(1.2 + lv * 0.15)}% MATK รอบเป้า 1.2 ช่อง · ธาตุศักดิ์สิทธิ์ · ฟื้น HP ${Math.round(healAmount(lv, pl) * 0.25)}`,
   },
   healing_pillar: {
     job: 'acolyte', name: 'ลำแสงฟื้นฟู', maxLv: 10, kind: 'active', target: 'self', icon: ['pillar', '#fff0a0'],
-    sp: (lv) => 12 + lv * 3, cast: 0, cd: 1, vfx: 'nf', lock: 0.45, delay: 0.3, heal: (lv, pl) => Math.round(healAmount(lv, pl) * 1.25),
-    nf: { at: 'self', anim: 'cast', flashes: [{ t: 0.31, a: 0.12, color: '#ffe496' }], heals: [0.46] },
+    sp: (lv) => 12 + lv * 3, cast: 0, cd: 1, vfx: 'nf', lock: 0.27, delay: 0.21, heal: (lv, pl) => Math.round(healAmount(lv, pl) * 1.25),
+    nf: { speed: 1.6, at: 'self', anim: 'cast', flashes: [{ t: 0.31, a: 0.12, color: '#ffe496' }], heals: [0.46] },
     desc: 'ลำแสงทองส่องลงจากฟ้าตรงร่าง ฟื้นฟูบาดแผลก้อนใหญ่ ยิ่ง Base Lv และ INT สูงยิ่งฟื้นมาก — ฮีลหลัก',
     effect: (lv, pl) => `ฟื้น HP ${Math.round(healAmount(lv, pl) * 1.25)}`,
   },
   judgement_rays: {
     job: 'acolyte', name: 'ลำแสงพิพากษา', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['rays', '#ffe08a'], req: { holy_light: 3 },
-    sp: (lv) => 24 + lv * 2, cast: 0.5, cd: 3, range: 9, vfx: 'nf', ref: 1, lock: 0.7, delay: 0.5, element: 'holy', knock: 1,
+    sp: (lv) => 24 + lv * 2, cast: 0.3, cd: 3, range: 9, vfx: 'nf', ref: 1, lock: 0.42, delay: 0.35, element: 'holy', knock: 1,
     mult: (lv) => 0.55 + lv * 0.07,
-    nf: { magic: true, anim: 'cast', flashes: [{ t: 1.61, a: 0.3, color: '#ffe496' }], hits: [{ t: 0.6, r: 2.8, m: 1, shake: 0.1 }, { t: 0.92, r: 2.8, m: 1, shake: 0.1 }, { t: 1.21, r: 2.8, m: 1, shake: 0.12 }, { t: 1.61, r: 3, m: 2, knock: 1, shake: 0.3 }] },
+    nf: { speed: 1.6, magic: true, anim: 'cast', flashes: [{ t: 1.61, a: 0.3, color: '#ffe496' }], hits: [{ t: 0.6, r: 2.8, m: 1, shake: 0.1 }, { t: 0.92, r: 2.8, m: 1, shake: 0.1 }, { t: 1.21, r: 2.8, m: 1, shake: 0.12 }, { t: 1.61, r: 3, m: 2, knock: 1, shake: 0.3 }] },
     desc: 'ลำแสงศักดิ์สิทธิ์ฟาดลงกลางกลุ่มศัตรู 3 ระลอก แล้วปิดท้ายด้วยลำแสงใหญ่ระเบิดผลักถอย — สกิลโจมตีหมู่ของนักบวช (แรงพิเศษต่ออันเดด)',
     effect: (lv) => `3 × ${pct(0.55 + lv * 0.07)}% + ${pct((0.55 + lv * 0.07) * 2)}% MATK รอบเป้า 2.8–3 ช่อง · ธาตุศักดิ์สิทธิ์`,
   },
   light_blessing: {
     job: 'acolyte', name: 'พรแห่งแสง', maxLv: 10, kind: 'active', target: 'self', icon: ['bless', '#ffe08a'], req: { healing_pillar: 3 },
-    sp: (lv) => 24 + lv * 3, cast: 0, cd: 1, vfx: 'nf', lock: 0.5, delay: 0.4,
-    nf: { at: 'self', anim: 'cast', flashes: [{ t: 0.31, a: 0.12, color: '#ffe496' }], texts: [{ t: 0.32, text: 'ATK ▲' }] },
+    sp: (lv) => 24 + lv * 3, cast: 0, cd: 1, vfx: 'nf', lock: 0.3, delay: 0.28,
+    nf: { speed: 1.6, at: 'self', anim: 'cast', flashes: [{ t: 0.31, a: 0.12, color: '#ffe496' }], texts: [{ t: 0.32, text: 'ATK ▲' }] },
     duration: (lv) => 90 + lv * 15, bonus: (lv) => ({ str: lv, dex: lv, int: lv, atkPct: lv, matkPct: lv }),
     desc: 'วงแสงทองแผ่ออกจากเท้าแล้วโปรยประกายขึ้นฟ้า อวยพรเพิ่ม STR DEX INT และพลังโจมตีทั้งกายภาพและเวท',
     effect: (lv) => `STR/DEX/INT +${lv} · ATK/MATK +${lv}% นาน ${90 + lv * 15} วิ`,
   },
   holy_bulwark: {
     job: 'acolyte', name: 'ปราการศักดิ์สิทธิ์', maxLv: 10, kind: 'active', target: 'self', magic: true, icon: ['sanctumshield', '#ffd27a'], req: { holy_vigor: 3 },
-    sp: (lv) => 30 + lv * 2, cast: 0, cd: 12, vfx: 'nf', ref: 1, lock: 0.5, delay: 0.5, element: 'holy', knock: 1.5,
+    sp: (lv) => 30 + lv * 2, cast: 0, cd: 12, vfx: 'nf', ref: 1, lock: 0.3, delay: 0.35, element: 'holy', knock: 1.5,
     mult: (lv) => 0.8 + lv * 0.1,
-    nf: { at: 'self', magic: true, anim: 'cast', flashes: [{ t: 0.21, a: 0.15, color: '#ffe496' }], texts: [{ t: 0.36, text: 'SHIELD' }], hits: [{ t: 0.21, r: 2.6, m: 1, knock: 1, shake: 0.1 }] },
+    nf: { speed: 1.6, at: 'self', magic: true, anim: 'cast', flashes: [{ t: 0.21, a: 0.15, color: '#ffe496' }], texts: [{ t: 0.36, text: 'SHIELD' }], hits: [{ t: 0.21, r: 2.6, m: 1, knock: 1, shake: 0.1 }] },
     shield: (lv) => ({ charges: 2 + Math.floor(lv / 3), secs: 20 + lv * 2 }),
     duration: (lv) => 20 + lv * 2, bonus: (lv) => ({ dmgReduce: 8 + lv * 1.5, mdef: lv * 2 }),
     desc: 'กางโดมแสงศักดิ์สิทธิ์ครอบตัว คลื่นแสงผลักศัตรูรอบตัวกระเด็น แล้วโล่แสงกันการโจมตีได้หลายครั้ง พร้อมลดดาเมจที่ได้รับ',
@@ -261,16 +262,26 @@ export const SKILLS = {
   },
   divine_descent: {
     job: 'acolyte', name: 'เทพพิทักษ์จุติ', maxLv: 5, kind: 'active', target: 'enemy', magic: true, icon: ['divine', '#ffd36b'], req: { judgement_rays: 5, light_blessing: 3 },
-    sp: (lv) => 60 + lv * 5, cast: 1.0, cd: 14, range: 9, vfx: 'nf', ref: 1, lock: 1.4, delay: 1.0, element: 'holy', knock: 1.5,
+    sp: (lv) => 60 + lv * 5, cast: 0.6, cd: 14, range: 9, vfx: 'nf', ref: 1, lock: 0.84, delay: 0.7, element: 'holy', knock: 1.5,
     mult: (lv) => 2.5 + lv * 0.5, heal: (lv, pl) => Math.round(healAmount(10, pl) * (1.6 + lv * 0.3)),
     duration: () => 60, bonus: (lv) => ({ str: 3 + lv, int: 3 + lv, dex: 3 + lv, regenPct: 20 + lv * 10 }),
-    nf: { magic: true, anim: 'castHold', flashes: [{ t: 0.05, a: 0.2, color: '#ffba46' }, { t: 2.56, a: 0.9, color: '#ffe496' }], hits: [{ t: 2.72, r: 3.4, m: 0.6, shake: 0.4 }, { t: 2.79, r: 3.4, m: 0.6, shake: 0.4 }, { t: 2.86, r: 3.6, m: 1, knock: 1, shake: 0.8 }], heals: [2.61] },
+    nf: { speed: 1.6, magic: true, anim: 'castHold', flashes: [{ t: 0.05, a: 0.2, color: '#ffba46' }, { t: 2.56, a: 0.9, color: '#ffe496' }], hits: [{ t: 2.72, r: 3.4, m: 0.6, shake: 0.4 }, { t: 2.79, r: 3.4, m: 0.6, shake: 0.4 }, { t: 2.86, r: 3.6, m: 1, knock: 1, shake: 0.8 }], heals: [2.61] },
     desc: 'ปีกแสงทองกางออกหลังร่าง ลำแสงสวรรค์ค่อย ๆ ส่องลงจนทั้งฉากเป็นสีทอง แล้วกระแทกลงเต็มแรง ฟื้น HP มหาศาล พร้อมลำแสงพิพากษาฟาดลงกลางกลุ่มศัตรู 3 ครั้ง และอวยพรพลัง (ไม้ตาย)',
     effect: (lv, pl) => `${pct((2.5 + lv * 0.5) * 2.2)}% MATK รวม 3 ครั้ง รอบเป้า 3.4–3.6 ช่อง · ฟื้น HP ${Math.round(healAmount(10, pl) * (1.6 + lv * 0.3))} · STR/INT/DEX +${3 + lv} · ฟื้น HP +${20 + lv * 10}% นาน 60 วิ · คูลดาวน์ 14 วิ`,
   },
 };
 
 Object.assign(SKILLS, JOB2_SKILLS);
+
+// v0.65.2 ฮีล/บัฟ/โล่ของสายนักบวช ส่งถึงเพื่อนในปาร์ตี้ที่อยู่แมพเดียวกันในรัศมี (ช่อง) — Game.supportParty / Social.sendSupport
+// ลูกแสง/เมล็ดชีวิต (ดูดเลือดกลับตัวเอง) ไม่อยู่ในรายการ
+export const PARTY_SUPPORT = { healing_pillar: 6, light_blessing: 6, holy_bulwark: 5, divine_descent: 7, regrowth_bloom: 6, healing_rain: 6, lotus_sanctuary: 5, tree_of_life: 7 };
+for (const [id, r] of Object.entries(PARTY_SUPPORT)) {
+  const sk = SKILLS[id]; if (!sk) continue;
+  sk.party = r;
+  const ef = sk.effect;
+  if (typeof ef === 'function') sk.effect = (lv, pl) => `${ef(lv, pl)} · มีผลกับเพื่อนในปาร์ตี้ในรัศมี ${r} ช่องด้วย`;
+}
 
 // ตัวช่วยอ่านค่าที่อาจเป็นตัวเลขหรือฟังก์ชัน
 export const sval = (v, lv, pl) => (typeof v === 'function' ? v(lv, pl) : v);

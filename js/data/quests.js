@@ -5,9 +5,9 @@
 //        refine {n} ตีบวกสำเร็จ · socket {n} ใส่การ์ด · level {n}
 // give = ไอเทมที่ได้ทันทีตอนรับเควส · rewards = { exp: [base, job], zeny, items: [[id, จำนวน]] }
 
-import { ZENY_INCOME } from '../config.js?v=0.65.0';
-import { WEEKLY_QUESTS } from './events.js?v=0.65.0';
-import { QUEST_EXTRA_REWARDS } from './consumables.js?v=0.65.0';
+import { ZENY_INCOME } from '../config.js?v=0.66.0';
+import { WEEKLY_QUESTS } from './events.js?v=0.66.0';
+import { QUEST_EXTRA_REWARDS } from './consumables.js?v=0.66.0';
 
 export const QUEST_KIND = {
   main: { name: 'เนื้อเรื่อง', color: '#ffd27a' },

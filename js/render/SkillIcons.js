@@ -1,8 +1,8 @@
 // ไอคอนสกิล วาดด้วย Canvas: เหรียญสีประจำสกิล + สัญลักษณ์สีขาวตัดเส้นเข้ม
-import { SKILLS } from '../data/skills.js?v=0.65.0';
-import { shadeHex } from './Textures.js?v=0.65.0';
-import { PIXEL } from './PixelSprites.js?v=0.65.0';
-import { pixelizeCanvas } from './PixelArt.js?v=0.65.0';
+import { SKILLS } from '../data/skills.js?v=0.66.0';
+import { shadeHex } from './Textures.js?v=0.66.0';
+import { PIXEL } from './PixelSprites.js?v=0.66.0';
+import { pixelizeCanvas } from './PixelArt.js?v=0.66.0';
 
 const S = 64;
 const LINE = '#1c1222';
@@ -93,6 +93,59 @@ const DRAW = {
     for (const [x, h] of [[12, 30], [52, 30], [22, 38], [42, 38]]) glyph(g, (g) => { g.moveTo(x - 4, 58); g.lineTo(x, 58 - h); g.lineTo(x + 4, 58); g.closePath(); }, '#4ac06a', 3);
     for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2 - Math.PI / 2; glyph(g, (g) => g.ellipse(32 + Math.cos(a) * 9, 26 + Math.sin(a) * 9, 7, 5, a, 0, Math.PI * 2), '#ff9ad0', 3); }
     glyph(g, (g) => g.arc(32, 26, 5, 0, Math.PI * 2), '#ffe08a', 3);
+  },
+  // ---------- v0.66 สายธนูชุดใหม่ ----------
+  starshot(g) {   // ศรทองพุ่งเฉียงขึ้น ปลายศรเป็นดาว
+    stroke(g, (g) => { g.moveTo(10, 54); g.lineTo(40, 24); }, '#fff2c8', 4);
+    stroke(g, (g) => { g.moveTo(10, 54); g.lineTo(6, 46); g.moveTo(10, 54); g.lineTo(18, 58); g.moveTo(15, 49); g.lineTo(11, 41); g.moveTo(15, 49); g.lineTo(23, 53); }, '#ffd06a', 3);
+    glyph(g, (g) => star(g, 44, 20, 13, 4, 4, 0), '#fffbe6', 4);
+  },
+  comet(g) {   // ดาวหางหัวโต หางยาวพาดจอ
+    for (const [o, w, c] of [[0, 5, '#ffe8aa'], [7, 3, '#ffc04a'], [-7, 3, '#ffc04a']]) stroke(g, (g) => { g.moveTo(6, 52 + o * 0.6); g.lineTo(38, 26 + o * 0.3); }, c, w);
+    glyph(g, (g) => g.arc(44, 22, 10, 0, Math.PI * 2), '#fffbe6');
+    glyph(g, (g) => star(g, 44, 22, 6, 2.2, 4, Math.PI / 4), '#ffd06a', 2);
+  },
+  starburst(g) {   // ดาวกลางฟ้า ศรแตกตกลงเป็นพัด
+    glyph(g, (g) => star(g, 32, 16, 11, 4, 4, 0), '#fffbe6', 4);
+    for (const x of [12, 22, 32, 42, 52]) stroke(g, (g) => { g.moveTo(32 + (x - 32) * 0.3, 26); g.lineTo(x, 54); }, '#ffd06a', 3);
+    for (const x of [12, 22, 32, 42, 52]) glyph(g, (g) => { g.moveTo(x, 58); g.lineTo(x - 3, 52); g.lineTo(x + 3, 52); g.closePath(); }, '#fff2c8', 2);
+  },
+  constellation(g) {   // จุดดาว 5 ดวงต่อเส้น + วงล็อกเป้า
+    const P = [[12, 44], [24, 20], [38, 30], [50, 14], [52, 46]];
+    stroke(g, (g) => { P.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); }, '#bcd2ff', 2);
+    stroke(g, (g) => g.arc(52, 46, 8, 0, Math.PI * 2), '#ffd06a', 2);
+    for (const [x, y] of P) glyph(g, (g) => star(g, x, y, 6, 2, 4, 0), '#ffffff', 2);
+  },
+  starfall(g) {   // วงกลุ่มดาวบนฟ้า + ศรใหญ่ดิ่งลง
+    stroke(g, (g) => g.ellipse(32, 14, 26, 8, 0, 0, Math.PI * 2), '#ffd06a', 3);
+    for (const x of [14, 26, 40, 52]) stroke(g, (g) => { g.moveTo(x - 4, 20); g.lineTo(x, 44); }, '#fff2c8', 2);
+    glyph(g, (g) => { g.moveTo(32, 60); g.lineTo(24, 44); g.lineTo(29, 44); g.lineTo(29, 18); g.lineTo(35, 18); g.lineTo(35, 44); g.lineTo(40, 44); g.closePath(); }, '#fffbe6');
+  },
+  twinshadow(g) {   // ศร 2 ดอกพันเกลียว
+    stroke(g, (g) => { g.moveTo(8, 50); g.bezierCurveTo(22, 20, 32, 56, 52, 18); }, '#e2b8ff', 3);
+    stroke(g, (g) => { g.moveTo(8, 50); g.bezierCurveTo(26, 54, 30, 18, 52, 18); }, '#a070ff', 3);
+    glyph(g, (g) => { g.moveTo(58, 12); g.lineTo(46, 16); g.lineTo(52, 22); g.closePath(); }, '#ffffff', 3);
+  },
+  moonhawk(g) {   // เหยี่ยวกางปีก + เสี้ยวจันทร์
+    glyph(g, (g) => { g.arc(44, 16, 10, 0, Math.PI * 2); }, '#f4ecff', 3);
+    glyph(g, (g) => { g.arc(49, 13, 9, 0, Math.PI * 2); }, '#3a2066', 0.01);
+    glyph(g, (g) => { g.moveTo(32, 30); g.quadraticCurveTo(18, 18, 6, 26); g.lineTo(18, 32); g.lineTo(10, 38); g.lineTo(28, 38); g.lineTo(32, 52); g.lineTo(36, 38); g.lineTo(54, 38); g.lineTo(46, 32); g.lineTo(58, 26); g.quadraticCurveTo(46, 18, 32, 30); g.closePath(); }, '#d8b0ff');
+  },
+  snare(g) {   // ศรปักพื้น + เงาพันขึ้น
+    stroke(g, (g) => g.ellipse(32, 50, 24, 8, 0, 0, Math.PI * 2), '#a070ff', 3);
+    for (const [x, s] of [[18, 1], [32, -1], [46, 1]]) stroke(g, (g) => { g.moveTo(x, 52); g.bezierCurveTo(x + 8 * s, 40, x - 8 * s, 30, x + 2 * s, 18); }, '#d8b0ff', 3);
+    glyph(g, (g) => { g.moveTo(32, 50); g.lineTo(29, 8); g.lineTo(35, 8); g.closePath(); }, '#ffffff', 3);
+  },
+  phantom(g) {   // ร่างกระโดดถอย + เงาจาง 2 ร่าง
+    for (const [x, c] of [[44, '#4a3070'], [34, '#7a58b0']]) glyph(g, (g) => { g.arc(x, 18, 5, 0, Math.PI * 2); g.moveTo(x - 6, 50); g.lineTo(x - 4, 26); g.lineTo(x + 4, 26); g.lineTo(x + 6, 50); g.closePath(); }, c, 3);
+    glyph(g, (g) => { g.arc(20, 16, 6, 0, Math.PI * 2); g.moveTo(13, 48); g.lineTo(15, 25); g.lineTo(25, 25); g.lineTo(27, 48); g.closePath(); }, '#f4ecff');
+    stroke(g, (g) => { g.moveTo(28, 30); g.lineTo(58, 30); }, '#e2b8ff', 2);
+  },
+  eclipse(g) {   // วงแหวนคราส + ศรเสี้ยวจันทร์
+    glyph(g, (g) => g.arc(36, 24, 16, 0, Math.PI * 2), '#ff78c8', 3);
+    glyph(g, (g) => g.arc(36, 24, 13, 0, Math.PI * 2), '#140820', 0.01);
+    glyph(g, (g) => { g.moveTo(10, 30); g.quadraticCurveTo(30, 44, 10, 58); g.quadraticCurveTo(20, 44, 10, 30); g.closePath(); }, '#e2b8ff', 3);
+    stroke(g, (g) => { g.moveTo(16, 44); g.lineTo(58, 44); }, '#ffffff', 2);
   },
   // ---------- v0.63 สายนักบวชชุดใหม่ ----------
   holyorb(g) {   // ลูกแสงพุ่ง มีหางแสง
