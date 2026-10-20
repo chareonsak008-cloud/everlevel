@@ -24,7 +24,7 @@ export const JOB2_SKILLS = {
   },
   thunder_cut: {
     job: 'knight', name: 'ฟันสายฟ้า', maxLv: 10, kind: 'active', target: 'enemy', icon: ['thundercut', '#6ab8ff'], req: { spear_art: 1 },
-    sp: (lv) => 12 + lv, cast: 0, cd: 0.5, range: 'weapon', vfx: 'nf', ref: 1, lock: 0.45, delay: 0.3, engage: true, element: 'wind', hitBonus: (lv) => 10 + lv * 3,
+    sp: (lv) => 12 + lv, cast: 0, cd: 0.5, range: 'weapon', vfx: 'kn_thunder_cut', ref: 1, lock: 0.45, delay: 0.3, engage: true, element: 'wind', hitBonus: (lv) => 10 + lv * 3,
     mult: (lv) => 1.1 + lv * 0.14, stun: (lv) => lv * 0.02, stunSecs: 1.2,
     nf: { anim: 'melee', hits: [{ t: 0.21, m: 1 }, { t: 0.28, r: 1.2, m: 1.1, stun: 1.2, shake: 0.35, stop: 0.05 }] },
     desc: 'ชักดาบฟันสายฟ้า 2 จังหวะเร็วจนแทบเป็นจังหวะเดียว ฟันที่สองแตกประกายโดนข้างเป้าและมีโอกาสทำให้มึน — สกิลโจมตีหลัก',
@@ -32,7 +32,7 @@ export const JOB2_SKILLS = {
   },
   sword_qi_barrage: {
     job: 'knight', name: 'ดาบลมปราณ', maxLv: 10, kind: 'active', target: 'enemy', icon: ['swordqi', '#9ad8ff'], req: { thunder_cut: 3 },
-    sp: (lv) => 24 + lv * 2, cast: 0.2, cd: 3, range: 7, vfx: 'nf', ref: 1, lock: 0.8, delay: 0.5, element: 'wind', hitBonus: () => 30,
+    sp: (lv) => 24 + lv * 2, cast: 0.2, cd: 3, range: 7, vfx: 'kn_sword_qi_barrage', ref: 1, lock: 0.8, delay: 0.5, element: 'wind', hitBonus: () => 30,
     mult: (lv) => 0.38 + lv * 0.045,
     nf: { anim: 'melee', animDur: 0.7, hits: [0.25, 0.35, 0.43, 0.53, 0.61, 0.72].map((t, i) => ({ t, line: { len: 9, w: 1.2 }, m: 1, ...(i === 5 ? { knock: 1, shake: 0.35, stop: 0.04 } : i === 4 ? { stop: 0.04 } : {}) })) },
     desc: 'กวัดแกว่งดาบส่งคลื่นลมปราณรูปจันทร์เสี้ยวพุ่งออกไป 6 ระลอก ทะลุทุกตัวในแนวยาว 9 ช่อง',
@@ -40,7 +40,7 @@ export const JOB2_SKILLS = {
   },
   flash_step: {
     job: 'knight', name: 'สายฟ้าแลบ', maxLv: 10, kind: 'active', target: 'enemy', icon: ['flashstep', '#7ad0ff'], req: { thunder_cut: 5 },
-    sp: (lv) => 30 + lv * 2, cast: 0, cd: 4, range: 7, dash: true, vfx: 'nf', ref: 1, lock: 1.2, delay: 0.5, engage: true, element: 'wind', hitBonus: () => 40, knock: 1,
+    sp: (lv) => 30 + lv * 2, cast: 0, cd: 4, range: 7, dash: true, vfx: 'kn_flash_step', ref: 1, lock: 1.2, delay: 0.5, engage: true, element: 'wind', hitBonus: () => 40, knock: 1,
     mult: (lv) => 0.7 + lv * 0.09,
     nf: { anim: 'melee', flashes: [{ t: 0.12, a: 0.2, color: '#96e4ff' }, { t: 0.96, a: 0.2, color: '#96e4ff' }], hits: [{ t: 0.28, r: 1.4, m: 1, stop: 0.04 }, { t: 0.49, r: 2.4, m: 1, stop: 0.04 }, { t: 0.68, r: 2.6, m: 1, shake: 0.35, stop: 0.04 }, { t: 1.3, r: 3, m: 1.5, knock: 1, shake: 0.35 }] },
     desc: 'หายตัวเป็นสายฟ้า โผล่ฟันศัตรูทีละตัว 3 ครั้ง แล้วกลับมาเก็บดาบเข้าฝัก สายฟ้าตามฟาดทุกตัวที่โดนฟันอีกครั้ง',
@@ -48,7 +48,7 @@ export const JOB2_SKILLS = {
   },
   thousand_blades: {
     job: 'knight', name: 'พันดาบ', maxLv: 10, kind: 'active', target: 'enemy', icon: ['thousandblades', '#a8d8ff'], req: { sword_qi_barrage: 3, royal_oath: 3 },
-    sp: (lv) => 36 + lv * 3, cast: 0.4, cd: 6, range: 8, vfx: 'nf', ref: 1, lock: 1.0, delay: 0.7, element: 'wind', hitBonus: () => 30, knock: 1.5,
+    sp: (lv) => 36 + lv * 3, cast: 0.4, cd: 6, range: 8, vfx: 'kn_thousand_blades', ref: 1, lock: 1.0, delay: 0.7, element: 'wind', hitBonus: () => 30, knock: 1.5,
     mult: (lv) => 0.3 + lv * 0.035,
     nf: { anim: 'castHold', flashes: [{ t: 2.4, a: 0.4, color: '#96e4ff' }], hits: [...[0.88, 1.01, 1.15, 1.29, 1.43, 1.58, 1.72, 1.86].map((t) => ({ t, r: 2.8, m: 1 })), { t: 2.4, r: 3, m: 5, knock: 1, shake: 0.6, stop: 0.08 }] },
     desc: 'อัญเชิญดาบแสงนับร้อยลอยเรียงกลางฟ้า แล้วสั่งให้ปักลงทั่ววงทีละเล่ม 8 ระลอก ปิดท้ายด้วยดาบทั้งหมดระเบิดพร้อมกัน',
@@ -56,7 +56,7 @@ export const JOB2_SKILLS = {
   },
   heaven_splitter: {
     job: 'knight', name: 'สวรรค์แยก', maxLv: 5, kind: 'active', target: 'enemy', icon: ['heavensplit', '#7ab4ff'], req: { flash_step: 5, thousand_blades: 5 },
-    sp: (lv) => 70 + lv * 5, cast: 0.3, cd: 12, range: 7, vfx: 'nf', ref: 1, lock: 2.4, delay: 1.0, element: 'wind', hitBonus: () => 50, knock: 2,
+    sp: (lv) => 70 + lv * 5, cast: 0.3, cd: 12, range: 7, vfx: 'kn_heaven_splitter', ref: 1, lock: 2.4, delay: 1.0, element: 'wind', hitBonus: () => 50, knock: 2,
     mult: (lv) => 6 + lv * 1.1,
     nf: { anim: 'castHold', sky: { t: 0, dark: 0.68, dur: 3.4 }, texts: [{ t: 0, text: 'TIME STOP' }], flashes: [{ t: 0.61, a: 0.15, color: '#96e4ff' }, { t: 2.31, a: 1, color: '#e8f6ff' }], hits: [{ t: 1.86, r: 3, m: 0.15, shake: 0.4, stop: 0.06 }, { t: 2.31, r: 3.6, m: 1, knock: 1, shake: 1, stop: 0.16 }] },
     desc: 'หยุดเวลาทั้งสนามรบ ฟ้ามืดลง สายฟ้าแตกเป็นตาข่าย แล้วฟันครั้งเดียวผ่าฟ้าเป็นสองซีก ทุกตัวในวงรับดาเมจมหาศาลพร้อมกัน (ไม้ตาย)',

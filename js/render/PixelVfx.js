@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.66.0';
+import { THREE } from './three.js?v=0.67.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -113,17 +113,7 @@ export class PixelVfx {
 export const SKILL_VFX = {
   // v0.54 Night Forge VFX (solo = ไม่วาดเอฟเฟกต์เดิมซ้อน · speed = เร่งให้จังหวะกระแทกตรงกับจังหวะตีจริง)
   // ดาบ (Swordsman) · v0.64 ชุดใหม่ (sprite sheet มุมข้าง 24 fps จากผู้พัฒนา · side = วางที่เท้าผู้ร่าย หันหาเป้า ย่อ/ขยายตามระยะ)
-  triple_slash: { name: 'nf_triple_slash', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
-  flame_wave: { name: 'nf_flame_wave', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
-  blazing_dash: { name: 'nf_blazing_dash', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
-  inferno_whirl: { name: 'nf_inferno_whirl', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
-  crimson_judgement: { name: 'nf_crimson_judgement', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
   // อัศวิน (Knight) · v0.64 ชุดใหม่
-  thunder_cut: { name: 'nf_thunder_cut', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
-  sword_qi_barrage: { name: 'nf_sword_qi_barrage', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
-  flash_step: { name: 'nf_flash_step', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
-  thousand_blades: { name: 'nf_thousand_blades', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
-  heaven_splitter: { name: 'nf_heaven_splitter', side: true, fit: 76, scale: 1.15, delay: 0, solo: true },
   // ธนู (Archer) · v0.60 ชุดใหม่ "ศรดารา"
   // v0.66 ชุดใหม่ "นักธนูแสงดาว" (sprite sheet มุมข้าง 24 fps จากผู้พัฒนา · fit 135 = ระยะผู้ร่าย→ศัตรูตัวแรกในภาพ ~5 ช่อง)
   // aimMax เล็ก = สกิลที่มีของบนฟ้า/วงบนพื้น (ไม่ให้เอียงตามเป้ามาก)

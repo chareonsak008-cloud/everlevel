@@ -1,5 +1,5 @@
 // ข้อมูลแผนที่ Asteria Town (เมืองเริ่มต้น) — v0.27 รีมาสเตอร์: ลานวงกลมกลางเมือง · คลองตะวันตก · 4 ย่าน
-import { borderTrees as _borderTrees, scaleMap } from './helpers.js?v=0.66.0';
+import { borderTrees as _borderTrees, scaleMap } from './helpers.js?v=0.67.0';
 // พิกัดทั้งหมดเป็นหน่วย "ช่อง" (tile) — วัตถุใช้มุมซ้ายบนของ footprint
 
 const LOOK = {

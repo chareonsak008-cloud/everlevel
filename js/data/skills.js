@@ -6,8 +6,8 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.66.0';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.66.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+import { JOBS } from './progression.js?v=0.67.0';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.67.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
@@ -49,7 +49,7 @@ export const SKILLS = {
   },
   triple_slash: {
     job: 'swordsman', name: 'ฟันสามจังหวะ', maxLv: 10, kind: 'active', target: 'enemy', icon: ['tripleslash', '#ff7a3a'],
-    sp: (lv) => 7 + lv, cast: 0, cd: 0.6, range: 'weapon', vfx: 'nf', ref: 1, lock: 0.6, delay: 0.35, engage: true, element: 'fire', hitBonus: (lv) => lv * 4,
+    sp: (lv) => 7 + lv, cast: 0, cd: 0.6, range: 'weapon', vfx: 'sw_triple_slash', ref: 1, lock: 0.6, delay: 0.35, engage: true, element: 'fire', hitBonus: (lv) => lv * 4,
     mult: (lv) => 0.6 + lv * 0.08,
     nf: { anim: 'melee', animDur: 0.6, hits: [{ t: 0.18, m: 1 }, { t: 0.4, m: 1 }, { t: 0.65, r: 1.6, m: 2.6, shake: 0.35, stop: 0.07 }] },
     desc: 'ก้าวเข้าประชิดแล้วฟันเพลิง 3 จังหวะ ฟันสุดท้ายแรงที่สุดและลามโดนศัตรูข้างเป้า — สกิลโจมตีหลัก',
@@ -57,7 +57,7 @@ export const SKILLS = {
   },
   flame_wave: {
     job: 'swordsman', name: 'คลื่นดาบเพลิง', maxLv: 10, kind: 'active', target: 'enemy', icon: ['flamewave', '#ff5a2a'], req: { triple_slash: 3 },
-    sp: (lv) => 18 + lv * 2, cast: 0.2, cd: 2.5, range: 6, vfx: 'nf', ref: 1, lock: 0.7, delay: 0.5, element: 'fire', hitBonus: () => 25, knock: 1,
+    sp: (lv) => 18 + lv * 2, cast: 0.2, cd: 2.5, range: 6, vfx: 'sw_flame_wave', ref: 1, lock: 0.7, delay: 0.5, element: 'fire', hitBonus: () => 25, knock: 1,
     mult: (lv) => 1.6 + lv * 0.18,
     nf: { anim: 'melee', animDur: 0.6, hits: [{ t: 0.53, line: { len: 4, w: 1.2 }, m: 0.4 }, { t: 0.69, line: { len: 9, w: 1.2 }, m: 1, knock: 1, shake: 0.35, stop: 0.06 }] },
     desc: 'ฟันดาบส่งคลื่นเพลิงรูปจันทร์เสี้ยวพุ่งไปข้างหน้า เผาทุกตัวในแนวยาว 9 ช่อง และผลักถอย — สกิลโจมตีระยะกลาง',
@@ -65,7 +65,7 @@ export const SKILLS = {
   },
   blazing_dash: {
     job: 'swordsman', name: 'พุ่งทะลวงเพลิง', maxLv: 10, kind: 'active', target: 'enemy', icon: ['blazedash', '#ff8a3a'], req: { triple_slash: 3 },
-    sp: (lv) => 22 + lv * 2, cast: 0, cd: 3.5, range: 7, dash: true, vfx: 'nf', ref: 1, lock: 0.8, delay: 0.5, engage: true, element: 'fire', hitBonus: () => 30, knock: 2,
+    sp: (lv) => 22 + lv * 2, cast: 0, cd: 3.5, range: 7, dash: true, vfx: 'sw_blazing_dash', ref: 1, lock: 0.8, delay: 0.5, engage: true, element: 'fire', hitBonus: () => 30, knock: 2,
     mult: (lv) => 2.2 + lv * 0.26,
     nf: { anim: 'melee', flashes: [{ t: 0.85, a: 0.25, color: '#ffac46' }], hits: [{ t: 0.85, line: { len: 7, w: 1.4 }, m: 1, knock: 1, shake: 0.35, stop: 0.09 }] },
     desc: 'พุ่งตัวเป็นลำเพลิงทะลุแนวศัตรูไกล 7 ช่อง ทิ้งรอยเพลิงไว้ แล้วทุกตัวที่โดนพุ่งผ่านระเบิดพร้อมกัน — ใช้ปิดระยะ',
@@ -73,7 +73,7 @@ export const SKILLS = {
   },
   inferno_whirl: {
     job: 'swordsman', name: 'วงเวียนดาบไฟ', maxLv: 10, kind: 'active', target: 'enemy', icon: ['firewhirl', '#ff6a2a'], req: { flame_wave: 3 },
-    sp: (lv) => 30 + lv * 2, cast: 0, cd: 3, range: 'weapon', vfx: 'nf', ref: 1, lock: 1.0, delay: 0.6, engage: true, element: 'fire', hitBonus: () => 20, knock: 1.5,
+    sp: (lv) => 30 + lv * 2, cast: 0, cd: 3, range: 'weapon', vfx: 'sw_inferno_whirl', ref: 1, lock: 1.0, delay: 0.6, engage: true, element: 'fire', hitBonus: () => 20, knock: 1.5,
     mult: (lv) => 0.6 + lv * 0.07,
     nf: { anim: 'spin', animDur: 0.9, flashes: [{ t: 0.96, a: 0.25, color: '#ffac46' }], hits: [{ t: 0.28, r: 2.8, m: 1 }, { t: 0.5, r: 2.8, m: 1 }, { t: 0.71, r: 2.8, m: 1 }, { t: 0.96, r: 3, m: 2.2, knock: 1, shake: 0.35, stop: 0.06 }] },
     desc: 'หมุนดาบเป็นวงเพลิงกลางกลุ่มศัตรู ฟัน 3 รอบแล้วระเบิดวงไฟผลักทุกตัวกระเด็น — เก็บมอนเป็นกลุ่ม',
@@ -81,7 +81,7 @@ export const SKILLS = {
   },
   crimson_judgement: {
     job: 'swordsman', name: 'ดาบเพลิงพิพากษา', maxLv: 5, kind: 'active', target: 'enemy', icon: ['crimsonsword', '#ff3a1a'], req: { blazing_dash: 5, inferno_whirl: 3 },
-    sp: (lv) => 55 + lv * 4, cast: 0.3, cd: 10, range: 6, vfx: 'nf', ref: 1, lock: 2.6, delay: 0.9, element: 'fire', hitBonus: () => 40, knock: 2,
+    sp: (lv) => 55 + lv * 4, cast: 0.3, cd: 10, range: 6, vfx: 'sw_crimson_judgement', ref: 1, lock: 2.6, delay: 0.9, element: 'fire', hitBonus: () => 40, knock: 2,
     mult: (lv) => 2.6 + lv * 0.5,
     nf: { anim: 'jump', animDur: 0.6, sky: { t: 0, dark: 0.55, dur: 3.6 }, lift: { t: 0.36, h: 1.6, dur: 0.35, hold: 0.8 }, flashes: [{ t: 1.49, a: 0.5, color: '#ffac46' }, { t: 2.4, a: 0.6, color: '#ffac46' }], hits: [{ t: 1.49, r: 3.2, m: 1, shake: 1, stop: 0.12 }, { t: 2.4, r: 3.4, m: 0.7, knock: 1, shake: 0.6, stop: 0.08 }] },
     desc: 'ฟ้ามืดลง กระโดดขึ้นฟ้าแล้วอัญเชิญดาบเพลิงยักษ์ปักลงกลางศัตรู พื้นแตกระเบิด แล้วดาบระเบิดซ้ำอีกครั้งผลักทุกอย่างกระเด็น (ไม้ตาย)',
