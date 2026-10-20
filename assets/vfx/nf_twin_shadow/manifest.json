@@ -1,0 +1,75 @@
+{
+ "app": "archer-vfx → Everlevel",
+ "name": "ศรเงาคู่",
+ "fps": 24,
+ "frames": 28,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 297,
+  "h": 167
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 51,
+  "y": 134
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.611,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 362,
+   "crit": false
+  },
+  {
+   "t": 0.681,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 388,
+   "crit": true
+  },
+  {
+   "t": 0.681,
+   "type": "shake",
+   "strength": 0.32
+  },
+  {
+   "t": 0.681,
+   "type": "hitstop",
+   "duration": 0.05
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 28,
+   "frame": {
+    "w": 297,
+    "h": 167
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 28,
+     "columns": 13,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -51,
+    "y": -134
+   }
+  }
+ ],
+ "casterPx": [
+  51,
+  134
+ ],
+ "fitPx": 135
+}

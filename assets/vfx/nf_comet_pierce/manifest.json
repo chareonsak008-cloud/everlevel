@@ -1,0 +1,118 @@
+{
+ "app": "archer-vfx → Everlevel",
+ "name": "ศรดาวหาง",
+ "fps": 24,
+ "frames": 39,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 297,
+  "h": 167
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 51,
+  "y": 134
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0,
+   "type": "darken_screen",
+   "strength": 0.25,
+   "duration": 1.6
+  },
+  {
+   "t": 0.556,
+   "type": "shake",
+   "strength": 0.3
+  },
+  {
+   "t": 0.556,
+   "type": "hitstop",
+   "duration": 0.04
+  },
+  {
+   "t": 0.861,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 1380,
+   "crit": true
+  },
+  {
+   "t": 0.861,
+   "type": "shake",
+   "strength": 0.32
+  },
+  {
+   "t": 0.861,
+   "type": "hitstop",
+   "duration": 0.05
+  },
+  {
+   "t": 0.958,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 1520,
+   "crit": true
+  },
+  {
+   "t": 0.958,
+   "type": "shake",
+   "strength": 0.32
+  },
+  {
+   "t": 0.958,
+   "type": "hitstop",
+   "duration": 0.05
+  },
+  {
+   "t": 1.056,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 1460,
+   "crit": true
+  },
+  {
+   "t": 1.056,
+   "type": "shake",
+   "strength": 0.32
+  },
+  {
+   "t": 1.056,
+   "type": "hitstop",
+   "duration": 0.05
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 39,
+   "frame": {
+    "w": 297,
+    "h": 167
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 39,
+     "columns": 13,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -51,
+    "y": -134
+   }
+  }
+ ],
+ "casterPx": [
+  51,
+  134
+ ],
+ "fitPx": 135
+}

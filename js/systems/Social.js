@@ -4,7 +4,7 @@
 //   · เชิญผ่านห้องรวม (pi → pr) · หัวหน้า = คนที่เข้าปาร์ตี้ก่อนสุด · สูงสุด 6 คน
 //   · แชร์ EXP: คนที่อยู่แมพเดียวกันแบ่ง EXP เท่ากัน + โบนัส 20% ต่อสมาชิกเพิ่ม 1 คน (มอนยังจำลองแยกเครื่อง — แชร์แค่ EXP)
 // กิลด์ — ข้อมูลถาวรในฐานข้อมูล (supabase/guild.sql) · ห้อง everlevel-guild-<id> ไว้แชตกิลด์ + ดูว่าใครออนไลน์
-import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.65.0';
+import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.66.0';
 
 export const PARTY_MAX = 6;
 export const PARTY_BONUS = 0.2;
@@ -166,7 +166,7 @@ export class Social {
     this.pid = pid; this.jt = rejoin ? (this.jt || Date.now()) : Date.now();
     this.members = new Map();
     this.party = this.net.sideChannel('party-' + pid, {
-      events: ['pc', 'xp', 'kick', 'bye'],
+      events: ['pc', 'xp', 'kick', 'bye', 'hl', 'bf'],   // v0.65.2 hl = ฮีล · bf = บัฟ/โล่ จากสกิลนักบวช
       onEvent: (ev, p) => this.onPartyEvent(ev, p),
       onSync: (m) => this.onPartySync(m),
     });
@@ -221,6 +221,7 @@ export class Social {
       if (g.settings.chatSound) g.sfx('chat');
       g.remote.say(p.k, text);
     } else if (ev === 'xp') this.onShareExp(p);
+    else if (ev === 'hl' || ev === 'bf') this.onSupport(ev, p);
     else if (ev === 'kick') { if (p.to === this.myKey && p.k === this.leaderKey) { this.leaveParty(true); this.log('คุณถูกเชิญออกจากปาร์ตี้', 'sys'); } }
     else if (ev === 'bye') { /* presence sync จะลบให้เอง */ }
   }
@@ -293,6 +294,27 @@ export class Social {
     const b = Math.floor(num(p.b, 0, 5e6)), j = Math.floor(num(p.j, 0, 5e6));
     if (!b && !j) return;
     g.partyExp(b, j, clean(p.n), clean(p.mob, 24));
+  }
+
+  // v0.65.2 ฮีล/บัฟของนักบวชถึงเพื่อนในปาร์ตี้ (แมพเดียวกัน) — ส่งตำแหน่งผู้ร่าย + รัศมี ให้ฝั่งรับเช็กระยะกับตัวเองแล้วใส่ผลเอง
+  // data = { s: รหัสสกิล, lv, a: ปริมาณฮีล, r: รัศมี (ช่อง) } · คืนจำนวนเพื่อนในแมพเดียวกัน (0 = ไม่ได้ส่ง)
+  sendSupport(kind, data) {
+    if (!this.pid || !this.party) return 0;
+    const n = this.sameMapCount() - 1;
+    if (n <= 0) return 0;
+    const g = this.game, pl = g.player;
+    this.party.send(kind, { id: rid(), m: g.map.id, x: Math.round(pl.x), y: Math.round(pl.y), n: pl.name, ...data });
+    return n;
+  }
+
+  onSupport(ev, p) {
+    const g = this.game, pl = g.player;
+    if (!g.started || !p || typeof p.id !== 'string' || this.dupMsg(ev + p.id)) return;
+    if (p.k === this.myKey || !this.members.has(p.k) || p.m !== (g.map && g.map.id)) return;
+    const reach = num(p.r, 1, 10, 6) * 16 + 6;   // ช่อง → พิกเซลโลก (16 = 1 ช่อง)
+    if (Math.hypot(pl.x - num(p.x, -1e6, 1e6, -1e6), pl.y - num(p.y, -1e6, 1e6, -1e6)) > reach) return;
+    const who = clean(p.n) || (this.members.get(p.k) || {}).n || 'เพื่อน';
+    g.onPartySupport(ev, { s: clean(p.s, 32), lv: Math.floor(num(p.lv, 1, 10, 1)), a: Math.floor(num(p.a, 0, 1e6)) }, who);
   }
 
   /* ======================= กิลด์ ======================= */

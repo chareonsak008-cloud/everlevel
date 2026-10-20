@@ -1,0 +1,201 @@
+{
+ "app": "archer-vfx → Everlevel",
+ "name": "ฝนดาวตก",
+ "fps": 24,
+ "frames": 94,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 297,
+  "h": 223
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 51,
+  "y": 192
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0,
+   "type": "darken_screen",
+   "strength": 0.6,
+   "duration": 4.4
+  },
+  {
+   "t": 0,
+   "type": "caster_move",
+   "fromX": -3.4,
+   "toX": -4,
+   "toY": 0,
+   "duration": 0.25
+  },
+  {
+   "t": 0.611,
+   "type": "flash",
+   "strength": 0.15,
+   "color": "255,232,170"
+  },
+  {
+   "t": 1.389,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 428,
+   "crit": false
+  },
+  {
+   "t": 1.528,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 497,
+   "crit": false
+  },
+  {
+   "t": 1.667,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 475,
+   "crit": false
+  },
+  {
+   "t": 1.806,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 511,
+   "crit": false
+  },
+  {
+   "t": 1.944,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 480,
+   "crit": false
+  },
+  {
+   "t": 2.083,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 431,
+   "crit": false
+  },
+  {
+   "t": 2.222,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 457,
+   "crit": false
+  },
+  {
+   "t": 2.361,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 426,
+   "crit": false
+  },
+  {
+   "t": 2.5,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 488,
+   "crit": false
+  },
+  {
+   "t": 2.639,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 496,
+   "crit": false
+  },
+  {
+   "t": 2.889,
+   "type": "flash",
+   "strength": 0.6,
+   "color": "255,232,170"
+  },
+  {
+   "t": 2.889,
+   "type": "shake",
+   "strength": 1
+  },
+  {
+   "t": 2.889,
+   "type": "hitstop",
+   "duration": 0.14
+  },
+  {
+   "t": 2.889,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 4820,
+   "crit": true
+  },
+  {
+   "t": 2.889,
+   "type": "shake",
+   "strength": 0.32
+  },
+  {
+   "t": 2.889,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 6150,
+   "crit": true
+  },
+  {
+   "t": 2.889,
+   "type": "shake",
+   "strength": 0.32
+  },
+  {
+   "t": 2.889,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 5300,
+   "crit": true
+  },
+  {
+   "t": 2.889,
+   "type": "shake",
+   "strength": 0.32
+  },
+  {
+   "t": 3.611,
+   "type": "caster_move",
+   "fromX": -4,
+   "toX": -3.4,
+   "toY": 0,
+   "duration": 0.3
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 94,
+   "frame": {
+    "w": 297,
+    "h": 223
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 94,
+     "columns": 13,
+     "rows": 8
+    }
+   ],
+   "offset": {
+    "x": -51,
+    "y": -192
+   }
+  }
+ ],
+ "casterPx": [
+  51,
+  192
+ ],
+ "fitPx": 135
+}

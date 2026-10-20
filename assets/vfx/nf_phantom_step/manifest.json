@@ -1,0 +1,93 @@
+{
+ "app": "archer-vfx → Everlevel",
+ "name": "ก้าวเงา",
+ "fps": 24,
+ "frames": 36,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 297,
+  "h": 167
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 51,
+  "y": 134
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0,
+   "type": "caster_move",
+   "fromX": -3.4,
+   "toX": -5,
+   "toY": 0,
+   "duration": 0.3
+  },
+  {
+   "t": 0.333,
+   "type": "text",
+   "text": "EVADE ▲"
+  },
+  {
+   "t": 0.375,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 520,
+   "crit": false
+  },
+  {
+   "t": 0.597,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 560,
+   "crit": false
+  },
+  {
+   "t": 0.764,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 540,
+   "crit": false
+  },
+  {
+   "t": 1.111,
+   "type": "caster_move",
+   "fromX": -5,
+   "toX": -3.4,
+   "toY": 0,
+   "duration": 0.3
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 36,
+   "frame": {
+    "w": 297,
+    "h": 167
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 36,
+     "columns": 13,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -51,
+    "y": -134
+   }
+  }
+ ],
+ "casterPx": [
+  51,
+  134
+ ],
+ "fitPx": 135
+}

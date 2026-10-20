@@ -1,0 +1,111 @@
+{
+ "app": "archer-vfx → Everlevel",
+ "name": "ศรกระจายดารา",
+ "fps": 24,
+ "frames": 47,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 297,
+  "h": 223
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 51,
+  "y": 192
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.611,
+   "type": "flash",
+   "strength": 0.12,
+   "color": "255,232,170"
+  },
+  {
+   "t": 1.028,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 296,
+   "crit": false
+  },
+  {
+   "t": 1.167,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 338,
+   "crit": false
+  },
+  {
+   "t": 1.167,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 335,
+   "crit": false
+  },
+  {
+   "t": 1.181,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 324,
+   "crit": false
+  },
+  {
+   "t": 1.319,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 316,
+   "crit": false
+  },
+  {
+   "t": 1.333,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 307,
+   "crit": false
+  },
+  {
+   "t": 1.375,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 323,
+   "crit": true
+  },
+  {
+   "t": 1.375,
+   "type": "shake",
+   "strength": 0.32
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 47,
+   "frame": {
+    "w": 297,
+    "h": 223
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 47,
+     "columns": 13,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -51,
+    "y": -192
+   }
+  }
+ ],
+ "casterPx": [
+  51,
+  192
+ ],
+ "fitPx": 135
+}

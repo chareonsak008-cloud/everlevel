@@ -1,0 +1,71 @@
+{
+ "app": "archer-vfx → Everlevel",
+ "name": "ผูกกลุ่มดาว",
+ "fps": 24,
+ "frames": 45,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 297,
+  "h": 167
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 51,
+  "y": 134
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.306,
+   "type": "text",
+   "text": "CRIT ▲"
+  },
+  {
+   "t": 0.514,
+   "type": "text",
+   "text": "MARKED"
+  },
+  {
+   "t": 0.611,
+   "type": "text",
+   "text": "MARKED"
+  },
+  {
+   "t": 0.708,
+   "type": "text",
+   "text": "MARKED"
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 45,
+   "frame": {
+    "w": 297,
+    "h": 167
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 45,
+     "columns": 13,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -51,
+    "y": -134
+   }
+  }
+ ],
+ "casterPx": [
+  51,
+  134
+ ],
+ "fitPx": 135
+}

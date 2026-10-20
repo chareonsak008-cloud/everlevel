@@ -1,0 +1,140 @@
+{
+ "app": "archer-vfx → Everlevel",
+ "name": "กับดักเงา",
+ "fps": 24,
+ "frames": 54,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 297,
+  "h": 167
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 51,
+  "y": 134
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.694,
+   "type": "flash",
+   "strength": 0.15,
+   "color": "226,184,255"
+  },
+  {
+   "t": 0.806,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 420,
+   "crit": false
+  },
+  {
+   "t": 0.806,
+   "type": "text",
+   "text": "ROOT"
+  },
+  {
+   "t": 0.875,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 460,
+   "crit": false
+  },
+  {
+   "t": 0.875,
+   "type": "text",
+   "text": "ROOT"
+  },
+  {
+   "t": 0.958,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 430,
+   "crit": false
+  },
+  {
+   "t": 0.958,
+   "type": "text",
+   "text": "ROOT"
+  },
+  {
+   "t": 2.097,
+   "type": "flash",
+   "strength": 0.3,
+   "color": "226,184,255"
+  },
+  {
+   "t": 2.097,
+   "type": "hitstop",
+   "duration": 0.06
+  },
+  {
+   "t": 2.097,
+   "type": "shake",
+   "strength": 0.4
+  },
+  {
+   "t": 2.097,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 1120,
+   "crit": true
+  },
+  {
+   "t": 2.097,
+   "type": "shake",
+   "strength": 0.32
+  },
+  {
+   "t": 2.097,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 1260,
+   "crit": true
+  },
+  {
+   "t": 2.097,
+   "type": "shake",
+   "strength": 0.32
+  },
+  {
+   "t": 2.097,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 1180,
+   "crit": false
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 54,
+   "frame": {
+    "w": 297,
+    "h": 167
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 54,
+     "columns": 13,
+     "rows": 5
+    }
+   ],
+   "offset": {
+    "x": -51,
+    "y": -134
+   }
+  }
+ ],
+ "casterPx": [
+  51,
+  134
+ ],
+ "fitPx": 135
+}

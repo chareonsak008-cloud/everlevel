@@ -1,106 +1,106 @@
 // ตัวควบคุมหลักของเกม: ลูป, แผนที่/วาร์ป, การเดิน, การต่อสู้ → ส่งต่อให้ Renderer3D วาด
-import { SKILL_VFX } from '../render/PixelVfx.js?v=0.65.0';
-import { EventService } from '../systems/EventService.js?v=0.65.0';
-import { EventWindow } from '../ui/EventWindow.js?v=0.65.0';
-import { MvpService } from '../systems/MvpService.js?v=0.65.0';   // v0.53 MVP ร่วม
-import { GemExchange } from '../ui/GemExchange.js?v=0.65.0';   // v0.50 ตลาดแลกเพชร
-import { WikiWindow } from '../ui/WikiWindow.js?v=0.65.0';   // v0.49 วิกิ
-import { BossWindow } from '../ui/BossWindow.js?v=0.65.0';   // v0.47 เช็กบอสโลก/MVP
-import { TILE, AUTOSAVE_SECONDS, SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js?v=0.65.0';
-import { GameMap } from '../world/GameMap.js?v=0.65.0';
-import { MAPS, START_MAP } from '../data/maps/index.js?v=0.65.0';
-import { Player } from '../entities/Player.js?v=0.65.0';
-import { NPC } from '../entities/NPC.js?v=0.65.0';
-import { Input, isTyping } from './Input.js?v=0.65.0';
-import { SaveManager } from './Save.js?v=0.65.0';
-import { findPath, smoothPath, nearestWalkable } from './Pathfinder.js?v=0.65.0';
-import { HUD } from '../ui/HUD.js?v=0.65.0';
-import { Minimap } from '../ui/Minimap.js?v=0.65.0';
-import { MapWindow, regionInfo } from '../ui/MapWindow.js?v=0.65.0';
-import { CardModal } from '../ui/CardView.js?v=0.65.0';
-import { Renderer3D } from '../render/Renderer3D.js?v=0.65.0';
-import { MonsterManager } from '../systems/MonsterAI.js?v=0.65.0';
-import { rollAttack, rollSkill } from '../systems/Combat.js?v=0.65.0';
-import * as WeaponFx from '../systems/WeaponFx.js?v=0.65.0';   // v0.25: ธาตุ/เผ่า/ขนาด + พาสซีฟอาวุธ
-import { skillElement, mobTraits } from '../data/affixes.js?v=0.65.0';
-import { StatusWindow } from '../ui/StatusWindow.js?v=0.65.0';
-import { InventoryWindow } from '../ui/InventoryWindow.js?v=0.65.0';
-import { Hotbar } from '../ui/Hotbar.js?v=0.65.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.65.0';
-import { rollDrops } from '../systems/Loot.js?v=0.65.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.65.0';
-import { Inventory } from '../systems/Inventory.js?v=0.65.0';
-import { NpcDialog } from '../ui/Dialog.js?v=0.65.0';
-import { ShopWindow } from '../ui/ShopWindow.js?v=0.65.0';
-import { StorageWindow } from '../ui/StorageWindow.js?v=0.65.0';
-import { SHOPS, WARP_ROUTES, STORAGE_CAPACITY, buyPrice, sellPrice, fmtZ, MAX_ZENY } from '../data/shops.js?v=0.65.0';
-import { SKILLS, skillSp, skillCast, sval } from '../data/skills.js?v=0.65.0';
-import { JOBS, FIRST_JOBS } from '../data/progression.js?v=0.65.0';
-import { JOB2_QUEST } from '../data/quests.js?v=0.65.0';
-import { SkillWindow } from '../ui/SkillWindow.js?v=0.65.0';
-import { isSkillKey } from '../entities/Player.js?v=0.65.0';
-import { clamp } from './util.js?v=0.65.0';
-import { Social } from '../systems/Social.js?v=0.65.0';
+import { SKILL_VFX } from '../render/PixelVfx.js?v=0.66.0';
+import { EventService } from '../systems/EventService.js?v=0.66.0';
+import { EventWindow } from '../ui/EventWindow.js?v=0.66.0';
+import { MvpService } from '../systems/MvpService.js?v=0.66.0';   // v0.53 MVP ร่วม
+import { GemExchange } from '../ui/GemExchange.js?v=0.66.0';   // v0.50 ตลาดแลกเพชร
+import { WikiWindow } from '../ui/WikiWindow.js?v=0.66.0';   // v0.49 วิกิ
+import { BossWindow } from '../ui/BossWindow.js?v=0.66.0';   // v0.47 เช็กบอสโลก/MVP
+import { TILE, AUTOSAVE_SECONDS, SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js?v=0.66.0';
+import { GameMap } from '../world/GameMap.js?v=0.66.0';
+import { MAPS, START_MAP } from '../data/maps/index.js?v=0.66.0';
+import { Player } from '../entities/Player.js?v=0.66.0';
+import { NPC } from '../entities/NPC.js?v=0.66.0';
+import { Input, isTyping } from './Input.js?v=0.66.0';
+import { SaveManager } from './Save.js?v=0.66.0';
+import { findPath, smoothPath, nearestWalkable } from './Pathfinder.js?v=0.66.0';
+import { HUD } from '../ui/HUD.js?v=0.66.0';
+import { Minimap } from '../ui/Minimap.js?v=0.66.0';
+import { MapWindow, regionInfo } from '../ui/MapWindow.js?v=0.66.0';
+import { CardModal } from '../ui/CardView.js?v=0.66.0';
+import { Renderer3D } from '../render/Renderer3D.js?v=0.66.0';
+import { MonsterManager } from '../systems/MonsterAI.js?v=0.66.0';
+import { rollAttack, rollSkill } from '../systems/Combat.js?v=0.66.0';
+import * as WeaponFx from '../systems/WeaponFx.js?v=0.66.0';   // v0.25: ธาตุ/เผ่า/ขนาด + พาสซีฟอาวุธ
+import { skillElement, mobTraits } from '../data/affixes.js?v=0.66.0';
+import { StatusWindow } from '../ui/StatusWindow.js?v=0.66.0';
+import { InventoryWindow } from '../ui/InventoryWindow.js?v=0.66.0';
+import { Hotbar } from '../ui/Hotbar.js?v=0.66.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.66.0';
+import { rollDrops } from '../systems/Loot.js?v=0.66.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.66.0';
+import { Inventory } from '../systems/Inventory.js?v=0.66.0';
+import { NpcDialog } from '../ui/Dialog.js?v=0.66.0';
+import { ShopWindow } from '../ui/ShopWindow.js?v=0.66.0';
+import { StorageWindow } from '../ui/StorageWindow.js?v=0.66.0';
+import { SHOPS, WARP_ROUTES, STORAGE_CAPACITY, buyPrice, sellPrice, fmtZ, MAX_ZENY } from '../data/shops.js?v=0.66.0';
+import { SKILLS, skillSp, skillCast, sval } from '../data/skills.js?v=0.66.0';
+import { JOBS, FIRST_JOBS } from '../data/progression.js?v=0.66.0';
+import { JOB2_QUEST } from '../data/quests.js?v=0.66.0';
+import { SkillWindow } from '../ui/SkillWindow.js?v=0.66.0';
+import { isSkillKey } from '../entities/Player.js?v=0.66.0';
+import { clamp } from './util.js?v=0.66.0';
+import { Social } from '../systems/Social.js?v=0.66.0';
 const DROP_GATE = 0.4;   // v0.38: โอกาสที่มอนธรรมดาจะดรอปของ (ก่อนลุ้นทีละชิ้น)
-import { PartyFrame } from '../ui/PartyFrame.js?v=0.65.0';
-import { PlayerMenu } from '../ui/PlayerMenu.js?v=0.65.0';
-import { TradeWindow, MarketWindow } from '../ui/TradeMarket.js?v=0.65.0';   // v0.42
-import { CashShopWindow } from '../ui/CashShop.js?v=0.65.0';   // v0.43 ร้านเพชร
-import { QuestNav } from '../systems/QuestNav.js?v=0.65.0';
-import { MONSTERS } from '../data/monsters.js?v=0.65.0';
-import { THREE } from '../render/three.js?v=0.65.0';
-import { WardrobeWindow } from '../ui/WardrobeWindow.js?v=0.65.0';
-import { BoxOpenWindow } from '../ui/BoxOpenWindow.js?v=0.65.0';
-import { rollBox, DUP_ZENY, FASHION_RARITY, TIER_RANK } from '../data/fashionBoxes.js?v=0.65.0';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.65.0';
-import { FASHION_SLOTS, FASHION_WEAPON_FIT } from '../entities/Player.js?v=0.65.0';
-import { QUESTS } from '../data/quests.js?v=0.65.0';
-import { QuestLog, rewardText, npcWhere, goalText } from '../systems/Quests.js?v=0.65.0';
-import { QuestWindow } from '../ui/QuestWindow.js?v=0.65.0';
-import { RefineWindow } from '../ui/RefineWindow.js?v=0.65.0';
-import { doRefine, doSocket } from '../systems/Forge.js?v=0.65.0';
-import { stoneDrops } from '../data/refine.js?v=0.65.0';
-import { cardDrops, CARDS } from '../data/cards.js?v=0.65.0';
-import { statResetCost } from '../data/progression.js?v=0.65.0';
+import { PartyFrame } from '../ui/PartyFrame.js?v=0.66.0';
+import { PlayerMenu } from '../ui/PlayerMenu.js?v=0.66.0';
+import { TradeWindow, MarketWindow } from '../ui/TradeMarket.js?v=0.66.0';   // v0.42
+import { CashShopWindow } from '../ui/CashShop.js?v=0.66.0';   // v0.43 ร้านเพชร
+import { QuestNav } from '../systems/QuestNav.js?v=0.66.0';
+import { MONSTERS } from '../data/monsters.js?v=0.66.0';
+import { THREE } from '../render/three.js?v=0.66.0';
+import { WardrobeWindow } from '../ui/WardrobeWindow.js?v=0.66.0';
+import { BoxOpenWindow } from '../ui/BoxOpenWindow.js?v=0.66.0';
+import { rollBox, DUP_ZENY, FASHION_RARITY, TIER_RANK } from '../data/fashionBoxes.js?v=0.66.0';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.66.0';
+import { FASHION_SLOTS, FASHION_WEAPON_FIT } from '../entities/Player.js?v=0.66.0';
+import { QUESTS } from '../data/quests.js?v=0.66.0';
+import { QuestLog, rewardText, npcWhere, goalText } from '../systems/Quests.js?v=0.66.0';
+import { QuestWindow } from '../ui/QuestWindow.js?v=0.66.0';
+import { RefineWindow } from '../ui/RefineWindow.js?v=0.66.0';
+import { doRefine, doSocket } from '../systems/Forge.js?v=0.66.0';
+import { stoneDrops } from '../data/refine.js?v=0.66.0';
+import { cardDrops, CARDS } from '../data/cards.js?v=0.66.0';
+import { statResetCost } from '../data/progression.js?v=0.66.0';
 // v0.11: เสียง · ตั้งค่า · ออนไลน์ · แชต · เมนูมือถือ
-import { AudioEngine } from '../audio/AudioEngine.js?v=0.65.0';
-import { loadSettings, saveSettings } from '../systems/Settings.js?v=0.65.0';
-import { SettingsWindow } from '../ui/SettingsWindow.js?v=0.65.0';
-import { RemotePlayers } from '../net/RemotePlayers.js?v=0.65.0';
-import { OnlineWindow } from '../ui/OnlineWindow.js?v=0.65.0';
-import { ChatBox } from '../ui/ChatBox.js?v=0.65.0';
-import { MenuPanel } from '../ui/MenuPanel.js?v=0.65.0';
+import { AudioEngine } from '../audio/AudioEngine.js?v=0.66.0';
+import { loadSettings, saveSettings } from '../systems/Settings.js?v=0.66.0';
+import { SettingsWindow } from '../ui/SettingsWindow.js?v=0.66.0';
+import { RemotePlayers } from '../net/RemotePlayers.js?v=0.66.0';
+import { OnlineWindow } from '../ui/OnlineWindow.js?v=0.66.0';
+import { ChatBox } from '../ui/ChatBox.js?v=0.66.0';
+import { MenuPanel } from '../ui/MenuPanel.js?v=0.66.0';
 // v0.13: สัตว์เลี้ยงช่วยเก็บของ · ไอเทมใช้งานชุดใหม่
-import { PetSystem } from '../systems/PetSystem.js?v=0.65.0';
-import { useConsumable, STORAGE_UP } from '../systems/ItemUse.js?v=0.65.0';
-import { CONSUMABLES, consumableDrops } from '../data/consumables.js?v=0.65.0';
-import { PETS, PET_RARITY, hatchEgg as rollHatch } from '../data/pets.js?v=0.65.0';
-import { PetWindow } from '../ui/PetWindow.js?v=0.65.0';
-import { HatchWindow } from '../ui/HatchWindow.js?v=0.65.0';
-import { pickOfTier, FASHION_TIERS } from '../data/fashionBoxes.js?v=0.65.0';
+import { PetSystem } from '../systems/PetSystem.js?v=0.66.0';
+import { useConsumable, STORAGE_UP } from '../systems/ItemUse.js?v=0.66.0';
+import { CONSUMABLES, consumableDrops } from '../data/consumables.js?v=0.66.0';
+import { PETS, PET_RARITY, hatchEgg as rollHatch } from '../data/pets.js?v=0.66.0';
+import { PetWindow } from '../ui/PetWindow.js?v=0.66.0';
+import { HatchWindow } from '../ui/HatchWindow.js?v=0.66.0';
+import { pickOfTier, FASHION_TIERS } from '../data/fashionBoxes.js?v=0.66.0';
 // v0.14: ตีมอนออโต้
-import { AutoHunt } from '../systems/AutoHunt.js?v=0.65.0';
-import { AutoWindow } from '../ui/AutoWindow.js?v=0.65.0';
+import { AutoHunt } from '../systems/AutoHunt.js?v=0.66.0';
+import { AutoWindow } from '../ui/AutoWindow.js?v=0.66.0';
 // v0.15: จดหมาย + ของขวัญต้อนรับ
-import { Mailbox } from '../systems/Mailbox.js?v=0.65.0';
-import { MailWindow } from '../ui/MailWindow.js?v=0.65.0';
-import { Collection } from '../systems/Collection.js?v=0.65.0';          // v0.18: ระบบสะสม
-import { CollectionWindow } from '../ui/CollectionWindow.js?v=0.65.0';
-import { Dungeons } from '../systems/Dungeons.js?v=0.65.0';              // v0.32: ดันเจี้ยนถ้ำ + หอคอย
+import { Mailbox } from '../systems/Mailbox.js?v=0.66.0';
+import { MailWindow } from '../ui/MailWindow.js?v=0.66.0';
+import { Collection } from '../systems/Collection.js?v=0.66.0';          // v0.18: ระบบสะสม
+import { CollectionWindow } from '../ui/CollectionWindow.js?v=0.66.0';
+import { Dungeons } from '../systems/Dungeons.js?v=0.66.0';              // v0.32: ดันเจี้ยนถ้ำ + หอคอย
 
 // เสียงตอนใช้สกิล (เริ่ม) และตอนกระแทก (จังหวะกล้องสั่น)
 const SKILL_SFX = {
   frost_shards: 'cast', glacier_spike: 'iceBlast', blizzard_vortex: 'iceBlast', frost_armor: 'skill', absolute_zero: 'cast',
-  double_shot: 'shoot', gale_rift_arrow: 'shoot', cyclone_trap: 'cast', tailwind_step: 'skill', storm_king_volley: 'shoot', life_seed: 'cast', regrowth_bloom: 'heal', thorn_bloom: 'cast', healing_rain: 'heal', lotus_sanctuary: 'skill', tree_of_life: 'heal',
+  twin_shadow: 'shoot', moon_hawk: 'shoot', shadow_snare: 'shoot', phantom_step: 'skill', eclipse_barrage: 'cast', life_seed: 'cast', regrowth_bloom: 'heal', thorn_bloom: 'cast', healing_rain: 'heal', lotus_sanctuary: 'skill', tree_of_life: 'heal',
   first_aid: 'heal', triple_slash: 'swing', flame_wave: 'swing', blazing_dash: 'swing', inferno_whirl: 'swing', crimson_judgement: 'cast',
   thunder_cut: 'swing', sword_qi_barrage: 'swing', flash_step: 'swing', thousand_blades: 'cast', heaven_splitter: 'cast',
   violet_flare: 'cast', glacial_spikes: 'iceBlast', chain_lightning: 'cast', blizzard: 'iceBlast', arcane_ward: 'skill', void_meteor: 'cast',
-  quick_shot: 'shoot', piercing_shot: 'shoot', scatter_shot: 'shoot', arrow_storm: 'shoot', eagle_eye: 'skill',
+  star_shot: 'shoot', comet_pierce: 'shoot', starburst_volley: 'shoot', starfall_rain: 'shoot', constellation_mark: 'skill',
   holy_light: 'cast', healing_pillar: 'heal', judgement_rays: 'cast', light_blessing: 'heal', holy_bulwark: 'skill', divine_descent: 'heal',
 };
 const IMPACT_SFX = {
-  glacier_spike: 'iceBlast', blizzard_vortex: 'iceBlast', absolute_zero: 'iceBlast', gale_rift_arrow: 'slam', cyclone_trap: 'slam', storm_king_volley: 'thunder', divine_descent: 'explosion', tree_of_life: 'explosion', judgement_rays: 'thunder', thorn_bloom: 'slam', holy_light: 'thunder', life_seed: 'slam',
-  void_meteor: 'explosion', violet_flare: 'explosion', chain_lightning: 'thunder', piercing_shot: 'slam', arrow_storm: 'thunder', scatter_shot: 'slam', 
+  glacier_spike: 'iceBlast', blizzard_vortex: 'iceBlast', absolute_zero: 'iceBlast', moon_hawk: 'slam', shadow_snare: 'slam', eclipse_barrage: 'explosion', twin_shadow: 'slam', divine_descent: 'explosion', tree_of_life: 'explosion', judgement_rays: 'thunder', thorn_bloom: 'slam', holy_light: 'thunder', life_seed: 'slam',
+  void_meteor: 'explosion', violet_flare: 'explosion', chain_lightning: 'thunder', comet_pierce: 'slam', starfall_rain: 'explosion', starburst_volley: 'slam', star_shot: 'slam',
   blizzard: 'iceBlast', glacial_spikes: 'iceBlast', 
   triple_slash: 'slam', flame_wave: 'slam', blazing_dash: 'explosion', inferno_whirl: 'slam', crimson_judgement: 'explosion', thunder_cut: 'thunder', sword_qi_barrage: 'slam', flash_step: 'thunder', thousand_blades: 'slam', heaven_splitter: 'thunder',
 };
@@ -1641,7 +1641,9 @@ export class Game {
   // v0.8: เล่นเอฟเฟกต์สกิลชุดใหม่ — ดาเมจ/สถานะเข้าตามจังหวะภาพ (SkillFX เรียก ctx.hit ตอนลูกไฟตก ดาบฟาด ฯลฯ)
   playSkillFx(id, lv, t, opts = {}) {
     const pl = this.player, sk = SKILLS[id], S = 1 / TILE, fx = this.gfx.fx;
-    if (t) pl.faceToward(t);
+    // v0.65.2 สกิลรอบตัว (target: self) ก็หันหาเป้าที่เลือกอยู่ด้วย → อาวุธ/ท่าฟันชี้ไปทางศัตรู
+    const look = t || (pl.target && !pl.target.dead && pl.target.stats ? pl.target : null);
+    if (look) pl.faceToward(look);
     // v0.35: วาร์ปไปหลังเป้าก่อนเริ่มท่า (ก้าวเงาสังหาร) — ทิ้งเงาไว้ที่จุดเดิม
     let blinkFrom = null;
     if (sk.blink === 'behind' && t) {
@@ -1667,10 +1669,12 @@ export class Game {
       hit: (i, info = {}) => this.skillHit(sk, lv, list[i] && list[i].m, info, origin),
       heal: () => {
         if (pl.dead) return;
-        const amt = Math.max(0, Math.min(pl.maxHp - pl.hp, Math.round((sval(sk.heal, lv, pl) || 0) * (1 + ((pl.bonus && pl.bonus.healPct) || 0) / 100))));
+        const base = Math.round((sval(sk.heal, lv, pl) || 0) * (1 + ((pl.bonus && pl.bonus.healPct) || 0) / 100));
+        const amt = Math.max(0, Math.min(pl.maxHp - pl.hp, base));
         pl.hp += amt;
         if (amt > 0) this.gfx.floatText(pl, `+${amt}`, 'heal', { h: 1.6, drift: false });
         this.hud.setPlayer(pl); this.status.render();
+        this.supportParty('hl', id, lv, base);   // v0.65.2 ฮีลเพื่อนในปาร์ตี้ด้วย (เฉพาะสกิลที่มี sk.party)
       },
       buff: (txt) => this.gfx.floatText(pl, txt, 'buff', { h: 2.6, life: 1.6, rise: 0.5, drift: false }),
       anim: (kind, dur) => this.heroAnim(kind, dur),
@@ -1708,16 +1712,27 @@ export class Game {
     if (opts.vfx) { this.dirty = true; return; }   // v0.35: เอฟเฟกต์เสริม (ขนนกแตก / ปาฏิหาริย์) ไม่ล็อกท่า ไม่ให้บัฟ
     // v0.34: ซ้อนเอฟเฟกต์ภาพพิกเซล (PixelLab) ถ้าสกิลนี้มี
     const pv = SKILL_VFX[id];
+    // v0.65.2 ชีตที่มีทิศ (ผู้ร่ายซ้าย → เป้าขวา) หันตามเป้าบนจอทุกทิศ ไม่ใช่แค่กลับซ้าย/ขวา · เป้าเดินหนี ภาพก็หันตาม
+    // v0.66 สกิลรอบตัวที่ใช้ชีตมุมข้าง (ผูกกลุ่มดาว) หันหาเป้าที่เลือกไว้ (look) ด้วย
+    const tgtPos = look ? () => (look.dead ? null : new THREE.Vector3(look.x * S, 0, look.y * S)) : null;
+    const aim = (max) => (look ? { from: casterPos.clone(), to: tgtPos, max } : null);
     for (const v of pv ? [pv, ...(pv.also || [])] : []) {
-      if (v.side) {   // v0.64 ชีตมุมข้าง (ผู้ร่ายซ้าย ศัตรูขวา): วางที่เท้าผู้ร่าย ไม่ตามตัว · หันหาเป้า · ย่อ/ขยายให้ระยะศัตรูในภาพใกล้ระยะจริง
+      if (v.side) {   // v0.64 ชีตมุมข้าง: วางที่เท้าผู้ร่าย ไม่ตามตัว · ย่อ/ขยายให้ระยะศัตรูในภาพใกล้ระยะจริง
         let scale = v.scale || 1;
-        if (v.fit && t) { const d = Math.hypot(t.x - pl.x, t.y - pl.y) * S, sd = v.fit * (3.55 / 96) * scale; if (sd > 0) scale *= Math.max(0.6, Math.min(1.5, d / sd)); }
-        this.gfx.pixelVfx().play(v.name, casterPos.clone(), { ...v, scale, flip: !!(t && t.x < pl.x) });
+        if (v.fit && look) {
+          // v0.65.2 ใช้ระยะที่เห็นบนระนาบจอ (ตัดส่วนที่พุ่งเข้า/ออกจากกล้อง) → เป้าบน/ล่างจอไม่ทำให้ภาพยาวเกินตัวศัตรู
+          const vd = this.gfx.camera.getWorldDirection(new THREE.Vector3());
+          const dv = new THREE.Vector3((look.x - pl.x) * S, 0, (look.y - pl.y) * S); dv.addScaledVector(vd, -dv.dot(vd));
+          const sd = v.fit * (3.55 / 96) * scale; if (sd > 0) scale *= Math.max(0.6, Math.min(1.5, dv.length() / sd));
+        }
+        this.gfx.pixelVfx().play(v.name, casterPos.clone(), { ...v, scale, flip: !!(look && look.x < pl.x), aim: aim(v.aimMax ?? 1.1) });
         continue;
       }
       const at = v.at === 'self' || !t ? casterPos : new THREE.Vector3(t.x * S, 0, t.y * S);
-      this.gfx.pixelVfx().play(v.name, at, v.at === 'self' ? { ...v, follow: pl, once: true } : (v.flipToCaster && t && pl.x > t.x ? { ...v, flip: true } : v));
-    }   // v0.63 also = เล่นหลายชีตพร้อมกัน (เช่น ปีก + ลำแสง)   // v0.63 also = เล่นหลายชีตพร้อมกัน (เช่น ปีก + ลำแสง)   // v0.60.1 flipToCaster: กลับด้านภาพให้ลูกธนูในชีตพุ่งมาจากฝั่งผู้เล่น
+      if (v.at === 'self') this.gfx.pixelVfx().play(v.name, at, { ...v, follow: pl, once: true });
+      else if (v.flipToCaster && t) this.gfx.pixelVfx().play(v.name, at, { ...v, aim: aim(v.aimMax ?? 1.3) });   // ลูกพลังในชีตพุ่งมาจากฝั่งผู้เล่นทุกทิศ
+      else this.gfx.pixelVfx().play(v.name, at, v);
+    }   // v0.63 also = เล่นหลายชีตพร้อมกัน (เช่น ปีก + ลำแสง)
     // v0.35: โล่นับจำนวนฮิต (คำสัตย์ขนนก)
     if (sk.shield) { const sh = sk.shield(lv); pl.shield = { id, lv, charges: sh.charges, until: this.time + sh.secs }; pl.addBuff(id, lv, {}, sh.secs); this.hud.setBuffs(pl.buffs); }
     // บัฟเข้าทันที (เอฟเฟกต์เป็นแค่ภาพ)
@@ -1726,6 +1741,7 @@ export class Game {
       this.hud.log(`${sk.name} Lv.${lv} (${sk.duration(lv)} วินาที)`, 'lv');
       this.hud.setPlayer(pl); this.hud.setBuffs(pl.buffs); this.status.render();
     }
+    if (sk.bonus || sk.shield) this.supportParty('bf', id, lv);   // v0.65.2 บัฟ/โล่ถึงเพื่อนในปาร์ตี้ด้วย
     pl.lockUntil = this.time + (sk.lock || 0);
     pl.skillDelayUntil = this.time + (sk.delay ?? 0.35) * Math.max(0.3, 1 - ((pl.bonus && pl.bonus.delayPct) || 0) / 100);
     WeaponFx.onSkill(this, sk, sk.heal ? 'heal' : '');
@@ -1967,6 +1983,40 @@ export class Game {
     this.hud.log(`[ปาร์ตี้] ${from} กำจัด ${mob || 'มอนสเตอร์'} · ได้รับ Base EXP ${b} · Job EXP ${j}`, 'exp party-exp');
     this.gfx.floatText(pl, `+${b} EXP`, 'exp', { h: 2.1, life: 1.3, rise: 0.7 });
     this.applyExp(b, j);
+    this.dirty = true;
+  }
+
+  // v0.65.2 ฮีล/บัฟจากสกิลนักบวชถึงเพื่อนในปาร์ตี้ — ฝั่งผู้ร่าย: ส่งผ่านห้องปาร์ตี้ + แสงฮีล/บัฟบนตัวเพื่อนที่อยู่ในรัศมี
+  supportParty(kind, id, lv, amount = 0) {
+    const sk = SKILLS[id];
+    if (!sk || !sk.party || !this.social || this.mode !== 'online') return;
+    if (!this.social.sendSupport(kind, { s: id, lv, a: Math.round(amount), r: sk.party })) return;
+    const pl = this.player, color = sk.color || sk.icon[1], reach = sk.party * TILE + 6;
+    for (const r of this.remote.list.values()) {
+      if (r.dead || !r.peer || !this.social.members.has(r.peer.peer) || Math.hypot(r.x - pl.x, r.y - pl.y) > reach) continue;
+      if (kind === 'hl') this.gfx.healFx(r, color); else this.gfx.buffFx(r, color);
+    }
+  }
+
+  // ฝั่งเพื่อนที่ได้รับ (Social.onSupport กรองข้อมูล/ระยะแล้ว) — ใส่ผลกับตัวเราเอง ด้วยค่าที่ผู้ร่ายคำนวณจากสเตตัสของเขา
+  onPartySupport(kind, p, from) {
+    const sk = SKILLS[p.s], pl = this.player;
+    if (!this.started || !sk || !sk.party || pl.dead) return;
+    const color = sk.color || sk.icon[1];
+    if (kind === 'hl') {
+      const amt = Math.max(0, Math.min(pl.maxHp - pl.hp, p.a));
+      pl.hp += amt;
+      this.gfx.healFx(pl, color);
+      if (amt > 0) this.gfx.floatText(pl, `+${amt}`, 'heal', { h: 1.6, drift: false });
+      this.hud.setPlayer(pl); this.status.render();
+    } else {
+      const lv = Math.min(p.lv, sk.maxLv || 10);
+      if (sk.shield) { const sh = sk.shield(lv); pl.shield = { id: p.s, lv, charges: sh.charges, until: this.time + sh.secs }; pl.addBuff(p.s, lv, {}, sh.secs); }
+      if (sk.bonus) pl.addBuff(p.s, lv, sk.bonus(lv), sk.duration(lv));
+      this.gfx.buffFx(pl, color);
+      this.hud.log(`[ปาร์ตี้] ${from} ใช้ ${sk.name} Lv.${lv} ให้คุณ`, 'party');
+      this.hud.setPlayer(pl); this.hud.setBuffs(pl.buffs); this.status.render();
+    }
     this.dirty = true;
   }
 
