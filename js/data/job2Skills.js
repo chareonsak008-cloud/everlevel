@@ -133,7 +133,7 @@ export const JOB2_SKILLS = {
   /* v0.66 Hunter ชุดใหม่ "พรานเงาจันทรา" (sprite sheet มุมข้าง 24 fps จากผู้พัฒนา) — แทนชุด "เหยี่ยวเงา" */
   twin_shadow: {
     job: 'hunter', name: 'ศรเงาคู่', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['twinshadow', '#c48cff'], req: { hawk_bond: 1 },
-    sp: (lv) => 12 + lv, cast: 0, cd: 0.5, range: 10, vfx: 'nf', ref: 1, lock: 0.4, delay: 0.3, engage: true, element: 'shadow', hitBonus: (lv) => 10 + lv * 3,
+    sp: (lv) => 12 + lv, cast: 0, cd: 0.5, range: 10, vfx: 'hn_twin_shadow', ref: 1, lock: 0.4, delay: 0.3, engage: true, element: 'shadow', hitBonus: (lv) => 10 + lv * 3,
     mult: (lv) => 0.95 + lv * 0.13,
     nf: { anim: 'shoot', hits: [{ t: 0.61, m: 1 }, { t: 0.68, r: 1.2, m: 1, shake: 0.1, stop: 0.05 }] },
     desc: 'ยิงศรเงา 2 ดอกพันเกลียวกันเข้าเป้า โดนสองจังหวะติดกัน ดอกที่สองลามศัตรูข้างเป้า — สกิลยิงหลักของนักล่า',
@@ -141,7 +141,7 @@ export const JOB2_SKILLS = {
   },
   moon_hawk: {
     job: 'hunter', name: 'เหยี่ยวจันทรา', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['moonhawk', '#d8b0ff'], req: { twin_shadow: 3 },
-    sp: (lv) => 24 + lv * 2, cast: 0.3, cd: 3.5, range: 10, vfx: 'nf', ref: 1, lock: 0.6, delay: 0.5, element: 'shadow', hitBonus: () => 40, knock: 1.2,
+    sp: (lv) => 24 + lv * 2, cast: 0.3, cd: 3.5, range: 10, vfx: 'hn_moon_hawk', ref: 1, lock: 0.6, delay: 0.5, element: 'shadow', hitBonus: () => 40, knock: 1.2,
     mult: (lv) => 1.8 + lv * 0.2,
     nf: { anim: 'cast', hits: [{ t: 1.0, line: { len: 11, w: 1.3 }, m: 1, knock: 1, shake: 0.22, stop: 0.06 }] },
     desc: 'ขนนกเงาวนรอบคันธนูแล้วปล่อยเหยี่ยววิญญาณโฉบเป็นคลื่น ทะลุศัตรูทุกตัวในแนวยาว 11 ช่อง ผลักถอย',
@@ -149,7 +149,7 @@ export const JOB2_SKILLS = {
   },
   shadow_snare: {
     job: 'hunter', name: 'กับดักเงา', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['snare', '#a070ff'], req: { hawk_bond: 3 },
-    sp: (lv) => 24 + lv * 2, cast: 0.2, cd: 6, range: 9, vfx: 'nf', ref: 1, lock: 0.5, delay: 0.5, element: 'shadow', hitBonus: () => 30, knock: 1,
+    sp: (lv) => 24 + lv * 2, cast: 0.2, cd: 6, range: 9, vfx: 'hn_shadow_snare', ref: 1, lock: 0.5, delay: 0.5, element: 'shadow', hitBonus: () => 30, knock: 1,
     mult: (lv) => 0.8 + lv * 0.1, stun: () => 1, stunSecs: (lv) => 1.2 + lv * 0.08,
     nf: { anim: 'shoot', flashes: [{ t: 0.69, a: 0.15, color: '#d8b0ff' }, { t: 2.1, a: 0.3, color: '#d8b0ff' }], pull: { from: 0.75, to: 1.6, r: 3.2, step: 3 },
       hits: [{ t: 0.81, r: 2.8, m: 0.5, stun: 1, slow: { pct: 0.6, secs: 3 } }, { t: 2.1, r: 3, m: 2.6, knock: 1, shake: 0.4, stop: 0.06 }] },
@@ -158,7 +158,7 @@ export const JOB2_SKILLS = {
   },
   phantom_step: {
     job: 'hunter', name: 'ก้าวเงา', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['phantom', '#b890ff'], req: { hunter_sense: 3 },
-    sp: 22, cast: 0, cd: 6, range: 9, vfx: 'nf', ref: 1, lock: 0.45, delay: 0.25, element: 'shadow', hitBonus: () => 30,
+    sp: 22, cast: 0, cd: 6, range: 9, vfx: 'hn_phantom_step', ref: 1, lock: 0.45, delay: 0.25, element: 'shadow', hitBonus: () => 30,
     mult: (lv) => 0.6 + lv * 0.08,
     nf: { anim: 'jump', animDur: 0.4, dash: { t: 0, dist: 4, dur: 0.3, back: true }, texts: [{ t: 0.33, text: 'EVADE ▲' }], hits: [{ t: 0.38, r: 1.6, m: 1 }, { t: 0.6, r: 1.6, m: 1 }, { t: 0.76, r: 1.6, m: 1, shake: 0.1 }] },
     duration: (lv) => 8 + lv, bonus: (lv) => ({ speedPct: 20 + lv * 2, flee: 10 + lv * 3, aspdPct: 5 + lv }),
@@ -167,7 +167,7 @@ export const JOB2_SKILLS = {
   },
   eclipse_barrage: {
     job: 'hunter', name: 'จันทร์คราสพิฆาต', maxLv: 5, kind: 'active', target: 'enemy', bow: true, icon: ['eclipse', '#c48cff'], req: { moon_hawk: 5, shadow_snare: 5 },
-    sp: (lv) => 65 + lv * 5, cast: 0.6, cd: 11, range: 10, vfx: 'nf', ref: 1, lock: 1.4, delay: 1.0, element: 'shadow', hitBonus: () => 40, knock: 1.5,
+    sp: (lv) => 65 + lv * 5, cast: 0.6, cd: 11, range: 10, vfx: 'hn_eclipse_barrage', ref: 1, lock: 1.4, delay: 1.0, element: 'shadow', hitBonus: () => 40, knock: 1.5,
     mult: (lv) => 1.1 + lv * 0.2,
     nf: { anim: 'castHold', sky: { t: 0, dark: 0.68, dur: 4.2 }, texts: [{ t: 0.5, text: 'SHADOW ×3' }], flashes: [{ t: 3.11, a: 0.55, color: '#e2b8ff' }],
       hits: [{ t: 1.1, r: 3, m: 0.5 }, { t: 1.35, r: 3, m: 0.5 }, { t: 1.6, r: 3, m: 0.5 }, { t: 1.85, r: 3, m: 0.5 }, { t: 2.1, r: 3, m: 0.5, shake: 0.1 },

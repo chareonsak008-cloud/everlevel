@@ -1,8 +1,8 @@
 // v0.69 สกิลสายเวทชุดใหม่ วาดเป็นเอฟเฟกต์ 3 มิติในฉากจริง (แทน sprite sheet)
 // Mage = เวทม่วงอาคม + น้ำแข็ง + สายฟ้าม่วง (fx_mg_*) · Wizard = น้ำแข็งล้วน (fx_wz_*)
 // ดาเมจ/สถานะยังมาจาก sk.nf ผ่าน fx_nf · ใช้ตัวช่วยจาก SwordFX/HealFX (swBurst · swCharge · swTarget · hlCircle · hlDome)
-import { THREE } from './three.js?v=0.69.0';
-import * as TX from './FxTextures.js?v=0.69.0';
+import { THREE } from './three.js?v=0.70.0';
+import * as TX from './FxTextures.js?v=0.70.0';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);

@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.69.0';
+import { THREE } from './three.js?v=0.70.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -117,18 +117,8 @@ export const SKILL_VFX = {
   // ธนู (Archer) · v0.60 ชุดใหม่ "ศรดารา"
   // v0.66 ชุดใหม่ "นักธนูแสงดาว" (sprite sheet มุมข้าง 24 fps จากผู้พัฒนา · fit 135 = ระยะผู้ร่าย→ศัตรูตัวแรกในภาพ ~5 ช่อง)
   // aimMax เล็ก = สกิลที่มีของบนฟ้า/วงบนพื้น (ไม่ให้เอียงตามเป้ามาก)
-  star_shot: { name: 'nf_star_shot', side: true, fit: 135, scale: 1, delay: 0, solo: true },
-  comet_pierce: { name: 'nf_comet_pierce', side: true, fit: 135, scale: 1, delay: 0, solo: true },
-  starburst_volley: { name: 'nf_starburst_volley', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.3 },
-  constellation_mark: { name: 'nf_constellation_mark', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.3 },
-  starfall_rain: { name: 'nf_starfall_rain', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.25 },
   // นักล่า (Hunter) · v0.60 ชุดใหม่ "เหยี่ยวเงา"
   // v0.66 ชุดใหม่ "พรานเงาจันทรา"
-  twin_shadow: { name: 'nf_twin_shadow', side: true, fit: 135, scale: 1, delay: 0, solo: true },
-  moon_hawk: { name: 'nf_moon_hawk', side: true, fit: 135, scale: 1, delay: 0, solo: true },
-  shadow_snare: { name: 'nf_shadow_snare', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.3 },
-  phantom_step: { name: 'nf_phantom_step', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.5 },
-  eclipse_barrage: { name: 'nf_eclipse_barrage', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.2 },
   // นักเวท (Mage) · v0.60 ชุดใหม่ "เวทพิศวงสีม่วง"
   // จอมเวท (Wizard) · v0.62 ชุดใหม่ "จอมเวทน้ำแข็ง" (sprite sheet 24 fps จากผู้พัฒนา)
   // นักบวช (Acolyte) · v0.63 ชุดใหม่ "นักบวชแสง" (sprite sheet 24 fps จากผู้พัฒนา)

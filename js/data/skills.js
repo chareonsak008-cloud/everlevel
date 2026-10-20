@@ -6,8 +6,8 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.69.0';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.69.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+import { JOBS } from './progression.js?v=0.70.0';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.70.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
@@ -166,7 +166,7 @@ export const SKILLS = {
   /* v0.66 Archer ชุดใหม่ "นักธนูแสงดาว" (sprite sheet มุมข้าง 24 fps จากผู้พัฒนา · วางที่เท้าผู้ร่าย หันหาเป้า) — แทนชุด "พรานศรทะลวง" */
   star_shot: {
     job: 'archer', name: 'ยิงดารา', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['starshot', '#ffd06a'],
-    sp: (lv) => 6 + lv, cast: 0, cd: 0.4, range: 9, vfx: 'nf', ref: 1, lock: 0.4, delay: 0.25, engage: true, hitBonus: (lv) => lv * 5,
+    sp: (lv) => 6 + lv, cast: 0, cd: 0.4, range: 9, vfx: 'ar_star_shot', ref: 1, lock: 0.4, delay: 0.25, engage: true, hitBonus: (lv) => lv * 5,
     mult: (lv) => 1.3 + lv * 0.16,
     nf: { anim: 'shoot', hits: [{ t: 0.56, r: 1, m: 1, shake: 0.1, stop: 0.05 }] },
     desc: 'รวมแสงดาวที่คันธนูแล้วปล่อยศรทองพุ่งเข้าเป้า ปักแล้วแตกเป็นดาวแปดแฉก — สกิลยิงหลัก ใช้ได้ถี่',
@@ -174,7 +174,7 @@ export const SKILLS = {
   },
   comet_pierce: {
     job: 'archer', name: 'ศรดาวหาง', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['comet', '#ffc04a'], req: { star_shot: 3 },
-    sp: (lv) => 16 + lv * 2, cast: 0.3, cd: 2.5, range: 10, vfx: 'nf', ref: 1, lock: 0.7, delay: 0.4, hitBonus: () => 40, knock: 1,
+    sp: (lv) => 16 + lv * 2, cast: 0.3, cd: 2.5, range: 10, vfx: 'ar_comet_pierce', ref: 1, lock: 0.7, delay: 0.4, hitBonus: () => 40, knock: 1,
     mult: (lv) => 2.4 + lv * 0.26,
     nf: { anim: 'shoot', animDur: 0.6, sky: { t: 0, dark: 0.3, dur: 1.4 }, hits: [{ t: 0.86, line: { len: 11, w: 1 }, m: 1, knock: 1, shake: 0.3, stop: 0.05 }] },
     desc: 'ฟ้ามืดลง ชาร์จแสงดาวเต็มแรงแล้วยิงศรดาวหาง ทะลุทุกตัวในแนวยาว 11 ช่อง แต่ละตัวที่โดนแตกเป็นดาว — ศรเดียวที่แรงที่สุด',
@@ -182,7 +182,7 @@ export const SKILLS = {
   },
   starburst_volley: {
     job: 'archer', name: 'ศรกระจายดารา', maxLv: 10, kind: 'active', target: 'enemy', bow: true, icon: ['starburst', '#ffe08a'], req: { star_shot: 3 },
-    sp: (lv) => 20 + lv * 2, cast: 0.2, cd: 3, range: 10, vfx: 'nf', ref: 1, lock: 0.5, delay: 0.45, hitBonus: () => 20,
+    sp: (lv) => 20 + lv * 2, cast: 0.2, cd: 3, range: 10, vfx: 'ar_starburst_volley', ref: 1, lock: 0.5, delay: 0.45, hitBonus: () => 20,
     mult: (lv) => 0.7 + lv * 0.09,
     nf: { anim: 'shoot', flashes: [{ t: 0.61, a: 0.15, color: '#ffe8aa' }], hits: [{ t: 1.03, r: 2.8, m: 1 }, { t: 1.19, r: 2.8, m: 1 }, { t: 1.37, r: 3, m: 1.2, shake: 0.15 }] },
     desc: 'ยิงศรขึ้นฟ้า ศรแตกเป็นดาว แล้วกลายเป็นศร 14 ดอกโค้งตกใส่ศัตรูรอบเป้า 3 ระลอก — สกิลยิงหมู่',
@@ -190,7 +190,7 @@ export const SKILLS = {
   },
   constellation_mark: {
     job: 'archer', name: 'ผูกกลุ่มดาว', maxLv: 10, kind: 'active', target: 'self', icon: ['constellation', '#bcd2ff'], req: { keen_eye: 3 },
-    sp: 24, cast: 0, cd: 1, vfx: 'nf', lock: 0.4, delay: 0.4,
+    sp: 24, cast: 0, cd: 1, vfx: 'ar_constellation_mark', lock: 0.4, delay: 0.4,
     nf: { at: 'self', anim: 'cast', texts: [{ t: 0.31, text: 'CRIT ▲' }] },
     duration: (lv) => 90 + lv * 9, bonus: (lv) => ({ dex: 2 + lv, crit: lv * 0.006, critDmgPct: lv * 3, rangeTiles: 1 + Math.floor(lv / 4), rangedPct: lv }),
     desc: 'วงกลุ่มดาวหมุนใต้เท้า เส้นแสงผูกศัตรูรอบตัวเป็นกลุ่มดาวแล้วล็อกเป้า คริติคอลบ่อยขึ้น แรงขึ้น และยิงได้ไกลขึ้น',
@@ -198,7 +198,7 @@ export const SKILLS = {
   },
   starfall_rain: {
     job: 'archer', name: 'ฝนดาวตก', maxLv: 5, kind: 'active', target: 'enemy', bow: true, icon: ['starfall', '#ffd06a'], req: { comet_pierce: 5, starburst_volley: 3 },
-    sp: (lv) => 55 + lv * 4, cast: 0.6, cd: 10, range: 10, vfx: 'nf', ref: 1, lock: 1.2, delay: 0.9, element: 'holy', hitBonus: () => 40, knock: 1.5,
+    sp: (lv) => 55 + lv * 4, cast: 0.6, cd: 10, range: 10, vfx: 'ar_starfall_rain', ref: 1, lock: 1.2, delay: 0.9, element: 'holy', hitBonus: () => 40, knock: 1.5,
     mult: (lv) => 0.9 + lv * 0.18, stun: () => 0.5, stunSecs: 1.5,
     nf: { anim: 'shoot', animDur: 0.6, sky: { t: 0, dark: 0.6, dur: 4 }, flashes: [{ t: 0.61, a: 0.15, color: '#ffe8aa' }, { t: 2.89, a: 0.5, color: '#ffe8aa' }],
       hits: [{ t: 1.39, r: 3, m: 0.6 }, { t: 1.67, r: 3, m: 0.6 }, { t: 1.94, r: 3, m: 0.6 }, { t: 2.22, r: 3, m: 0.6, shake: 0.1 }, { t: 2.5, r: 3, m: 0.6, shake: 0.1 }, { t: 2.89, r: 3.4, m: 4, knock: 1, stun: 1, shake: 1, stop: 0.14 }] },
