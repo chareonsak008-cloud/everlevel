@@ -1,5 +1,5 @@
 // เครื่องมือเรขาคณิต: กล่องที่ UV ตามขนาดจริง, รวม geometry, วัสดุแคช
-import { THREE } from './three.js?v=0.71.1';
+import { THREE } from './three.js?v=0.72.0';
 
 const matCache = new Map();
 export function material(key, make) {

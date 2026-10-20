@@ -1,8 +1,8 @@
 // ข้อมูลจดหมาย (v0.15) — ของขวัญต้อนรับผู้เล่นใหม่ + ตรวจข้อมูลจดหมายจากเซิร์ฟเวอร์
-import { ITEMS } from './items.js?v=0.71.1';
-import { SETS, COSTUME_BY_ID } from './costumes.js?v=0.71.1';
-import { PETS } from './pets.js?v=0.71.1';
-import { TIER_RANK } from './fashionBoxes.js?v=0.71.1';
+import { ITEMS } from './items.js?v=0.72.0';
+import { SETS, COSTUME_BY_ID } from './costumes.js?v=0.72.0';
+import { PETS } from './pets.js?v=0.72.0';
+import { TIER_RANK } from './fashionBoxes.js?v=0.72.0';
 
 // ชุดเซ็ตเริ่มต้นให้เลือก 1 เซ็ต (ระดับธรรมดา–หายาก ไม่แย่งของในกล่องสุ่ม) · สัตว์เลี้ยงระดับธรรมดา–หายาก
 export const WELCOME_SETS = ['s_summer', 's_halloween', 's_ninja', 's_kitty', 's_cafe', 's_snowfest'];
