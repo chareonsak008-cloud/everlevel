@@ -1,8 +1,8 @@
 // ไอคอนสกิล วาดด้วย Canvas: เหรียญสีประจำสกิล + สัญลักษณ์สีขาวตัดเส้นเข้ม
-import { SKILLS } from '../data/skills.js?v=0.62.0';
-import { shadeHex } from './Textures.js?v=0.62.0';
-import { PIXEL } from './PixelSprites.js?v=0.62.0';
-import { pixelizeCanvas } from './PixelArt.js?v=0.62.0';
+import { SKILLS } from '../data/skills.js?v=0.63.0';
+import { shadeHex } from './Textures.js?v=0.63.0';
+import { PIXEL } from './PixelSprites.js?v=0.63.0';
+import { pixelizeCanvas } from './PixelArt.js?v=0.63.0';
 
 const S = 64;
 const LINE = '#1c1222';
@@ -36,6 +36,63 @@ const star = (g, cx, cy, r1, r2, n = 5, rot = -Math.PI / 2) => {
 };
 
 const DRAW = {
+  // ---------- v0.63 สายนักบวชชุดใหม่ ----------
+  holyorb(g) {   // ลูกแสงพุ่ง มีหางแสง
+    stroke(g, (g) => { g.moveTo(10, 50); g.lineTo(28, 36); g.moveTo(14, 56); g.lineTo(30, 42); g.moveTo(8, 42); g.lineTo(24, 32); }, '#fff2b0', 3);
+    glyph(g, (g) => g.arc(38, 26, 13, 0, Math.PI * 2), '#fffbe6');
+    glyph(g, (g) => star(g, 38, 26, 9, 3.5, 4, 0), '#ffd86b', 3);
+  },
+  pillar(g) {   // ลำแสงจากฟ้าลงพื้น + กากบาทฟื้นฟู
+    glyph(g, (g) => { g.moveTo(24, 6); g.lineTo(40, 6); g.lineTo(44, 50); g.lineTo(20, 50); g.closePath(); }, '#fff6c8');
+    glyph(g, (g) => g.ellipse(32, 51, 20, 6, 0, 0, Math.PI * 2), '#ffe08a', 4);
+    stroke(g, (g) => { g.moveTo(32, 18); g.lineTo(32, 38); g.moveTo(22, 28); g.lineTo(42, 28); }, '#5ad87a', 4);
+  },
+  bless(g) {   // ดาบชูขึ้น + ลูกศรพลังขึ้น + ประกาย
+    glyph(g, (g) => { g.moveTo(26, 8); g.lineTo(30, 14); g.lineTo(30, 40); g.lineTo(22, 40); g.lineTo(22, 14); g.closePath(); }, '#eef4ff');
+    glyph(g, (g) => g.rect(15, 40, 22, 5), '#e8c050', 4);
+    glyph(g, (g) => g.rect(23, 45, 6, 10), '#7a5232', 4);
+    glyph(g, (g) => { g.moveTo(46, 14); g.lineTo(56, 26); g.lineTo(50, 26); g.lineTo(50, 40); g.lineTo(42, 40); g.lineTo(42, 26); g.lineTo(36, 26); g.closePath(); }, '#ffd86b', 4);
+    glyph(g, (g) => star(g, 48, 50, 6, 2, 4, 0), '#ffffff', 3);
+  },
+  sanctumshield(g) {   // โดมแสงครอบ + โล่กางเขน
+    stroke(g, (g) => { g.arc(32, 46, 26, Math.PI, 0); }, '#fff2b0', 3);
+    stroke(g, (g) => { g.moveTo(6, 46); g.lineTo(58, 46); }, '#ffe08a', 3);
+    glyph(g, (g) => { g.moveTo(32, 16); g.lineTo(46, 21); g.quadraticCurveTo(46, 42, 32, 52); g.quadraticCurveTo(18, 42, 18, 21); g.closePath(); }, '#fffbe6');
+    stroke(g, (g) => { g.moveTo(32, 24); g.lineTo(32, 44); g.moveTo(25, 31); g.lineTo(39, 31); }, '#e8a830', 3);
+  },
+  divine(g) {   // ปีกคู่ + วงแหวนเทวดา + แสงลง
+    for (const sgn of [-1, 1]) glyph(g, (g) => { g.moveTo(32, 34); g.quadraticCurveTo(32 + sgn * 18, 14, 32 + sgn * 28, 16); g.quadraticCurveTo(32 + sgn * 22, 26, 32 + sgn * 26, 30); g.quadraticCurveTo(32 + sgn * 18, 34, 32 + sgn * 22, 42); g.quadraticCurveTo(32 + sgn * 12, 44, 32, 40); g.closePath(); }, '#fff6dc', 4);
+    stroke(g, (g) => g.ellipse(32, 12, 9, 3.5, 0, 0, Math.PI * 2), '#ffd86b', 3);
+    glyph(g, (g) => { g.moveTo(28, 22); g.lineTo(36, 22); g.lineTo(38, 56); g.lineTo(26, 56); g.closePath(); }, '#ffe9a0', 3);
+  },
+  seed(g) {   // เมล็ดเรืองแสง + ต้นอ่อนงอก
+    stroke(g, (g) => { g.moveTo(32, 40); g.quadraticCurveTo(30, 26, 32, 16); }, '#4ac06a', 4);
+    glyph(g, (g) => { g.moveTo(32, 22); g.quadraticCurveTo(18, 12, 12, 20); g.quadraticCurveTo(20, 30, 32, 24); g.closePath(); }, '#8ae88a', 3);
+    glyph(g, (g) => { g.moveTo(32, 18); g.quadraticCurveTo(46, 6, 52, 14); g.quadraticCurveTo(44, 26, 32, 20); g.closePath(); }, '#8ae88a', 3);
+    glyph(g, (g) => g.ellipse(32, 46, 11, 9, 0, 0, Math.PI * 2), '#d8ffc8');
+    glyph(g, (g) => star(g, 32, 46, 5, 2, 4, 0), '#ffffff', 2);
+  },
+  bloom(g) {   // ดอกไม้บาน 6 กลีบ
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; glyph(g, (g) => g.ellipse(32 + Math.cos(a) * 13, 32 + Math.sin(a) * 13, 9, 6, a, 0, Math.PI * 2), '#e8fff0', 4); }
+    glyph(g, (g) => g.arc(32, 32, 8, 0, Math.PI * 2), '#ffe08a', 4);
+    stroke(g, (g) => { g.moveTo(32, 28); g.lineTo(32, 36); g.moveTo(28, 32); g.lineTo(36, 32); }, '#4ac06a', 2);
+  },
+  healrain(g) {   // เมฆ + หยดฝนรูปหัวใจ/หยด
+    glyph(g, (g) => { g.moveTo(14, 30); g.arc(20, 26, 8, Math.PI * 0.5, Math.PI * 1.5); g.arc(32, 18, 11, Math.PI, 0); g.arc(45, 26, 8, Math.PI * 1.5, Math.PI * 0.5); g.closePath(); }, '#eaffff');
+    for (const [x, y] of [[20, 44], [32, 50], [44, 44]]) glyph(g, (g) => { g.moveTo(x, y - 9); g.quadraticCurveTo(x + 6, y, x, y + 4); g.quadraticCurveTo(x - 6, y, x, y - 9); g.closePath(); }, '#8ae8ff', 3);
+  },
+  lotus(g) {   // ดอกบัวบนผิวน้ำ
+    stroke(g, (g) => { g.ellipse(32, 50, 24, 6, 0, 0, Math.PI * 2); }, '#8ae8d8', 3);
+    glyph(g, (g) => { g.moveTo(32, 46); g.quadraticCurveTo(10, 40, 10, 26); g.quadraticCurveTo(24, 30, 32, 46); }, '#c8ffe8', 4);
+    glyph(g, (g) => { g.moveTo(32, 46); g.quadraticCurveTo(54, 40, 54, 26); g.quadraticCurveTo(40, 30, 32, 46); }, '#c8ffe8', 4);
+    glyph(g, (g) => { g.moveTo(32, 46); g.quadraticCurveTo(20, 30, 32, 10); g.quadraticCurveTo(44, 30, 32, 46); }, '#f0fff8', 4);
+  },
+  lifetree(g) {   // ต้นไม้แห่งชีวิต พุ่มกลม + ลำต้น + รากเรืองแสง
+    glyph(g, (g) => { g.moveTo(28, 56); g.lineTo(29, 36); g.lineTo(35, 36); g.lineTo(36, 56); g.closePath(); }, '#a8784a', 4);
+    stroke(g, (g) => { g.moveTo(28, 56); g.quadraticCurveTo(20, 56, 14, 58); g.moveTo(36, 56); g.quadraticCurveTo(44, 56, 50, 58); }, '#5ae0a0', 3);
+    glyph(g, (g) => { g.arc(32, 22, 15, 0, Math.PI * 2); g.moveTo(20, 32); g.arc(20, 30, 9, 0, Math.PI * 2); g.moveTo(53, 30); g.arc(44, 30, 9, 0, Math.PI * 2); }, '#8af0b0');
+    glyph(g, (g) => star(g, 32, 22, 6, 2.4, 4, 0), '#ffffff', 2);
+  },
   book(g) {
     glyph(g, (g) => { g.moveTo(14, 18); g.lineTo(31, 22); g.lineTo(31, 50); g.lineTo(14, 46); g.closePath(); }, '#fff6dc');
     glyph(g, (g) => { g.moveTo(50, 18); g.lineTo(33, 22); g.lineTo(33, 50); g.lineTo(50, 46); g.closePath(); }, '#fff6dc');

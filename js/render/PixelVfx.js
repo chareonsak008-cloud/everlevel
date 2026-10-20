@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.62.0';
+import { THREE } from './three.js?v=0.63.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -130,17 +130,16 @@ export const SKILL_VFX = {
   blizzard_vortex: { name: 'nf_blizzard_vortex', at: 'target', scale: 1.2, delay: 0, behind: true, solo: true },
   frost_armor: { name: 'nf_frost_armor', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
   absolute_zero: { name: 'nf_absolute_zero', at: 'target', scale: 1.15, delay: 0, behind: true, solo: true },
-  // นักบวช (Acolyte) · v0.60 ชุดใหม่ "แสงศรัทธา"
-  lumen_heal: { name: 'nf_lumen_heal', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
-  radiant_lance: { name: 'nf_radiant_lance', at: 'target', scale: 1.2, delay: 0, solo: true, maxT: 1.6 },
-  star_blessing: { name: 'nf_star_blessing', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true },
-  holy_ground: { name: 'nf_holy_ground', at: 'self', scale: 1.6, delay: 0.07, behind: true, solo: true },
-  sacred_chains: { name: 'nf_sacred_chains', at: 'target', scale: 1.3, delay: 0.07, behind: true, solo: true },
-  heavens_cross: { name: 'nf_heavens_cross', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
-  // นักบวชชั้นสูง (Priest) · v0.60 ชุดใหม่ "เทวทูตทองคำ"
-  lotus_renewal: { name: 'nf_lotus_renewal', at: 'self', scale: 1.4, delay: 0, behind: true, solo: true },
-  aegis_of_light: { name: 'nf_aegis_of_light', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true },
-  judgement_blades: { name: 'nf_judgement_blades', at: 'target', scale: 1.4, delay: 0.07, behind: true, solo: true },
-  purifying_dawn: { name: 'nf_purifying_dawn', at: 'self', scale: 1.6, delay: 0.07, behind: true, solo: true },
-  seraph_judgement: { name: 'nf_seraph_judgement', at: 'self', scale: 1.8, delay: 0.07, behind: true, solo: true },
+  // นักบวช (Acolyte) · v0.63 ชุดใหม่ "นักบวชแสง" (sprite sheet 24 fps จากผู้พัฒนา)
+  holy_light: { name: 'nf_holy_light', at: 'target', scale: 1.15, delay: 0, solo: true, flipToCaster: true },
+  healing_pillar: { name: 'nf_healing_pillar', at: 'self', scale: 1.4, delay: 0, behind: true, solo: true },
+  light_blessing: { name: 'nf_light_blessing', at: 'self', scale: 1.25, delay: 0, behind: true, solo: true },
+  holy_bulwark: { name: 'nf_holy_bulwark', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
+  divine_descent: { name: 'nf_divine_descent', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true, also: [{ name: 'nf_divine_wings', at: 'self', scale: 1.15, delay: 0, behind: true }] },
+  // นักบวชชั้นสูง (Priest) · v0.63 ชุดใหม่ "ผู้พิทักษ์ชีวิต"
+  life_seed: { name: 'nf_life_seed', at: 'target', scale: 1.15, delay: 0, solo: true, flipToCaster: true },
+  regrowth_bloom: { name: 'nf_regrowth_bloom', at: 'self', scale: 1.25, delay: 0, behind: true, solo: true },
+  healing_rain: { name: 'nf_healing_rain', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true },
+  lotus_sanctuary: { name: 'nf_lotus_sanctuary', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
+  tree_of_life: { name: 'nf_tree_of_life', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true },
 };

@@ -9,7 +9,7 @@
 //   pull: { from, to, r, step }  (ดูดศัตรูในรัศมี r เข้าหาจุดกลาง ความเร็ว step ช่อง/วิ ระหว่างเวลา from→to)
 //   sky: { t, dark, dur }  (ฟ้ามืดลง) · lift: { t, h, dur, hold } (ตัวลอย)
 //   dash: { t, dist, dur, back }  (พุ่งตัว dist หน่วยโลก · back = ถอยหนีเป้า/ถอยหลัง)
-//   flashes: [{ t, a, color }]  (แฟลชเต็มจอ)
+//   flashes: [{ t, a, color }]  (แฟลชเต็มจอ) · texts: [{ t, text }] (ข้อความลอยเหนือหัว เช่น SHIELD)
 //   arrows: [{ t, n, gap, all, arc }]  (ยิงลูกธนูจริงไปหาเป้าหลัก n ดอก ห่างกัน gap วิ · all = ยิงใส่ทุกเป้าในรัศมี r แทน)
 // }
 export function installNFSkills(proto) {
@@ -56,6 +56,7 @@ export function installNFSkills(proto) {
       c.move(from.addScaledVector(dir, S.dash.dist || 3), S.dash.dur || 0.25);
     });
     if (S.flashes && c.flash) for (const F of S.flashes) this.after(F.t || 0, () => c.flash(F.color || '#cfe9ff', F.a ?? 0.3));
+    if (S.texts && c.buff) for (const X of S.texts) this.after(X.t || 0, () => c.buff(X.text));
     if (S.sky && c.sky) this.after(S.sky.t || 0, () => c.sky(S.sky.dark ?? 0.6, S.sky.dur || 2));
     if (S.lift && c.lift) this.after(S.lift.t || 0, () => c.lift(S.lift.h || 1, S.lift.dur || 0.5, S.lift.hold || 0));
     const end = Math.max(0.6, ...hits.map((h) => h.t || 0), ...(S.heals || [0]), S.pull ? S.pull.to || 0 : 0);
