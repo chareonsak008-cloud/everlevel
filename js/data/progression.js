@@ -20,7 +20,7 @@ export const JOBS = {
   mage: {
     name: 'Mage', thai: 'นักเวทย์', crest: 'M', color: '#b48cff', maxJobLevel: 99, hp: 0.8, sp: 2.4, jobExp: 2.4,
     jobStats: { int: 0.18, dex: 0.08, agi: 0.04 }, weapons: ['none', 'knife', 'staff'], gift: 'oak_staff',
-    role: 'เวทระยะไกล คุมฝูง ดาเมจสูง', desc: 'ผู้ใช้เวทพิศวงสีม่วง หอกเพลิง หนามน้ำแข็ง สายฟ้าลูกโซ่ พายุหิมะ และห่าอุกกาบาต ร่างกายบอบบางแต่พลังทำลายล้างสูง',
+    role: 'เวทระยะไกล คุมฝูง ดาเมจสูง', desc: 'จอมเวทอาคมสีม่วง ยิงลูกพลังเวท ระเบิดรูน เรียกเสาสายฟ้า กางโล่มานา และเรียกมหาวิบัติเวท ร่างกายบอบบางแต่พลังทำลายล้างสูง',
   },
   archer: {
     name: 'Archer', thai: 'นักธนู', crest: 'A', color: '#8fe08a', maxJobLevel: 99, hp: 1.1, sp: 1.2, jobExp: 2.4,

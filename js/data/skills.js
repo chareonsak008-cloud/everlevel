@@ -6,8 +6,8 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.70.0';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.70.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+import { JOBS } from './progression.js?v=0.71.0';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.71.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
@@ -88,7 +88,7 @@ export const SKILLS = {
     effect: (lv) => `${pct(2.6 + lv * 0.5)}% + ${pct((2.6 + lv * 0.5) * 0.7)}% ATK รอบเป้า 3.2–3.4 ช่อง · ผลักกระเด็น · คูลดาวน์ 10 วิ`,
   },
 
-  /* ---------- Mage · v0.60 ชุดใหม่ "เวทพิศวงสีม่วง" (ภาพ Night Forge · ดาเมจตามจังหวะใน sk.nf) ---------- */
+  /* ---------- Mage · สกิลติดตัว (v0.60) + ชุดกดใช้ "จอมเวทอาคม" (v0.71) ---------- */
   arcane_focus: {
     job: 'mage', name: 'สมาธิอาคม', maxLv: 10, kind: 'passive', icon: ['orb', '#b48cff'],
     desc: 'ดวงจิตนิ่งดั่งผลึก พลังเวทแรงขึ้นและมานาฟื้นเร็วขึ้น',
@@ -101,53 +101,46 @@ export const SKILLS = {
     effect: (lv) => `เวลาร่าย -${lv * 3}% · ดีเลย์หลังร่าย -${lv}% · MDEF +${lv}`,
     passive: (lv) => ({ castPct: lv * 3, delayPct: lv, mdef: lv }),
   },
-  violet_flare: {
-    job: 'mage', name: 'หอกเพลิงม่วง', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['flame', '#c06aff'],
-    sp: (lv) => 8 + lv, cast: 0.25, cd: 0.6, range: 9, vfx: 'mg_violet_flare', ref: 1, lock: 0.45, delay: 0.3, engage: true, element: 'fire',
-    mult: (lv) => 1.1 + lv * 0.14,
-    nf: { magic: true, anim: 'cast', hits: [{ t: 0.3, m: 1 }, { t: 0.5, r: 1.2, m: 0.5, shake: 0.08 }] },
-    desc: 'ชี้ไม้เท้า หอกเพลิงสีม่วงพุ่งเสียบเป้า แล้วแตกเป็นเปลวเพลิงลามศัตรูข้าง ๆ — สกิลเวทหลัก ร่ายไว',
-    effect: (lv) => `${pct(1.1 + lv * 0.14)}% MATK + ลาม ${pct((1.1 + lv * 0.14) * 0.5)}% รอบเป้า 1.2 ช่อง`,
+  /* v0.71 Mage ชุดใหม่ "จอมเวทอาคม" (เอฟเฟกต์ 3 มิติในฉาก fx_ma_*) — แทนชุด "เวทพิศวงสีม่วง" v0.60 (หอกเพลิง/น้ำแข็ง/สายฟ้า/พายุหิมะ/เกราะ/อุกกาบาต) */
+  arcane_bolt: {
+    job: 'mage', name: 'ลูกพลังเวท', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['orb', '#c06aff'],
+    sp: (lv) => 8 + lv, cast: 0.2, cd: 0.5, range: 9, vfx: 'ma_arcane_bolt', ref: 1, lock: 0.4, delay: 0.3, engage: true,
+    mult: (lv) => 1.25 + lv * 0.16,
+    nf: { magic: true, anim: 'cast', hits: [{ t: 0.38, m: 1, shake: 0.06 }, { t: 0.46, r: 1, m: 0.3 }] },
+    desc: 'วาดอักขระเวทที่ปลายไม้เท้า แล้วยิงลูกพลังเวทหมุนวนพุ่งเข้าเป้า ระเบิดเป็นเกล็ดอักขระ ลามศัตรูชิดเป้า — สกิลเวทหลัก ร่ายไว',
+    effect: (lv) => `${pct(1.25 + lv * 0.16)}% MATK + ลาม ${pct((1.25 + lv * 0.16) * 0.3)}% รอบเป้า 1 ช่อง · คูลดาวน์ 0.5 วิ`,
   },
-  glacial_spikes: {
-    job: 'mage', name: 'หนามน้ำแข็งระเบิด', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['ice', '#7fd8ff'], req: { violet_flare: 3 },
-    sp: (lv) => 18 + lv * 2, cast: 0.6, cd: 3, range: 9, vfx: 'mg_glacial_spikes', ref: 1, lock: 0.6, delay: 0.5, element: 'water',
-    mult: (lv) => 0.9 + lv * 0.1, freeze: (lv) => 0.35 + lv * 0.05, freezeSecs: (lv) => 1.5 + lv * 0.15,
-    nf: { magic: true, anim: 'cast', hits: [{ t: 0.45, r: 2.4, m: 1, slow: { pct: 0.4, secs: 3 } }, { t: 0.85, r: 2.6, m: 1, freeze: 2, shake: 0.14 }] },
-    desc: 'น้ำแข็งก่อตัวใต้เป้า ผลึกหนามพุ่งขึ้น 2 ระลอก ศัตรูในวงช้าลง และระลอกที่สองมีโอกาสแช่แข็ง',
-    effect: (lv) => `2 × ${pct(0.9 + lv * 0.1)}% MATK รอบเป้า 2.4 ช่อง · ช้าลง 40% · แช่แข็ง ${35 + lv * 5}% นาน ${(1.5 + lv * 0.15).toFixed(1)} วิ`,
+  rune_burst: {
+    job: 'mage', name: 'ระเบิดรูน', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['burst', '#b06aff'], req: { arcane_bolt: 3 },
+    sp: (lv) => 18 + lv * 2, cast: 0.5, cd: 3, range: 9, vfx: 'ma_rune_burst', ref: 1, lock: 0.6, delay: 0.5, knock: 1,
+    mult: (lv) => 1.0 + lv * 0.12,
+    nf: { magic: true, anim: 'cast', hits: [{ t: 0.55, r: 2.4, m: 0.6, shake: 0.1 }, { t: 0.9, r: 2.8, m: 1.4, knock: 1, shake: 0.3, stop: 0.05 }] },
+    desc: 'วงรูนเปิดใต้ศัตรู อักขระลอยหมุนขึ้น ลำแสงเวท 6 สายตกลงรอบวง แล้วลำแสงใหญ่กลางวงระเบิดผลักศัตรูกระเด็น — สกิลโจมตีหมู่',
+    effect: (lv) => `${pct((1.0 + lv * 0.12) * 0.6)}% + ${pct((1.0 + lv * 0.12) * 1.4)}% MATK รอบเป้า 2.4–2.8 ช่อง · ผลักถอย`,
   },
-  chain_lightning: {
-    job: 'mage', name: 'สายฟ้าลูกโซ่', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['bolt', '#ffe24a'], req: { violet_flare: 3 },
-    sp: (lv) => 20 + lv * 2, cast: 0.5, cd: 2.5, range: 9, vfx: 'mg_chain_lightning', ref: 1, lock: 0.7, delay: 0.5, element: 'wind',
-    mult: (lv) => 0.7 + lv * 0.09, stun: (lv) => 0.1 + lv * 0.03, stunSecs: 1.2,
-    nf: { magic: true, anim: 'cast', hits: [{ t: 0.3, m: 1.3 }, { t: 0.6, r: 2.6, m: 1 }, { t: 0.9, r: 2.6, m: 1 }, { t: 1.2, r: 2.8, m: 1, stun: 1.2, shake: 0.14 }] },
-    desc: 'สายฟ้าสีม่วงฟาดเป้าหลัก แล้วแตกลูกโซ่ไปศัตรูรอบข้าง 3 ระลอก ระลอกสุดท้ายมีโอกาสทำให้มึน',
-    effect: (lv) => `เป้าหลัก ${pct((0.7 + lv * 0.09) * 1.3)}% + ลูกโซ่ 3 × ${pct(0.7 + lv * 0.09)}% MATK รอบ 2.6 ช่อง · มึน ${10 + lv * 3}%`,
+  thunder_pillar: {
+    job: 'mage', name: 'เสาสายฟ้า', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['bolt', '#d0a0ff'], req: { arcane_bolt: 3 },
+    sp: (lv) => 22 + lv * 2, cast: 0.6, cd: 4, range: 9, vfx: 'ma_thunder_pillar', ref: 1, lock: 0.7, delay: 0.5, element: 'wind',
+    mult: (lv) => 0.8 + lv * 0.1, stun: (lv) => 0.15 + lv * 0.03, stunSecs: 1.2,
+    nf: { magic: true, anim: 'cast', flashes: [{ t: 1.0, a: 0.25, color: '#e2c8ff' }], hits: [{ t: 0.5, r: 2.6, m: 0.7 }, { t: 0.75, r: 2.6, m: 0.7 }, { t: 1.0, r: 2.8, m: 1.4, stun: 1.2, shake: 0.3, stop: 0.05 }] },
+    desc: 'วงเรียกสายฟ้าเปิดใต้ศัตรู เสาสายฟ้าม่วงพุ่งจากพื้นขึ้นฟ้า แตกสายฟ้าฟาดศัตรูรอบ ๆ 3 จังหวะ จังหวะสุดท้ายมีโอกาสทำให้มึน',
+    effect: (lv) => `2 × ${pct((0.8 + lv * 0.1) * 0.7)}% + ${pct((0.8 + lv * 0.1) * 1.4)}% MATK รอบเป้า 2.6–2.8 ช่อง · มึน ${15 + lv * 3}% 1.2 วิ`,
   },
-  blizzard: {
-    job: 'mage', name: 'พายุหิมะขั้วโลก', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['snow', '#9ae8ff'], req: { glacial_spikes: 3 },
-    sp: (lv) => 30 + lv * 3, cast: 1.0, cd: 6, range: 9, vfx: 'mg_blizzard', ref: 1, lock: 0.9, delay: 0.8, element: 'water',
-    mult: (lv) => 0.42 + lv * 0.05, freeze: (lv) => 0.5 + lv * 0.04, freezeSecs: 2,
-    nf: { magic: true, anim: 'castHold', hits: [{ t: 0.5, r: 3.4, m: 1, slow: { pct: 0.5, secs: 4 } }, { t: 1.0, r: 3.4, m: 1 }, { t: 1.5, r: 3.4, m: 1 }, { t: 2.0, r: 3.4, m: 1 }, { t: 2.5, r: 3.4, m: 1 }, { t: 3.0, r: 3.6, m: 1.6, freeze: 2, shake: 0.2 }] },
-    desc: 'เรียกพายุหิมะกว้าง 3.4 ช่องหมุนวน 3 วินาที ตีต่อเนื่อง 5 ครั้ง ศัตรูช้าลงครึ่งหนึ่ง แล้วปิดท้ายด้วยผลึกยักษ์แช่แข็งทั้งวง',
-    effect: (lv) => `5 × ${pct(0.42 + lv * 0.05)}% + ปิดท้าย ${pct((0.42 + lv * 0.05) * 1.6)}% MATK รอบเป้า 3.4 ช่อง · ช้าลง 50% · แช่แข็ง ${50 + lv * 4}% 2 วิ`,
-  },
-  arcane_ward: {
-    job: 'mage', name: 'เกราะเวทอาคม', maxLv: 10, kind: 'active', target: 'self', icon: ['hexshield', '#9a6ae0'], req: { arcane_focus: 3 },
-    sp: 28, cast: 0, cd: 1, vfx: 'mg_arcane_ward', lock: 0.6, delay: 0.5,
-    nf: { at: 'self', anim: 'cast' },
+  mana_shield: {
+    job: 'mage', name: 'โล่มานา', maxLv: 10, kind: 'active', target: 'self', icon: ['hexshield', '#a070ff'], req: { arcane_focus: 3 },
+    sp: 28, cast: 0, cd: 1, vfx: 'ma_mana_shield', lock: 0.6, delay: 0.5,
+    nf: { at: 'self', anim: 'cast', flashes: [{ t: 0.35, a: 0.12, color: '#e2c8ff' }], texts: [{ t: 0.4, text: 'SHIELD ▲' }] },
     duration: (lv) => 60 + lv * 6, bonus: (lv) => ({ dmgReduce: 8 + lv * 1.5, mdef: lv * 2, matkPct: lv }),
-    desc: 'วงอักขระลอยขึ้นจากพื้น ผลึกเวทหมุนล้อมรอบตัวแล้วรวมเป็นโดมเกราะสีม่วง ลดดาเมจที่ได้รับและเพิ่มพลังเวท',
+    desc: 'วงรูนใต้เท้าหมุน ผลึกมานาโคจรรอบตัวแล้วรวมเป็นโดมพลังลายรังผึ้ง ลดดาเมจที่ได้รับและเพิ่มพลังเวท',
     effect: (lv) => `ดาเมจที่ได้รับ -${(8 + lv * 1.5).toFixed(1)}% · MDEF +${lv * 2} · MATK +${lv}% นาน ${60 + lv * 6} วิ`,
   },
-  void_meteor: {
-    job: 'mage', name: 'ห่าอุกกาบาตม่วง', maxLv: 5, kind: 'active', target: 'enemy', magic: true, icon: ['meteor', '#8a3aff'], req: { chain_lightning: 3, blizzard: 3 },
-    sp: (lv) => 55 + lv * 5, cast: (lv) => 1.6 - lv * 0.12, cd: 10, range: 9, vfx: 'mg_void_meteor', ref: 1, lock: 1.2, delay: 1.0, element: 'fire', knock: 1.5,
+  arcane_cataclysm: {
+    job: 'mage', name: 'มหาวิบัติเวท', maxLv: 5, kind: 'active', target: 'enemy', magic: true, icon: ['meteor', '#9a4aff'], req: { rune_burst: 3, thunder_pillar: 3 },
+    sp: (lv) => 55 + lv * 5, cast: (lv) => 1.6 - lv * 0.12, cd: 10, range: 9, vfx: 'ma_arcane_cataclysm', ref: 1, lock: 1.2, delay: 1.0, knock: 1.5,
     mult: (lv) => 1.3 + lv * 0.25,
-    nf: { magic: true, anim: 'castHold', sky: { t: 0, dark: 0.55, dur: 3.2 }, hits: [{ t: 0.55, r: 2.4, m: 1, shake: 0.1 }, { t: 0.95, r: 2.4, m: 1, shake: 0.1 }, { t: 1.35, r: 2.4, m: 1, shake: 0.1 }, { t: 2.0, r: 3.4, m: 2.6, knock: 1, shake: 0.35 }] },
-    desc: 'ฟ้ามืดลง อุกกาบาตเพลิงม่วง 3 ลูกถล่มรอบเป้า แล้วอุกกาบาตยักษ์ลูกสุดท้ายกระแทกกลางวง ระเบิดผลักศัตรูกระเด็น (ไม้ตาย)',
-    effect: (lv) => `3 × ${pct(1.3 + lv * 0.25)}% + ลูกยักษ์ ${pct((1.3 + lv * 0.25) * 2.6)}% MATK รอบเป้า 3.4 ช่อง · ร่าย ${(1.6 - lv * 0.12).toFixed(2)} วิ · คูลดาวน์ 10 วิ`,
+    nf: { magic: true, anim: 'castHold', sky: { t: 0, dark: 0.6, dur: 3.8 }, flashes: [{ t: 3.0, a: 0.6, color: '#e2c8ff' }], hits: [{ t: 1.4, r: 2.6, m: 0.8, shake: 0.2 }, { t: 2.0, r: 2.6, m: 0.8, shake: 0.2 }, { t: 3.0, r: 3.6, m: 3, knock: 1, shake: 1, stop: 0.12 }] },
+    desc: 'ฟ้ามืดลง วงเวทยักษ์ 2 ชั้นหมุนสวนกันใต้ศัตรู แสงเวทส่องจากฟ้า อุกกาบาตเวทลูกเล็ก 2 ลูกถล่มก่อน แล้วอุกกาบาตยักษ์ตกกลางวงระเบิดผลักทุกตัวกระเด็น (ไม้ตาย)',
+    effect: (lv) => `2 × ${pct((1.3 + lv * 0.25) * 0.8)}% + ลูกยักษ์ ${pct((1.3 + lv * 0.25) * 3)}% MATK รอบเป้า 2.6–3.6 ช่อง · ร่าย ${(1.6 - lv * 0.12).toFixed(2)} วิ · คูลดาวน์ 10 วิ`,
   },
 
   /* ---------- Archer · v0.60.1 ชุดใหม่ "พรานศรทะลวง" (ลูกธนูจริง + ภาพ Night Forge · ดาเมจตามจังหวะใน sk.nf) ---------- */
