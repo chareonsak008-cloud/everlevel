@@ -6,18 +6,18 @@
  "loop": false,
  "smooth": true,
  "canvas": {
-  "w": 241,
-  "h": 120
+  "w": 168,
+  "h": 93
  },
  "anchor": {
   "kind": "feet",
-  "x": 209,
-  "y": 99
+  "x": 112,
+  "y": 77
  },
  "skip": 0,
  "events": [
   {
-   "t": 0.736,
+   "t": 0.514,
    "type": "heal",
    "ally": 1,
    "amount": 820
@@ -31,21 +31,21 @@
    "start_frame": 0,
    "frames": 32,
    "frame": {
-    "w": 241,
-    "h": 120
+    "w": 168,
+    "h": 93
    },
    "sheets": [
     {
      "file": "whole.png",
      "first_frame": 0,
      "frames": 32,
-     "columns": 16,
+     "columns": 24,
      "rows": 2
     }
    ],
    "offset": {
-    "x": -209,
-    "y": -99
+    "x": -112,
+    "y": -77
    }
   }
  ]

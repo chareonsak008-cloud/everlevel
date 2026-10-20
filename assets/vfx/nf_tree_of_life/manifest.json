@@ -1,18 +1,18 @@
 {
  "app": "vfx_export → Everlevel",
- "name": "ต้นไม้แห่งชีวิต",
+ "name": "ต้นไม้แห่งชีวิต (ฝั่งทีม)",
  "fps": 24,
- "frames": 120,
+ "frames": 125,
  "loop": false,
  "smooth": true,
  "canvas": {
-  "w": 263,
-  "h": 211
+  "w": 241,
+  "h": 193
  },
  "anchor": {
   "kind": "feet",
-  "x": 132,
-  "y": 181
+  "x": 120,
+  "y": 166
  },
  "skip": 0,
  "events": [
@@ -33,7 +33,7 @@
   {
    "t": 2.708,
    "type": "flash",
-   "strength": 1,
+   "strength": 0.6,
    "color": "185,255,225"
   },
   {
@@ -69,6 +69,18 @@
    "text": "REVIVE"
   },
   {
+   "t": 2.847,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 5800,
+   "crit": true
+  },
+  {
+   "t": 2.847,
+   "type": "shake",
+   "strength": 0.3
+  },
+  {
    "t": 2.903,
    "type": "heal",
    "ally": 2,
@@ -78,6 +90,30 @@
    "t": 2.903,
    "type": "text",
    "text": "REVIVE"
+  },
+  {
+   "t": 2.917,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 7100,
+   "crit": true
+  },
+  {
+   "t": 2.917,
+   "type": "shake",
+   "strength": 0.3
+  },
+  {
+   "t": 2.986,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 6400,
+   "crit": true
+  },
+  {
+   "t": 2.986,
+   "type": "shake",
+   "strength": 0.3
   }
  ],
  "clips": [
@@ -86,23 +122,23 @@
    "depth": "both",
    "loop": false,
    "start_frame": 0,
-   "frames": 120,
+   "frames": 125,
    "frame": {
-    "w": 263,
-    "h": 211
+    "w": 241,
+    "h": 193
    },
    "sheets": [
     {
      "file": "whole.png",
      "first_frame": 0,
-     "frames": 120,
-     "columns": 15,
+     "frames": 125,
+     "columns": 16,
      "rows": 8
     }
    ],
    "offset": {
-    "x": -132,
-    "y": -181
+    "x": -120,
+    "y": -166
    }
   }
  ]

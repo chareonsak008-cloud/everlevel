@@ -53,19 +53,19 @@
    "amount": 640
   },
   {
-   "t": 2.014,
+   "t": 2.028,
    "type": "heal",
    "ally": 0,
    "amount": 640
   },
   {
-   "t": 2.069,
+   "t": 2.083,
    "type": "heal",
    "ally": 1,
    "amount": 640
   },
   {
-   "t": 2.125,
+   "t": 2.139,
    "type": "heal",
    "ally": 2,
    "amount": 640

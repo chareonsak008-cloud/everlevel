@@ -1,0 +1,130 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "เทพพิทักษ์จุติ (ฝั่งศัตรู)",
+ "fps": 24,
+ "frames": 56,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 196,
+  "h": 196
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 98,
+  "y": 167
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0,
+   "type": "screen_tint",
+   "color": "255,186,70",
+   "strength": 0.35,
+   "duration": 4.6
+  },
+  {
+   "t": 1.861,
+   "type": "shake_ramp",
+   "from": 0.1,
+   "to": 0.25,
+   "duration": 0.68
+  },
+  {
+   "t": 2.556,
+   "type": "flash",
+   "strength": 0.6,
+   "color": "255,228,150"
+  },
+  {
+   "t": 2.556,
+   "type": "shake",
+   "strength": 0.8
+  },
+  {
+   "t": 2.556,
+   "type": "shake",
+   "strength": 0.25
+  },
+  {
+   "t": 2.611,
+   "type": "heal",
+   "ally": 0,
+   "amount": 9999
+  },
+  {
+   "t": 2.681,
+   "type": "heal",
+   "ally": 1,
+   "amount": 9999
+  },
+  {
+   "t": 2.722,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 6200,
+   "crit": true
+  },
+  {
+   "t": 2.722,
+   "type": "shake",
+   "strength": 0.3
+  },
+  {
+   "t": 2.75,
+   "type": "heal",
+   "ally": 2,
+   "amount": 9999
+  },
+  {
+   "t": 2.792,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 7400,
+   "crit": true
+  },
+  {
+   "t": 2.792,
+   "type": "shake",
+   "strength": 0.3
+  },
+  {
+   "t": 2.861,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 6800,
+   "crit": true
+  },
+  {
+   "t": 2.861,
+   "type": "shake",
+   "strength": 0.3
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 56,
+   "frame": {
+    "w": 196,
+    "h": 196
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 56,
+     "columns": 20,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -98,
+    "y": -167
+   }
+  }
+ ]
+}

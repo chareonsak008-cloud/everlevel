@@ -1,0 +1,124 @@
+{
+ "app": "vfx_export → Everlevel",
+ "name": "หนามบุปผา (โจมตีหมู่)",
+ "fps": 24,
+ "frames": 60,
+ "loop": false,
+ "smooth": true,
+ "canvas": {
+  "w": 196,
+  "h": 122
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 98,
+  "y": 98
+ },
+ "skip": 0,
+ "events": [
+  {
+   "t": 0.458,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 540,
+   "crit": false
+  },
+  {
+   "t": 0.458,
+   "type": "shake",
+   "strength": 0.12
+  },
+  {
+   "t": 0.542,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 610,
+   "crit": false
+  },
+  {
+   "t": 0.542,
+   "type": "shake",
+   "strength": 0.12
+  },
+  {
+   "t": 0.611,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 560,
+   "crit": false
+  },
+  {
+   "t": 0.611,
+   "type": "shake",
+   "strength": 0.12
+  },
+  {
+   "t": 1.361,
+   "type": "flash",
+   "strength": 0.25,
+   "color": "185,255,225"
+  },
+  {
+   "t": 1.375,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 1320,
+   "crit": false
+  },
+  {
+   "t": 1.375,
+   "type": "shake",
+   "strength": 0.12
+  },
+  {
+   "t": 1.431,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 1460,
+   "crit": true
+  },
+  {
+   "t": 1.431,
+   "type": "shake",
+   "strength": 0.3
+  },
+  {
+   "t": 1.486,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 1380,
+   "crit": true
+  },
+  {
+   "t": 1.486,
+   "type": "shake",
+   "strength": 0.3
+  }
+ ],
+ "clips": [
+  {
+   "name": "whole",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 60,
+   "frame": {
+    "w": 196,
+    "h": 122
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 60,
+     "columns": 20,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -98,
+    "y": -98
+   }
+  }
+ ]
+}

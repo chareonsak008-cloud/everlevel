@@ -28,13 +28,13 @@
    "text": "HoT"
   },
   {
-   "t": 1,
+   "t": 1.014,
    "type": "heal",
    "ally": 1,
    "amount": 1120
   },
   {
-   "t": 1.5,
+   "t": 1.514,
    "type": "heal",
    "ally": 1,
    "amount": 1120

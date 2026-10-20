@@ -1,18 +1,18 @@
 {
  "app": "vfx_export → Everlevel",
- "name": "เทพพิทักษ์จุติ (ส่วนกลางทีม)",
+ "name": "เทพพิทักษ์จุติ (ฝั่งทีม)",
  "fps": 24,
- "frames": 116,
+ "frames": 118,
  "loop": false,
  "smooth": true,
  "canvas": {
-  "w": 263,
-  "h": 211
+  "w": 224,
+  "h": 202
  },
  "anchor": {
   "kind": "feet",
-  "x": 132,
-  "y": 173
+  "x": 112,
+  "y": 172
  },
  "skip": 0,
  "events": [
@@ -33,7 +33,7 @@
   {
    "t": 2.556,
    "type": "flash",
-   "strength": 1,
+   "strength": 0.6,
    "color": "255,228,150"
   },
   {
@@ -59,10 +59,46 @@
    "amount": 9999
   },
   {
+   "t": 2.722,
+   "type": "hit",
+   "enemy": 0,
+   "damage": 6200,
+   "crit": true
+  },
+  {
+   "t": 2.722,
+   "type": "shake",
+   "strength": 0.3
+  },
+  {
    "t": 2.75,
    "type": "heal",
    "ally": 2,
    "amount": 9999
+  },
+  {
+   "t": 2.792,
+   "type": "hit",
+   "enemy": 1,
+   "damage": 7400,
+   "crit": true
+  },
+  {
+   "t": 2.792,
+   "type": "shake",
+   "strength": 0.3
+  },
+  {
+   "t": 2.861,
+   "type": "hit",
+   "enemy": 2,
+   "damage": 6800,
+   "crit": true
+  },
+  {
+   "t": 2.861,
+   "type": "shake",
+   "strength": 0.3
   }
  ],
  "clips": [
@@ -71,23 +107,23 @@
    "depth": "both",
    "loop": false,
    "start_frame": 0,
-   "frames": 116,
+   "frames": 118,
    "frame": {
-    "w": 263,
-    "h": 211
+    "w": 224,
+    "h": 202
    },
    "sheets": [
     {
      "file": "whole.png",
      "first_frame": 0,
-     "frames": 116,
-     "columns": 15,
-     "rows": 8
+     "frames": 118,
+     "columns": 18,
+     "rows": 7
     }
    ],
    "offset": {
-    "x": -132,
-    "y": -173
+    "x": -112,
+    "y": -172
    }
   }
  ]
