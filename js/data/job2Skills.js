@@ -188,7 +188,7 @@ export const JOB2_SKILLS = {
     job: 'priest', name: 'เมล็ดชีวิต', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['seed', '#7affb0'], req: { seraph_grace: 1 },
     sp: (lv) => 16 + lv * 2, cast: 0.3, cd: 0.9, range: 9, vfx: 'nf', ref: 1, lock: 0.5, delay: 0.35, engage: true, element: 'holy',
     mult: (lv) => 1.4 + lv * 0.17, heal: (lv, pl) => Math.round(healBase(lv, pl) * 0.3),
-    nf: { magic: true, anim: 'cast', hits: [{ t: 0.88, r: 1.4, m: 1, slow: { pct: 0.3, secs: 2 }, shake: 0.08 }], heals: [0.88, 1.4] },
+    nf: { magic: true, anim: 'cast', hits: [{ t: 0.61, r: 1.4, m: 1, slow: { pct: 0.3, secs: 2 }, shake: 0.08 }], heals: [0.61, 1.1] },
     desc: 'เมล็ดพลังชีวิตลอยโค้งไปงอกระเบิดใส่ศัตรู รากพันขาให้ช้าลง แล้วพลังชีวิตส่วนหนึ่งไหลกลับมาฟื้นฟูตัวเอง 2 ครั้ง — สกิลโจมตีหลัก',
     effect: (lv, pl) => `${pct(1.4 + lv * 0.17)}% MATK รอบเป้า 1.4 ช่อง · ช้าลง 30% · ฟื้น HP ${Math.round(healBase(lv, pl) * 0.3)} × 2`,
   },
@@ -199,6 +199,14 @@ export const JOB2_SKILLS = {
     nf: { at: 'self', anim: 'cast', texts: [{ t: 0.5, text: 'HoT' }], heals: [0.5, 1.0, 1.5, 2.0] },
     desc: 'ดอกไม้แห่งชีวิตบานใต้เท้า ฟื้นฟูต่อเนื่อง 4 ครั้ง รวมแล้วฟื้นมากกว่าฮีลครั้งเดียว — ฮีลหลัก',
     effect: (lv, pl) => `ฟื้น HP ${Math.round(healBase(lv, pl) * 0.8)} × 4 (ทุก 0.5 วิ)`,
+  },
+  thorn_bloom: {
+    job: 'priest', name: 'หนามบุปผา', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['thornbloom', '#5ae08a'], req: { life_seed: 3 },
+    sp: (lv) => 30 + lv * 2, cast: 0.5, cd: 3.5, range: 9, vfx: 'nf', ref: 1, lock: 0.7, delay: 0.5, element: 'holy', knock: 1.2,
+    mult: (lv) => 0.8 + lv * 0.1, stun: () => 0.4, stunSecs: 1.5,
+    nf: { magic: true, anim: 'cast', flashes: [{ t: 1.36, a: 0.25, color: '#b9ffe1' }], hits: [{ t: 0.54, r: 2.8, m: 1, slow: { pct: 0.4, secs: 3 }, shake: 0.1 }, { t: 1.43, r: 3, m: 2.4, knock: 1, stun: 1.5, shake: 0.3 }] },
+    desc: 'เถาหนามพุ่งจากพื้นใต้กลุ่มศัตรู รัดให้ช้าลง แล้วดอกไม้ยักษ์บานระเบิดหนามทั่ววง ผลักถอยและมีโอกาสทำให้มึน — สกิลโจมตีหมู่',
+    effect: (lv) => `${pct(0.8 + lv * 0.1)}% + ${pct((0.8 + lv * 0.1) * 2.4)}% MATK รอบเป้า 2.8–3 ช่อง · ช้าลง 40% · มึน 40%`,
   },
   healing_rain: {
     job: 'priest', name: 'ฝนชโลมใจ', maxLv: 10, kind: 'active', target: 'self', magic: true, icon: ['healrain', '#8ae8ff'], req: { regrowth_bloom: 3 },
@@ -218,13 +226,13 @@ export const JOB2_SKILLS = {
     effect: (lv) => `โล่กันฮิต ${3 + Math.floor(lv / 2)} ครั้ง · ดาเมจที่ได้รับ -${(10 + lv * 1.8).toFixed(1)}% · DEF +${lv * 2} · MDEF +${lv * 3} · ฟื้น HP +${lv * 10}% นาน ${30 + lv * 3} วิ`,
   },
   tree_of_life: {
-    job: 'priest', name: 'ต้นไม้แห่งชีวิต', maxLv: 5, kind: 'active', target: 'self', magic: true, icon: ['lifetree', '#5ae0a0'], req: { healing_rain: 5, lotus_sanctuary: 3 },
-    sp: (lv) => 90 + lv * 6, cast: 1.2, cd: 15, vfx: 'nf', ref: 1, lock: 1.4, delay: 1.2, element: 'holy', knock: 1.5,
+    job: 'priest', name: 'ต้นไม้แห่งชีวิต', maxLv: 5, kind: 'active', target: 'enemy', magic: true, icon: ['lifetree', '#5ae0a0'], req: { thorn_bloom: 5, lotus_sanctuary: 3 },
+    sp: (lv) => 90 + lv * 6, cast: 1.2, cd: 15, range: 9, vfx: 'nf', ref: 1, lock: 1.4, delay: 1.2, element: 'holy', knock: 1.5,
     mult: (lv) => 2.8 + lv * 0.5, heal: (lv, pl) => Math.round(healBase(10, pl) * (2 + lv * 0.4)),
     duration: () => 60, bonus: (lv) => ({ maxHpPct: 5 + lv * 2, regenPct: 30 + lv * 10, spRegenPct: 20 + lv * 10, matkPct: lv * 2 }),
-    nf: { at: 'self', magic: true, anim: 'castHold', flashes: [{ t: 0.05, a: 0.2, color: '#46e4aa' }, { t: 2.71, a: 0.9, color: '#b9ffe1' }], texts: [{ t: 2.76, text: 'REVIVE' }], hits: [{ t: 2.71, r: 3.8, m: 1, knock: 1, shake: 0.8 }], heals: [2.76] },
-    desc: 'ต้นกล้าศักดิ์สิทธิ์งอกจากพื้นแล้วโตเป็นต้นไม้แห่งชีวิตสูงเสียดฟ้า แผ่พลังชีวิตระเบิดออก ฟื้น HP มหาศาล ผลักศัตรูรอบตัว และเพิ่มพลังชีวิตชั่วคราว (ไม้ตาย)',
-    effect: (lv, pl) => `${pct(2.8 + lv * 0.5)}% MATK รอบตัว 3.8 ช่อง · ฟื้น HP ${Math.round(healBase(10, pl) * (2 + lv * 0.4))} · Max HP +${5 + lv * 2}% · ฟื้น HP/SP เร็วขึ้น นาน 60 วิ · คูลดาวน์ 15 วิ`,
+    nf: { magic: true, anim: 'castHold', flashes: [{ t: 0.05, a: 0.2, color: '#46e4aa' }, { t: 2.71, a: 0.9, color: '#b9ffe1' }], texts: [{ t: 2.76, text: 'REVIVE' }], hits: [{ t: 2.85, r: 3.4, m: 0.6, shake: 0.4 }, { t: 2.92, r: 3.4, m: 0.6, shake: 0.4 }, { t: 2.99, r: 3.6, m: 1, knock: 1, shake: 0.8 }], heals: [2.76] },
+    desc: 'ต้นกล้าศักดิ์สิทธิ์งอกจากพื้นแล้วโตเป็นต้นไม้แห่งชีวิตสูงเสียดฟ้า แผ่พลังชีวิตระเบิดออก ฟื้น HP มหาศาล รากหนามยักษ์แทงทะลุกลุ่มศัตรู 3 ครั้ง และเพิ่มพลังชีวิตชั่วคราว (ไม้ตาย)',
+    effect: (lv, pl) => `${pct((2.8 + lv * 0.5) * 2.2)}% MATK รวม 3 ครั้ง รอบเป้า 3.4–3.6 ช่อง · ฟื้น HP ${Math.round(healBase(10, pl) * (2 + lv * 0.4))} · Max HP +${5 + lv * 2}% · ฟื้น HP/SP เร็วขึ้น นาน 60 วิ · คูลดาวน์ 15 วิ`,
   },
 };
 

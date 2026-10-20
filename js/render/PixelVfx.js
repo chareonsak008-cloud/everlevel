@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.64.0';
+import { THREE } from './three.js?v=0.65.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -134,11 +134,13 @@ export const SKILL_VFX = {
   healing_pillar: { name: 'nf_healing_pillar', at: 'self', scale: 1.4, delay: 0, behind: true, solo: true },
   light_blessing: { name: 'nf_light_blessing', at: 'self', scale: 1.25, delay: 0, behind: true, solo: true },
   holy_bulwark: { name: 'nf_holy_bulwark', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
-  divine_descent: { name: 'nf_divine_descent', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true, also: [{ name: 'nf_divine_wings', at: 'self', scale: 1.15, delay: 0, behind: true }] },
+  judgement_rays: { name: 'nf_judgement_rays', at: 'target', scale: 1.3, delay: 0, behind: true, solo: true },
+  divine_descent: { name: 'nf_divine_descent', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true, also: [{ name: 'nf_divine_wings', at: 'self', scale: 1.15, delay: 0, behind: true }, { name: 'nf_divine_smite', at: 'target', scale: 1.3, delay: 2.583, behind: true }] },
   // นักบวชชั้นสูง (Priest) · v0.63 ชุดใหม่ "ผู้พิทักษ์ชีวิต"
   life_seed: { name: 'nf_life_seed', at: 'target', scale: 1.15, delay: 0, solo: true, flipToCaster: true },
   regrowth_bloom: { name: 'nf_regrowth_bloom', at: 'self', scale: 1.25, delay: 0, behind: true, solo: true },
   healing_rain: { name: 'nf_healing_rain', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true },
   lotus_sanctuary: { name: 'nf_lotus_sanctuary', at: 'self', scale: 1.1, delay: 0, behind: true, solo: true },
-  tree_of_life: { name: 'nf_tree_of_life', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true },
+  thorn_bloom: { name: 'nf_thorn_bloom', at: 'target', scale: 1.3, delay: 0, behind: true, solo: true },
+  tree_of_life: { name: 'nf_tree_of_life', at: 'self', scale: 1.2, delay: 0, behind: true, solo: true, also: [{ name: 'nf_tree_thorns', at: 'target', scale: 1.3, delay: 2.75, behind: true }] },
 };

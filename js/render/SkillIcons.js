@@ -1,8 +1,8 @@
 // ไอคอนสกิล วาดด้วย Canvas: เหรียญสีประจำสกิล + สัญลักษณ์สีขาวตัดเส้นเข้ม
-import { SKILLS } from '../data/skills.js?v=0.64.0';
-import { shadeHex } from './Textures.js?v=0.64.0';
-import { PIXEL } from './PixelSprites.js?v=0.64.0';
-import { pixelizeCanvas } from './PixelArt.js?v=0.64.0';
+import { SKILLS } from '../data/skills.js?v=0.65.0';
+import { shadeHex } from './Textures.js?v=0.65.0';
+import { PIXEL } from './PixelSprites.js?v=0.65.0';
+import { pixelizeCanvas } from './PixelArt.js?v=0.65.0';
 
 const S = 64;
 const LINE = '#1c1222';
@@ -83,6 +83,16 @@ const DRAW = {
     stroke(g, (g) => { g.moveTo(14, 20); g.lineTo(22, 30); g.moveTo(44, 46); g.lineTo(52, 40); g.moveTo(40, 14); g.lineTo(46, 22); }, '#7ab4ff', 2);
     stroke(g, (g) => { g.moveTo(6, 58); g.lineTo(58, 6); }, '#ffffff', 6);
     stroke(g, (g) => { g.moveTo(10, 54); g.lineTo(54, 10); }, '#9ad8ff', 2);
+  },
+  rays(g) {   // ลำแสง 3 เส้นฟาดลงพื้น
+    for (const [x, w] of [[16, 8], [32, 12], [48, 8]]) glyph(g, (g) => { g.moveTo(x - w / 2, 4); g.lineTo(x + w / 2, 4); g.lineTo(x + w / 3, 46); g.lineTo(x - w / 3, 46); g.closePath(); }, '#fff2b8', 3);
+    stroke(g, (g) => g.ellipse(32, 50, 26, 7, 0, 0, Math.PI * 2), '#ffd86b', 3);
+    glyph(g, (g) => star(g, 32, 48, 7, 2.5, 4, 0), '#ffffff', 2);
+  },
+  thornbloom(g) {   // ดอกไม้กลาง + เถาหนามพุ่งขึ้น
+    for (const [x, h] of [[12, 30], [52, 30], [22, 38], [42, 38]]) glyph(g, (g) => { g.moveTo(x - 4, 58); g.lineTo(x, 58 - h); g.lineTo(x + 4, 58); g.closePath(); }, '#4ac06a', 3);
+    for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2 - Math.PI / 2; glyph(g, (g) => g.ellipse(32 + Math.cos(a) * 9, 26 + Math.sin(a) * 9, 7, 5, a, 0, Math.PI * 2), '#ff9ad0', 3); }
+    glyph(g, (g) => g.arc(32, 26, 5, 0, Math.PI * 2), '#ffe08a', 3);
   },
   // ---------- v0.63 สายนักบวชชุดใหม่ ----------
   holyorb(g) {   // ลูกแสงพุ่ง มีหางแสง
