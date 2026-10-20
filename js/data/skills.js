@@ -6,8 +6,8 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.67.0';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.67.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+import { JOBS } from './progression.js?v=0.68.0';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.68.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
@@ -219,55 +219,47 @@ export const SKILLS = {
     effect: (lv) => `MDEF +${lv * 2} · Max HP +${lv}% · ฟื้น HP +${lv * 6}%`,
     passive: (lv) => ({ mdef: lv * 2, maxHpPct: lv, regenPct: lv * 6 }),
   },
+  /* v0.68 Acolyte "นักบวชแสง" จัดใหม่: โจมตี 2 (แสงศักดิ์สิทธิ์ · ลำแสงพิพากษา) · ฮีล/บัฟ 2 (ลำแสงฟื้นฟู · พรแห่งแสง) · ไม้ตายโจมตี 1 (เทพพิทักษ์จุติ)
+     ภาพเป็นเอฟเฟกต์ 3 มิติในฉาก (js/render/HealFX.js) · สกิลโจมตีไม่ฮีล · สกิลฮีล/บัฟไม่ตีศัตรู */
   holy_light: {
     job: 'acolyte', name: 'แสงศักดิ์สิทธิ์', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['holyorb', '#ffd86b'], req: { faith_heart: 1 },
-    sp: (lv) => 10 + lv * 2, cast: 0.18, cd: 0.8, range: 9, vfx: 'nf', ref: 1, lock: 0.3, delay: 0.24, engage: true, element: 'holy',
-    mult: (lv) => 1.2 + lv * 0.15, heal: (lv, pl) => Math.round(healAmount(lv, pl) * 0.25),
-    nf: { speed: 1.6, magic: true, anim: 'cast', hits: [{ t: 0.51, r: 1.2, m: 1, shake: 0.08 }], heals: [0.51] },
-    desc: 'ปั้นลูกแสงทองในมือแล้วปล่อยพุ่งเข้าเป้า ระเบิดเป็นแสงศักดิ์สิทธิ์ แสงที่สะท้อนกลับมาฟื้นฟูตัวเองเล็กน้อย — สกิลโจมตีหลัก (แรงพิเศษต่ออันเดด)',
-    effect: (lv, pl) => `${pct(1.2 + lv * 0.15)}% MATK รอบเป้า 1.2 ช่อง · ธาตุศักดิ์สิทธิ์ · ฟื้น HP ${Math.round(healAmount(lv, pl) * 0.25)}`,
-  },
-  healing_pillar: {
-    job: 'acolyte', name: 'ลำแสงฟื้นฟู', maxLv: 10, kind: 'active', target: 'self', icon: ['pillar', '#fff0a0'],
-    sp: (lv) => 12 + lv * 3, cast: 0, cd: 1, vfx: 'nf', lock: 0.27, delay: 0.21, heal: (lv, pl) => Math.round(healAmount(lv, pl) * 1.25),
-    nf: { speed: 1.6, at: 'self', anim: 'cast', flashes: [{ t: 0.31, a: 0.12, color: '#ffe496' }], heals: [0.46] },
-    desc: 'ลำแสงทองส่องลงจากฟ้าตรงร่าง ฟื้นฟูบาดแผลก้อนใหญ่ ยิ่ง Base Lv และ INT สูงยิ่งฟื้นมาก — ฮีลหลัก',
-    effect: (lv, pl) => `ฟื้น HP ${Math.round(healAmount(lv, pl) * 1.25)}`,
+    sp: (lv) => 10 + lv * 2, cast: 0.18, cd: 0.7, range: 9, vfx: 'ac_holy_light', ref: 1, lock: 0.3, delay: 0.24, engage: true, element: 'holy',
+    mult: (lv) => 1.4 + lv * 0.17,
+    nf: { magic: true, anim: 'cast', hits: [{ t: 0.48, r: 1.2, m: 1, shake: 0.14 }] },
+    desc: 'ปั้นลูกแสงทองในมือแล้วปล่อยพุ่งโค้งเข้าเป้า ระเบิดเป็นกางเขนแสงทับศัตรูรอบข้าง — สกิลโจมตีหลัก (แรงพิเศษต่ออันเดด)',
+    effect: (lv) => `${pct(1.4 + lv * 0.17)}% MATK รอบเป้า 1.2 ช่อง · ธาตุศักดิ์สิทธิ์`,
   },
   judgement_rays: {
     job: 'acolyte', name: 'ลำแสงพิพากษา', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['rays', '#ffe08a'], req: { holy_light: 3 },
-    sp: (lv) => 24 + lv * 2, cast: 0.3, cd: 3, range: 9, vfx: 'nf', ref: 1, lock: 0.42, delay: 0.35, element: 'holy', knock: 1,
-    mult: (lv) => 0.55 + lv * 0.07,
-    nf: { speed: 1.6, magic: true, anim: 'cast', flashes: [{ t: 1.61, a: 0.3, color: '#ffe496' }], hits: [{ t: 0.6, r: 2.8, m: 1, shake: 0.1 }, { t: 0.92, r: 2.8, m: 1, shake: 0.1 }, { t: 1.21, r: 2.8, m: 1, shake: 0.12 }, { t: 1.61, r: 3, m: 2, knock: 1, shake: 0.3 }] },
-    desc: 'ลำแสงศักดิ์สิทธิ์ฟาดลงกลางกลุ่มศัตรู 3 ระลอก แล้วปิดท้ายด้วยลำแสงใหญ่ระเบิดผลักถอย — สกิลโจมตีหมู่ของนักบวช (แรงพิเศษต่ออันเดด)',
-    effect: (lv) => `3 × ${pct(0.55 + lv * 0.07)}% + ${pct((0.55 + lv * 0.07) * 2)}% MATK รอบเป้า 2.8–3 ช่อง · ธาตุศักดิ์สิทธิ์`,
+    sp: (lv) => 24 + lv * 2, cast: 0.3, cd: 3, range: 9, vfx: 'ac_judgement_rays', ref: 1, lock: 0.45, delay: 0.35, element: 'holy', knock: 1,
+    mult: (lv) => 0.6 + lv * 0.08,
+    nf: { magic: true, anim: 'cast', flashes: [{ t: 1.0, a: 0.3, color: '#ffe496' }], hits: [{ t: 0.4, r: 2.8, m: 1, shake: 0.12 }, { t: 0.6, r: 2.8, m: 1, shake: 0.12 }, { t: 0.8, r: 2.8, m: 1, shake: 0.14 }, { t: 1.0, r: 3.2, m: 2.2, knock: 1, shake: 0.4, stop: 0.06 }] },
+    desc: 'วงพิพากษาเปิดใต้กลุ่มศัตรู ลำแสงจากฟ้าฟาดลง 3 ระลอก แล้วเสาแสงใหญ่ระเบิดกลางวงผลักทุกตัวถอย — สกิลโจมตีหมู่ (แรงพิเศษต่ออันเดด)',
+    effect: (lv) => `3 × ${pct(0.6 + lv * 0.08)}% + ${pct((0.6 + lv * 0.08) * 2.2)}% MATK รอบเป้า 2.8–3.2 ช่อง · ธาตุศักดิ์สิทธิ์ · ผลักถอย`,
+  },
+  healing_pillar: {
+    job: 'acolyte', name: 'ลำแสงฟื้นฟู', maxLv: 10, kind: 'active', target: 'self', icon: ['pillar', '#fff0a0'],
+    sp: (lv) => 12 + lv * 3, cast: 0, cd: 1, vfx: 'ac_healing_pillar', lock: 0.3, delay: 0.21, heal: (lv, pl) => Math.round(healAmount(lv, pl) * 1.4),
+    nf: { at: 'self', anim: 'cast', flashes: [{ t: 0.28, a: 0.12, color: '#ffe496' }], heals: [0.32] },
+    desc: 'ลำแสงทองส่องลงจากฟ้าตรงร่าง ขนนกแสงโปรยรอบตัว ฟื้นฟูบาดแผลก้อนใหญ่ ยิ่ง Base Lv และ INT สูงยิ่งฟื้นมาก — ฮีลหลัก',
+    effect: (lv, pl) => `ฟื้น HP ${Math.round(healAmount(lv, pl) * 1.4)}`,
   },
   light_blessing: {
     job: 'acolyte', name: 'พรแห่งแสง', maxLv: 10, kind: 'active', target: 'self', icon: ['bless', '#ffe08a'], req: { healing_pillar: 3 },
-    sp: (lv) => 24 + lv * 3, cast: 0, cd: 1, vfx: 'nf', lock: 0.3, delay: 0.28,
-    nf: { speed: 1.6, at: 'self', anim: 'cast', flashes: [{ t: 0.31, a: 0.12, color: '#ffe496' }], texts: [{ t: 0.32, text: 'ATK ▲' }] },
-    duration: (lv) => 90 + lv * 15, bonus: (lv) => ({ str: lv, dex: lv, int: lv, atkPct: lv, matkPct: lv }),
-    desc: 'วงแสงทองแผ่ออกจากเท้าแล้วโปรยประกายขึ้นฟ้า อวยพรเพิ่ม STR DEX INT และพลังโจมตีทั้งกายภาพและเวท',
-    effect: (lv) => `STR/DEX/INT +${lv} · ATK/MATK +${lv}% นาน ${90 + lv * 15} วิ`,
-  },
-  holy_bulwark: {
-    job: 'acolyte', name: 'ปราการศักดิ์สิทธิ์', maxLv: 10, kind: 'active', target: 'self', magic: true, icon: ['sanctumshield', '#ffd27a'], req: { holy_vigor: 3 },
-    sp: (lv) => 30 + lv * 2, cast: 0, cd: 12, vfx: 'nf', ref: 1, lock: 0.3, delay: 0.35, element: 'holy', knock: 1.5,
-    mult: (lv) => 0.8 + lv * 0.1,
-    nf: { speed: 1.6, at: 'self', magic: true, anim: 'cast', flashes: [{ t: 0.21, a: 0.15, color: '#ffe496' }], texts: [{ t: 0.36, text: 'SHIELD' }], hits: [{ t: 0.21, r: 2.6, m: 1, knock: 1, shake: 0.1 }] },
-    shield: (lv) => ({ charges: 2 + Math.floor(lv / 3), secs: 20 + lv * 2 }),
-    duration: (lv) => 20 + lv * 2, bonus: (lv) => ({ dmgReduce: 8 + lv * 1.5, mdef: lv * 2 }),
-    desc: 'กางโดมแสงศักดิ์สิทธิ์ครอบตัว คลื่นแสงผลักศัตรูรอบตัวกระเด็น แล้วโล่แสงกันการโจมตีได้หลายครั้ง พร้อมลดดาเมจที่ได้รับ',
-    effect: (lv) => `${pct(0.8 + lv * 0.1)}% MATK รอบตัว 2.6 ช่อง + ผลัก · โล่กันฮิต ${2 + Math.floor(lv / 3)} ครั้ง · ดาเมจที่ได้รับ -${(8 + lv * 1.5).toFixed(1)}% นาน ${20 + lv * 2} วิ · คูลดาวน์ 12 วิ`,
+    sp: (lv) => 24 + lv * 3, cast: 0, cd: 1, vfx: 'ac_light_blessing', lock: 0.3, delay: 0.28,
+    nf: { at: 'self', anim: 'cast', flashes: [{ t: 0.25, a: 0.12, color: '#ffe496' }], texts: [{ t: 0.3, text: 'ATK ▲' }] },
+    duration: (lv) => 90 + lv * 15, bonus: (lv) => ({ str: lv, dex: lv, int: lv, atkPct: lv, matkPct: lv, dmgReduce: 4 + lv }),
+    desc: 'วงแสงทองแผ่ออกจากเท้าแล้วโปรยประกายขึ้นฟ้า อวยพรเพิ่ม STR DEX INT พลังโจมตีทั้งกายภาพและเวท และลดดาเมจที่ได้รับ',
+    effect: (lv) => `STR/DEX/INT +${lv} · ATK/MATK +${lv}% · ดาเมจที่ได้รับ -${4 + lv}% นาน ${90 + lv * 15} วิ`,
   },
   divine_descent: {
     job: 'acolyte', name: 'เทพพิทักษ์จุติ', maxLv: 5, kind: 'active', target: 'enemy', magic: true, icon: ['divine', '#ffd36b'], req: { judgement_rays: 5, light_blessing: 3 },
-    sp: (lv) => 60 + lv * 5, cast: 0.6, cd: 14, range: 9, vfx: 'nf', ref: 1, lock: 0.84, delay: 0.7, element: 'holy', knock: 1.5,
-    mult: (lv) => 2.5 + lv * 0.5, heal: (lv, pl) => Math.round(healAmount(10, pl) * (1.6 + lv * 0.3)),
-    duration: () => 60, bonus: (lv) => ({ str: 3 + lv, int: 3 + lv, dex: 3 + lv, regenPct: 20 + lv * 10 }),
-    nf: { speed: 1.6, magic: true, anim: 'castHold', flashes: [{ t: 0.05, a: 0.2, color: '#ffba46' }, { t: 2.56, a: 0.9, color: '#ffe496' }], hits: [{ t: 2.72, r: 3.4, m: 0.6, shake: 0.4 }, { t: 2.79, r: 3.4, m: 0.6, shake: 0.4 }, { t: 2.86, r: 3.6, m: 1, knock: 1, shake: 0.8 }], heals: [2.61] },
-    desc: 'ปีกแสงทองกางออกหลังร่าง ลำแสงสวรรค์ค่อย ๆ ส่องลงจนทั้งฉากเป็นสีทอง แล้วกระแทกลงเต็มแรง ฟื้น HP มหาศาล พร้อมลำแสงพิพากษาฟาดลงกลางกลุ่มศัตรู 3 ครั้ง และอวยพรพลัง (ไม้ตาย)',
-    effect: (lv, pl) => `${pct((2.5 + lv * 0.5) * 2.2)}% MATK รวม 3 ครั้ง รอบเป้า 3.4–3.6 ช่อง · ฟื้น HP ${Math.round(healAmount(10, pl) * (1.6 + lv * 0.3))} · STR/INT/DEX +${3 + lv} · ฟื้น HP +${20 + lv * 10}% นาน 60 วิ · คูลดาวน์ 14 วิ`,
+    sp: (lv) => 60 + lv * 5, cast: 0.6, cd: 12, range: 9, vfx: 'ac_divine_descent', ref: 1, lock: 1.2, delay: 0.8, element: 'holy', knock: 1.5,
+    mult: (lv) => 1.4 + lv * 0.3, stun: () => 0.6, stunSecs: 1.5,
+    nf: { magic: true, anim: 'castHold', sky: { t: 0, dark: 0.6, dur: 3 }, flashes: [{ t: 0.1, a: 0.2, color: '#ffba46' }, { t: 2.1, a: 0.7, color: '#ffe496' }],
+      hits: [{ t: 0.95, r: 3.2, m: 0.6, shake: 0.15 }, { t: 1.25, r: 3.2, m: 0.6, shake: 0.15 }, { t: 1.55, r: 3.2, m: 0.6, shake: 0.2 }, { t: 2.1, r: 3.8, m: 3.2, knock: 1, stun: 1, shake: 1, stop: 0.12 }] },
+    desc: 'ฟ้ามืดลง ปีกแสงทองกางออกหลังร่าง วงพิพากษายักษ์เปิดกลางศัตรู ลำแสงสวรรค์ถล่มลง 3 ระลอก แล้วกางเขนแสงยักษ์ระเบิดกลางวง ผลักทุกตัวกระเด็นและมีโอกาสมึน (ไม้ตาย)',
+    effect: (lv) => `3 × ${pct((1.4 + lv * 0.3) * 0.6)}% + ${pct((1.4 + lv * 0.3) * 3.2)}% MATK รอบเป้า 3.2–3.8 ช่อง · ธาตุศักดิ์สิทธิ์ · มึน 60% · คูลดาวน์ 12 วิ`,
   },
 };
 
@@ -275,7 +267,8 @@ Object.assign(SKILLS, JOB2_SKILLS);
 
 // v0.65.2 ฮีล/บัฟ/โล่ของสายนักบวช ส่งถึงเพื่อนในปาร์ตี้ที่อยู่แมพเดียวกันในรัศมี (ช่อง) — Game.supportParty / Social.sendSupport
 // ลูกแสง/เมล็ดชีวิต (ดูดเลือดกลับตัวเอง) ไม่อยู่ในรายการ
-export const PARTY_SUPPORT = { healing_pillar: 6, light_blessing: 6, holy_bulwark: 5, divine_descent: 7, regrowth_bloom: 6, healing_rain: 6, lotus_sanctuary: 5, tree_of_life: 7 };
+// v0.68 สายฮีลแยกโจมตี/ฮีลแล้ว → เฉพาะสกิลฮีล/บัฟ 4 สกิล (ไม้ตายเป็นโจมตีล้วน)
+export const PARTY_SUPPORT = { healing_pillar: 6, light_blessing: 6, healing_rain: 6, lotus_sanctuary: 5 };
 for (const [id, r] of Object.entries(PARTY_SUPPORT)) {
   const sk = SKILLS[id]; if (!sk) continue;
   sk.party = r;
