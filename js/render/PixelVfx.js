@@ -1,7 +1,7 @@
 // v0.34: เอฟเฟกต์สกิลภาพพิกเซลจาก PixelLab VFX Creator ("For a game (ZIP)")
 // แต่ละเอฟเฟกต์อยู่ที่ assets/vfx/<ชื่อ>/ : manifest.json + behind.png + front.png (หรือ whole.png)
 // วาดเป็นแผ่นป้ายหันหากล้อง 2 ชั้น: ชั้นหลังตัวละคร / ชั้นหน้าตัวละคร · จุดยึด = เท้าของเป้าหมาย
-import { THREE } from './three.js?v=0.68.0';
+import { THREE } from './three.js?v=0.69.0';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อ 1 พิกเซล (เท่าตัวละครพิกเซล 8 ทิศ)
 
@@ -130,18 +130,7 @@ export const SKILL_VFX = {
   phantom_step: { name: 'nf_phantom_step', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.5 },
   eclipse_barrage: { name: 'nf_eclipse_barrage', side: true, fit: 135, scale: 1, delay: 0, solo: true, aimMax: 0.2 },
   // นักเวท (Mage) · v0.60 ชุดใหม่ "เวทพิศวงสีม่วง"
-  violet_flare: { name: 'nf_violet_flare', at: 'target', scale: 1.15, delay: 0, solo: true },
-  glacial_spikes: { name: 'nf_glacial_spikes', at: 'target', scale: 1.35, delay: 0.07, behind: true, solo: true },
-  chain_lightning: { name: 'nf_chain_lightning', at: 'target', scale: 1.4, delay: 0.07, behind: true, solo: true },
-  blizzard: { name: 'nf_blizzard', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
-  arcane_ward: { name: 'nf_arcane_ward', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
-  void_meteor: { name: 'nf_void_meteor', at: 'target', scale: 1.6, delay: 0.07, behind: true, solo: true },
   // จอมเวท (Wizard) · v0.62 ชุดใหม่ "จอมเวทน้ำแข็ง" (sprite sheet 24 fps จากผู้พัฒนา)
-  frost_shards: { name: 'nf_frost_shards', at: 'target', scale: 1.15, delay: 0, solo: true, flipToCaster: true },
-  glacier_spike: { name: 'nf_glacier_spike', at: 'target', scale: 1.1, delay: 0, behind: true, solo: true },
-  blizzard_vortex: { name: 'nf_blizzard_vortex', at: 'target', scale: 1.2, delay: 0, behind: true, solo: true },
-  frost_armor: { name: 'nf_frost_armor', at: 'self', scale: 1.15, delay: 0, behind: true, solo: true },
-  absolute_zero: { name: 'nf_absolute_zero', at: 'target', scale: 1.15, delay: 0, behind: true, solo: true },
   // นักบวช (Acolyte) · v0.63 ชุดใหม่ "นักบวชแสง" (sprite sheet 24 fps จากผู้พัฒนา)
   // นักบวชชั้นสูง (Priest) · v0.63 ชุดใหม่ "ผู้พิทักษ์ชีวิต"
 };

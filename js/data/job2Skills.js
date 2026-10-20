@@ -78,7 +78,7 @@ export const JOB2_SKILLS = {
   },
   frost_shards: {
     job: 'wizard', name: 'เกล็ดน้ำแข็ง', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['ice', '#9ae8ff'], req: { astral_insight: 1 },
-    sp: (lv) => 14 + lv * 2, cast: 0.3, cd: 0.8, range: 10, vfx: 'nf', ref: 1, lock: 0.5, delay: 0.35, engage: true, element: 'water',
+    sp: (lv) => 14 + lv * 2, cast: 0.3, cd: 0.8, range: 10, vfx: 'wz_frost_shards', ref: 1, lock: 0.5, delay: 0.35, engage: true, element: 'water',
     mult: (lv) => 0.45 + lv * 0.06,
     nf: { magic: true, anim: 'cast', hits: [{ t: 0.58, m: 1 }, { t: 0.65, m: 1 }, { t: 0.75, m: 1 }, { t: 0.81, r: 1.2, m: 1 }, { t: 0.9, r: 1.4, m: 1, slow: { pct: 0.3, secs: 2 }, shake: 0.08 }] },
     desc: 'วงเวทใต้เท้าปล่อยเกล็ดน้ำแข็ง 5 ชิ้นพุ่งเป็นสายเข้าเป้า ชิ้นท้าย ๆ แตกกระจายโดนศัตรูข้างเป้าและทำให้ช้าลง — สกิลโจมตีหลัก',
@@ -86,7 +86,7 @@ export const JOB2_SKILLS = {
   },
   glacier_spike: {
     job: 'wizard', name: 'หนามธารน้ำแข็ง', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['crystal', '#7fd0ff'], req: { frost_shards: 3 },
-    sp: (lv) => 26 + lv * 2, cast: 0.5, cd: 3, range: 10, vfx: 'nf', ref: 1, lock: 0.6, delay: 0.5, element: 'water', knock: 1,
+    sp: (lv) => 26 + lv * 2, cast: 0.5, cd: 3, range: 10, vfx: 'wz_glacier_spike', ref: 1, lock: 0.6, delay: 0.5, element: 'water', knock: 1,
     mult: (lv) => 2 + lv * 0.22, freeze: (lv) => 0.4 + lv * 0.04, freezeSecs: (lv) => 1.5 + lv * 0.15,
     nf: { magic: true, anim: 'cast', flashes: [{ t: 0.33, a: 0.3 }], hits: [{ t: 0.33, r: 2.4, m: 1, knock: 1, freeze: 2, shake: 0.4 }] },
     desc: 'วงเวทเปิดใต้เป้า หนามธารน้ำแข็งพุ่งทะลุพื้นทั่ววง ศัตรูกระเด็นและมีโอกาสถูกแช่แข็ง',
@@ -94,7 +94,7 @@ export const JOB2_SKILLS = {
   },
   blizzard_vortex: {
     job: 'wizard', name: 'พายุหิมะหมุน', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['snow', '#bfeeff'], req: { frost_shards: 3 },
-    sp: (lv) => 36 + lv * 3, cast: 0.8, cd: 6, range: 10, vfx: 'nf', ref: 1, lock: 0.9, delay: 0.7, element: 'water', knock: 1.5,
+    sp: (lv) => 36 + lv * 3, cast: 0.8, cd: 6, range: 10, vfx: 'wz_blizzard_vortex', ref: 1, lock: 0.9, delay: 0.7, element: 'water', knock: 1.5,
     mult: (lv) => 0.4 + lv * 0.05, freeze: (lv) => 0.5 + lv * 0.04, freezeSecs: 2,
     nf: { magic: true, anim: 'castHold', pull: { from: 0.2, to: 2.1, r: 3.6, step: 3 }, flashes: [{ t: 2.21, a: 0.25 }], hits: [{ t: 0.15, r: 3, m: 1, slow: { pct: 0.5, secs: 3 } }, { t: 0.6, r: 3, m: 1 }, { t: 1.05, r: 3, m: 1 }, { t: 1.5, r: 3, m: 1 }, { t: 1.9, r: 3, m: 1 }, { t: 2.21, r: 3.2, m: 3, knock: 1, freeze: 2, shake: 0.35 }] },
     desc: 'พายุหิมะหมุนวนกลางวงเวท ดูดศัตรูรอบ ๆ เข้าหาจุดกลางและบาดลึก 5 ครั้ง แล้วระเบิดผลักกระเด็น มีโอกาสแช่แข็งทั้งวง',
@@ -102,7 +102,7 @@ export const JOB2_SKILLS = {
   },
   frost_armor: {
     job: 'wizard', name: 'เกราะน้ำแข็ง', maxLv: 10, kind: 'active', target: 'self', icon: ['hexshield', '#9ad8ff'], req: { mana_wellspring: 3 },
-    sp: 45, cast: 0, cd: 1, vfx: 'nf', lock: 0.6, delay: 0.4,
+    sp: 45, cast: 0, cd: 1, vfx: 'wz_frost_armor', lock: 0.6, delay: 0.4,
     nf: { at: 'self', anim: 'cast', flashes: [{ t: 0.11, a: 0.15 }] },
     duration: (lv) => 60 + lv * 12, bonus: (lv) => ({ dmgReduce: 6 + lv * 1.5, mdef: lv * 3, def: lv * 2, castPct: 5 + lv * 2, matkPct: lv }),
     desc: 'ผลึกน้ำแข็งงอกเป็นมงกุฎรอบเท้าแล้วปิดเป็นโดมเกราะ ลดดาเมจที่ได้รับ เพิ่มพลังป้องกัน ร่ายเร็วขึ้น และเวทแรงขึ้น',
@@ -110,7 +110,7 @@ export const JOB2_SKILLS = {
   },
   absolute_zero: {
     job: 'wizard', name: 'ศูนย์องศาสัมบูรณ์', maxLv: 5, kind: 'active', target: 'enemy', magic: true, icon: ['snow', '#7fd0ff'], req: { glacier_spike: 5, blizzard_vortex: 5 },
-    sp: (lv) => 95 + lv * 6, cast: (lv) => 1.8 - lv * 0.15, cd: 12, range: 10, vfx: 'nf', ref: 1, lock: 1.6, delay: 1.4, element: 'water', knock: 2,
+    sp: (lv) => 95 + lv * 6, cast: (lv) => 1.8 - lv * 0.15, cd: 12, range: 10, vfx: 'wz_absolute_zero', ref: 1, lock: 1.6, delay: 1.4, element: 'water', knock: 2,
     mult: (lv) => 1 + lv * 0.18, freeze: () => 1, freezeSecs: (lv) => 2.5 + lv * 0.3,
     nf: { magic: true, anim: 'castHold', sky: { t: 0, dark: 0.5, dur: 4.4 }, flashes: [{ t: 2.46, a: 0.9 }], hits: [{ t: 0.75, r: 4, m: 1, slow: { pct: 0.6, secs: 4 } }, { t: 1.25, r: 4, m: 1, shake: 0.06 }, { t: 1.7, r: 4, m: 1, shake: 0.15 }, { t: 2.1, r: 4, m: 1, shake: 0.25 }, { t: 2.46, r: 4.6, m: 4.5, knock: 1, freeze: 3, shake: 1 }] },
     desc: 'ฟ้ามืดลง วงเวทยักษ์เปิดใต้ศัตรู ผลึกน้ำแข็งงอกขึ้นทั่ววงทีละชั้นจนกลายเป็นป่าน้ำแข็ง แล้วทุกอย่างแตกพร้อมกันในแสงขาว แช่แข็งศัตรูทั้งวง (ไม้ตาย)',

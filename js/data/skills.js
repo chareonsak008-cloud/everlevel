@@ -6,8 +6,8 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.68.0';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.68.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+import { JOBS } from './progression.js?v=0.69.0';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.69.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
@@ -103,7 +103,7 @@ export const SKILLS = {
   },
   violet_flare: {
     job: 'mage', name: 'หอกเพลิงม่วง', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['flame', '#c06aff'],
-    sp: (lv) => 8 + lv, cast: 0.25, cd: 0.6, range: 9, vfx: 'nf', ref: 1, lock: 0.45, delay: 0.3, engage: true, element: 'fire',
+    sp: (lv) => 8 + lv, cast: 0.25, cd: 0.6, range: 9, vfx: 'mg_violet_flare', ref: 1, lock: 0.45, delay: 0.3, engage: true, element: 'fire',
     mult: (lv) => 1.1 + lv * 0.14,
     nf: { magic: true, anim: 'cast', hits: [{ t: 0.3, m: 1 }, { t: 0.5, r: 1.2, m: 0.5, shake: 0.08 }] },
     desc: 'ชี้ไม้เท้า หอกเพลิงสีม่วงพุ่งเสียบเป้า แล้วแตกเป็นเปลวเพลิงลามศัตรูข้าง ๆ — สกิลเวทหลัก ร่ายไว',
@@ -111,7 +111,7 @@ export const SKILLS = {
   },
   glacial_spikes: {
     job: 'mage', name: 'หนามน้ำแข็งระเบิด', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['ice', '#7fd8ff'], req: { violet_flare: 3 },
-    sp: (lv) => 18 + lv * 2, cast: 0.6, cd: 3, range: 9, vfx: 'nf', ref: 1, lock: 0.6, delay: 0.5, element: 'water',
+    sp: (lv) => 18 + lv * 2, cast: 0.6, cd: 3, range: 9, vfx: 'mg_glacial_spikes', ref: 1, lock: 0.6, delay: 0.5, element: 'water',
     mult: (lv) => 0.9 + lv * 0.1, freeze: (lv) => 0.35 + lv * 0.05, freezeSecs: (lv) => 1.5 + lv * 0.15,
     nf: { magic: true, anim: 'cast', hits: [{ t: 0.45, r: 2.4, m: 1, slow: { pct: 0.4, secs: 3 } }, { t: 0.85, r: 2.6, m: 1, freeze: 2, shake: 0.14 }] },
     desc: 'น้ำแข็งก่อตัวใต้เป้า ผลึกหนามพุ่งขึ้น 2 ระลอก ศัตรูในวงช้าลง และระลอกที่สองมีโอกาสแช่แข็ง',
@@ -119,7 +119,7 @@ export const SKILLS = {
   },
   chain_lightning: {
     job: 'mage', name: 'สายฟ้าลูกโซ่', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['bolt', '#ffe24a'], req: { violet_flare: 3 },
-    sp: (lv) => 20 + lv * 2, cast: 0.5, cd: 2.5, range: 9, vfx: 'nf', ref: 1, lock: 0.7, delay: 0.5, element: 'wind',
+    sp: (lv) => 20 + lv * 2, cast: 0.5, cd: 2.5, range: 9, vfx: 'mg_chain_lightning', ref: 1, lock: 0.7, delay: 0.5, element: 'wind',
     mult: (lv) => 0.7 + lv * 0.09, stun: (lv) => 0.1 + lv * 0.03, stunSecs: 1.2,
     nf: { magic: true, anim: 'cast', hits: [{ t: 0.3, m: 1.3 }, { t: 0.6, r: 2.6, m: 1 }, { t: 0.9, r: 2.6, m: 1 }, { t: 1.2, r: 2.8, m: 1, stun: 1.2, shake: 0.14 }] },
     desc: 'สายฟ้าสีม่วงฟาดเป้าหลัก แล้วแตกลูกโซ่ไปศัตรูรอบข้าง 3 ระลอก ระลอกสุดท้ายมีโอกาสทำให้มึน',
@@ -127,7 +127,7 @@ export const SKILLS = {
   },
   blizzard: {
     job: 'mage', name: 'พายุหิมะขั้วโลก', maxLv: 10, kind: 'active', target: 'enemy', magic: true, icon: ['snow', '#9ae8ff'], req: { glacial_spikes: 3 },
-    sp: (lv) => 30 + lv * 3, cast: 1.0, cd: 6, range: 9, vfx: 'nf', ref: 1, lock: 0.9, delay: 0.8, element: 'water',
+    sp: (lv) => 30 + lv * 3, cast: 1.0, cd: 6, range: 9, vfx: 'mg_blizzard', ref: 1, lock: 0.9, delay: 0.8, element: 'water',
     mult: (lv) => 0.42 + lv * 0.05, freeze: (lv) => 0.5 + lv * 0.04, freezeSecs: 2,
     nf: { magic: true, anim: 'castHold', hits: [{ t: 0.5, r: 3.4, m: 1, slow: { pct: 0.5, secs: 4 } }, { t: 1.0, r: 3.4, m: 1 }, { t: 1.5, r: 3.4, m: 1 }, { t: 2.0, r: 3.4, m: 1 }, { t: 2.5, r: 3.4, m: 1 }, { t: 3.0, r: 3.6, m: 1.6, freeze: 2, shake: 0.2 }] },
     desc: 'เรียกพายุหิมะกว้าง 3.4 ช่องหมุนวน 3 วินาที ตีต่อเนื่อง 5 ครั้ง ศัตรูช้าลงครึ่งหนึ่ง แล้วปิดท้ายด้วยผลึกยักษ์แช่แข็งทั้งวง',
@@ -135,7 +135,7 @@ export const SKILLS = {
   },
   arcane_ward: {
     job: 'mage', name: 'เกราะเวทอาคม', maxLv: 10, kind: 'active', target: 'self', icon: ['hexshield', '#9a6ae0'], req: { arcane_focus: 3 },
-    sp: 28, cast: 0, cd: 1, vfx: 'nf', lock: 0.6, delay: 0.5,
+    sp: 28, cast: 0, cd: 1, vfx: 'mg_arcane_ward', lock: 0.6, delay: 0.5,
     nf: { at: 'self', anim: 'cast' },
     duration: (lv) => 60 + lv * 6, bonus: (lv) => ({ dmgReduce: 8 + lv * 1.5, mdef: lv * 2, matkPct: lv }),
     desc: 'วงอักขระลอยขึ้นจากพื้น ผลึกเวทหมุนล้อมรอบตัวแล้วรวมเป็นโดมเกราะสีม่วง ลดดาเมจที่ได้รับและเพิ่มพลังเวท',
@@ -143,7 +143,7 @@ export const SKILLS = {
   },
   void_meteor: {
     job: 'mage', name: 'ห่าอุกกาบาตม่วง', maxLv: 5, kind: 'active', target: 'enemy', magic: true, icon: ['meteor', '#8a3aff'], req: { chain_lightning: 3, blizzard: 3 },
-    sp: (lv) => 55 + lv * 5, cast: (lv) => 1.6 - lv * 0.12, cd: 10, range: 9, vfx: 'nf', ref: 1, lock: 1.2, delay: 1.0, element: 'fire', knock: 1.5,
+    sp: (lv) => 55 + lv * 5, cast: (lv) => 1.6 - lv * 0.12, cd: 10, range: 9, vfx: 'mg_void_meteor', ref: 1, lock: 1.2, delay: 1.0, element: 'fire', knock: 1.5,
     mult: (lv) => 1.3 + lv * 0.25,
     nf: { magic: true, anim: 'castHold', sky: { t: 0, dark: 0.55, dur: 3.2 }, hits: [{ t: 0.55, r: 2.4, m: 1, shake: 0.1 }, { t: 0.95, r: 2.4, m: 1, shake: 0.1 }, { t: 1.35, r: 2.4, m: 1, shake: 0.1 }, { t: 2.0, r: 3.4, m: 2.6, knock: 1, shake: 0.35 }] },
     desc: 'ฟ้ามืดลง อุกกาบาตเพลิงม่วง 3 ลูกถล่มรอบเป้า แล้วอุกกาบาตยักษ์ลูกสุดท้ายกระแทกกลางวง ระเบิดผลักศัตรูกระเด็น (ไม้ตาย)',
