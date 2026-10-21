@@ -351,3 +351,37 @@
 .sn-title.t-divine { color: #fff2a8; text-shadow: 0 0 6px rgba(255, 230, 140, 0.8); }
 .sn-title.t-mythic { color: #ff9ae6; text-shadow: 0 0 5px rgba(255, 150, 230, 0.6); }
 .sn-title.t-legend { color: #ffb347; }
+
+/* v0.77 หลอมอุปกรณ์นิรันดร์กาล */
+.eternalw { width: 600px; }
+.et-lines { flex-wrap: wrap; }
+.et-lines button { flex: 1 1 auto; }
+.et-body { display: flex; flex-direction: column; gap: 8px; }
+.et-slots { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.et-slot { position: relative; padding-bottom: 12px; }
+.et-slot img { width: 70%; image-rendering: auto; }
+.et-slot small { position: absolute; bottom: 1px; left: 0; right: 0; text-align: center; font-size: 9.5px; color: var(--muted, #b3b5bd); }
+.et-slot.on { outline: 2px solid #ffd8ff; outline-offset: 1px; }
+.et-own { position: absolute; top: 2px; right: 4px; font-style: normal; font-size: 11px; color: #9ee59a; }
+.et-item { padding: 8px 10px; border-radius: 10px; background: rgba(255, 216, 255, 0.05); border: 1px solid rgba(255, 216, 255, 0.25); }
+.et-head { display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: center; }
+.et-big { width: 64px; }
+.et-big img { width: 80%; }
+.et-name { font-size: 16px; display: block; }
+.et-head small { display: block; font-size: 11.5px; color: var(--muted, #b3b5bd); }
+.et-stats { margin: 4px 0 0; font-size: 12.5px; color: #c8f0c0; line-height: 1.5; }
+.et-set { font-size: 12px; margin-top: 6px; }
+.et-set summary { cursor: pointer; color: #ffd8ff; }
+.et-set p { margin: 3px 0; }
+.et-recipe h3 { margin: 0 0 4px; font-size: 13.5px; color: var(--gold, #ffd36b); }
+.et-mats { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.et-mats li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 3px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.04); font-size: 12.5px; }
+.et-mats li img { width: 22px; height: 22px; }
+.et-mats li em { font-style: normal; font-size: 10.5px; color: var(--muted, #b3b5bd); }
+.et-mats li.ok b { color: #9ee59a; } .et-mats li.no b { color: #ff8a8a; }
+.et-z { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(#ffe9a0, #c98a22); color: #3a2208; font-weight: 700; font-size: 12px; }
+.et-luck { margin-top: 6px; font-size: 12.5px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.et-luck button { padding: 2px 10px; font-size: 12px; } .et-luck button.on { border-color: #ffd8ff; color: #ffd8ff; }
+.et-go { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 14px; }
+.et-go b { color: #ffd8ff; font-size: 18px; }
+.et-note { margin: 6px 0 0; font-size: 11.5px; color: var(--muted, #b3b5bd); line-height: 1.5; }

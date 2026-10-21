@@ -2365,3 +2365,14 @@ body.touch .hud > :is(.panel.char, .buffs, .panel.mini, .topbar, .qtrack, .hotba
 @media (orientation: portrait) and (max-width: 520px) {
   body.touch .topbar { top: calc(178px + env(safe-area-inset-top, 0px)); width: max-content; max-width: calc(100vw / var(--hudz, 1) - 8px); flex-wrap: wrap; justify-content: center; }
 }
+
+/* v0.77 เกรดสูงสุด: นิรันดร์กาล · รุ้งสุริยา (อุปกรณ์หลอม) */
+.slot.r-eternal { --rt: #fff4ff; --rb: #8a4ad8; --re: #ffd8ff; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), inset 0 -6px 10px rgba(0,0,0,.25), 0 0 12px rgba(255, 190, 255, 0.85); }
+.slot.r-eternal::before { content: ""; position: absolute; inset: -2px; border-radius: inherit; pointer-events: none; z-index: 0;
+  background: conic-gradient(from 0deg, #ff7ab8, #ffd86a, #8affb0, #7ad8ff, #c89aff, #ff7ab8); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; padding: 2px; animation: etSpin 3s linear infinite; }
+.slot.r-eternal::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.7) 50%, transparent 65%) -150% 0 / 250% 100% no-repeat; animation: slotShine 1.6s ease-in-out infinite; }
+@keyframes etSpin { to { filter: hue-rotate(360deg); } }
+.chat .r-eternal, .dmg.loot.r-eternal, .g-rar[data-rarity="eternal"], .r-eternal-text { font-weight: 700; color: transparent; background: linear-gradient(110deg, #ff9ad0, #ffe08a, #9affc0, #8ad8ff, #d8a8ff, #ff9ad0) 0 0 / 300% 100%; -webkit-background-clip: text; background-clip: text; animation: flow1 3s linear infinite; }
+.dmg.loot.r-eternal { font-size: 30px; font-family: 'Lilita One', var(--display); filter: drop-shadow(0 0 8px rgba(255, 200, 255, 0.9)); }
+@media (prefers-reduced-motion: reduce) { .slot.r-eternal::before, .slot.r-eternal::after { animation: none; } }

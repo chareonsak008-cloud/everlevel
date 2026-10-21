@@ -1,11 +1,11 @@
 // ตั้งค่าการเก็บของของสัตว์เลี้ยง (v0.24.1 · ปรับใหม่ v0.31.1) — ไม่มีส่วนที่ต้องใช้หน้าเว็บ (โหลดจาก Player ได้)
 // v0.31.1: เลือกระดับได้เฉพาะ "อุปกรณ์" (ขาว → แดง) · ของตีบวกแยกหมวดและเก็บทั้งหมด · ของอื่นมีแค่ เก็บ/ไม่เก็บ + ติ๊กไม่เก็บรายชิ้น
-import { ITEMS } from '../data/items.js?v=0.76.0';
-import { REFINE_ITEMS } from '../data/refine.js?v=0.76.0';
+import { ITEMS } from '../data/items.js?v=0.77.0';
+import { REFINE_ITEMS } from '../data/refine.js?v=0.77.0';
 
 export const PICK_CATS = [['usable', 'ยา/ของใช้'], ['etc', 'วัตถุดิบ'], ['refine', 'ของตีบวก'], ['equip', 'อุปกรณ์'], ['card', 'การ์ด'], ['box', 'กล่องแฟชั่น']];
 // ระดับอุปกรณ์ขั้นต่ำ (ตรงกับสีความหายาก)
-export const PICK_GRADES = [['common', 'ขาว'], ['uncommon', 'เขียว'], ['rare', 'ฟ้า'], ['epic', 'ม่วง'], ['legend', 'ส้ม'], ['mythic', 'ทอง'], ['celestial', 'แดง'], ['abyssal', 'คราม'], ['divine', 'ขาวทอง']];   // v0.48: +ห้วงสมุทร/เทพสวรรค์
+export const PICK_GRADES = [['common', 'ขาว'], ['uncommon', 'เขียว'], ['rare', 'ฟ้า'], ['epic', 'ม่วง'], ['legend', 'ส้ม'], ['mythic', 'ทอง'], ['celestial', 'แดง'], ['abyssal', 'คราม'], ['divine', 'ขาวทอง'], ['eternal', 'รุ้ง']];   // v0.48: +ห้วงสมุทร/เทพสวรรค์
 export const PICK_RANKS = PICK_GRADES.map(([, n], i) => [i, n]);   // เข้ากันได้กับโค้ดเก่า
 export const GRADE_RANK = Object.fromEntries(PICK_GRADES.map(([k], i) => [k, i]));
 

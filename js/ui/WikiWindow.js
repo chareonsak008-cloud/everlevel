@@ -1,25 +1,30 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.76.0';
-import { MONSTERS } from '../data/monsters.js?v=0.76.0';
-import { MAPS } from '../data/maps/index.js?v=0.76.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.76.0';
-import { CARD_SETS } from '../data/collection.js?v=0.76.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.76.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.76.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.76.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.76.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.76.0';
-import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.76.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.76.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.76.0';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.76.0';
-import { rollFits } from '../data/affixes.js?v=0.76.0';
-import { statsToBonus } from '../data/affixes.js?v=0.76.0';
-import { VIP_PERKS } from './CashShop.js?v=0.76.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.76.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.76.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.76.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.77.0';
+import { MONSTERS } from '../data/monsters.js?v=0.77.0';
+import { MAPS } from '../data/maps/index.js?v=0.77.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.77.0';
+import { CARD_SETS } from '../data/collection.js?v=0.77.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.77.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.77.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.77.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.77.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.77.0';
+import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.77.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.77.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.77.0';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.77.0';
+import { rollFits } from '../data/affixes.js?v=0.77.0';
+import { statsToBonus } from '../data/affixes.js?v=0.77.0';
+import { VIP_PERKS } from './CashShop.js?v=0.77.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.77.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.77.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.77.0';
+// v0.77 คู่มือระบบใหม่ (ภารกิจรายวัน · ดันเจี้ยนปาร์ตี้ · อันดับฤดูกาล · ฉายา · หลอมนิรันดร์กาล)
+import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.77.0';
+import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.77.0';
+import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.77.0';
+import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.77.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -382,7 +387,7 @@ const GUIDES = [
     table(['เกรดค่าสุ่ม', 'ความหมาย'], [['<b class="rgx g4">ยอดเยี่ยม</b>', 'หลายค่า ค่าสูง ตรงสาย — ของหายาก ราคาดี'], ['<b class="rgx g3">ดีมาก</b>', 'ค่าดีเกือบเต็ม'], ['<b class="rgx g2">ดี</b>', 'ค่าบวกพอใช้'], ['<b class="rgx g1">ธรรมดา</b>', 'บวกน้อยหรือหักลบกันพอดี'], ['<b class="rgx g0">แย่</b>', 'ติดลบรวม — ขาย NPC หรือเก็บไว้ตีบวกทดลอง']]) +
     P('ดูค่าสุ่มของชิ้นที่มีได้ในกระเป๋า (สีเขียว/แดง + เกรด) · ในตลาดฝากขายจะแสดงเกรดค่าสุ่มต่อท้ายชื่อด้วย · ดูช่วงค่าที่สุ่มได้ของอาวุธ/อุปกรณ์แต่ละชิ้นในแท็บ "อุปกรณ์"') },
   { id: 'spawn', title: '👾 การเกิดของมอนสเตอร์', sub: 'จำนวน · เวลาเกิดใหม่', html: () =>
-    UL([`มอนปกติในทุกแผนที่เกิดมากขึ้น ×${SPAWN_MUL} และเกิดใหม่เร็วขึ้น (ใช้เวลาเหลือราว ${Math.round(RESPAWN_MUL * 100)}% ของเดิม)`, 'มอนแต่ละตัวเกิดใหม่สุ่มจุดในโซนของมัน · MVP สุ่มจุดเกิดทั่วแผนที่และเกิดตามเวลาเดิม', 'ดูเวลาเกิดใหม่ของมอนแต่ละตัวได้ในแท็บ "มอนสเตอร์"']) },
+    UL([`มอนปกติในทุกแผนที่เกิดมากขึ้น ×${SPAWN_MUL} และเกิดใหม่เร็วขึ้น (ใช้เวลาเหลือราว ${Math.round(RESPAWN_MUL * 100)}% ของเดิม)`, 'มอนที่ตายมีโอกาส 70% เกิดใหม่ใกล้จุดที่คุณล่าอยู่ (เปิดออโต้ = ในวงออโต้ · ไม่เปิด = 12 ช่องรอบตัว) ถ้าอยู่ในโซนเกิดของมัน · ไม่เกิดชิดตัว (ห่าง ≥3 ช่อง)', 'MVP / บอส สุ่มจุดเกิดทั่วแผนที่และเกิดตามเวลา', 'ดูเวลาเกิดใหม่ของมอนแต่ละตัวได้ในแท็บ "มอนสเตอร์"']) },
   { id: 'equipguide', title: '⚔ อุปกรณ์ & ระดับความหายาก', sub: 'เกรดสี · ช่องสวมใส่ · ค่าสุ่ม', html: () =>
     P(`อุปกรณ์มี 7 ช่อง: ${EQUIP_SLOTS.map((s) => s.name).join(' · ')} · แต่ละชิ้นมีเลเวลที่ต้องการและอาชีพที่ใช้ได้`) +
     table(['เกรด', 'สี'], Object.entries(RARITY).map(([k, r]) => [`<b style="color:${r.color}">${esc(r.name || k)}</b>`, `<span class="wk-sw" style="background:${r.color}"></span>`])) +
@@ -397,10 +402,34 @@ const GUIDES = [
     UL([`ขายของให้ร้านค้า NPC ได้ ${Math.round(SELL_RATE * 100)}% ของราคา`, `คลังเก็บของ (NPC) เก็บได้ ${STORAGE_CAPACITY} ช่อง ใช้ร่วมได้`, '<b>ตลาด</b> (นายตลาดในเมือง): ฝากขายได้แม้ออฟไลน์ อยู่ 7 วัน มีคนซื้อเงินเข้าทันที · คนทั่วไปลงได้ 2 รายการ ค่าธรรมเนียม 7% · VIP 5 รายการ 3%', '<b>แลกเปลี่ยน</b>: คลิกผู้เล่น → แลกเปลี่ยน วางของ/Zeny แล้วทั้งคู่กดยืนยัน · ให้ของฝ่ายเดียวได้', 'ของจากร้านเพชรบางชิ้นซื้อขายในตลาดได้ — หาเพชรได้โดยไม่ต้องเติมเงิน', '<b>ตลาดแลกเพชร</b> (ปุ่ม "แลกเพชร" ด้านบน): ซื้อ/ขายเพชรกับผู้เล่นด้วย Zeny ได้ทุกที่ · ซื้อขายทันทีหรือตั้งราคารอ · มีกราฟราคาและความลึกตลาด · ค่าธรรมเนียมฝั่งละ 7% (VIP 3%)', 'Zeny หายาก: ขายของให้ NPC ได้น้อย — ของดีควรขายผ่านตลาดให้ผู้เล่น']) },
   { id: 'boss', title: '👹 บอสโลก & MVP', sub: 'เวลาเกิด · รางวัล', html: () =>
     `<h4>บอสโลก</h4>` + table(['บอส', 'เวลาเกิด (ไทย)', 'แผนที่', 'HP'], Object.values(WORLD_BOSSES).map((b) => [esc(b.name), `${b.hour}:00 น. (อยู่ 30 นาที)`, mapLink(b.map), fmt(b.hp)])) +
-    UL(['ทุกคนที่ตีโดนได้รางวัลทางจดหมาย · ดาเมจอันดับ 1–3 ได้โบนัสเพิ่ม · มีโอกาส 15% ได้อาวุธพิเศษ', 'กดปุ่ม "บอส" ด้านบนเพื่อดูเวลาที่เหลือและรางวัล']) +
+    UL([`ทุกคนที่ตีโดนได้รางวัลทางจดหมาย · ดาเมจอันดับ 1–3 ได้โบนัสเพิ่ม · มีโอกาส ${Math.round(((Object.values(WORLD_BOSSES)[0] || {}).reward?.chance?.p || 0) * 100)}% ได้อาวุธพิเศษ · เซิร์ฟเวอร์รับดาเมจไม่เกิน 15,000 ต่อครั้ง ต้องช่วยกันหลายคน`, 'กดปุ่ม "บอส" ด้านบนเพื่อดูเวลาที่เหลือและรางวัล']) +
     `<h4>บอส MVP</h4>` + UL(['<b>MVP ร่วม:</b> ทุกคนในแผนที่เห็นและตี MVP ตัวเดียวกัน เลือดลดพร้อมกัน — ชวนเพื่อนมารุมได้', 'แต่ละแผนที่มี MVP ประจำ 1 ตัว สุ่มจุดเกิดทั่วแผนที่ · ยืนประจำจุดที่เกิด · เกิดใหม่ตามเวลา (ดูเวลาที่ปุ่ม "บอส")', 'ปราบแล้ว: ทุกคนที่ทำดาเมจ ≥1% ได้ EXP ตามสัดส่วนดาเมจ (ขั้นต่ำ 30% ของ EXP เต็ม) และสุ่มของดรอปของตัวเอง', 'ดาเมจ <b>อันดับ 1</b> = MVP ลุ้นรางวัล MVP ประจำอาชีพ 25% + โอกาสดรอปเต็ม · อันดับอื่นได้โอกาสดรอปครึ่งหนึ่ง', 'MVP ดรอปของดีและหินตีบวกบ่อยกว่ามอนปกติ', '<b>การ์ด MVP</b> หายากมาก (0.02% ต่อการปราบ) ลุ้นได้เฉพาะคนที่ได้ MVP · ซื้อขายกันได้ในตลาด']) },
   { id: 'dungeon', title: '🏰 ดันเจี้ยน & หอคอย', sub: 'เนื้อหาท้าทาย', html: () =>
     UL([`<b>${esc(CAVE.name)}</b> — ${CAVE.floors} ชั้น · เข้าได้วันละ ${CAVE.daily} รอบ · Lv.${CAVE.minLv}+ · มอนและบอสปรับเลเวลตามผู้เล่น ชั้นสุดท้ายมีหีบรางวัล`, `<b>${esc(TOWER.name)}</b> — Lv.${TOWER.minLv}+ ไต่ขึ้นไปเรื่อย ๆ ไม่มีที่สิ้นสุด · มีเวลาจำกัดต่อชั้น · จุดเซฟทุก ${TOWER.checkpoint} ชั้น · ทุก 5/10/25 ชั้นได้รางวัลพิเศษ`, 'เข้าได้จาก NPC ในเมือง']) },
+  { id: 'daily', title: '📜 ภารกิจรายวัน', sub: 'ปุ่ม "ภารกิจ" แถบบน · รีเซ็ตทุกเที่ยงคืน', html: () =>
+    `<h4>วิธีเล่น</h4>` + UL([`กดปุ่ม <b>ภารกิจ</b> (ม้วนคัมภีร์) ที่แถบไอคอนด้านบน · ได้ภารกิจวันละ <b>${DAILY_COUNT}</b> อย่าง สุ่มตามเลเวล (ข้อแรกเป็นงานล่ามอนเสมอ)`, 'ทำไปเรื่อย ๆ ความคืบหน้านับเอง · ทำเสร็จกด <b>รับรางวัล</b> ทีละข้อ · ตัวเลขแดงบนปุ่มบอกว่ามีรางวัลรอรับ', `ไม่ชอบภารกิจไหน กด <b>↻ เปลี่ยน</b> ได้วันละ ${DAILY_REROLLS} ครั้ง (เฉพาะข้อที่ยังไม่เสร็จ)`, 'รีเซ็ตเที่ยงคืนเวลาไทย (ใช้เวลาเซิร์ฟเวอร์ เลื่อนนาฬิกาเครื่องไม่ได้ผล)']) +
+    `<h4>ภารกิจที่สุ่มได้</h4>` + table(['', 'ภารกิจ', 'เลเวล'], Object.values(DAILY_TASKS).map((t) => [t.icon, `<b>${esc(t.name)}</b>`, t.minLv ? `Lv.${t.minLv}+${t.online ? ' · ออนไลน์' : ''}` : 'ทุกเลเวล'])) +
+    `<h4>รางวัล</h4>` + UL(['ต่อข้อ: EXP 3% ของหลอดเลเวล + Zeny', 'ทำครบทุกข้อ เปิด <b>กล่องรางวัล</b>: EXP 6% + Zeny + ผลึกตีบวกอาวุธ/เกราะ + ยา (Lv.60+ ได้นมผึ้งหลวง)', `ทำครบต่อเนื่องทุก ${DAILY_STREAK_BIG} วัน ได้ <b>กล่องใหญ่</b> เพิ่มคริสตัลพิทักษ์ + หินนำโชค · ขาดวันเดียวนับใหม่`]) },
+  { id: 'partydg', title: `🌙 ดันเจี้ยนปาร์ตี้ · ${PD.name}`, sub: `เล่นร่วมกัน ${PD.minPlayers}–${PD.maxPlayers} คน · สัปดาห์ละ ${PD.weekly} รอบ`, html: () =>
+    `<h4>วิธีเข้า</h4>` + UL(['ตั้งปาร์ตี้ (คลิกผู้เล่น → ชวนเข้าปาร์ตี้ หรือหน้าต่างผู้เล่นออนไลน์ 👥)', `ให้เพื่อนในปาร์ตี้อยู่แผนที่เดียวกันอย่างน้อย ${PD.minPlayers} คน · ทุกคน Base Lv.${PD.minLv}+`, '<b>หัวหน้าปาร์ตี้</b> คุยกับ <b>บรอม</b> ในเมือง → "ดันเจี้ยนปาร์ตี้ · วิหารผนึกจันทรา" → <b>เปิดวิหาร</b>', `เพื่อนจะเด้งคำเชิญ กด <b>เข้าร่วม</b> ภายใน ${PD.joinWindow} วินาทีหลังบอสตื่น (มีเวลาเตรียมตัว ${PD.prep} วินาที)`, 'หลุด/หมดสติ กลับเข้าได้ที่บรอม → "กลับเข้าวิหาร" ถ้ารอบยังไม่จบ']) +
+    `<h4>การต่อสู้</h4>` + UL(['ทุกคนตีบอสตัวเดียวกัน เลือดบอสเก็บที่เซิร์ฟเวอร์ · เลือดเพิ่มตามจำนวนคน · เลเวลบอส = เลเวลหัวหน้า', '<b>วงม่วงกระจาย</b> (ทุก 10 วิ): เดินออกจากวงก่อนระเบิด', '<b>ตราแยก</b> (ตราม่วงบนหัวใครสักคน): คนนั้นต้องเดินออกห่าง คนอื่นอย่ายืนใกล้', '<b>ตราแบ่งรับ</b> (ตราทอง): ทุกคนเข้าไปยืนรวมกับคนที่โดน ดาเมจหารตามจำนวนคน — ยืนคนเดียวเจ็บมาก', `${Math.round(PD.enrage / 60)} นาทีขึ้นไปบอสคลั่ง · ครบ ${Math.round(PD.time / 60)} นาทีถือว่าล้มเหลว (ไม่เสียโควตา)`, 'สายฮีลช่วยได้มาก — ฮีล/บัฟถึงเพื่อนในปาร์ตี้']) +
+    `<h4>รางวัล</h4>` + UL([`${esc(PD_REWARD_TEXT)} + EXP บอส · ส่งทางจดหมาย`, `ต้องมีผู้ทำดาเมจอย่างน้อย ${PD.minPlayers} คน · ได้รางวัลสัปดาห์ละ ${PD.weekly} รอบต่อบัญชี (รีเซ็ตวันจันทร์)`, 'เหรียญผนึกแลกเปลี่ยน/ลงตลาดไม่ได้']) +
+    `<h4>ร้านแลกเหรียญผนึก (บรอม)</h4>` + table(['ของ', 'จำนวน', 'เหรียญ'], PD_SHOP.filter((x) => ITEMS[x.id]).map((x) => [itemLink(x.id), '×' + x.n, x.cost])) },
+  { id: 'season', title: '🏆 อันดับประจำฤดูกาล', sub: 'ปุ่ม "อันดับ" · รีเซ็ตทุกเดือน', html: () =>
+    UL(['กดปุ่ม <b>อันดับ</b> (ถ้วยรางวัล) แถบบน · มี 4 หมวด + หอเกียรติยศ', '<b>หอคอย</b>: ชั้นสูงสุดที่ผ่านในเดือนนี้ · <b>บอสโลก</b>: ดาเมจรวม · <b>MVP</b>: จำนวนครั้งที่ได้ดาเมจอันดับ 1 · <b>ดันปาร์ตี้</b>: จำนวนรอบที่ปราบสำเร็จ', 'คะแนนบอสโลก/MVP/ดันปาร์ตี้ เซิร์ฟเวอร์นับเอง (ปลอมไม่ได้)', 'จบเดือน (เวลาไทย) อันดับ 1–10 ทุกหมวดได้รางวัลทางจดหมาย + ฉายาประจำฤดูกาล · อันดับ 1–3 ขึ้นหอเกียรติยศ']) +
+    `<h4>รางวัลจบฤดูกาล (ทุกหมวด)</h4>` + table(['อันดับ', 'รางวัล'], [['1', 'กล่องแฟชั่นทอง · คริสตัลพิทักษ์ ×2 · นมผึ้งหลวง ×10 · 300,000 z'], ['2–3', 'กล่องแฟชั่นทอง · คริสตัลพิทักษ์ · 150,000 z'], ['4–10', 'กล่องแฟชั่นเงิน · หินนำโชค · 50,000 z']]) +
+    `<h4>ฉายาประจำฤดูกาล</h4>` + table(['หมวด', 'อันดับ 1', 'อันดับ 2–3', 'อันดับ 4–10'], Object.entries(SEASON_CAT_NAME).map(([k, n]) => [esc(n), ...[1, 2, 3].map((b) => esc(SEASON_TITLES[`S_${k}_${b}`].title))])) +
+    UL(['ถือฉายาไว้ใช้ตลอดเดือนถัดไป จนกว่าฤดูกาลใหม่จะจบ', 'ใส่ได้ที่ สมุดสะสม (' + K('B') + ') → ความสำเร็จ → ส่วน "ฉายาประจำฤดูกาล"']) },
+  { id: 'titles', title: '🎖 ฉายาเหนือหัว', sub: `ใส่ได้ ${MAX_TITLES} อันพร้อมกัน`, html: () =>
+    UL([`ได้ฉายาจาก <b>ความสำเร็จ</b> และ <b>อันดับฤดูกาล</b> · ใส่ได้สูงสุด <b>${MAX_TITLES} อัน</b> เรียงซ้อนเหนือหัวเป็นแนวตั้ง`, 'ตั้งค่าที่ สมุดสะสม (' + K('B') + ') → ความสำเร็จ: <b>ใส่ฉายา</b> · <b>ถอด</b> · <b>⇩ ชิดหัว</b> (ย้ายเป็นอันที่ 1 อยู่ใกล้หัวที่สุด)', 'ยิ่งหายาก เอฟเฟ็กยิ่งอลังการ: ธรรมดา → หายาก → ระดับตำนาน → ในตำนาน → เหนือตำนาน → <b>เทพนิรันดร์</b> (ปีก วงเวท มงกุฎ ดาวโคจร)', 'ผู้เล่นอื่นเห็นฉายาทุกอัน · ฉายาฤดูกาลแสดงเฉพาะคนที่ติดอันดับจริง']) },
+  { id: 'eternal', title: '✦ หลอมอุปกรณ์นิรันดร์กาล', sub: 'เกรดสูงสุดของเกม · การ์ธ ช่างตีเหล็ก', html: () => {
+    const W = ETERNAL_RECIPE.weapon, A = ETERNAL_RECIPE.armor, nm = (id) => (ITEMS[id] ? ITEMS[id].name : id);
+    return UL(['<b>นิรันดร์กาล · รุ้งสุริยา</b> = เกรดสูงสุดในเกม (เหนือเทพสวรรค์) · <b>ได้จากการหลอมเท่านั้น</b>', 'ใส่ได้ Base Lv.145+ · ชุดละ 7 ชิ้นต่อสายอาชีพ (อาวุธ มือรอง หัว ชุด ผ้าคลุม รองเท้า แหวน) · อาชีพขั้น 2 ใช้ชุดสายตัวเองได้', 'ค่าพลังตายตัวสูงสุด (ไม่มีค่าสุ่ม) · ตีบวก/ใส่การ์ดได้ · โบนัสเซ็ต 2/4/6 ชิ้น', 'หลอมที่ <b>การ์ธ</b> (ช่างตีเหล็ก) → "✦ หลอมอุปกรณ์นิรันดร์กาล" · ซื้อขายในตลาดได้']) +
+      `<h4>4 เซ็ตประจำสาย</h4>` + table(['สาย', 'เซ็ต', 'อาวุธ'], Object.entries(ETERNAL_LINES).map(([k, L]) => [`${L.icon} ${esc((JOBS[L.job] || {}).name || L.job)} / ${esc((JOBS[L.job2] || {}).name || L.job2)}`, `<b>${esc(L.name)}</b>`, itemLink(eternalId(k, 'weapon'))])) +
+      `<h4>สูตรหลอม</h4>` + table(['', 'อาวุธ', 'เกราะ/มือรอง 1 ชิ้น'], [['ฐาน', 'อาวุธเทพสวรรค์ของสาย', 'อุปกรณ์เทพสวรรค์ช่องเดียวกัน'], ...W.mats.map(([id, n], i) => [itemLink(id), '×' + n, '×' + A.mats[i][1]]), ['Zeny', fmt(W.zeny), fmt(A.zeny)], ['<b>โอกาสสำเร็จ</b>', `<b>${Math.round(W.rate * 100)}%</b>`, `<b>${Math.round(A.rate * 100)}%</b>`]]) +
+      UL([`ใช้ ${nm('refine_luck')} เพิ่มโอกาสได้ก้อนละ +${Math.round(LUCK_STEP * 100)}% (สูงสุด ${LUCK_MAX} ก้อน)`, '<b>ล้มเหลว</b> = เสียวัตถุดิบและ Zeny ทั้งหมด (อุปกรณ์ฐานยังอยู่) · <b>สำเร็จ</b> = ฐานถูกใช้ไป (ระดับตีบวก/การ์ดของฐานหาย · เลือกชิ้นที่ตีบวกน้อยสุดให้อัตโนมัติ)']) +
+      `<h4>หา${esc(nm('eternal_shard'))}</h4>` + UL([`มอนปกติใน ${mapLink(SHARD_DROPS.mapMobs)} (หายากมาก)`, ...Object.entries(SHARD_DROPS.mvp).map(([m, p]) => `MVP ${MONSTERS[m] ? esc(MONSTERS[m].name) : m} ${Math.round(p * 100)}% (ดาเมจอันดับ 1 ได้โอกาสเต็ม)`), `ร้านเหรียญผนึก (บรอม) ${(PD_SHOP.find((x) => x.id === 'eternal_shard') || {}).cost || '-'} เหรียญ`]);
+  } },
   { id: 'social', title: '👥 ปาร์ตี้ · แชต · เพื่อน', sub: 'เล่นกับคนอื่น', html: () =>
     UL(['คลิกผู้เล่น → เชิญเข้าปาร์ตี้ (สูงสุด 6 คน) · สมาชิกแผนที่เดียวกันแบ่ง EXP และได้โบนัส +20% ต่อเพื่อน 1 คน', 'แชตมีช่อง ทั่วไป · โลก · ปาร์ตี้ · กิลด์ · กระซิบ', 'โทรโข่ง (ร้านเพชร) ประกาศถึงทุกคนทุกแผนที่', 'กดชื่อผู้เล่นในแชตเพื่อกระซิบหรือเพิ่มเพื่อน']) },
   { id: 'collect', title: '📚 สมุดสะสม · ความสำเร็จ · กิจกรรม', sub: 'รางวัลระยะยาว', html: () =>
