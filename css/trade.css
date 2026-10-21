@@ -316,3 +316,10 @@
 .dq-streak { margin: 0; font-size: 12px; color: var(--muted, #b3b5bd); line-height: 1.5; }
 .dq-streak b { color: #ffb347; }
 @media (max-width: 600px) { .dq-row, .dq-bonus { grid-template-columns: 30px minmax(0, 1fr); } .dq-act { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; } }
+
+/* v0.75 ดันเจี้ยนปาร์ตี้: ตารางดาเมจในแถบสถานะ */
+.pd-hud .pd-dmg { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 1px; font-size: 11px; max-height: 96px; overflow: auto; }
+.pd-hud .pd-dmg li { display: flex; justify-content: space-between; gap: 10px; padding: 1px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); }
+.pd-hud .pd-dmg li:first-child { color: #ffd36b; }
+.pd-hud .pd-dmg b { font-variant-numeric: tabular-nums; }
+.pd-hud .pd-dmg { grid-column: 1 / -1; }

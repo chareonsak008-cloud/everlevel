@@ -4,7 +4,7 @@
 //   · เชิญผ่านห้องรวม (pi → pr) · หัวหน้า = คนที่เข้าปาร์ตี้ก่อนสุด · สูงสุด 6 คน
 //   · แชร์ EXP: คนที่อยู่แมพเดียวกันแบ่ง EXP เท่ากัน + โบนัส 20% ต่อสมาชิกเพิ่ม 1 คน (มอนยังจำลองแยกเครื่อง — แชร์แค่ EXP)
 // กิลด์ — ข้อมูลถาวรในฐานข้อมูล (supabase/guild.sql) · ห้อง everlevel-guild-<id> ไว้แชตกิลด์ + ดูว่าใครออนไลน์
-import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.74.0';
+import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.75.0';
 
 export const PARTY_MAX = 6;
 export const PARTY_BONUS = 0.2;
@@ -166,7 +166,7 @@ export class Social {
     this.pid = pid; this.jt = rejoin ? (this.jt || Date.now()) : Date.now();
     this.members = new Map();
     this.party = this.net.sideChannel('party-' + pid, {
-      events: ['pc', 'xp', 'kick', 'bye', 'hl', 'bf'],   // v0.65.2 hl = ฮีล · bf = บัฟ/โล่ จากสกิลนักบวช
+      events: ['pc', 'xp', 'kick', 'bye', 'hl', 'bf', 'pd'],   // v0.65.2 hl = ฮีล · bf = บัฟ/โล่ จากสกิลนักบวช · v0.75 pd = คำเชิญดันเจี้ยนปาร์ตี้
       onEvent: (ev, p) => this.onPartyEvent(ev, p),
       onSync: (m) => this.onPartySync(m),
     });
@@ -222,6 +222,7 @@ export class Social {
       g.remote.say(p.k, text);
     } else if (ev === 'xp') this.onShareExp(p);
     else if (ev === 'hl' || ev === 'bf') this.onSupport(ev, p);
+    else if (ev === 'pd') { if (p.k !== this.myKey && this.members.has(p.k) && g.pd) g.pd.onInvite(p, clean(p.n) || (this.members.get(p.k) || {}).n || 'หัวหน้าปาร์ตี้'); }
     else if (ev === 'kick') { if (p.to === this.myKey && p.k === this.leaderKey) { this.leaveParty(true); this.log('คุณถูกเชิญออกจากปาร์ตี้', 'sys'); } }
     else if (ev === 'bye') { /* presence sync จะลบให้เอง */ }
   }

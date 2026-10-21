@@ -1,15 +1,15 @@
 // v0.32: ระบบดันเจี้ยนถ้ำ (เป็นชั้น · บอสท้ายชั้น · จำกัดรอบต่อวัน) + หอคอยไต่ชั้นไม่รู้จบ (อันดับชั้นสูงสุด)
 // แต่ละรอบเป็นแผนที่ส่วนตัว (instance) สร้างใหม่ทุกชั้น · มอนปรับเลเวลตามผู้เล่น/ชั้น · ไม่เกิดใหม่
-import { TILE } from '../config.js?v=0.74.0';
-import { ITEMS } from '../data/items.js?v=0.74.0';
-import { MONSTERS } from '../data/monsters.js?v=0.74.0';
-import { JOBS } from '../data/progression.js?v=0.74.0';
-import { START_MAP } from '../data/maps/index.js?v=0.74.0';
+import { TILE } from '../config.js?v=0.75.0';
+import { ITEMS } from '../data/items.js?v=0.75.0';
+import { MONSTERS } from '../data/monsters.js?v=0.75.0';
+import { JOBS } from '../data/progression.js?v=0.75.0';
+import { START_MAP } from '../data/maps/index.js?v=0.75.0';
 import {
   CAVE, TOWER, todayKey, rngOf, pickRoster, scaledData, refHp, refExp, BOSS_MOBS,
   caveFloorDef, towerFloorDef, towerFloorPlan, towerFloorReward, towerLevel,
   CAVE_MOB_DROPS, CAVE_BOSS_DROPS, CAVE_FINAL_DROPS, TOWER_MOB_DROPS, caveChest, normDungeon,
-} from '../data/dungeons.js?v=0.74.0';
+} from '../data/dungeons.js?v=0.75.0';
 export { normDungeon };
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -45,6 +45,7 @@ export class Dungeons {
     g.dialog.show(npc, info, [
       { label: `เข้า${CAVE.name}`, sub: lowLv ? `ต้องมี Base Lv.${CAVE.minLv} ขึ้นไป` : `${CAVE.floors} ชั้น · บอสท้ายทุกชั้น · มอนระดับ Lv.${L}–${L + CAVE.floors - 1}`, right: `เหลือ ${left}/${CAVE.daily}`,
         disabled: lowLv || left <= 0 || g.player.dead, onSelect: () => this.startCave() },
+      { label: 'ดันเจี้ยนปาร์ตี้ · วิหารผนึกจันทรา', sub: 'เล่นร่วมกัน 2–6 คน · สัปดาห์ละ 2 รอบ · แลกเหรียญผนึก', keepOpen: true, onSelect: () => g.pd && g.pd.menu(npc, greet) },   // v0.75
       { label: 'ดันเจี้ยนคืออะไร?', keepOpen: true, onSelect: () => g.dialog.show(npc,
         `ถ้ำมี ${CAVE.floors} ชั้น กำจัดมอนในชั้นให้ได้ ${Math.round(CAVE.clearPct * 100)}% แล้วบอสท้ายชั้นจะปรากฏในห้องลึกสุด\nปราบบอสแล้วบันไดลงชั้นถัดไปจะเปิด · ชั้น ${CAVE.floors} มีบอสใหญ่และหีบสมบัติ\n\nมอนแรงกว่าในทุ่ง (ปรับตามเลเวลเจ้า) แต่ให้ EXP มากกว่า · ดรอปผลึกตีบวกบ่อย\nเข้าได้วันละ ${CAVE.daily} รอบ (รีเซ็ตเที่ยงคืน) · หมดสติหรือออกกลางทาง = เสียรอบนั้น\nใช้ขนนกคืนชีพฟื้นในถ้ำได้`, [
           { label: `เข้า${CAVE.name}`, disabled: lowLv || left <= 0, onSelect: () => this.startCave() }, bye]) },
