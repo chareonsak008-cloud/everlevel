@@ -1,9 +1,9 @@
-import { drawEquipmentIcon } from './EquipmentIcons.js?v=0.74.0';   // v0.24.2: ไอคอนอุปกรณ์ชุดใหม่ตามอาชีพ/ขั้น/เกรด
-import { drawMonsterCard, onPortraitReady } from './CardPortraits.js?v=0.74.0';
+import { drawEquipmentIcon } from './EquipmentIcons.js?v=0.75.0';   // v0.24.2: ไอคอนอุปกรณ์ชุดใหม่ตามอาชีพ/ขั้น/เกรด
+import { drawMonsterCard, onPortraitReady } from './CardPortraits.js?v=0.75.0';
 // ไอคอนไอเทม วาดด้วย Canvas (ใช้ทั้งในหน้าต่าง UI และของที่ตกบนพื้น)
-import { ITEMS } from '../data/items.js?v=0.74.0';
-import { shadeHex } from './Textures.js?v=0.74.0';
-import { UTIL_DRAW } from './UtilityIcons.js?v=0.74.0';   // v0.13: ไอคอนไอเทมใช้งานชุดใหม่
+import { ITEMS } from '../data/items.js?v=0.75.0';
+import { shadeHex } from './Textures.js?v=0.75.0';
+import { UTIL_DRAW } from './UtilityIcons.js?v=0.75.0';   // v0.13: ไอคอนไอเทมใช้งานชุดใหม่
 
 const S = 64;
 const LINE = '#2a1d2c';
@@ -189,6 +189,15 @@ const DRAW = {
     g.beginPath(); g.moveTo(16, 22); g.lineTo(32, 28); g.lineTo(48, 22); g.moveTo(32, 28); g.lineTo(32, 54); g.moveTo(32, 6); g.lineTo(32, 28); g.stroke();
     g.fillStyle = 'rgba(255,255,255,0.5)'; g.beginPath(); g.moveTo(32, 8); g.lineTo(20, 22); g.lineTo(31, 26); g.closePath(); g.fill();
     shine(g, 24, 34, 2, 6, 0.55);
+  },
+  // v0.75 เหรียญรางวัล: วงทอง + ขอบหยัก + จันทร์เสี้ยวสีตามค่า c
+  medal(g, c) {
+    path(g, (g) => { for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2, r = i % 2 ? 23 : 25; g.lineTo(32 + Math.cos(a) * r, 33 + Math.sin(a) * r); } g.closePath(); }, grad(g, 10, 10, 54, 56, '#ffe9a0', '#c98a22'));
+    path(g, (g) => g.arc(32, 33, 17, 0, Math.PI * 2), grad(g, 15, 16, 49, 50, shadeHex(c, 0.35), shadeHex(c, -0.35)), 2);
+    g.fillStyle = '#fff8e0'; g.beginPath(); g.arc(30, 33, 10, 0, Math.PI * 2); g.fill();
+    g.fillStyle = shadeHex(c, 0.1); g.beginPath(); g.arc(35, 30, 9, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#fff8e0'; for (const [x, y, r] of [[41, 41, 1.6], [24, 24, 1.3], [44, 26, 1.1]]) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
+    shine(g, 22, 20, 5, 3, 0.6);
   },
   // กล่องแฟชั่นสุ่ม (v0.9): c = สีกล่อง, c2 = สีริบบิ้น, tier 1 ไม้ · 2 เงิน · 3 ทองคำ
   giftbox(g, c, c2 = '#ffd27a', tier = 1) {

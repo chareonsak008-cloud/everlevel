@@ -6,8 +6,8 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.74.0';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.74.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+import { JOBS } from './progression.js?v=0.75.0';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.75.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {

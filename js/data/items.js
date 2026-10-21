@@ -6,15 +6,15 @@
 // v0.9: type box = กล่องแฟชั่นสุ่ม (ข้อมูลอยู่ใน data/fashionBoxes.js)
 // v0.10: slots = ช่องการ์ด · type card = การ์ดมอนสเตอร์ (data/cards.js) · วัสดุตีบวก (data/refine.js)
 //        อุปกรณ์ที่ตีบวก/ใส่การ์ดแล้วใช้ "คีย์" แทน id เช่น 'iron_blade*7*card_barkwolf' (ดู itemKey ด้านล่าง)
-import { ENDGAME_ITEMS } from './endgameItems.js?v=0.74.0';
-import { ASCEND_ITEMS } from './ascendData.js?v=0.74.0';   // v0.46 Lv.100–150
-import { parentJob } from './progression.js?v=0.74.0';
-import { BOX_ITEMS } from './fashionBoxes.js?v=0.74.0';
-import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.74.0';
-import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.74.0';
-import { CONSUMABLES } from './consumables.js?v=0.74.0';
-import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH, extraRollPool, gearRollPool, GEAR_ROLL_SLOTS } from './affixes.js?v=0.74.0';
-import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.74.0';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
+import { ENDGAME_ITEMS } from './endgameItems.js?v=0.75.0';
+import { ASCEND_ITEMS } from './ascendData.js?v=0.75.0';   // v0.46 Lv.100–150
+import { parentJob } from './progression.js?v=0.75.0';
+import { BOX_ITEMS } from './fashionBoxes.js?v=0.75.0';
+import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.75.0';
+import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.75.0';
+import { CONSUMABLES } from './consumables.js?v=0.75.0';
+import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH, extraRollPool, gearRollPool, GEAR_ROLL_SLOTS } from './affixes.js?v=0.75.0';
+import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.75.0';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
 
 export const EQUIP_SLOTS = [
   { id: 'head', name: 'หัว' },
@@ -87,6 +87,7 @@ const BASE = {
 
   /* ---------- v0.11: ยาระดับสูง + ของสะสมจากแผนที่ใหม่ ---------- */
   white_potion: { name: 'ยาขาว', type: 'usable', icon: ['potion', '#f4f4ff'], heal: { hp: [380, 460] }, price: 1200, rarity: 'uncommon', desc: 'ยาฟื้นฟูสูตรนักผจญภัยระดับสูง ฟื้น HP จำนวนมาก' },
+  pd_coin: { name: 'เหรียญผนึกจันทรา', type: 'etc', keep: true, icon: ['medal', '#c8b0ff'], price: 1000, rarity: 'epic', desc: 'รางวัลจากดันเจี้ยนปาร์ตี้ วิหารผนึกจันทรา · นำไปแลกของที่บรอมในเมือง · แลกเปลี่ยน/ลงตลาดไม่ได้' },   // v0.75
   royal_jelly: { name: 'นมผึ้งหลวง', type: 'usable', icon: ['honey', '#ffe08a'], heal: { hp: [900, 1100], sp: [80, 100] }, price: 5000, rarity: 'rare', desc: 'ของล้ำค่าจากรังผึ้งหลวง ฟื้นทั้ง HP และ SP ได้มาก' },
   mana_potion: { name: 'ยาม่วงมานา', type: 'usable', icon: ['potion', '#a86aff'], heal: { sp: [110, 140] }, price: 2600, rarity: 'rare', desc: 'ยาฟื้นพลังจิตเข้มข้น สำหรับนักเวทย์ระดับสูง' },
   frost_fur: { name: 'ขนจิ้งจอกหิมะ', type: 'etc', icon: ['spore', '#e8f4ff'], price: 180, desc: 'ขนนุ่มเย็นเฉียบ ใช้ทำเสื้อกันหนาว' },
