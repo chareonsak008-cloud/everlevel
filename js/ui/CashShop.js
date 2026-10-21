@@ -1,13 +1,13 @@
 // v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → v0.80 ตรวจสลิปอัตโนมัติ / แอดมินอนุมัติเมื่อไม่ชัวร์)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.80.0';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.80.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.80.0';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.80.0';
-import { ready } from './TradeMarket.js?v=0.80.0';
-import { WARP_ROUTES } from '../data/shops.js?v=0.80.0';
-import { PETS, PET_RARITY } from '../data/pets.js?v=0.80.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.80.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.81.0';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.81.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.81.0';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.81.0';
+import { ready } from './TradeMarket.js?v=0.81.0';
+import { WARP_ROUTES } from '../data/shops.js?v=0.81.0';
+import { PETS, PET_RARITY } from '../data/pets.js?v=0.81.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.81.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const QR_SRC = 'assets/ui/topup_qr.png';
@@ -274,6 +274,7 @@ export class CashShopWindow {
 
   renderTopup(pane) {
     const st = this.st;
+    if (this.g.online && this.g.online.guest) { pane.innerHTML = '<p class="tm-empty">บัญชีชั่วคราว (เล่นแบบไม่สมัคร) เติมเพชรไม่ได้ เพื่อไม่ให้เพชรหายถ้าล้างข้อมูลเบราว์เซอร์<br>ผูกบัญชีกับ Google หรืออีเมลก่อน: ออกจากเกม → หน้าเลือกตัวละคร → <b>ผูกบัญชี</b> (ตัวละครอยู่ครบ)</p>'; return; }   // v0.81
     pane.innerHTML = `<p class="tm-hint">1 บาท = 1 เพชร · แพ็กใหญ่แถมเพิ่ม · เลือกแพ็ก → สแกน QR พร้อมเพย์โอนตามยอด → แนบสลิป → ระบบตรวจสลิปกับธนาคารอัตโนมัติ ผ่านแล้วเพชรเข้าทันที (โอนให้ตรงยอดแพ็ก · ใช้สลิปที่มี QR ชัด ๆ · ถ้าตรวจไม่ผ่านแอดมินจะตรวจให้)</p>
       <div class="cs-packs"></div><div class="cs-pay"></div>
       <h3>ประวัติการเติม</h3><div class="tm-list cs-hist"></div>
@@ -288,7 +289,7 @@ export class CashShopWindow {
     }
     const pay = pane.querySelector('.cs-pay');
     if (this.pack) {
-      pay.innerHTML = `<div class="cs-qr"><img alt="QR พร้อมเพย์สำหรับโอนเงิน" src="${QR_SRC}"><p class="tm-empty" hidden>แอดมินยังไม่ได้ใส่ QR (ไฟล์ assets/ui/topup_qr.png)</p></div>
+      pay.innerHTML = `<div class="cs-qr"><img alt="QR พร้อมเพย์สำหรับโอนเงิน" src="${QR_SRC}?t=${Math.floor(Date.now() / 60000)}"><p class="tm-empty" hidden>แอดมินยังไม่ได้ใส่ QR (ไฟล์ assets/ui/topup_qr.png)</p></div>
         <div class="cs-form"><p class="cs-amt">โอน <b>${fmt(this.pack.thb)} บาท</b> ได้ <b>💎 ${fmt(this.pack.gems)}</b></p>
           <label class="cs-file">แนบสลิป <input id="csSlip" type="file" accept="image/*"></label>
           <label>หมายเหตุ (ไม่บังคับ) <input id="csNote" type="text" maxlength="120" placeholder="เช่น เวลาโอน 14:05"></label>

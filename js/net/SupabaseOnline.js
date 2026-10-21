@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.80.0';
-import { SideChannel } from './SideChannel.js?v=0.80.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.81.0';
+import { SideChannel } from './SideChannel.js?v=0.81.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -46,6 +46,12 @@ export function authMessage(err) {
   if (code.startsWith('over_') || st === 429 || msg.includes('rate limit')) return 'ทำรายการบ่อยเกินไป รอสักครู่แล้วลองใหม่';
   if (code === 'signup_disabled' || msg.includes('signups not allowed')) return 'ตอนนี้ปิดรับสมัครสมาชิกใหม่';
   if (code === 'email_address_invalid' || msg.includes('invalid format') || msg.includes('invalid email')) return 'รูปแบบอีเมลไม่ถูกต้อง';
+  if (code === 'anonymous_provider_disabled' || msg.includes('anonymous sign-ins are disabled')) return 'ตอนนี้ยังไม่เปิดให้เล่นแบบไม่สมัครบัญชี (แอดมินต้องเปิด Anonymous sign-ins)';   // v0.81
+  if (msg.includes('provider is not enabled') || msg.includes('unsupported provider')) return 'ตอนนี้ยังไม่เปิดเข้าสู่ระบบด้วย Google (แอดมินต้องตั้งค่า)';
+  if (code === 'manual_linking_disabled' || msg.includes('manual linking')) return 'ยังผูกบัญชี Google ไม่ได้ (แอดมินต้องเปิด Manual linking)';
+  if (code === 'identity_already_exists' || msg.includes('identity is already linked')) return 'บัญชี Google นี้ผูกกับบัญชี Everlevel อื่นอยู่แล้ว — ออกจากระบบแล้วเข้าด้วย Google แทน';
+  if (code === 'email_exists' || msg.includes('email address has already been registered')) return 'อีเมลนี้มีบัญชีอยู่แล้ว ใช้อีเมลอื่น หรือออกจากระบบแล้วเข้าด้วยอีเมลนั้น';
+  if (code === 'captcha_failed' || msg.includes('captcha')) return 'ยืนยันว่าไม่ใช่บอทไม่ผ่าน ลองใหม่อีกครั้ง';
   if (msg.includes('failed to fetch') || msg.includes('network')) return 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
   return 'เกิดข้อผิดพลาด: ' + (err.message || code || 'ไม่ทราบสาเหตุ');
 }
@@ -60,7 +66,7 @@ const TRADE_ERR = {
   too_many_listings: 'ลงขายครบจำนวนแล้ว (ทั่วไป 2 รายการ · VIP 5 รายการ) ปิดรายการเก่าก่อน', not_vip: 'สิทธิ์นี้สำหรับ VIP — ซื้อบัตร VIP ได้ที่ร้านเพชร', already_claimed: 'วันนี้รับรางวัล VIP ไปแล้ว พรุ่งนี้มาใหม่นะ', sold_out: 'ของชิ้นนี้ขายหมดหรือหมดเวลาแล้ว',
   own_listing: 'ซื้อของของตัวเองไม่ได้', bad_roll: 'ค่าสุ่มของไอเทมชิ้นนี้ไม่ถูกต้อง (ระบบกันโกง) แลก/ขายไม่ได้ ติดต่อแอดมิน',
   peer_zeny_full: 'Zeny ของอีกฝ่ายจะเกินเพดาน ลดจำนวน Zeny ลง', empty_trade: 'ยังไม่มีของหรือ Zeny บนโต๊ะเลย (วางฝ่ายเดียวก็ได้)', bad_zeny: 'จำนวน Zeny ไม่ถูกต้อง',
-  not_enough_gems: 'เพชรไม่พอ', already_owned: 'มีชิ้นนี้ในตู้แฟชั่นแล้ว', no_product: 'สินค้านี้ปิดขายแล้ว', bad_pack: 'แพ็กนี้ไม่มีแล้ว',
+  guest_account: 'บัญชีชั่วคราวเติมเพชรไม่ได้ — ผูกบัญชีกับ Google หรืออีเมลก่อน (ออกจากเกม → หน้าเลือกตัวละคร → ผูกบัญชี)',   not_enough_gems: 'เพชรไม่พอ', already_owned: 'มีชิ้นนี้ในตู้แฟชั่นแล้ว', no_product: 'สินค้านี้ปิดขายแล้ว', bad_pack: 'แพ็กนี้ไม่มีแล้ว',
   bad_slip: 'อัปโหลดสลิปไม่สำเร็จ ลองใหม่อีกครั้ง', too_many_pending: 'มีคำขอเติมรออนุมัติอยู่ 3 รายการแล้ว รอแอดมินตรวจก่อนนะ',
   already_decided: 'คำขอนี้ถูกตัดสินไปแล้ว', not_admin: 'บัญชีนี้ไม่ใช่แอดมิน', no_save: 'ยังไม่มีเซฟบนเซิร์ฟเวอร์ ลองเล่นสักครู่แล้วซื้อใหม่', no_listing: 'ไม่พบรายการนี้', no_character: 'ไม่พบตัวละคร', bad_qty: 'จำนวนไม่ถูกต้อง', no_liquidity: 'ตอนนี้ยังไม่มีคำสั่งฝั่งตรงข้าม ลองตั้งคำสั่งรอไว้แทน', too_many_orders: 'มีคำสั่งค้างครบ 10 รายการแล้ว ยกเลิกคำสั่งเก่าก่อน', no_order: 'คำสั่งนี้จับคู่หรือยกเลิกไปแล้ว', bad_order: 'คำสั่งไม่ถูกต้อง',
 };
@@ -105,13 +111,18 @@ export class SupabaseOnline extends Online {
     try { ({ data: { session } } = await this.sb.auth.getSession()); } catch (e) { session = null; }
     if (!session || !session.user) { this.needsLogin = true; this.reason = 'ยังไม่ได้เข้าสู่ระบบ'; this.mode = 'offline'; return false; }
     this.useSession(session);
+    // v0.81 กลับมาจากหน้า Google: ลบโทเคน/โค้ดออกจากแถบที่อยู่ (ยกเว้นลิงก์ตั้งรหัสผ่านใหม่)
+    if (!this.recovery && (/access_token=|error_description=/.test(location.hash) || /[?&]code=/.test(location.search))) history.replaceState(null, '', location.pathname);
     return true;
   }
 
   useSession(session) {
     const u = session.user;
     this.uid = u.id;
-    this.me = { id: u.id, name: u.email || 'ผู้เล่น', avatarUrl: '' };
+    this.guest = !!u.is_anonymous;   // v0.81 เล่นแบบไม่สมัครบัญชี (Supabase anonymous)
+    const meta = u.user_metadata || {};
+    this.me = { id: u.id, name: this.guest ? 'ผู้เล่นทั่วไป (Guest)' : u.email || meta.full_name || meta.name || 'ผู้เล่น', avatarUrl: '' };
+    this.label = this.guest ? 'บัญชีชั่วคราว (ยังไม่ผูก)' : (u.app_metadata && u.app_metadata.provider === 'google') || (u.identities || []).some((i) => i.provider === 'google') ? 'บัญชี Everlevel · Google' : 'บัญชี Everlevel';
     this.canWrite = true; this.needsLogin = false;
     this.mode = 'online';
   }
@@ -130,6 +141,30 @@ export class SupabaseOnline extends Online {
     if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) return { error: authMessage({ code: 'user_already_exists' }) };
     if (data.session) { this.useSession(data.session); return { session: true }; }
     return { confirm: true };
+  }
+
+  // v0.81 เข้าสู่ระบบด้วย Google (ไปหน้า Google แล้วกลับมาที่เกม · Supabase อ่านผลจาก URL ให้เอง)
+  async signInGoogle() {
+    const { error } = await this.sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: 'select_account' } } });
+    return error ? authMessage(error) : null;
+  }
+
+  // v0.81 เล่นทันทีโดยไม่สมัคร — ได้บัญชีชั่วคราวผูกกับเบราว์เซอร์นี้ (ล้างข้อมูลเบราว์เซอร์/เปลี่ยนเครื่อง = หาย ถ้ายังไม่ผูกบัญชี)
+  async signInGuest() {
+    const { data, error } = await this.sb.auth.signInAnonymously();
+    if (error) return authMessage(error);
+    this.useSession(data.session);
+    return null;
+  }
+
+  // v0.81 ผูกบัญชีชั่วคราว → ถาวร (ตัวละครเดิมอยู่ครบ)
+  async linkGoogle() {
+    const { error } = await this.sb.auth.linkIdentity({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
+    return error ? authMessage(error) : null;
+  }
+  async linkEmail(email, password) {
+    const { error } = await this.sb.auth.updateUser({ email, password }, { emailRedirectTo: location.origin + location.pathname });
+    return error ? authMessage(error) : null;
   }
 
   async resetPassword(email) {

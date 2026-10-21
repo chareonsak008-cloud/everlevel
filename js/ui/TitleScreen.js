@@ -1,9 +1,9 @@
 // หน้าจอเข้าเกม (v0.11): เข้าสู่ระบบ → เลือก/สร้างตัวละคร (สูงสุด 3 ตัว)
 // v0.17.1: เอาโหมดออฟไลน์ออก — ต่อเซิร์ฟเวอร์ไม่ได้ = แจ้งเตือน + ปุ่มลองใหม่ (ไม่มีทางเลือกเล่นออฟไลน์)
-import { MAX_CHARS, validName } from '../net/Online.js?v=0.80.0';
-import { MAPS } from '../data/maps/index.js?v=0.80.0';
-import { JOBS } from '../data/progression.js?v=0.80.0';
-import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.80.0';
+import { MAX_CHARS, validName } from '../net/Online.js?v=0.81.0';
+import { MAPS } from '../data/maps/index.js?v=0.81.0';
+import { JOBS } from '../data/progression.js?v=0.81.0';
+import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.81.0';
 
 const HAIR = ['#e8a838', '#5e3f27', '#2a2430', '#c4467c', '#b8c8ff', '#e8e2d0', '#d8433a', '#4a8a5a'];
 const STYLES = [['spiky', 'ผมชี้'], ['short', 'ผมสั้น'], ['ponytail', 'หางม้า']];
@@ -111,6 +111,78 @@ export class TitleScreen {
         ...(ALLOW_OFFLINE ? [{ label: 'เล่นออฟไลน์ (ทดสอบ)', fn: () => this.offline() }] : []),
       ],
     });
+    if (this.online.signInGoogle) this.socialButtons();
+  }
+
+  // v0.81 ปุ่มเข้าด้วย Google + เล่นทันทีไม่ต้องสมัคร (อยู่บนสุดของหน้าเข้าสู่ระบบ)
+  socialButtons() {
+    const form = this.panel.querySelector('.tt-form'); if (!form) return;
+    const box = document.createElement('div'); box.className = 'tt-social';
+    box.innerHTML = `<button type="button" class="tt-google" data-s="google"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>เข้าสู่ระบบด้วย Google</span></button>
+      <button type="button" class="tt-guest" data-s="guest">⚡ เล่นทันที ไม่ต้องสมัคร</button>
+      <p class="tt-or"><span>หรือใช้อีเมล</span></p>`;
+    form.before(box);
+    const legal = document.createElement('p'); legal.className = 'tt-legal';
+    legal.innerHTML = 'การเข้าเล่นถือว่ายอมรับ <a href="terms.html" target="_blank" rel="noopener">ข้อกำหนด</a> และ <a href="privacy.html" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a>';
+    form.after(legal);
+    const err = this.panel.querySelector('.tt-err');
+    box.querySelector('[data-s=google]').addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true; err.textContent = 'กำลังไปหน้า Google...';
+      const x = await this.online.signInGoogle();
+      if (x) { err.textContent = x; e.currentTarget.disabled = false; }
+    });
+    box.querySelector('[data-s=guest]').addEventListener('click', () => this.guestConfirm());
+  }
+
+  guestConfirm() {
+    this.panel.innerHTML = `
+      <h2 class="tt-h">เล่นแบบไม่สมัครบัญชี</h2>
+      <p class="tt-note">เข้าเล่นได้ทันทีด้วย<b>บัญชีชั่วคราว</b> ตัวละครบันทึกบนเซิร์ฟเวอร์ตามปกติ แต่บัญชีผูกกับ<b>เบราว์เซอร์เครื่องนี้</b>เท่านั้น</p>
+      <p class="tt-warn">⚠ ถ้าล้างข้อมูลเบราว์เซอร์ ออกจากระบบ หรือเปลี่ยนเครื่อง ก่อนผูกบัญชี — ตัวละครจะเข้าไม่ได้อีก<br>ผูกกับ Google หรืออีเมลได้ทุกเมื่อที่หน้าเลือกตัวละคร (ตัวละครอยู่ครบ) · บัญชีชั่วคราวเติมเพชรไม่ได้</p>
+      <p class="tt-err" aria-live="polite"></p>
+      <div class="tt-actions"><button type="button" class="ghost" data-a="back">ย้อนกลับ</button><button type="button" class="primary" data-a="go">เข้าใจแล้ว เล่นเลย</button></div>`;
+    const err = this.panel.querySelector('.tt-err'), go = this.panel.querySelector('[data-a=go]');
+    this.panel.querySelector('[data-a=back]').addEventListener('click', () => this.login());
+    go.addEventListener('click', async () => {
+      go.disabled = true; err.textContent = 'กำลังสร้างบัญชีชั่วคราว...';
+      const e = await this.online.signInGuest();
+      if (e) { err.textContent = e; go.disabled = false; return; }
+      this.select();
+    });
+  }
+
+  // v0.81 ผูกบัญชีชั่วคราวให้เป็นบัญชีถาวร
+  linkAccount(msg = '') {
+    this.panel.innerHTML = `
+      <h2 class="tt-h">ผูกบัญชี (เก็บตัวละครถาวร)</h2>
+      ${msg ? `<p class="tt-warn">${esc(msg)}</p>` : ''}
+      <p class="tt-note">ผูกแล้วตัวละคร ของ และเพชรทั้งหมดอยู่ครบ เข้าเล่นได้ทุกเครื่อง</p>
+      <div class="tt-social"><button type="button" class="tt-google" data-s="google"><span>ผูกกับบัญชี Google</span></button></div>
+      <p class="tt-or"><span>หรือตั้งอีเมล + รหัสผ่าน</span></p>
+      <form class="tt-form" novalidate>
+        <label class="tt-field"><span>อีเมล</span><input name="email" type="email" autocomplete="email username" inputmode="email" autocapitalize="off" spellcheck="false" maxlength="120"></label>
+        <label class="tt-field"><span>รหัสผ่าน</span><input name="password" type="password" autocomplete="new-password" maxlength="72"></label>
+        <p class="tt-err" aria-live="polite"></p>
+        <div class="tt-actions"><button type="button" class="ghost" data-a="back">ไว้ทีหลัง</button><button type="submit" class="primary">ผูกด้วยอีเมล</button></div>
+      </form>`;
+    const err = this.panel.querySelector('.tt-err'), form = this.panel.querySelector('form');
+    form.querySelectorAll('input').forEach((i) => i.addEventListener('keydown', (e) => e.stopPropagation()));
+    this.panel.querySelector('[data-a=back]').addEventListener('click', () => this.select());
+    this.panel.querySelector('[data-s=google]').addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true; err.textContent = 'กำลังไปหน้า Google...';
+      const x = await this.online.linkGoogle();
+      if (x) { err.textContent = x; e.currentTarget.disabled = false; }
+    });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = String(form.email.value || '').trim(), password = String(form.password.value || '');
+      if (!/^\S+@\S+\.\S+$/.test(email)) { err.textContent = 'กรอกอีเมลให้ถูกต้อง'; return; }
+      if (password.length < 8 || !/[A-Za-z\u0E00-\u0E7F]/.test(password) || !/\d/.test(password)) { err.textContent = 'รหัสผ่านอย่างน้อย 8 ตัว ผสมตัวอักษรกับตัวเลข'; return; }
+      err.textContent = 'กำลังดำเนินการ...';
+      const x = await this.online.linkEmail(email, password);
+      if (x) { err.textContent = x; return; }
+      this.select(`ส่งอีเมลยืนยันไปที่ ${email} แล้ว — กดลิงก์ในอีเมลเพื่อผูกบัญชีให้เสร็จ (ระหว่างนี้เล่นต่อได้ตามปกติ)`);
+    });
   }
 
   register() {
@@ -190,11 +262,17 @@ export class TitleScreen {
       <div class="tt-acc"><img alt="" src="${esc(me.avatarUrl || '')}"><div><b>${esc(me.name || 'นักผจญภัย')}</b><small>${esc(this.online.label)} · ${ro ? 'เซฟในเครื่อง' : 'เซฟบนคลาวด์'}</small></div>${this.online.kind === 'supabase' ? '<button type="button" class="ghost tt-out" data-a="logout">ออกจากระบบ</button>' : '<span class="tt-dot on">ออนไลน์</span>'}</div>
       ${ro ? '<p class="tt-warn">บัญชีนี้ยังบันทึกบนคลาวด์ไม่ได้ (สิทธิ์ดูอย่างเดียว) — ยังเล่นกับเพื่อนในแผนที่เดียวกันได้ โดยเซฟไว้ในเครื่องนี้ หรือขอให้เจ้าของเกมเชิญด้วยอีเมลเป็น "ผู้แก้ไข"</p>' : ''}
       ${msg ? `<p class="tt-warn">${esc(msg)}</p>` : ''}
+      ${this.online.guest ? '<div class="tt-guestbar"><span>⚠ บัญชีชั่วคราว — ผูกกับ Google หรืออีเมล เพื่อไม่ให้ตัวละครหาย</span><button type="button" class="primary" data-a="link">ผูกบัญชี</button></div>' : ''}
       <h2 class="tt-h">เลือกตัวละคร</h2>
       <div class="tt-slots"></div>
       <div class="tt-actions">${ro && this.online.room ? '<button type="button" class="primary" data-a="netlocal">เล่นกับเพื่อน (เซฟในเครื่องนี้)</button>' : ''}${ALLOW_OFFLINE ? '<button type="button" class="ghost" data-a="off">เล่นแบบออฟไลน์ (ทดสอบ)</button>' : ''}</div>`;
     const lo = this.panel.querySelector('[data-a=logout]');
-    if (lo) lo.addEventListener('click', () => this.logout());
+    if (lo) lo.addEventListener('click', () => {
+      if (this.online.guest && !lo.classList.contains('sure')) { lo.classList.add('sure'); lo.textContent = 'ยืนยัน? บัญชีชั่วคราวจะเข้าไม่ได้อีก'; return; }   // v0.81
+      this.logout();
+    });
+    const lk = this.panel.querySelector('[data-a=link]');
+    if (lk) lk.addEventListener('click', () => this.linkAccount());
     const nl = this.panel.querySelector('[data-a=netlocal]');
     if (nl) nl.addEventListener('click', () => this.offline('', true));
     const box = this.panel.querySelector('.tt-slots');

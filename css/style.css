@@ -2376,3 +2376,17 @@ body.touch .hud > :is(.panel.char, .buffs, .panel.mini, .topbar, .qtrack, .hotba
 .chat .r-eternal, .dmg.loot.r-eternal, .g-rar[data-rarity="eternal"], .r-eternal-text { font-weight: 700; color: transparent; background: linear-gradient(110deg, #ff9ad0, #ffe08a, #9affc0, #8ad8ff, #d8a8ff, #ff9ad0) 0 0 / 300% 100%; -webkit-background-clip: text; background-clip: text; animation: flow1 3s linear infinite; }
 .dmg.loot.r-eternal { font-size: 30px; font-family: 'Lilita One', var(--display); filter: drop-shadow(0 0 8px rgba(255, 200, 255, 0.9)); }
 @media (prefers-reduced-motion: reduce) { .slot.r-eternal::before, .slot.r-eternal::after { animation: none; } }
+
+/* v0.81 เข้าสู่ระบบด้วย Google · เล่นแบบไม่สมัคร · ผูกบัญชี */
+.tt-social { display: grid; gap: 8px; margin: 2px 0 4px; }
+.tt-social button { min-height: 44px; font-size: 14.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.tt-google { background: #fff; color: #1f1f1f; border: 1px solid #dadce0; border-radius: 10px; }
+.tt-google:hover { background: #f5f7ff; }
+.tt-google svg { width: 20px; height: 20px; }
+.tt-guest { background: linear-gradient(90deg, rgba(255, 196, 90, 0.22), rgba(255, 138, 60, 0.22)); color: #ffe2a8; border: 1px solid rgba(255, 196, 90, 0.55); border-radius: 10px; }
+.tt-or { display: flex; align-items: center; gap: 10px; margin: 8px 0 2px; color: var(--muted, #b3b5bd); font-size: 12px; }
+.tt-or::before, .tt-or::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.15); }
+.tt-guestbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; margin: 6px 0; border-radius: 10px; background: rgba(255, 170, 60, 0.14); border: 1px solid rgba(255, 170, 60, 0.5); font-size: 12.5px; color: #ffd9a0; }
+.tt-guestbar button { padding: 6px 12px; min-height: 34px; white-space: nowrap; }
+
+.tt-legal{margin:10px 0 0;font-size:11px;line-height:1.5;text-align:center;opacity:.7}.tt-legal a{color:inherit;text-decoration:underline}
