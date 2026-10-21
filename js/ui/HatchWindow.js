@@ -1,9 +1,9 @@
 // หน้าต่างฟักไข่ (v0.13) — ไข่สั่น → แตก → สัตว์เลี้ยงโผล่ออกมา (ฉาก 3 มิติเล็ก ๆ แยกจากโลกหลัก)
-import { THREE } from '../render/three.js?v=0.86.1';
-import { PetView, EggView } from '../render/Pets.js?v=0.86.1';
-import { PETS, PET_RARITY, PET_DUP_ZENY } from '../data/pets.js?v=0.86.1';
-import { ITEMS } from '../data/items.js?v=0.86.1';
-import * as TX from '../render/FxTextures.js?v=0.86.1';
+import { THREE } from '../render/three.js?v=0.87.0';
+import { PetView, EggView } from '../render/Pets.js?v=0.87.0';
+import { PETS, PET_RARITY, PET_DUP_ZENY } from '../data/pets.js?v=0.87.0';
+import { ITEMS } from '../data/items.js?v=0.87.0';
+import * as TX from '../render/FxTextures.js?v=0.87.0';
 
 export class HatchWindow {
   constructor(root, act) {

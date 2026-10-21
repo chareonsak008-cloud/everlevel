@@ -1,7 +1,7 @@
 // v0.77 หลอมอุปกรณ์นิรันดร์กาล — ตรวจวัตถุดิบ · หักของ · สุ่มสำเร็จ/ล้มเหลว
 // ล้มเหลว = เสียวัตถุดิบ + Zeny ทั้งหมด แต่อุปกรณ์ฐาน (เทพสวรรค์) ยังอยู่ · สำเร็จ = ฐานถูกใช้ไป (ระดับตีบวก/การ์ดของฐานหายไปด้วย)
-import { ITEMS } from '../data/items.js?v=0.86.1';
-import { baseOf, recipeOf, eternalId, LUCK_STEP, LUCK_MAX } from '../data/eternal.js?v=0.86.1';
+import { ITEMS } from '../data/items.js?v=0.87.0';
+import { baseOf, recipeOf, eternalId, LUCK_STEP, LUCK_MAX } from '../data/eternal.js?v=0.87.0';
 
 export const invHave = (inv, id) => inv.stacks.filter((s) => s.id === id).reduce((a, s) => a + s.qty, 0);
 const refineOf = (key) => Math.floor(+String(key).split('*')[1] || 0);
