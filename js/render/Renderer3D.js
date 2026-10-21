@@ -1,33 +1,34 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.82.0';
-import { PixelWingSprite } from './PixelWings.js?v=0.82.0';
-import { paintPlate } from '../ui/Nameplates.js?v=0.82.0';
-import { PixelVfx } from './PixelVfx.js?v=0.82.0';
-import { THREE } from './three.js?v=0.82.0';
-import { TILE } from '../config.js?v=0.82.0';
-import { T } from '../data/tileTypes.js?v=0.82.0';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.82.0';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.82.0';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.82.0';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.83.0';
+import { PixelWingSprite } from './PixelWings.js?v=0.83.0';
+import { paintPlate } from '../ui/Nameplates.js?v=0.83.0';
+import { PixelVfx } from './PixelVfx.js?v=0.83.0';
+import { THREE } from './three.js?v=0.83.0';
+import { TILE } from '../config.js?v=0.83.0';
+import { T } from '../data/tileTypes.js?v=0.83.0';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.83.0';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.83.0';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.83.0';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.82.0';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.82.0';
-import { iconCanvas } from './ItemIcons.js?v=0.82.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.82.0';
-import { MonsterView } from './Monsters.js?v=0.82.0';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.82.0';
-import { SkillFX } from './SkillFX.js?v=0.82.0';
-import { PostFX } from './PostFX.js?v=0.82.0';
-import { costumeLook, wearCostume } from './Costumes.js?v=0.82.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.82.0';
-import { PetView } from './Pets.js?v=0.82.0';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.82.0';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.82.0';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.82.0';
-import { gradientMap } from './Toon.js?v=0.82.0';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.82.0';
+} from './Models.js?v=0.83.0';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.83.0';
+import { iconCanvas } from './ItemIcons.js?v=0.83.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.83.0';
+import { MonsterView } from './Monsters.js?v=0.83.0';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.83.0';
+import { SkillFX } from './SkillFX.js?v=0.83.0';
+import { PostFX } from './PostFX.js?v=0.83.0';
+import { costumeLook, wearCostume } from './Costumes.js?v=0.83.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.83.0';
+import { PetView } from './Pets.js?v=0.83.0';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.83.0';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.83.0';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.83.0';
+import { gradientMap } from './Toon.js?v=0.83.0';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.83.0';
+const HONOR_FX_PAD = { legend: 6, mythic: 12, divine: 16 };   // v0.83 ลายประดับฉายาระดับสูงที่ยื่นเหนือกรอบ (px)
 const HONOR_H = { common: 22, rare: 24, epic: 30, legend: 36, mythic: 46, divine: 54 };   // v0.76 ระยะซ้อนฉายาแต่ละระดับ (px)
 const PX_BASE = (() => { const a = new THREE.Color('#dcefff'), b = new THREE.Color('#fff0d6'); return { r: a.r * 0.72 + b.r * 1.45 * 0.5, g: a.g * 0.72 + b.g * 1.45 * 0.5, b: a.b * 0.72 + b.b * 1.45 * 0.5 }; })();   // v0.17: สไปรต์พิกเซลอาร์ต   // v0.13: สัตว์เลี้ยงช่วยเก็บของ
 
@@ -1395,7 +1396,7 @@ export class Renderer3D {
     // v0.18: ฉายาเหนือหัว (ตัวเราและผู้เล่นคนอื่น)
     // v0.76 ฉายาได้สูงสุด 3 อัน เรียงซ้อนขึ้นไปเป็นแนวตั้ง (อันแรกชิดหัว) · ระยะห่างตามความอลังการของแต่ละระดับ
     const hons = !c.npc && !entity.dead ? (entity.honors || (entity.honor ? [{ title: entity.honor, tier: entity.honorTier, fx: entity.honorFx }] : [])) : [];
-    c.honorH = 0;
+    c.honorH = 0; c.honorTop = null;
     if (hons.length || (c.honorEls && c.honorEls.length)) {
       const els = c.honorEls || (c.honorEls = []);
       while (els.length < hons.length) { const el = document.createElement('div'); el.className = 'tag-honor'; el.hidden = true; this.labelLayer.append(el); els.push(el); }
@@ -1409,6 +1410,7 @@ export class Renderer3D {
         setT(el, `translate3d(${hp2[0]}px, ${hp2[1] - off}px, 0) translate(-50%, -100%)`);
         el.style.zIndex = String(1 + i);
         off += HONOR_H[h.tier] || 20;
+        if (hp2) c.honorTop = hp2[1] - off - (HONOR_FX_PAD[h.tier] || 0);   // v0.83 ขอบบนสุดของกองฉายา (รวมลายประดับที่ยื่นเกิน)
       }
       c.honorH = off;
     }
@@ -1443,7 +1445,21 @@ export class Renderer3D {
         if (c.lastText !== b.text) { c.bubble.textContent = this.mobile && !c.npc && b.text.length > 56 ? b.text.slice(0, 54) + '…' : b.text; c.lastText = b.text; }   // v0.13: มือถือย่อข้อความยาวในบอลลูน
         setH(c.bubble, false);
         const op = String(Math.min(1, Math.round(b.t * 20) / 10)); if (c.bubble._o !== op) { c.bubble.style.opacity = op; c.bubble._o = op; }
-        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, (c.head + 0.35) * this.vs, z) || p)[1] - (c.honorH || 0)}px, 0) translate(-50%, -100%)`);
+        // v0.83 บอลลูนแชทของผู้เล่นอยู่ข้างตัวละคร (ไม่ชนฉายาบนหัว) · ชิดขอบจอขวา → สลับไปด้านซ้าย
+        if (c.npc) setT(c.bubble, `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)`);
+        else {
+          if (!c.bubble.classList.contains('bubble-side')) c.bubble.classList.add('bubble-side');
+          if (c.bubbleText !== c.lastText || !c.bubbleW) { if (c.bubbleMax) { c.bubble.style.maxWidth = ''; c.bubbleMax = 0; } c.bubbleW = c.bubble.offsetWidth; c.bubbleText = c.lastText; }
+          const hy = (this.project(x, (c.sheet ? c.sheet.headH : c.head) * 0.58 * this.vs, z) || p)[1];   // ระดับไหล่
+          const gap = this.mobile ? 20 : 26, vw = Math.min(this.labelLayer.clientWidth || 1e5, window.innerWidth), w = c.bubbleW || 160;
+          const right = vw - 6 - (sx + gap), left = sx - gap - 6;
+          const flip = right < w && left > right;                       // ด้านขวาไม่พอและด้านซ้ายกว้างกว่า → ไปซ้าย
+          const room = Math.max(90, Math.floor(flip ? left : right));
+          const mx = room < w ? room : 0;                               // สองข้างไม่พอ → บีบความกว้างให้พอดีจอ
+          if (c.bubbleMax !== mx) { c.bubble.style.maxWidth = mx ? `${mx}px` : ''; c.bubbleMax = mx; }
+          if (c.bubbleFlip !== flip) { c.bubble.classList.toggle('flip', flip); c.bubbleFlip = flip; }
+          setT(c.bubble, flip ? `translate3d(${sx - gap}px, ${hy}px, 0) translate(-100%, -50%)` : `translate3d(${sx + gap}px, ${hy}px, 0) translate(0, -50%)`);
+        }
       } else if (!c.bubble.hidden) { c.bubble.hidden = true; c.lastText = ''; }
     }
   }
