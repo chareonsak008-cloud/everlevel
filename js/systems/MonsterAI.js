@@ -1,14 +1,15 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.72.0';
-import { MONSTERS } from '../data/monsters.js?v=0.72.0';
-import { Monster } from '../entities/Monster.js?v=0.72.0';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.72.0';
+import { TILE } from '../config.js?v=0.73.0';
+import { MONSTERS } from '../data/monsters.js?v=0.73.0';
+import { Monster } from '../entities/Monster.js?v=0.73.0';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.73.0';
 
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
 
 // v0.52: มอนเกิดเยอะขึ้น/เร็วขึ้น (มอนปกติ) — MVP/บอสคงเดิม
 export const SPAWN_MUL = 2, RESPAWN_MUL = 0.25;   // v0.72 เกิดเยอะขึ้น (×2) และเร็วขึ้น (เวลาเกิดใหม่ ×0.25 · ต่ำสุด 2 วิ)
+const NEAR_CHANCE = 0.7;   // v0.72.1 โอกาสที่มอนธรรมดาจะเกิดใหม่ในวงรอบผู้เล่น/วงออโต้ (ถ้าโซนเกิดของมันทับวงนั้น)
 const isBossDef = (def) => { const d = MONSTERS[def.mob]; return !d || d.mvp || d.worldBoss || d.boss; };
 
 export class MonsterManager {
@@ -33,6 +34,23 @@ export class MonsterManager {
       const x = tx * TILE + 8, y = ty * TILE + 8;
       // ไม่เกิดใกล้ผู้เล่นตอนเข้าแผนที่ (ยกเว้นหาที่อื่นไม่ได้แล้ว เช่น บอสที่มีจุดเกิดเดียว)
       if (tries < 60 && this.avoid && Math.hypot(x - this.avoid.x, y - this.avoid.y) < 7 * TILE) continue;
+      return { x, y };
+    }
+    return null;
+  }
+
+  // v0.72.1 จุดเกิดใหม่ใกล้ผู้เล่น: สุ่มจุดในวงรอบ focus ({x, y, r ช่อง}) ที่อยู่ในโซนเกิดของมอนชนิดนั้นเท่านั้น
+  // ไม่เกิดทับตัวผู้เล่น (ห่างอย่างน้อย 3 ช่อง) · หาไม่ได้ (โซนมอนนี้ไม่ทับวง) → คืน null ให้ไปสุ่มทั้งโซนตามเดิม
+  spotNear(def, focus, player) {
+    if (!focus || !def || !def.areas) return null;
+    const r = focus.r * TILE, cx = focus.x, cy = focus.y;
+    for (let tries = 0; tries < 40; tries++) {
+      const a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * r;
+      const tx = Math.floor((cx + Math.cos(a) * d) / TILE), ty = Math.floor((cy + Math.sin(a) * d) / TILE);
+      if (!def.areas.some(([ax, ay, aw, ah]) => tx >= ax && tx < ax + aw && ty >= ay && ty < ay + ah)) continue;
+      if (this.map.isSolidTile(tx, ty)) continue;
+      const x = tx * TILE + 8, y = ty * TILE + 8;
+      if (player && Math.hypot(x - player.x, y - player.y) < 3 * TILE) continue;
       return { x, y };
     }
     return null;
@@ -73,7 +91,8 @@ export class MonsterManager {
       if (m.dead) {
         if (m.summoned) continue;              // มอนที่บอสเรียกมา ไม่เกิดใหม่
         if (time >= m.respawnAt) {
-          const p = this.randomSpot(m.spawnDef) || m.home;
+          const boss = m.data.mvp || m.data.worldBoss || m.data.boss;
+          const p = (!boss && Math.random() < NEAR_CHANCE && this.spotNear(m.spawnDef, this.focus, player)) || this.randomSpot(m.spawnDef) || m.home;   // v0.72.1
           m.reset(p.x, p.y);
           hooks.onRespawn && hooks.onRespawn(m);
         }

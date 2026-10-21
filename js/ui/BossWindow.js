@@ -1,12 +1,12 @@
 // v0.47 หน้าต่างเช็กบอส: บอสโลก (เวลาเกิด · สถานะ · HP · รางวัล) + บอส MVP ทุกแผนที่ (สถานะเกิด · เวลาเกิดใหม่ · ของดรอป)
-import { MONSTERS } from '../data/monsters.js?v=0.72.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.72.0';
-import { MAPS } from '../data/maps/index.js?v=0.72.0';
-import { WORLD_BOSSES, WORLD_TOP_BONUS } from '../data/events.js?v=0.72.0';
-import { cardDrops } from '../data/cards.js?v=0.72.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.72.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.72.0';
-import { TILE } from '../config.js?v=0.72.0';
+import { MONSTERS } from '../data/monsters.js?v=0.73.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.73.0';
+import { MAPS } from '../data/maps/index.js?v=0.73.0';
+import { WORLD_BOSSES, WORLD_TOP_BONUS } from '../data/events.js?v=0.73.0';
+import { cardDrops } from '../data/cards.js?v=0.73.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.73.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.73.0';
+import { TILE } from '../config.js?v=0.73.0';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -156,7 +156,7 @@ export class BossWindow {
       const list = [...cardDrops(id), ...(m.drops || [])].filter(([iid]) => ITEMS[iid]).sort((a, b) => b[1] - a[1]);
       for (const [iid, p] of list) row(iid, pct(p));
       const rw = m.mvpReward ? Object.values(m.mvpReward).filter((x, i, a) => ITEMS[x] && a.indexOf(x) === i) : [];
-      pane.querySelector('.bw-note').textContent = rw.length ? `รางวัล MVP: คนที่ปราบได้รับอาวุธตามอาชีพแน่นอน 1 ชิ้น: ${rw.map((x) => ITEMS[x].name).join(' · ')}` : '';
+      pane.querySelector('.bw-note').textContent = rw.length ? `รางวัล MVP: คนที่ปราบมีโอกาส 25% ได้ของตามอาชีพ 1 ชิ้น: ${rw.map((x) => ITEMS[x].name).join(' · ')}` : '';
     }
     this.renderStatus();
   }
