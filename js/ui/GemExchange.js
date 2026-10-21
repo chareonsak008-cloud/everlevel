@@ -1,6 +1,6 @@
 // v0.50 ตลาดแลกเพชร — ผู้เล่นซื้อขายเพชรกันด้วย Zeny (ต้องรัน supabase/gem_exchange.sql)
 // ราคาเฉลี่ย + กราฟ 24 ชม./7 วัน/4 สัปดาห์ · ความลึกตลาด · ซื้อ/ขายทันที หรือตั้งคำสั่งรอ · คำสั่งของฉัน (ยกเลิกได้)
-import { ready } from './TradeMarket.js?v=0.83.0';
+import { ready } from './TradeMarket.js?v=0.84.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const feeOf = (z, pct) => Math.ceil((z * pct) / 100);

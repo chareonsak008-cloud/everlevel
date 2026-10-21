@@ -1,4 +1,4 @@
-import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.83.0';
+import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.84.0';
 // แคตตาล็อกชุดแฟชั่น (v0.9) — ได้จากการเปิดกล่องแฟชั่นสุ่ม (data/fashionBoxes.js) — ชิ้นแฟชั่นเป็น "ชุดทับ" ไม่เพิ่มค่าสถานะ ใส่ทับอุปกรณ์จริงได้
 // slot: wings | outfit | head | face | back | weapon | aura | pet · kind = ชื่อตัวสร้างใน render/Costumes.js · p = ค่าปรับแต่ง
 // rarity: common ธรรมดา | rare หายาก | epic ล้ำค่า | legend ตำนาน | mythic | celestial
@@ -365,6 +365,16 @@ COSTUMES.push(
   FX('a_fest_krathong', 'festKrathong', 'สายธารกระทงแสงจันทร์', 'Moonlit Krathong Stream', 'legend', 'กระทงจุดเทียนล่องวนรอบเท้าบนระลอกน้ำ โคมลอยค่อย ๆ ลอยขึ้นฟ้า', 'loykrathong'),
   FX('a_fest_songkran', 'festSongkran', 'สายน้ำสงกรานต์', 'Songkran Splash', 'legend', 'สายน้ำพุ่งโค้งรอบตัวแตกเป็นละอองรุ้ง กลีบมะลิโปรยปราย', 'songkran'),
   FX('a_fest_newyear', 'festNewyear', 'ค่ำคืนส่งท้ายปี', 'New Year Eve Glow', 'legend', 'กล่องของขวัญจิ๋วลอยวน หิมะทองโปรย พลุดาวแตกเหนือศีรษะ', 'newyear'),
+);
+// v0.84 ออร่าคอสมิก — ขายในร้านเพชรเท่านั้น (ไม่อยู่ในกล่องสุ่ม) · ตัวสร้างอยู่ใน render/AuraCosmic.js
+// p.color = สีแสงวงกลมพื้น (สีเข้มอิ่ม ไม่กลายเป็นวงขาวบนพื้นสว่าง) · ราคาในตาราง cash_products (supabase/cosmic_auras_v0.84.sql)
+const CS = (id, kind, name, en, rarity, color, desc) => ({ ...I('aura', id, kind, name, en, rarity, desc, { color }), batch: 7, cash: true });
+COSTUMES.push(
+  CS('a_cs_galaxy', 'cosGalaxy', 'ทางช้างเผือกหมุนวน', 'Spiral Galaxy', 'celestial', '#8a3ad8', 'หน้าต่างอวกาศเปิดใต้เท้า กาแล็กซีกังหันหมุนทั้งบนพื้นและหลังตัว ดาวลอยขึ้นเป็นเกลียวตามแขนกาแล็กซี วงดาวสีชมพู-ฟ้าโคจรรอบเอว ทุกจังหวะพลังถูกดูดเข้ากลางตัวแล้วระเบิดเป็นซูเปอร์โนวา ลำแสงพุ่งขึ้นฟ้า'),
+  CS('a_cs_nebula', 'cosNebula', 'ม่านเนบิวลา', 'Nebula Veil', 'mythic', '#6a3ad8', 'หมอกเนบิวลาชมพู ฟ้า ม่วง ส้ม หมุนวนเป็นเสารอบกายบนฉากจักรวาล ดาวระยิบซ่อนในหมอก ฝุ่นดาวหลากสีลอยขึ้น ทุกจังหวะหมอกพองกระจายออก คลื่นสามสี ดาวระเบิดรอบทิศ'),
+  CS('a_cs_blackhole', 'cosBlackhole', 'หลุมดำมหาบรรลัย', 'Event Horizon', 'celestial', '#c85a1a', 'จานพอกพูนร้อนแรงสองชั้นหมุนรอบเอว หลุมดำพร้อมจานแสงลอยเหนือศีรษะ อนุภาคถูกดูดเข้าจานเป็นเกลียว ขอบฟ้าเหตุการณ์ดำมืดใต้เท้า ทุกจังหวะจานหดดูดกลืนทุกสิ่งแล้วพ่นลำแสงขึ้นฟ้า'),
+  CS('a_cs_solar', 'cosSolar', 'ระบบสุริยะ', 'Solar Dominion', 'mythic', '#c8781a', 'ดวงอาทิตย์ใหญ่แผ่รัศมีอยู่หลังตัว ดาวเคราะห์ห้าดวงโคจรรอบตัวบนวงโคจรเรืองแสง ดวงนอกสุดมีวงแหวน แถบดาวเคราะห์น้อยหมุนรอบ ทุกจังหวะดาวเคราะห์เรียงตัวเป็นแนวเดียว เปลวสุริยะระเบิด'),
+  CS('a_cs_guardian', 'cosGuardian', 'เทพกลุ่มดาว', 'Constellation Guardian', 'celestial', '#2a6ad8', 'ร่างกลุ่มดาวเทพผู้พิทักษ์กางปีกดาวบนฉากจักรวาลหลังตัว วงดาวทองหมุนเหนือศีรษะ แผนที่ดาวบนพื้น ฝุ่นดาวลอยขึ้น ทุกจังหวะเส้นกลุ่มดาวสว่างวาบ ฝนดาวตกโปรยรอบตัว'),
 );
 export const COSTUME_BY_ID = Object.fromEntries(COSTUMES.map((c) => [c.id, c]));
 
