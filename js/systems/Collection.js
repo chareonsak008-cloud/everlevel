@@ -1,11 +1,11 @@
-import { jobTier } from '../data/progression.js?v=0.81.0';
+import { jobTier } from '../data/progression.js?v=0.82.0';
 // ระบบสะสมและเป้าหมายระยะยาว (v0.18) — สมุดมอนสเตอร์ · ความสำเร็จ/ฉายา · อัลบั้มการ์ด · เช็กอินรายวัน
 // ข้อมูลอยู่ในเซฟตัวละคร (player.col) → ไม่ต้องตั้งค่าเซิร์ฟเวอร์เพิ่ม · โบนัสรวมอยู่ที่ player.colBonus (คิดรวมในค่าสถานะ)
-import { MONSTERS } from '../data/monsters.js?v=0.81.0';
-import { CARDS } from '../data/cards.js?v=0.81.0';
-import { ITEMS, itemMods, describeBonus } from '../data/items.js?v=0.81.0';
-import { titlesOf, holderTitles, MAX_TITLES, SEASON_TITLES } from '../data/seasonTitles.js?v=0.81.0';   // v0.76
-import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, ACHIEVEMENTS, ACH_BY_ID, ACH_COUNTED, MVP_CARDS, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.81.0';
+import { MONSTERS } from '../data/monsters.js?v=0.82.0';
+import { CARDS } from '../data/cards.js?v=0.82.0';
+import { ITEMS, itemMods, describeBonus } from '../data/items.js?v=0.82.0';
+import { titlesOf, holderTitles, MAX_TITLES, SEASON_TITLES } from '../data/seasonTitles.js?v=0.82.0';   // v0.76
+import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, ACHIEVEMENTS, ACH_BY_ID, ACH_COUNTED, MVP_CARDS, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.82.0';
 
 const SET_OF = (o) => Object.keys(o);
 const addTo = (out, o) => { for (const [k, v] of Object.entries(o || {})) out[k] = +(((out[k] || 0) + v).toFixed(4)); return out; };

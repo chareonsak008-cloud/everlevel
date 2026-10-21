@@ -1,13 +1,13 @@
 // v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → v0.80 ตรวจสลิปอัตโนมัติ / แอดมินอนุมัติเมื่อไม่ชัวร์)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.81.0';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.81.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.81.0';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.81.0';
-import { ready } from './TradeMarket.js?v=0.81.0';
-import { WARP_ROUTES } from '../data/shops.js?v=0.81.0';
-import { PETS, PET_RARITY } from '../data/pets.js?v=0.81.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.81.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.82.0';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.82.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.82.0';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.82.0';
+import { ready } from './TradeMarket.js?v=0.82.0';
+import { WARP_ROUTES } from '../data/shops.js?v=0.82.0';
+import { PETS, PET_RARITY } from '../data/pets.js?v=0.82.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.82.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const QR_SRC = 'assets/ui/topup_qr.png';
@@ -153,6 +153,55 @@ export class CashShopWindow {
     this.render();
   }
 
+  // v0.82 รายการกันโกง (supabase/anticheat_v0.82.sql)
+  async loadCheat() {
+    const r = await this.g.online.tradeRPC('gm_cheat_log', { p_status: this.cheatAll ? 'all' : 'open' });
+    this.cheatRows = r.error ? [] : r.data || [];
+    if (r.error) this.msg = r.error;
+    this.render();
+  }
+
+  async cheatAct(row, act) {
+    if (this.busy) return;
+    if (this.confirmId !== `${act}${row.id}`) { this.confirmId = `${act}${row.id}`; return this.render(); }
+    this.confirmId = null; this.busy = true; this.render();
+    const r = act === 'rb'
+      ? await this.g.online.tradeRPC('gm_cheat_rollback', { p_id: row.id })
+      : await this.g.online.tradeRPC('gm_cheat_close', { p_id: row.id, p_clear: true });
+    this.busy = false;
+    this.msg = r.error || (act === 'rb' ? `ย้อนเซฟของ ${row.name} กลับเป็น Lv.${row.snap_lv} แล้ว (ธงยังอยู่ · กด "ไม่ได้โกง" ถ้าจะปลด)` : `ปลดธง/ปลดล็อก ${row.name} แล้ว`);
+    await this.loadCheat();
+  }
+
+  renderCheat(pane) {
+    pane.innerHTML = `<p class="tm-hint"><b>ปฏิเสธเซฟ</b> = ค่าตัวละครเป็นไปไม่ได้ (ระบบไม่บันทึกให้แล้ว · ติดธง ซ่อนจากอันดับ ห้ามเข้าอารีน่า) · <b>ต้องตรวจ</b> = ได้ของ/เลเวลเร็วผิดปกติ (บันทึกแล้วแต่ล็อกการแลก) · ย้อนเซฟ = คืนตัวละครเป็นเซฟก่อนพบความผิดปกติ</p>
+      <label class="cs-cheat-all"><input type="checkbox" ${this.cheatAll ? 'checked' : ''}> แสดงรายการที่จัดการแล้วด้วย</label><div class="tm-list cs-admin"></div>`;
+    pane.querySelector('.cs-cheat-all input').addEventListener('change', (e) => { this.cheatAll = e.target.checked; this.cheatRows = null; this.render(); this.loadCheat(); });
+    const list = pane.querySelector('.cs-admin');
+    if (!this.cheatRows) { list.innerHTML = '<p class="tm-empty">กำลังโหลด…</p>'; return; }
+    if (!this.cheatRows.length) { list.innerHTML = '<p class="tm-empty">ไม่มีรายการที่ต้องตรวจ 👍</p>'; return; }
+    const ST = { open: 'รอตรวจ', ok: 'ไม่ได้โกง', rollback: 'ย้อนเซฟแล้ว' };
+    for (const row of this.cheatRows) {
+      const box = document.createElement('div'); box.className = 'cs-adm cs-cheat ' + (row.kind === 'hard' ? 'hard' : 'soft');
+      box.innerHTML = `<div class="tm-info"><b></b><small class="cs-reason"></small><small class="cs-meta"></small></div><div class="tm-foot"></div>`;
+      box.querySelector('b').textContent = `${row.kind === 'hard' ? '⛔ ปฏิเสธเซฟ' : '⚠ ต้องตรวจ'} · ${row.name || '-'} (ช่อง ${row.slot})`;
+      box.querySelector('.cs-reason').textContent = row.reason;
+      box.querySelector('.cs-meta').textContent = `${new Date(row.at).toLocaleString('th-TH')} · ตอนนี้ Lv.${row.lv ?? '-'}${row.snap ? ` · มีเซฟสำรอง Lv.${row.snap_lv}` : ''} · ${ST[row.status] || row.status}${row.cheat ? ' · ติดธง' : ''}${row.lock ? ' · ล็อกการแลก' : ''}`;
+      const foot = box.querySelector('.tm-foot');
+      if (row.status === 'open' && row.snap && row.kind !== 'hard') {   // ปฏิเสธเซฟ = ข้อมูลบนเซิร์ฟเวอร์ยังสะอาดอยู่แล้ว
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost'; b.disabled = this.busy;
+        b.textContent = this.confirmId === `rb${row.id}` ? `ยืนยันย้อนเป็น Lv.${row.snap_lv}?` : 'ย้อนเซฟ';
+        b.addEventListener('click', () => this.cheatAct(row, 'rb')); foot.append(b);
+      }
+      if (row.cheat || row.lock || row.status === 'open') {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'primary'; b.disabled = this.busy;
+        b.textContent = this.confirmId === `ok${row.id}` ? 'ยืนยันปลดธง + ปลดล็อก?' : 'ไม่ได้โกง · ปลดล็อก';
+        b.addEventListener('click', () => this.cheatAct(row, 'ok')); foot.append(b);
+      }
+      list.append(box);
+    }
+  }
+
   async decide(row, ok) {
     if (this.busy) return;
     const reply = (this.body.querySelector(`#csReply${row.id}`) || {}).value || '';
@@ -220,13 +269,13 @@ export class CashShopWindow {
     return (ITEMS[p.ref] || {}).name || p.ref;
   }
 
-  setTab(t) { this.tab = t; this.msg = ''; this.confirmId = null; this.render(); if (t === 'admin') this.loadAdmin(); }
+  setTab(t) { this.tab = t; this.msg = ''; this.confirmId = null; this.render(); if (t === 'admin') this.loadAdmin(); if (t === 'cheat') this.loadCheat(); }
 
   render() {
     if (!this.open) return;
     const st = this.st;
     this.el.querySelector('.cs-gems b').textContent = fmt(st ? st.gems : 0);
-    const tabs = [...TABS, ...(st && st.admin ? [['admin', 'อนุมัติเติม']] : [])];
+    const tabs = [...TABS, ...(st && st.admin ? [['admin', 'อนุมัติเติม'], ['cheat', 'กันโกง']] : [])];
     this.body.innerHTML = `<div class="inv-tabs tm-tabs cs-tabs" role="tablist">${tabs.map(([k, n]) => `<button type="button" role="tab" data-t="${k}" aria-selected="${this.tab === k}">${n}</button>`).join('')}</div>
       <p class="tm-msg" ${this.msg ? '' : 'hidden'}></p><div class="tm-pane"></div>`;
     if (this.msg) this.body.querySelector('.tm-msg').textContent = this.msg;
@@ -236,6 +285,7 @@ export class CashShopWindow {
     if (this.tab === 'vip') return this.renderVip(pane);
     if (this.tab === 'topup') return this.renderTopup(pane);
     if (this.tab === 'admin') return this.renderAdmin(pane);
+    if (this.tab === 'cheat') return this.renderCheat(pane);
     this.renderProducts(pane);
   }
 

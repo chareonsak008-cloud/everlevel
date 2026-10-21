@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.81.0';
-import { SideChannel } from './SideChannel.js?v=0.81.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.82.0';
+import { SideChannel } from './SideChannel.js?v=0.82.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -59,6 +59,8 @@ export function authMessage(err) {
 // v0.42: ข้อความผิดพลาดจากฟังก์ชันแลกของ/ตลาด
 const TRADE_ERR = {
   trade_locked: 'บัญชีนี้ถูกระงับการแลกและตลาดชั่วคราว (ระบบพบการได้ของเร็วผิดปกติ) ติดต่อแอดมิน',
+  cheat_flag: 'บัญชีนี้ถูกระงับระหว่างตรวจสอบ (ระบบพบค่าตัวละครผิดปกติ) ติดต่อแอดมิน',
+  no_snapshot: 'รายการนี้ไม่มีเซฟสำรองให้ย้อน', not_admin: 'ต้องเป็นแอดมิน',
   no_target: 'ไม่พบตัวละครชื่อนี้', self_trade: 'แลกกับตัวละครในบัญชีเดียวกันไม่ได้', no_trade: 'การแลกนี้ปิดไปแล้ว',
   changed: 'อีกฝ่ายเพิ่งเปลี่ยนของบนโต๊ะ ตรวจอีกครั้งแล้วกดยืนยันใหม่', not_enough: 'ของในกระเป๋าไม่พอ (ลองรอเซฟสักครู่)',
   not_enough_zeny: 'Zeny ไม่พอ', zeny_full: 'Zeny เต็มเพดานแล้ว', stack_full: 'ไอเทมชนิดนี้เต็ม 999 ชิ้นแล้ว',
@@ -248,6 +250,7 @@ export class SupabaseOnline extends Online {
     const p = s.player || {};
     const { storage, ...rest } = s;   // คลังเก็บแยกไว้ในตาราง accounts (ใช้ร่วมทุกตัวละคร)
     // v0.42: เซฟผ่านฟังก์ชันตรวจบนเซิร์ฟเวอร์ (supabase/trade.sql) · ยังไม่ติดตั้ง → เขียนตรงแบบเดิม
+    if (this.halted) return;   // v0.82 เซิร์ฟเวอร์สั่งหยุด (ปฏิเสธเซฟ / GM ย้อนข้อมูล) → รอโหลดใหม่
     if (this.serverSave !== false) {
       const st = JSON.stringify(storage || []);
       const { data, error } = await this.sb.rpc('save_state', { p_slot: this.slot, p_rev: this.rev || 0, p_data: rest, p_storage: st !== this.lastStorage ? (storage || []) : null });
@@ -257,6 +260,9 @@ export class SupabaseOnline extends Online {
         // เซิร์ฟเวอร์เพิ่งแก้เซฟ (ขายของได้/แลกเสร็จ) → ปรับกระเป๋าในเครื่องก่อน แล้วเซฟสถานะใหม่ต่อทันที
         await this.syncLedger();
         if (this.freshState) this.pending = this.pending || this.freshState();
+        return;
+      } else if (data && data.ok === false && data.reason === 'rejected') {
+        this.halt('rejected', data.issue);   // v0.82 ค่าตัวละครเป็นไปไม่ได้ → ไม่บันทึก · โหลดข้อมูลจากเซิร์ฟเวอร์ใหม่
         return;
       } else {
         this.serverSave = true;
@@ -319,6 +325,13 @@ export class SupabaseOnline extends Online {
     return error ? error.message || error.code : null;
   }
 
+  // v0.82 หยุดเซฟทั้งหมดแล้วให้เกมโหลดข้อมูลจากเซิร์ฟเวอร์ใหม่
+  halt(kind, info) {
+    if (this.halted) return;
+    this.halted = kind; this.pending = null;
+    if (this.onHalt) this.onHalt(kind, info); else setTimeout(() => location.reload(), 1500);
+  }
+
   /* ---------- v0.42: แลกของ / ตลาด (supabase/trade.sql) ---------- */
   // ดึงรายการที่เซิร์ฟเวอร์แก้เซฟหลัง rev ที่รู้ → ให้เกมปรับกระเป๋า (onLedger) · คืนจำนวนรายการ
   async syncLedger() {
@@ -327,7 +340,13 @@ export class SupabaseOnline extends Online {
       const { data, error } = await this.sb.rpc('ledger_since', { p_slot: this.slot, p_rev: this.rev || 0 });
       if (error) throw error;
       const items = (data && Array.isArray(data.items)) ? data.items : [];
-      for (const it of items) if (+it.rev > (this.rev || 0)) { this.rev = +it.rev; if (this.onLedger) this.onLedger(it.delta || {}); }
+      let reload = null;
+      for (const it of items) if (+it.rev > (this.rev || 0)) {
+        this.rev = +it.rev; const d = it.delta || {};
+        if (d.reload) { reload = d.note || 'reload'; continue; }   // v0.82 GM ย้อนข้อมูลตัวละคร
+        if (this.onLedger) this.onLedger(d);
+      }
+      if (reload) this.halt('rollback', reload);
       if (data && Number.isFinite(+data.rev) && +data.rev > (this.rev || 0)) this.rev = +data.rev;
       return items.length;
     })();

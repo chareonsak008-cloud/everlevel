@@ -2390,3 +2390,9 @@ body.touch .hud > :is(.panel.char, .buffs, .panel.mini, .topbar, .qtrack, .hotba
 .tt-guestbar button { padding: 6px 12px; min-height: 34px; white-space: nowrap; }
 
 .tt-legal{margin:10px 0 0;font-size:11px;line-height:1.5;text-align:center;opacity:.7}.tt-legal a{color:inherit;text-decoration:underline}
+
+/* v0.82 กันโกง (แอดมิน) */
+.cs-cheat-all{display:flex;align-items:center;gap:6px;font-size:12px;margin:0 0 8px;opacity:.85}
+.cs-cheat.hard{border-left:3px solid #ff5a5a}.cs-cheat.soft{border-left:3px solid #ffc04a}
+.cs-cheat .tm-info small{display:block;line-height:1.45}.cs-cheat .cs-reason{color:#ffd9a0}
+.cs-cheat .tm-foot:empty{display:none}
