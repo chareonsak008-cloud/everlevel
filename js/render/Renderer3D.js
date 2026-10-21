@@ -1,33 +1,33 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.87.0';
-import { PixelWingSprite } from './PixelWings.js?v=0.87.0';
-import { paintPlate } from '../ui/Nameplates.js?v=0.87.0';
-import { PixelVfx } from './PixelVfx.js?v=0.87.0';
-import { THREE } from './three.js?v=0.87.0';
-import { TILE } from '../config.js?v=0.87.0';
-import { T } from '../data/tileTypes.js?v=0.87.0';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.87.0';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.87.0';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.87.0';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.88.0';
+import { PixelWingSprite } from './PixelWings.js?v=0.88.0';
+import { paintPlate } from '../ui/Nameplates.js?v=0.88.0';
+import { PixelVfx } from './PixelVfx.js?v=0.88.0';
+import { THREE } from './three.js?v=0.88.0';
+import { TILE } from '../config.js?v=0.88.0';
+import { T } from '../data/tileTypes.js?v=0.88.0';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.88.0';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.88.0';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.88.0';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.87.0';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.87.0';
-import { iconCanvas } from './ItemIcons.js?v=0.87.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.87.0';
-import { MonsterView } from './Monsters.js?v=0.87.0';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.87.0';
-import { SkillFX } from './SkillFX.js?v=0.87.0';
-import { PostFX } from './PostFX.js?v=0.87.0';
-import { costumeLook, wearCostume } from './Costumes.js?v=0.87.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.87.0';
-import { PetView } from './Pets.js?v=0.87.0';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.87.0';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.87.0';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.87.0';
-import { gradientMap } from './Toon.js?v=0.87.0';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.87.0';
+} from './Models.js?v=0.88.0';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.88.0';
+import { iconCanvas } from './ItemIcons.js?v=0.88.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.88.0';
+import { MonsterView } from './Monsters.js?v=0.88.0';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.88.0';
+import { SkillFX } from './SkillFX.js?v=0.88.0';
+import { PostFX } from './PostFX.js?v=0.88.0';
+import { costumeLook, wearCostume } from './Costumes.js?v=0.88.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.88.0';
+import { PetView } from './Pets.js?v=0.88.0';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.88.0';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.88.0';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.88.0';
+import { gradientMap } from './Toon.js?v=0.88.0';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.88.0';
 // v0.86 กลางวัน · ตอนเย็น · กลางคืน · รุ่งสาง — ตัวคูณแสง (h=ฟ้า s=แดด e=exposure) + สีที่ผสมเข้าไป (mix)
 const DAY_PRESETS = {
   day: { name: 'กลางวัน', icon: '☀', h: 1, s: 1, e: 1, mix: 0, glow: 1, tint: [0, 0, 0, 0] },
@@ -73,9 +73,10 @@ const RATIOS = { mobile: [1.5, 1.25, 1, 0.85], desktop: [2, 1.25, 1, 0.8] };
 // ปรับมุมก้มเองได้ (คลิกขวาลากขึ้นลง / สองนิ้วลากขึ้นลง / PageUp PageDown)
 const D2R = Math.PI / 180;
 const CAM = {
-  d3: { pitch: 0.8, pmin: 0.8, pmax: 0.8, fov: 32, fovP: 52, min: 7, max: 24, def: 13 },
+  d3: { pitch: 0.8, pmin: 0.8, pmax: 0.8, fov: 32, fovP: 52, min: 7, max: 31, def: 13 },
   px: { pitch: 60 * D2R, pmin: 45 * D2R, pmax: 75 * D2R, fov: 15, fovP: 24, min: 6.5, max: 40, def: 17 },
 };
+const CAM_FAR = 1.3, CAM_FAR_P = 1.4;   // v0.88 ถอยกล้องออกจากขั้นพิกเซล 1:1 อีก 30%
 const SPRITE_PITCH = 20 * D2R;   // มุมที่ "ช่างวาด" มองสไปรต์ (ดู PixelSprites.js)
 
 function disposeOwned(root) {
@@ -518,12 +519,13 @@ export class Renderer3D {
     this.scene.add(view.root);
     const scale = ((entity.look && entity.look.scale) || 1) * (npc ? NPC_SCALE : 1);   // v0.41.1 NPC ใหญ่ขึ้นให้สูงเท่าตัวละครพิกเซล
     if (npc) view.root.scale.setScalar(NPC_SCALE);
+    let hb = null;   // v0.88 เก็บไว้ใน c.hitbox — เปลี่ยนหน้าตา (refreshLook) แล้วกล่องคลิกต้องย้ายตามตัวใหม่
     if (npc) {
-      const hb = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 1.9, 8), new THREE.MeshBasicMaterial({ visible: false }));
+      hb = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 1.9, 8), new THREE.MeshBasicMaterial({ visible: false }));
       hb.position.y = 0.95; hb.userData.npc = entity; view.root.add(hb); this.hitboxes.push(hb);
     } else if (remote) {
       // v0.38: คลิกผู้เล่นคนอื่น → เมนู (เชิญปาร์ตี้ · กระซิบ · เพิ่มเพื่อน)
-      const hb = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.9, 8), new THREE.MeshBasicMaterial({ visible: false }));
+      hb = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 1.9, 8), new THREE.MeshBasicMaterial({ visible: false }));   // v0.88 กว้างขึ้น แตะบนมือถือง่าย
       hb.position.y = 0.95; hb.userData.actor = entity; view.root.add(hb); this.hitboxes.push(hb);
     }
     const label = document.createElement('div');
@@ -542,7 +544,7 @@ export class Renderer3D {
     if (!npc && !remote) {
       castbar = document.createElement('div'); castbar.className = 'castbar'; castbar.innerHTML = '<span></span><b><i></i></b>'; castbar.hidden = true; this.labelLayer.append(castbar);
     }
-    this.characters.set(entity, { view, costume, glow, pxw, label, bubble, hpbar, castbar, npc, kind: npc ? 'npc' : remote ? 'remote' : 'player', head: CHAR_HEAD * 1.3 * scale, lastText: '', lastHp: -1 });
+    this.characters.set(entity, { hitbox: hb, view, costume, glow, pxw, label, bubble, hpbar, castbar, npc, kind: npc ? 'npc' : remote ? 'remote' : 'player', head: CHAR_HEAD * 1.3 * scale, lastText: '', lastHp: -1 });
     this.actorQuality(this.characters.get(entity));
     this.pxChar(entity, view);
     view.update(0, entity);
@@ -607,6 +609,14 @@ export class Renderer3D {
   pxSnapZoom() {
     const steps = this.pxZoomSteps(); if (!steps.length) return;
     const want = this.wantDist || this.rig.targetDist;
+    // v0.88 มุมมองไกลขึ้น: ระยะไกลสุด = ขั้นพิกเซล 1:1 × CAM_FAR (ภาพพิกเซลย่อลงเล็กน้อย เห็นรอบตัวกว้างขึ้น)
+    if (want >= this.camCfg().max - 0.01) {
+      // ไม่ผูกกับความละเอียดเรนเดอร์ (มือถือที่ลดคุณภาพอัตโนมัติจะไม่ถูกดึงกล้องเข้าใกล้) · จอเล็ก/มือถือคิดเหมือนจอความละเอียด 2 เท่า
+      const t = Math.tan((this.camera.fov * Math.PI) / 360), ds = this.distScale || 1, small = Math.min(this.cw || 0, this.ch || 0) < 600;
+      const ref = ((this.ch || 0) * (small ? 2 : 1) * PX) / (2 * t) / ds;
+      this.rig.targetDist = Math.min(95, Math.max(steps[0], ref) * (this.cw < this.ch ? CAM_FAR_P : CAM_FAR));
+      return;
+    }
     this.rig.targetDist = steps.reduce((a, b) => (Math.abs(Math.log(b / want)) < Math.abs(Math.log(a / want)) ? b : a));
   }
   // ทุกเฟรม: เลือกตัวคูณขยาย k · เลื่อนกล้องให้ตรงตารางพิกเซล (กันภาพสั่นตอนเดิน) แล้วชดเชยเศษพิกเซลตอนขยายภาพ
@@ -1092,7 +1102,7 @@ export class Renderer3D {
     const c = this.characters.get(entity); if (!c || c.kind === 'mob') return;
     const old = c.view;
     this.scene.remove(old.root);
-    if (c.hitbox) old.root.remove(c.hitbox);
+    if (c.hitbox) old.root.remove(c.hitbox);   // ถอดก่อน dispose ไม่ให้เรขาคณิตกล่องคลิกถูกทิ้ง
     old.root.traverse((o) => { if (o.geometry && !o.userData.outline) o.geometry.dispose(); });
     disposeOwned(old.root);
     if (c.costume) { c.costume.dispose(); c.costume = null; }
@@ -1217,7 +1227,19 @@ export class Renderer3D {
       const a = h.object.userData.npc || h.object.userData.actor;
       if (a && !a.dead) return a;
     }
-    return null;
+    // v0.88 ไม่โดนกล่องคลิกตรง ๆ (นิ้วบนมือถือ) → เลือกผู้เล่นคนอื่นที่ใกล้จุดแตะบนจอที่สุด (ไม่เกิน 40px)
+    const w = this.canvas.clientWidth, h = this.canvas.clientHeight, v = this.tmpPick || (this.tmpPick = new THREE.Vector3());
+    let best = null, bd = 40;
+    for (const [e, c] of this.characters) {
+      if (c.kind !== 'remote' || e.dead) continue;
+      for (const yy of [0.3, 0.95, 1.6]) {
+        v.set(e.x * S, yy * (this.vs || 1), e.y * S).project(this.camera);
+        if (v.z > 1) continue;
+        const d = Math.hypot((v.x + 1) / 2 * w - cx, (1 - v.y) / 2 * h - cy);
+        if (d < bd) { bd = d; best = e; }
+      }
+    }
+    return best;
   }
 
   showMarker(x, y) { this.marker.show(x * S, y * S); }

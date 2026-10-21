@@ -1,7 +1,7 @@
 // v0.32: ดันเจี้ยนถ้ำ + หอคอยไต่ชั้น — ข้อมูล · สูตรปรับความยากมอนสเตอร์ · สร้างแผนที่แต่ละชั้น (สุ่มตาม seed)
 // ปรับสมดุลได้จากไฟล์นี้ไฟล์เดียว
-import { ZENY_INCOME } from '../config.js?v=0.87.0';
-import { MONSTERS } from './monsters.js?v=0.87.0';
+import { ZENY_INCOME } from '../config.js?v=0.88.0';
+import { MONSTERS } from './monsters.js?v=0.88.0';
 
 /* ---------- ค่าหลัก ---------- */
 export const CAVE = {
@@ -60,7 +60,7 @@ export function pickRoster(L, n, rnd) {
 
 // ข้อมูลมอนที่ปรับเลเวลแล้ว (คงนิสัยเดิมของมอน: ตัวไหนอึด/แรง/หลบเก่งยังเป็นแบบนั้น)
 export function scaledData(type, L, mul = {}) {
-  const b = MONSTERS[type], Lb = b.level || 1, dl = L - Lb;
+  const b0 = MONSTERS[type], b = b0.dgBase ? { ...b0, ...b0.dgBase } : b0, Lb = b.level || 1, dl = L - Lb;   // v0.88 บอสใช้ค่าระดับเดิมในดันเจี้ยน
   const kh = refHp(L) / refHp(Lb), ka = refAtk(L) / refAtk(Lb), ke = refExp(L) / refExp(Lb);
   const atk = b.atk.map((v) => Math.max(1, Math.round(v * ka * (mul.atk || 1))));
   const d = {

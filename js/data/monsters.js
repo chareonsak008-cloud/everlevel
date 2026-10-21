@@ -3,12 +3,12 @@
 // attackDelay = วินาทีต่อการโจมตี 1 ครั้ง | respawn = [ต่ำสุด, สูงสุด] วินาที
 // baseExp / jobExp = EXP ที่ผู้เล่นได้เมื่อกำจัด
 // drops = [ไอเทม, โอกาสดรอป 0..1] สุ่มแยกกันทีละชิ้น
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.87.0';
-import { ASCEND_MONSTERS } from './ascendData.js?v=0.87.0';   // v0.46 Lv.100–150
-import { BASE_ITEMS } from './items.js?v=0.87.0';
-import { WEAPON_DEFS } from './weapons.js?v=0.87.0';
-import { OFFHAND_DROPS } from './offhand.js?v=0.87.0';
-import { FEST_MONSTERS } from './festivals.js?v=0.87.0';   // v0.79 มอนเทศกาล
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.88.0';
+import { ASCEND_MONSTERS } from './ascendData.js?v=0.88.0';   // v0.46 Lv.100–150
+import { BASE_ITEMS } from './items.js?v=0.88.0';
+import { WEAPON_DEFS } from './weapons.js?v=0.88.0';
+import { OFFHAND_DROPS } from './offhand.js?v=0.88.0';
+import { FEST_MONSTERS } from './festivals.js?v=0.88.0';   // v0.79 มอนเทศกาล
 export const MONSTERS = {
   ...ENDGAME_MONSTERS,
   ...ASCEND_MONSTERS,
@@ -168,10 +168,19 @@ for (const d of WEAPON_DEFS) for (const x of d.drop) if (MONSTERS[x.monster]) MO
 for (const [mob, id, rate] of OFFHAND_DROPS) if (MONSTERS[mob]) MONSTERS[mob].drops.push([id, rate]);   // v0.25.2
 
 // v0.85 บอสยากขึ้น: MVP และบอสโลก เลือด ×5 · ตีแรง ×2 · MVP เกิดใหม่ทุก 2 ชั่วโมง (เลือด MVP/บอสโลกจริงอยู่ที่เซิร์ฟเวอร์ — supabase/update_v0.85.sql ตั้งให้ตรงกัน)
-export const BOSS_HARD = { hp: 5, atk: 2, mvpRespawn: 7200 };
+export const BOSS_HARD = { hp: 10, atk: 3, def: 1.4, hit: 1.25, skillMult: 1.35, skillCd: 0.75, mvpRespawn: 7200 };   // v0.88 ยากขึ้นอีก (v0.85: hp ×5 · atk ×2)
 for (const m of Object.values(MONSTERS)) {
   if (!m.mvp && !m.worldBoss) continue;
+  // ค่าระดับ v0.85 (เลือด ×5 ตีแรง ×2) เก็บไว้ให้ดันเจี้ยน/หอคอย/เทศกาลใช้ — ส่วนนั้นไม่ยากขึ้นตามรอบนี้
+  m.dgBase = { hp: Math.round(m.hp * 5), atk: m.atk.map((v) => Math.round(v * 2)), def: m.def || 0, mdef: m.mdef || 0, hit: m.hit || 0, boss: m.boss ? JSON.parse(JSON.stringify(m.boss)) : null };
   m.hp = Math.round(m.hp * BOSS_HARD.hp);
   m.atk = m.atk.map((v) => Math.round(v * BOSS_HARD.atk));
+  m.def = Math.round((m.def || 0) * BOSS_HARD.def); m.mdef = Math.round((m.mdef || 0) * BOSS_HARD.def);
+  m.hit = Math.round((m.hit || 0) * BOSS_HARD.hit);
+  if (m.boss) for (const sk of Object.values(m.boss)) {   // ท่าพิเศษแรงขึ้นและใช้ถี่ขึ้น
+    if (!sk || typeof sk !== 'object') continue;
+    if (typeof sk.mult === 'number') sk.mult = +(sk.mult * BOSS_HARD.skillMult).toFixed(2);
+    if (Array.isArray(sk.cd)) sk.cd = sk.cd.map((v) => +(v * BOSS_HARD.skillCd).toFixed(2));
+  }
   if (m.mvp) m.respawn = [BOSS_HARD.mvpRespawn, BOSS_HARD.mvpRespawn];
 }

@@ -10,9 +10,9 @@ export function eventRate(e, now = Date.now()) {
 }
 export const WORLD_BOSSES = {
  // v0.47 reward = รางวัลทุกคนที่ร่วมพิชิต (ตรงกับ supabase/worldboss_rewards.sql) · chance = ลุ้นอาวุธ 1 ชิ้นแบบสุ่ม · top = โบนัสดาเมจอันดับ 1–3
- world_aurex: { name:'ออเร็กซ์ จอมทัพโลก', map:'ancient_ruins', tx:58, ty:20, hp:15000000, hour:12, level:78, base:'aurex',
+ world_aurex: { name:'ออเร็กซ์ จอมทัพโลก', map:'ancient_ruins', tx:58, ty:20, hp:40000000, hour:12, level:78, base:'aurex',
   reward:{ items:[['royal_jelly',3],['refine_w',2],['refine_a',2],['guardian_core',1]], zeny:12000, chance:{ p:0.05, items:['spectral_sword','spectral_staff','spectral_bow','spectral_mace','spectral_knife'] } } },
- world_nocthar: { name:'น็อคธาร์ ราชันคราสโลก', map:'haunted_forest', tx:68, ty:48, hp:25000000, hour:20, level:99, base:'nocthar',
+ world_nocthar: { name:'น็อคธาร์ ราชันคราสโลก', map:'haunted_forest', tx:68, ty:48, hp:70000000, hour:20, level:99, base:'nocthar',
   reward:{ items:[['royal_jelly',4],['refine_w',2],['refine_a',2],['refine_guard',1],['dread_crown',1]], zeny:18000, chance:{ p:0.05, items:['bloodmoon_sword','bloodmoon_staff','bloodmoon_bow','bloodmoon_mace','bloodmoon_knife'] } } },
 };
 export const WORLD_TOP_BONUS = { items:[['refine_guard',1]], first:[['refine_luck',1]], zeny:[21000,14000,7000] };   // v0.85 หินนำโชคเฉพาะอันดับ 1
