@@ -1,10 +1,10 @@
 // หน้าจอเข้าเกม (v0.11): เข้าสู่ระบบ → เลือก/สร้างตัวละคร (สูงสุด 3 ตัว)
 // v0.17.1: เอาโหมดออฟไลน์ออก — ต่อเซิร์ฟเวอร์ไม่ได้ = แจ้งเตือน + ปุ่มลองใหม่ (ไม่มีทางเลือกเล่นออฟไลน์)
-import { MAX_CHARS, validName } from '../net/Online.js?v=0.86.0';
-import { BETA } from '../data/beta.js?v=0.86.0';
-import { MAPS } from '../data/maps/index.js?v=0.86.0';
-import { JOBS } from '../data/progression.js?v=0.86.0';
-import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.86.0';
+import { MAX_CHARS, validName } from '../net/Online.js?v=0.86.1';
+import { BETA } from '../data/beta.js?v=0.86.1';
+import { MAPS } from '../data/maps/index.js?v=0.86.1';
+import { JOBS } from '../data/progression.js?v=0.86.1';
+import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.86.1';
 
 const HAIR = ['#e8a838', '#5e3f27', '#2a2430', '#c4467c', '#b8c8ff', '#e8e2d0', '#d8433a', '#4a8a5a'];
 const STYLES = [['spiky', 'ผมชี้'], ['short', 'ผมสั้น'], ['ponytail', 'หางม้า']];
@@ -323,7 +323,7 @@ export class TitleScreen {
     this.resolve({ mode: 'online', slot, save: s, migrated: true });
   }
 
-  // สร้างตัวละคร: ชื่อ + ทรงผม (online = จองชื่อกับเซิร์ฟเวอร์) · v0.86 เอาตัวเลือกสีผมออก (ใช้สีผมมาตรฐาน)
+  // สร้างตัวละคร: ตั้งชื่ออย่างเดียว (online = จองชื่อกับเซิร์ฟเวอร์) · v0.86 เอาตัวเลือกสีผม/ทรงผมออก (ใช้ค่ามาตรฐาน — ตัวละครเป็นภาพพิกเซลตามอาชีพ)
   create(slot, msg = '', fromSave = null) {
     let hair = HAIR[0], style = 'spiky';
     const on = this.online.online && !this.forceOffline;   // เลือกเล่นออฟไลน์ทั้งที่เชื่อมต่อได้ → ไม่จองชื่อ
@@ -331,7 +331,6 @@ export class TitleScreen {
       <h2 class="tt-h">${fromSave ? 'ตั้งชื่อให้ตัวละครในเครื่อง' : 'สร้างตัวละครใหม่'}</h2>
       ${msg ? `<p class="tt-warn">${esc(msg)}</p>` : ''}
       <label class="tt-field"><span>ชื่อตัวละคร</span><input type="text" maxlength="16" autocomplete="off" placeholder="2–16 ตัวอักษร"></label>
-      ${fromSave ? '' : `<div class="tt-field"><span>ทรงผม</span><div class="tt-seg">${STYLES.map(([v, n], i) => `<button type="button" data-s="${v}" aria-pressed="${i === 0}">${n}</button>`).join('')}</div></div>`}
       <p class="tt-err"></p>
       <div class="tt-actions"><button type="button" class="ghost" data-a="back">ย้อนกลับ</button><button type="button" class="primary" data-a="ok">${fromSave ? 'ย้ายเซฟขึ้นคลาวด์' : 'เริ่มการผจญภัย'}</button></div>`;
     const inp = this.panel.querySelector('input'), err = this.panel.querySelector('.tt-err');

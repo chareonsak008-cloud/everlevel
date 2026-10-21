@@ -1,11 +1,11 @@
 // หน้าต่างเปิดกล่องแฟชั่น (v0.9): กล่องสั่น → แสงเปลี่ยนสีไล่ระดับ → ระเบิดแสง → เผยชิ้นแฟชั่น
 // ผลสุ่มถูกบันทึกให้ผู้เล่นก่อนเล่นแอนิเมชัน (ปิดหน้าต่างกลางคันก็ไม่เสียของ)
-import { iconURL } from '../render/ItemIcons.js?v=0.86.0';
-import { thumbNow, requestThumb } from '../render/CostumeThumbs.js?v=0.86.0';
-import { SLOT_INFO } from '../render/Costumes.js?v=0.86.0';
-import { FASHION_RARITY, FASHION_TIERS, TIER_RANK } from '../data/fashionBoxes.js?v=0.86.0';
-import { ITEMS } from '../data/items.js?v=0.86.0';
-import { fmtZ } from '../data/shops.js?v=0.86.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.86.1';
+import { thumbNow, requestThumb } from '../render/CostumeThumbs.js?v=0.86.1';
+import { SLOT_INFO } from '../render/Costumes.js?v=0.86.1';
+import { FASHION_RARITY, FASHION_TIERS, TIER_RANK } from '../data/fashionBoxes.js?v=0.86.1';
+import { ITEMS } from '../data/items.js?v=0.86.1';
+import { fmtZ } from '../data/shops.js?v=0.86.1';
 
 // เวลาลุ้น (วินาที) ตามระดับที่ดีที่สุดในรอบนั้น — ยิ่งหายากยิ่งลุ้นนาน
 const SUSPENSE = { common: 1.0, rare: 1.2, epic: 1.45, legend: 1.9, mythic: 2.6, celestial: 3.2 };
