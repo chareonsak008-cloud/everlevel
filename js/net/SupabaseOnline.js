@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.79.0';
-import { SideChannel } from './SideChannel.js?v=0.79.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.80.0';
+import { SideChannel } from './SideChannel.js?v=0.80.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -314,6 +314,14 @@ export class SupabaseOnline extends Online {
     const { error } = await this.sb.storage.from('slips').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
     if (error) return { error: /bucket|not found/i.test(error.message || '') ? 'เซิร์ฟเวอร์ยังไม่เปิดระบบเติมเพชร (แอดมินต้องรัน supabase/cashshop.sql)' : 'อัปโหลดสลิปไม่สำเร็จ: ' + (error.message || '') };
     return { path };
+  }
+  // v0.80 ตรวจสลิปอัตโนมัติ (Edge Function "topup-verify") · คืน { status: approved|rejected|pending, reason, gems } · ใช้ไม่ได้ = pending (แอดมินตรวจเอง)
+  async verifyTopup(id) {
+    try {
+      const { data, error } = await this.sb.functions.invoke('topup-verify', { body: { id } });
+      if (error || !data) return { status: 'pending', reason: 'offline' };
+      return data;
+    } catch (e) { return { status: 'pending', reason: 'offline' }; }
   }
   async slipUrl(path) {
     const { data, error } = await this.sb.storage.from('slips').createSignedUrl(path, 600);

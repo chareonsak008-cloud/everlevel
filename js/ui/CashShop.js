@@ -1,13 +1,13 @@
-// v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → แอดมินอนุมัติ)
+// v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → v0.80 ตรวจสลิปอัตโนมัติ / แอดมินอนุมัติเมื่อไม่ชัวร์)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.79.0';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.79.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.79.0';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.79.0';
-import { ready } from './TradeMarket.js?v=0.79.0';
-import { WARP_ROUTES } from '../data/shops.js?v=0.79.0';
-import { PETS, PET_RARITY } from '../data/pets.js?v=0.79.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.79.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.80.0';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.80.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.80.0';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.80.0';
+import { ready } from './TradeMarket.js?v=0.80.0';
+import { WARP_ROUTES } from '../data/shops.js?v=0.80.0';
+import { PETS, PET_RARITY } from '../data/pets.js?v=0.80.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.80.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const QR_SRC = 'assets/ui/topup_qr.png';
@@ -28,10 +28,10 @@ const TABS = [['vip', '👑 VIP'], ['fashion', 'แฟชั่น'], ['pet', '�
 // ย่อรูปสลิปเป็น JPEG ไม่เกิน 1400px (ไฟล์เล็ก อัปโหลดเร็ว)
 async function shrink(file) {
   const bmp = await createImageBitmap(file);
-  const k = Math.min(1, 1400 / Math.max(bmp.width, bmp.height));
+  const k = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));   // v0.80 คมพอให้อ่าน QR บนสลิปได้
   const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
   c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-  return new Promise((res) => c.toBlob((b) => res(b), 'image/jpeg', 0.85));
+  return new Promise((res) => c.toBlob((b) => res(b), 'image/jpeg', 0.92));
 }
 
 export class CashShopWindow {
@@ -135,7 +135,12 @@ export class CashShopWindow {
       const note = (this.body.querySelector('#csNote') || {}).value || '';
       const r = await this.g.online.tradeRPC('topup_request', { p_thb: this.pack.thb, p_slip: up.path, p_note: note });
       if (r.error) { this.msg = r.error; return; }
-      this.msg = `ส่งคำขอเติม ${fmt(this.pack.thb)} บาท (${fmt(this.pack.gems)} เพชร) แล้ว · แอดมินตรวจแล้วเพชรจะเข้าบัญชีอัตโนมัติ`;
+      // v0.80 ตรวจสลิปอัตโนมัติ — ผ่าน = เพชรเข้าทันที · ไม่ชัวร์ = ส่งให้แอดมินตรวจเหมือนเดิม
+      this.msg = 'กำลังตรวจสลิปกับธนาคาร…'; this.render();
+      const v = r.data && r.data.id ? await this.g.online.verifyTopup(r.data.id) : { status: 'pending' };
+      if (v.status === 'approved') { this.msg = `✅ ตรวจสลิปผ่าน! ได้รับ ${fmt(this.pack.gems)} เพชรแล้ว`; this.g.sfx('coin'); }
+      else if (v.status === 'rejected') this.msg = `❌ สลิปไม่ผ่าน: ${v.reason || 'สลิปไม่ถูกต้อง'} · ถ้าคิดว่าผิดพลาด ติดต่อแอดมิน`;
+      else this.msg = `ส่งคำขอเติม ${fmt(this.pack.thb)} บาท (${fmt(this.pack.gems)} เพชร) แล้ว · ${v.reason && v.reason !== 'offline' ? 'ตรวจอัตโนมัติไม่ผ่าน (' + v.reason + ') ' : ''}แอดมินจะตรวจให้ แล้วเพชรเข้าบัญชีอัตโนมัติ`;
       this.pack = null; this.file = null;
       this.busy = false; await this.load();
     } catch (e) { this.msg = 'อ่านรูปสลิปไม่ได้ ลองเลือกรูปใหม่'; } finally { this.busy = false; this.render(); }
@@ -269,7 +274,7 @@ export class CashShopWindow {
 
   renderTopup(pane) {
     const st = this.st;
-    pane.innerHTML = `<p class="tm-hint">1 บาท = 1 เพชร · แพ็กใหญ่แถมเพิ่ม · เลือกแพ็ก → สแกน QR พร้อมเพย์โอนตามยอด → แนบสลิป → แอดมินตรวจยอดเงินเข้าแล้วเพชรเข้าบัญชีอัตโนมัติ</p>
+    pane.innerHTML = `<p class="tm-hint">1 บาท = 1 เพชร · แพ็กใหญ่แถมเพิ่ม · เลือกแพ็ก → สแกน QR พร้อมเพย์โอนตามยอด → แนบสลิป → ระบบตรวจสลิปกับธนาคารอัตโนมัติ ผ่านแล้วเพชรเข้าทันที (โอนให้ตรงยอดแพ็ก · ใช้สลิปที่มี QR ชัด ๆ · ถ้าตรวจไม่ผ่านแอดมินจะตรวจให้)</p>
       <div class="cs-packs"></div><div class="cs-pay"></div>
       <h3>ประวัติการเติม</h3><div class="tm-list cs-hist"></div>
       <p class="tm-hint cs-terms">เพชรใช้ซื้อของในเกมเท่านั้น แลกคืนเป็นเงินไม่ได้ · โอนไม่ตรงยอดหรือสลิปไม่ถูกต้อง คำขอจะไม่ผ่าน</p>`;
@@ -319,7 +324,7 @@ export class CashShopWindow {
         <input id="csReply${row.id}" type="text" maxlength="120" placeholder="ข้อความถึงผู้เล่น (ไม่บังคับ)">
         <div class="tm-foot"><button type="button" class="ghost" data-a="no">ปฏิเสธ</button><button type="button" class="primary" data-a="ok">อนุมัติ +💎 ${fmt(row.gems)}</button></div>`;
       box.querySelector('b').textContent = `${row.name} · ${fmt(row.thb)} บาท`;
-      box.querySelector('small').textContent = new Date(row.at).toLocaleString('th-TH') + (row.note ? ' · ' + row.note : '');
+      box.querySelector('small').textContent = new Date(row.at).toLocaleString('th-TH') + (row.note ? ' · ' + row.note : '') + (row.auto ? ' · ระบบ: ' + row.auto : '');   // v0.80 เหตุผลที่ตรวจอัตโนมัติไม่ผ่าน
       const slip = box.querySelector('.cs-slip');
       const showSlip = (url) => { slip.innerHTML = url ? `<a href="${url}" target="_blank" rel="noopener"><img alt="สลิปโอนเงิน" src="${url}"></a>` : '<span class="tm-empty">เปิดสลิปไม่ได้</span>'; };
       if (this.slips[row.slip] !== undefined) showSlip(this.slips[row.slip]);

@@ -4,7 +4,7 @@
 //   · เชิญผ่านห้องรวม (pi → pr) · หัวหน้า = คนที่เข้าปาร์ตี้ก่อนสุด · สูงสุด 6 คน
 //   · แชร์ EXP: คนที่อยู่แมพเดียวกันแบ่ง EXP เท่ากัน + โบนัส 20% ต่อสมาชิกเพิ่ม 1 คน (มอนยังจำลองแยกเครื่อง — แชร์แค่ EXP)
 // กิลด์ — ข้อมูลถาวรในฐานข้อมูล (supabase/guild.sql) · ห้อง everlevel-guild-<id> ไว้แชตกิลด์ + ดูว่าใครออนไลน์
-import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.79.0';
+import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.80.0';
 
 export const PARTY_MAX = 6;
 export const PARTY_BONUS = 0.2;
