@@ -1,8 +1,8 @@
 // v0.74 กระดานภารกิจรายวัน — ข้อมูลภารกิจ (สุ่มวันละ 4 อย่าง · รีเซ็ตเที่ยงคืนเวลาไทย)
 // type = เหตุการณ์ที่นับความคืบหน้า (เรียก DailyBoard.bump(type, ...) จากระบบเกม)
 // n(lv) = จำนวนเป้าหมาย · minLv = เลเวลขั้นต่ำที่สุ่มเจอ · online = ต้องเล่นออนไลน์ (ปาร์ตี้)
-import { MAPS } from './maps/index.js?v=0.77.0';
-import { MONSTERS } from './monsters.js?v=0.77.0';
+import { MAPS } from './maps/index.js?v=0.78.0';
+import { MONSTERS } from './monsters.js?v=0.78.0';
 
 export const DAILY_COUNT = 4;          // ภารกิจต่อวัน
 export const DAILY_REROLLS = 1;        // เปลี่ยนภารกิจฟรีวันละกี่ครั้ง
@@ -16,6 +16,7 @@ export const DAILY_TASKS = {
   mvp:     { icon: '👑', name: 'ผู้ท้าชิง MVP', text: () => 'ร่วมปราบบอส MVP 1 ตัว', n: () => 1, minLv: 20 },
   refine:  { icon: '🔨', name: 'ช่างตีเหล็ก', text: (n) => `ตีบวกอุปกรณ์ ${n} ครั้ง (สำเร็จหรือไม่ก็นับ)`, n: () => 2, minLv: 15 },
   pickup:  { icon: '💎', name: 'นักเก็บของ', text: (n) => `เก็บไอเทมจากพื้น ${n} ชิ้น`, n: () => 30 },
+  arena:   { icon: '⚔', name: 'นักประลอง', text: (n) => `ลงแข่งในสนามประลอง ${n} นัด (แพ้ชนะก็นับ)`, n: () => 2, minLv: 30, online: true },   // v0.78
   floor:   { icon: '🏰', name: 'นักผจญภัยใต้ดิน', text: (n) => `ผ่านชั้นถ้ำหรือหอคอย ${n} ชั้น`, n: () => 3, minLv: 10 },
 };
 
