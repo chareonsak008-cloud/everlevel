@@ -1,30 +1,31 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.77.0';
-import { MONSTERS } from '../data/monsters.js?v=0.77.0';
-import { MAPS } from '../data/maps/index.js?v=0.77.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.77.0';
-import { CARD_SETS } from '../data/collection.js?v=0.77.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.77.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.77.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.77.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.77.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.77.0';
-import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.77.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.77.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.77.0';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.77.0';
-import { rollFits } from '../data/affixes.js?v=0.77.0';
-import { statsToBonus } from '../data/affixes.js?v=0.77.0';
-import { VIP_PERKS } from './CashShop.js?v=0.77.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.77.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.77.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.77.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.78.0';
+import { MONSTERS } from '../data/monsters.js?v=0.78.0';
+import { MAPS } from '../data/maps/index.js?v=0.78.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.78.0';
+import { CARD_SETS } from '../data/collection.js?v=0.78.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.78.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.78.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.78.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.78.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.78.0';
+import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.78.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.78.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.78.0';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.78.0';
+import { rollFits } from '../data/affixes.js?v=0.78.0';
+import { statsToBonus } from '../data/affixes.js?v=0.78.0';
+import { VIP_PERKS } from './CashShop.js?v=0.78.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.78.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.78.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.78.0';
 // v0.77 คู่มือระบบใหม่ (ภารกิจรายวัน · ดันเจี้ยนปาร์ตี้ · อันดับฤดูกาล · ฉายา · หลอมนิรันดร์กาล)
-import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.77.0';
-import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.77.0';
-import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.77.0';
-import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.77.0';
+import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.78.0';
+import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.78.0';
+import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.78.0';
+import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.78.0';
+import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.78.0';   // v0.78
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -416,7 +417,7 @@ const GUIDES = [
     `<h4>รางวัล</h4>` + UL([`${esc(PD_REWARD_TEXT)} + EXP บอส · ส่งทางจดหมาย`, `ต้องมีผู้ทำดาเมจอย่างน้อย ${PD.minPlayers} คน · ได้รางวัลสัปดาห์ละ ${PD.weekly} รอบต่อบัญชี (รีเซ็ตวันจันทร์)`, 'เหรียญผนึกแลกเปลี่ยน/ลงตลาดไม่ได้']) +
     `<h4>ร้านแลกเหรียญผนึก (บรอม)</h4>` + table(['ของ', 'จำนวน', 'เหรียญ'], PD_SHOP.filter((x) => ITEMS[x.id]).map((x) => [itemLink(x.id), '×' + x.n, x.cost])) },
   { id: 'season', title: '🏆 อันดับประจำฤดูกาล', sub: 'ปุ่ม "อันดับ" · รีเซ็ตทุกเดือน', html: () =>
-    UL(['กดปุ่ม <b>อันดับ</b> (ถ้วยรางวัล) แถบบน · มี 4 หมวด + หอเกียรติยศ', '<b>หอคอย</b>: ชั้นสูงสุดที่ผ่านในเดือนนี้ · <b>บอสโลก</b>: ดาเมจรวม · <b>MVP</b>: จำนวนครั้งที่ได้ดาเมจอันดับ 1 · <b>ดันปาร์ตี้</b>: จำนวนรอบที่ปราบสำเร็จ', 'คะแนนบอสโลก/MVP/ดันปาร์ตี้ เซิร์ฟเวอร์นับเอง (ปลอมไม่ได้)', 'จบเดือน (เวลาไทย) อันดับ 1–10 ทุกหมวดได้รางวัลทางจดหมาย + ฉายาประจำฤดูกาล · อันดับ 1–3 ขึ้นหอเกียรติยศ']) +
+    UL(['กดปุ่ม <b>อันดับ</b> (ถ้วยรางวัล) แถบบน · มี 5 หมวด + หอเกียรติยศ', '<b>หอคอย</b>: ชั้นสูงสุดที่ผ่านในเดือนนี้ · <b>บอสโลก</b>: ดาเมจรวม · <b>MVP</b>: จำนวนครั้งที่ได้ดาเมจอันดับ 1 · <b>ดันปาร์ตี้</b>: จำนวนรอบที่ปราบสำเร็จ · <b>อารีน่า</b>: แต้มอันดับสูงสุดของเดือน', 'คะแนนบอสโลก/MVP/ดันปาร์ตี้/อารีน่า เซิร์ฟเวอร์นับเอง (ปลอมไม่ได้)', 'จบเดือน (เวลาไทย) อันดับ 1–10 ทุกหมวดได้รางวัลทางจดหมาย + ฉายาประจำฤดูกาล · อันดับ 1–3 ขึ้นหอเกียรติยศ']) +
     `<h4>รางวัลจบฤดูกาล (ทุกหมวด)</h4>` + table(['อันดับ', 'รางวัล'], [['1', 'กล่องแฟชั่นทอง · คริสตัลพิทักษ์ ×2 · นมผึ้งหลวง ×10 · 300,000 z'], ['2–3', 'กล่องแฟชั่นทอง · คริสตัลพิทักษ์ · 150,000 z'], ['4–10', 'กล่องแฟชั่นเงิน · หินนำโชค · 50,000 z']]) +
     `<h4>ฉายาประจำฤดูกาล</h4>` + table(['หมวด', 'อันดับ 1', 'อันดับ 2–3', 'อันดับ 4–10'], Object.entries(SEASON_CAT_NAME).map(([k, n]) => [esc(n), ...[1, 2, 3].map((b) => esc(SEASON_TITLES[`S_${k}_${b}`].title))])) +
     UL(['ถือฉายาไว้ใช้ตลอดเดือนถัดไป จนกว่าฤดูกาลใหม่จะจบ', 'ใส่ได้ที่ สมุดสะสม (' + K('B') + ') → ความสำเร็จ → ส่วน "ฉายาประจำฤดูกาล"']) },
@@ -430,6 +431,13 @@ const GUIDES = [
       UL([`ใช้ ${nm('refine_luck')} เพิ่มโอกาสได้ก้อนละ +${Math.round(LUCK_STEP * 100)}% (สูงสุด ${LUCK_MAX} ก้อน)`, '<b>ล้มเหลว</b> = เสียวัตถุดิบและ Zeny ทั้งหมด (อุปกรณ์ฐานยังอยู่) · <b>สำเร็จ</b> = ฐานถูกใช้ไป (ระดับตีบวก/การ์ดของฐานหาย · เลือกชิ้นที่ตีบวกน้อยสุดให้อัตโนมัติ)']) +
       `<h4>หา${esc(nm('eternal_shard'))}</h4>` + UL([`มอนปกติใน ${mapLink(SHARD_DROPS.mapMobs)} (หายากมาก)`, ...Object.entries(SHARD_DROPS.mvp).map(([m, p]) => `MVP ${MONSTERS[m] ? esc(MONSTERS[m].name) : m} ${Math.round(p * 100)}% (ดาเมจอันดับ 1 ได้โอกาสเต็ม)`), `ร้านเหรียญผนึก (บรอม) ${(PD_SHOP.find((x) => x.id === 'eternal_shard') || {}).cost || '-'} เหรียญ`]);
   } },
+  { id: 'arena', title: `⚔ ${AR.name} (อารีน่า PvP)`, sub: 'ปุ่ม "อารีน่า" แถบบน · ดวล 1v1 · ทีม 3v3', html: () =>
+    `<h4>วิธีเล่น</h4>` + UL([`กดปุ่ม <b>อารีน่า</b> (ดาบไขว้) ที่แถบบน → เลือก <b>${AR.modes['1v1'].name}</b> หรือ <b>${AR.modes['3v3'].name}</b> → <b>เข้าคิว</b> · ต้อง Base Lv.${AR.minLv}+ และเล่นออนไลน์`, 'ระบบจับคู่กับ<b>ผู้เล่นจริง</b>ที่แต้มอันดับใกล้กัน (รอนานจะขยายช่วงให้) · ระหว่างรอเดินเล่นหรือล่ามอนต่อได้ มีป้ายบอกเวลารอด้านบน', '3v3: ลงคนเดียวก็ได้ หรือลงพร้อมปาร์ตี้ (ไม่เกิน 3 คน) — เพื่อนจะเด้งคำชวนให้ลงคิวพร้อมกัน แล้วได้อยู่ทีมเดียวกัน', `เจอคู่แล้ววาร์ปเข้าสนามอัตโนมัติ · เตรียมตัว ${AR.prep} วินาทีแล้วเริ่ม · 1v1 ${AR.modes['1v1'].time / 60} นาที · 3v3 ${AR.modes['3v3'].time / 60} นาที`, 'หลุด/รีเฟรช: เปิดหน้าต่างอารีน่า → "กลับเข้าสนาม" ถ้ายังไม่จบ']) +
+    `<h4>การต่อสู้</h4>` + UL(['<b>แตะตัวศัตรู</b>เพื่อเลือกเป้า แล้วโจมตี/ใช้สกิลตามปกติ (สกิลวงกว้างโดนศัตรูหลายคนได้)', `ทุกคนถูก<b>ปรับเป็น Lv.${AR.syncLv}</b> — สเตตัสขยายตามสัดส่วนที่ลงไว้ · อุปกรณ์ ตีบวก การ์ด ใช้ของจริง (ของดียังได้เปรียบ)`, `เลือดในสนาม ×${AR.hpMul} · ดาเมจใส่ผู้เล่นลดลง ให้สู้กันได้นานขึ้น · เลือดทุกคนเก็บที่เซิร์ฟเวอร์ (โกงไม่ได้)`, '<b>ห้าม</b>ใช้ไอเทม เปลี่ยนอุปกรณ์ หรือออโต้ · สกิลรักษาตัวเอง/ฮีลจากเพื่อนร่วมทีมใช้ได้ (มีเพดานต่อวินาที)', 'ล้มทีมศัตรูหมด = ชนะ · หมดเวลา = ทีมที่เลือดรวมเหลือมากกว่าชนะ · ถูกล้มในสนาม<b>ไม่เสีย EXP</b>', 'ออกกลางคัน / ไม่เข้าสนาม = แพ้']) +
+    `<h4>แต้มอันดับ · ขั้น</h4>` + UL(['เริ่มฤดูกาลที่ 1,000 แต้ม · ชนะคนแต้มสูงกว่าได้มากกว่า (แบบ Elo) · แยกแต้ม 1v1 กับ 3v3', 'รีเซ็ตทุกต้นเดือน (เวลาไทย) พร้อมอันดับฤดูกาล', 'หมวด <b>อารีน่า</b> ในหน้าอันดับฤดูกาล ใช้แต้มสูงสุดของเดือน · อันดับ 1–10 ได้รางวัล + ฉายาประจำฤดูกาล']) +
+      table(['ขั้น', 'แต้ม', 'รางวัลจบฤดูกาล (ต้องแข่ง 10 นัดขึ้นไป)'], AR_TIERS.map((t) => { const R = AR_SEASON_REWARD[t.id]; return [`<b style="color:${t.color}">${t.icon} ${esc(t.name)}</b>`, fmt(t.min) + '+', `${fmt(R.zeny)} z · ` + R.items.filter(([id]) => ITEMS[id]).map(([id, n]) => itemLink(id) + ' ×' + n).join(' · ')]; })) +
+    `<h4>แต้มอารีน่า & ร้านแต้ม</h4>` + UL([`ชนะ +${AR.points.win} · แพ้ +${AR.points.loss} · เสมอ +${AR.points.draw} · ชนะครั้งแรกของวัน +${AR.points.firstWin} · ได้วันละไม่เกิน ${AR.dayCap} แต้ม`, 'แต้มอารีน่าไม่หายตอนขึ้นฤดูกาลใหม่ · แลกของที่แท็บ <b>ร้านแต้ม</b> ของส่งเข้าจดหมาย']) +
+      table(['ของ', 'จำนวน', 'แต้ม', 'จำกัด/สัปดาห์'], AR_SHOP.filter((x) => ITEMS[x.id]).map((x) => [itemLink(x.id), '×' + x.n, fmt(x.cost), x.week || '-'])) },
   { id: 'social', title: '👥 ปาร์ตี้ · แชต · เพื่อน', sub: 'เล่นกับคนอื่น', html: () =>
     UL(['คลิกผู้เล่น → เชิญเข้าปาร์ตี้ (สูงสุด 6 คน) · สมาชิกแผนที่เดียวกันแบ่ง EXP และได้โบนัส +20% ต่อเพื่อน 1 คน', 'แชตมีช่อง ทั่วไป · โลก · ปาร์ตี้ · กิลด์ · กระซิบ', 'โทรโข่ง (ร้านเพชร) ประกาศถึงทุกคนทุกแผนที่', 'กดชื่อผู้เล่นในแชตเพื่อกระซิบหรือเพิ่มเพื่อน']) },
   { id: 'collect', title: '📚 สมุดสะสม · ความสำเร็จ · กิจกรรม', sub: 'รางวัลระยะยาว', html: () =>

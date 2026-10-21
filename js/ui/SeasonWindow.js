@@ -1,8 +1,8 @@
 // v0.76 อันดับประจำฤดูกาล (รีเซ็ตทุกเดือน) — หอคอย · บอสโลก · MVP · ดันเจี้ยนปาร์ตี้ · หอเกียรติยศ
-import { JOBS } from '../data/progression.js?v=0.77.0';
-import { ITEMS } from '../data/items.js?v=0.77.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.77.0';
-import { setSeasonHolders, SEASON_TITLES } from '../data/seasonTitles.js?v=0.77.0';
+import { JOBS } from '../data/progression.js?v=0.78.0';
+import { ITEMS } from '../data/items.js?v=0.78.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.78.0';
+import { setSeasonHolders, SEASON_TITLES } from '../data/seasonTitles.js?v=0.78.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -11,6 +11,7 @@ export const SEASON_CATS = {
   wb:    { name: 'บอสโลก', icon: '🌍', unit: 'ดาเมจ', desc: 'ดาเมจรวมที่ทำใส่บอสโลกเดือนนี้' },
   mvp:   { name: 'MVP', icon: '👑', unit: 'ครั้ง', desc: 'จำนวนครั้งที่ได้ MVP (ดาเมจอันดับ 1) เดือนนี้' },
   pd:    { name: 'ดันปาร์ตี้', icon: '🌙', unit: 'รอบ', desc: 'จำนวนรอบที่ร่วมปราบวิหารผนึกจันทราสำเร็จเดือนนี้' },
+  pvp:   { name: 'อารีน่า', icon: '⚔', unit: 'แต้ม', desc: 'แต้มอันดับอารีน่าสูงสุดที่ทำได้เดือนนี้ (1v1 หรือ 3v3)' },   // v0.78
 };
 const REWARDS = [
   { rk: 'อันดับ 1', items: [['box_gold', 1], ['refine_guard', 2], ['royal_jelly', 10]], zeny: 300000 },

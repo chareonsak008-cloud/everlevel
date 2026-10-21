@@ -1,8 +1,8 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.77.0';
-import { MONSTERS } from '../data/monsters.js?v=0.77.0';
-import { Monster } from '../entities/Monster.js?v=0.77.0';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.77.0';
+import { TILE } from '../config.js?v=0.78.0';
+import { MONSTERS } from '../data/monsters.js?v=0.78.0';
+import { Monster } from '../entities/Monster.js?v=0.78.0';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.78.0';
 
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
@@ -88,6 +88,7 @@ export class MonsterManager {
   update(dt, time, player, hooks) {
     const map = this.map;
     for (const m of this.list) {
+      if (m.arenaProxy) continue;   // v0.78 ร่างเป้าผู้เล่นในสนามประลอง (ตำแหน่งตามตัวจริง)
       if (m.dead) {
         if (m.summoned) continue;              // มอนที่บอสเรียกมา ไม่เกิดใหม่
         if (time >= m.respawnAt) {

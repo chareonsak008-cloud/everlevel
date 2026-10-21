@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.77.0';
-import { SideChannel } from './SideChannel.js?v=0.77.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.78.0';
+import { SideChannel } from './SideChannel.js?v=0.78.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -332,6 +332,14 @@ export class SupabaseOnline extends Online {
     const withSlot = name === 'pd_open' || name === 'pd_join' || name === 'pd_hit';
     const { data, error } = await this.sb.rpc(name, withSlot ? { p_slot: this.slot || 1, ...args } : args);
     if (error) { const e = new Error(error.message || 'pd'); e.missing = error.code === 'PGRST202' || error.code === '42883'; e.code = error.message; throw e; }
+    return data;
+  }
+
+  // v0.78 สนามประลอง PvP (ต้องรัน supabase/arena_v0.78.sql) · error.missing = ยังไม่ติดตั้ง · e.code = ข้อความจากเซิร์ฟเวอร์
+  async arenaRPC(name, args = {}) {
+    const withSlot = name === 'arena_queue_join' || name === 'arena_me' || name === 'arena_buy';
+    const { data, error } = await this.sb.rpc(name, withSlot ? { p_slot: this.slot || 1, ...args } : args);
+    if (error) { const e = new Error(error.message || 'arena'); e.missing = error.code === 'PGRST202' || error.code === '42883'; e.code = error.message; throw e; }
     return data;
   }
 
