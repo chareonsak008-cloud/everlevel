@@ -1,8 +1,8 @@
 // โรงตีเหล็ก (v0.10): ตีบวกอุปกรณ์ + ใส่การ์ด — ตรรกะล้วน ไม่ยุ่งกับ UI
 // ref = ตำแหน่งของชิ้นอุปกรณ์ { where: 'equip', slot, key } หรือ { where: 'bag', key }
-import { ITEMS, itemKey, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.84.0';
-import { canRefine, refineMaterial, refineFee, refineRate, rollRefine, failResult, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS } from '../data/refine.js?v=0.84.0';
-import { CARDS } from '../data/cards.js?v=0.84.0';
+import { ITEMS, itemKey, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.85.0';
+import { canRefine, refineMaterial, refineFee, refineRate, rollRefine, failResult, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS, boostedRate } from '../data/refine.js?v=0.85.0';
+import { CARDS } from '../data/cards.js?v=0.85.0';
 
 // อุปกรณ์ทั้งหมดของผู้เล่น (สวมอยู่ก่อน แล้วตามด้วยในกระเป๋า)
 export function gearList(player, test = () => true) {
@@ -32,7 +32,7 @@ export function refineCheck(player, ref, guard = false, luck = false, extra = 0)
   const useGuard = guard && target >= BREAK_FROM;
   const useLuck = luck && target > SAFE_LIMIT;
   const bonus = target > SAFE_LIMIT ? (useLuck ? LUCK_BONUS : 0) + extra : 0;
-  const rate = Math.min(100, refineRate(target) + bonus);
+  const rate = boostedRate(refineRate(target), bonus);   // v0.85 สูงสุด 80%
   const info = { target, mat, fee, rate, bonus, useGuard, useLuck, fail: failResult(target, useGuard) };
   if (refine >= REFINE_MAX) return { ...info, ok: false, reason: `ตีบวกสูงสุด +${REFINE_MAX} แล้ว` };
   if (player.inventory.count(mat) < 1) return { ...info, ok: false, reason: `ต้องใช้${ITEMS[mat].name} 1 ก้อน` };

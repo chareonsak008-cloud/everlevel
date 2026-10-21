@@ -1,13 +1,13 @@
 // v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → v0.80 ตรวจสลิปอัตโนมัติ / แอดมินอนุมัติเมื่อไม่ชัวร์)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.84.0';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.84.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.84.0';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.84.0';
-import { ready } from './TradeMarket.js?v=0.84.0';
-import { WARP_ROUTES } from '../data/shops.js?v=0.84.0';
-import { PETS, PET_RARITY } from '../data/pets.js?v=0.84.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.84.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.85.0';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.85.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.85.0';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.85.0';
+import { ready } from './TradeMarket.js?v=0.85.0';
+import { WARP_ROUTES } from '../data/shops.js?v=0.85.0';
+import { PETS, PET_RARITY } from '../data/pets.js?v=0.85.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.85.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const QR_SRC = 'assets/ui/topup_qr.png';
@@ -16,7 +16,7 @@ export const VIP_PERKS = [
   ['🧪', 'ซื้อยาอัตโนมัติระหว่างบอท', 'ยาใกล้หมดกระเป๋า ระบบซื้อเติมให้เองด้วย Zeny (ตั้งค่าที่หน้าต่างออโต้)'],
   ['🏪', 'ตลาด 5 รายการ · ค่าธรรมเนียม 3%', 'คนทั่วไปลงขายได้ 2 รายการ ค่าธรรมเนียม 7%'],
   ['🌀', 'วาร์ป · คลัง · ร้านค้า ได้ทุกที่', 'กดจากแท็บนี้ ไม่ต้องเดินไปหา NPC · วาร์ปฟรี'],
-  ['🎁', 'รางวัลรายวัน', '10 เพชร + ผลึกตีบวกอาวุธ/เกราะ · ใบวาร์ป ×3 · ลูกอมฟื้นฟู ×2 ทุกวัน · รางวัลเช็กอินคูณ 2'],
+  ['🎁', 'รางวัลรายวัน', 'ขนนกคืนชีพ ×5 ทุกวัน · รางวัลเช็กอินคูณ 2'],
   ['⚡', 'EXP / ดรอป +20%', 'ซ้อนกับใบคูณและอีเวนต์ได้'],
   ['👑', 'ป้าย VIP + ชื่อสีทอง', 'ทั้งบนป้ายชื่อและในแชต'],
 ];
@@ -222,7 +222,7 @@ export class CashShopWindow {
       await this.g.online.syncLedger();
       this.st.gems = r.data.gems; this.st.vip_claimed = true; this.g.vip.claimed = true;
       this.g.sfx('coin');
-      this.msg = '🎁 รับรางวัลรายวัน VIP แล้ว: 10 เพชร · ผลึกตีบวก ×2 · ใบวาร์ป ×3 · ลูกอมฟื้นฟู ×2';
+      this.msg = '🎁 รับรางวัลรายวัน VIP แล้ว: ขนนกคืนชีพ ×5';
     } finally { this.busy = false; this.render(); }
   }
 

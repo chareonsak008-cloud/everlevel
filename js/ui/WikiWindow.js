@@ -1,33 +1,33 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.84.0';
-import { MONSTERS } from '../data/monsters.js?v=0.84.0';
-import { MAPS } from '../data/maps/index.js?v=0.84.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.84.0';
-import { CARD_SETS } from '../data/collection.js?v=0.84.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.84.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.84.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.84.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.84.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.84.0';
-import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.84.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.84.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.84.0';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.84.0';
-import { rollFits } from '../data/affixes.js?v=0.84.0';
-import { statsToBonus } from '../data/affixes.js?v=0.84.0';
-import { VIP_PERKS } from './CashShop.js?v=0.84.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.84.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.84.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.84.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.85.0';
+import { MONSTERS } from '../data/monsters.js?v=0.85.0';
+import { MAPS } from '../data/maps/index.js?v=0.85.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.85.0';
+import { CARD_SETS } from '../data/collection.js?v=0.85.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.85.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.85.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.85.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.85.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.85.0';
+import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.85.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.85.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.85.0';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.85.0';
+import { rollFits } from '../data/affixes.js?v=0.85.0';
+import { statsToBonus } from '../data/affixes.js?v=0.85.0';
+import { VIP_PERKS } from './CashShop.js?v=0.85.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.85.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.85.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.85.0';
 // v0.77 คู่มือระบบใหม่ (ภารกิจรายวัน · ดันเจี้ยนปาร์ตี้ · อันดับฤดูกาล · ฉายา · หลอมนิรันดร์กาล)
-import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.84.0';
-import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.84.0';
-import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.84.0';
-import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.84.0';
-import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.84.0';   // v0.78
-import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.84.0';   // v0.79
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.84.0';
+import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.85.0';
+import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.85.0';
+import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.85.0';
+import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.85.0';
+import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.85.0';   // v0.78
+import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.85.0';   // v0.79
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.85.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -366,7 +366,7 @@ const GUIDES = [
     table(['ขั้น', 'โอกาสสำเร็จ', 'ค่าตี', 'ถ้าล้มเหลว'], Array.from({ length: REFINE_MAX }, (_, i) => { const n = i + 1; return [`+${n}`, `${REFINE_RATE[n]}%${n > SAFE_LIMIT ? ` <small class="wk-good">(${Math.min(100, REFINE_RATE[n] + LUCK_BONUS)}% ด้วยหินนำโชค)</small>` : ''}`, fmt(refineFee(n)) + ' z', n <= SAFE_LIMIT ? 'ไม่เสียอะไร (สำเร็จแน่นอน)' : n >= BREAK_FROM ? '<span class="wk-bad">อุปกรณ์แตกหาย!</span>' : 'ระดับลดลง 1']; })) +
     `<h4>หินช่วยตีบวก</h4>` + UL([
       `${itemLink('refine_guard')} — ใช้ตอนตี +${BREAK_FROM} ขึ้นไป ถ้าล้มเหลวของ <b>ไม่แตก</b> (แต่ระดับยังลด 1)`,
-      `${itemLink('refine_luck')} — ใช้ตอนตี +${SAFE_LIMIT + 1} ขึ้นไป โอกาสสำเร็จ <b>+${LUCK_BONUS}%</b>`,
+      `${itemLink('refine_luck')} — ใช้ตอนตี +${SAFE_LIMIT + 1} ขึ้นไป โอกาสสำเร็จ <b>+${LUCK_BONUS}%</b> (รวมแล้วไม่เกิน 80%)`,
       'ใช้ทั้งสองอย่างพร้อมกันได้ · หาได้จากร้านเพชร, ดรอปจากมอนทุกตัว (โอกาสต่ำ), MVP, บอสโลก, ดันเจี้ยน และเควสต์',
       'สัตว์เลี้ยงกิเลน "เทียนหยุน" เพิ่มโอกาสตี +5 ขึ้นไปอีก 5%',
     ]) +

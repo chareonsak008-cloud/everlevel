@@ -1,7 +1,7 @@
 // v0.77 หลอมอุปกรณ์นิรันดร์กาล — ตรวจวัตถุดิบ · หักของ · สุ่มสำเร็จ/ล้มเหลว
 // ล้มเหลว = เสียวัตถุดิบ + Zeny ทั้งหมด แต่อุปกรณ์ฐาน (เทพสวรรค์) ยังอยู่ · สำเร็จ = ฐานถูกใช้ไป (ระดับตีบวก/การ์ดของฐานหายไปด้วย)
-import { ITEMS } from '../data/items.js?v=0.84.0';
-import { baseOf, recipeOf, eternalId, LUCK_STEP, LUCK_MAX } from '../data/eternal.js?v=0.84.0';
+import { ITEMS } from '../data/items.js?v=0.85.0';
+import { baseOf, recipeOf, eternalId, LUCK_STEP, LUCK_MAX } from '../data/eternal.js?v=0.85.0';
 
 export const invHave = (inv, id) => inv.stacks.filter((s) => s.id === id).reduce((a, s) => a + s.qty, 0);
 const refineOf = (key) => Math.floor(+String(key).split('*')[1] || 0);
@@ -22,7 +22,8 @@ export function forgeCheck(pl, line, slot, luck = 0) {
   for (const m of mats) if (m.have < m.n) missing.push(`${ITEMS[m.id] ? ITEMS[m.id].name : m.id} ${m.have}/${m.n}`);
   if (pl.zeny < R.zeny) missing.push(`Zeny ${pl.zeny.toLocaleString('en-US')}/${R.zeny.toLocaleString('en-US')}`);
   const lvOk = pl.baseLevel >= (ITEMS[out] ? ITEMS[out].reqLevel : 145);
-  return { out, base, mats, zeny: R.zeny, rate: Math.min(1, R.rate + luck * LUCK_STEP), luck, missing, lvOk, ok: !missing.length && lvOk };
+  return { out, base, mats, zeny: R.zeny, rate: luck ? Math.max(R.rate, Math.min(0.8, R.rate + luck * LUCK_STEP)) : R.rate,   // v0.85 หินนำโชคดันได้สูงสุด 80%
+    luck, missing, lvOk, ok: !missing.length && lvOk };
 }
 
 export function doForge(pl, line, slot, luck = 0, rnd = Math.random) {

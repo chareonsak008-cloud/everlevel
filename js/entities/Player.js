@@ -1,28 +1,29 @@
 // ผู้เล่น: เดินด้วยคีย์บอร์ด / จอย / คลิกตามเส้นทาง + เลเวล EXP และค่าสถานะ
-import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.84.0';
-import { Entity } from './Entity.js?v=0.84.0';
-import { PLAYER_SPEED, TILE } from '../config.js?v=0.84.0';
+import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.85.0';
+import { Entity } from './Entity.js?v=0.85.0';
+import { PLAYER_SPEED, TILE } from '../config.js?v=0.85.0';
 import {
   derive, baseExpToNext, jobExpToNext, statPointsForLevel, statCost,
   START_STAT_POINTS, MAX_STAT, STAT_KEYS, JOBS, jobStatBonus, JOB_CHANGE_JOB_LEVEL, FIRST_JOBS, SECOND_OF, JOB2_JOB_LEVEL, jobTier,
-} from '../data/progression.js?v=0.84.0';
-import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.84.0';
-import { setInfo } from '../data/affixes.js?v=0.84.0';
-import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.84.0';
-import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.84.0';
-import { Inventory } from '../systems/Inventory.js?v=0.84.0';
-import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.84.0';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.84.0';
-import { CONSUMABLES } from '../data/consumables.js?v=0.84.0';
-import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.84.0';
-import { normAuto } from '../systems/AutoHunt.js?v=0.84.0';
-import { normPick } from '../systems/PetPick.js?v=0.84.0';
-import { normDungeon } from '../data/dungeons.js?v=0.84.0';
-import { normCol } from '../systems/Collection.js?v=0.84.0';
-import { ACH_BY_ID } from '../data/collection.js?v=0.84.0';
-import { titleInfo, titlesOf } from '../data/seasonTitles.js?v=0.84.0';   // v0.76 ฉายา 3 อัน + ฉายาฤดูกาล
-import { normMail } from '../data/mail.js?v=0.84.0';
-import { AR, syncAttr } from '../data/arena.js?v=0.84.0';   // v0.78
+  THIRD_OF, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, parentJob,
+} from '../data/progression.js?v=0.85.0';
+import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.85.0';
+import { setInfo } from '../data/affixes.js?v=0.85.0';
+import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.85.0';
+import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.85.0';
+import { Inventory } from '../systems/Inventory.js?v=0.85.0';
+import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.85.0';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.85.0';
+import { CONSUMABLES } from '../data/consumables.js?v=0.85.0';
+import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.85.0';
+import { normAuto } from '../systems/AutoHunt.js?v=0.85.0';
+import { normPick } from '../systems/PetPick.js?v=0.85.0';
+import { normDungeon } from '../data/dungeons.js?v=0.85.0';
+import { normCol } from '../systems/Collection.js?v=0.85.0';
+import { ACH_BY_ID } from '../data/collection.js?v=0.85.0';
+import { titleInfo, titlesOf } from '../data/seasonTitles.js?v=0.85.0';   // v0.76 ฉายา 3 อัน + ฉายาฤดูกาล
+import { normMail } from '../data/mail.js?v=0.85.0';
+import { AR, syncAttr } from '../data/arena.js?v=0.85.0';   // v0.78
 
 // v0.15: รหัสสุ่มประจำตัวละคร (ตัวละครใหม่ = รหัสใหม่ · รับจดหมาย "ทุกตัวละคร" ได้ตัวละ 1 ครั้ง)
 export const newCid = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 16);
@@ -55,6 +56,11 @@ export const JOB_LOOK = {
   wizard: { tunic: '#3a1a5e', pants: '#221838', belt: '#7ad8ff', boot: '#1e1830', scarf: '#7ad8ff', accessory: 'wizard', hatColor: '#3a1a5e', jobGear: 'mage' },
   hunter: { tunic: '#24503a', pants: '#4a3a24', belt: '#c8743a', boot: '#3a2818', scarf: '#e8c070', accessory: 'quiver', jobGear: 'archer' },
   priest: { tunic: '#fffaf0', pants: '#3a3a6a', belt: '#e8c050', boot: '#2a2a40', scarf: '#e8c050', accessory: 'none', jobGear: 'acolyte' },
+  // v0.85: อาชีพคลาส 3 (ชุดของสายเดิม โทนเลื่อนขั้น)
+  heroking: { tunic: '#7a1a1a', pants: '#2a2020', belt: '#ffc838', boot: '#1e1818', scarf: '#ffd24a', accessory: 'none', jobGear: 'swordsman' },
+  archmage: { tunic: '#f2f4ff', pants: '#2a3a5a', belt: '#e8c050', boot: '#24304a', scarf: '#9ad4ff', accessory: 'wizard', hatColor: '#f2f4ff', jobGear: 'mage' },
+  bladearcher: { tunic: '#7a1e1e', pants: '#2a2a2a', belt: '#e8e8e8', boot: '#1e1e1e', scarf: '#c8d0dc', accessory: 'quiver', jobGear: 'archer' },
+  goddess: { tunic: '#fff6e0', pants: '#e8d8b0', belt: '#ffb84a', boot: '#d8c8a0', scarf: '#ffd890', accessory: 'none', jobGear: 'acolyte' },
 };
 
 // v0.32 (ทดลอง): โทนสีชุดอาชีพแบบใหม่ — หม่นลง ดูเป็นนักผจญภัยมากขึ้น
@@ -69,8 +75,7 @@ export const JOB_LOOK_V2 = {
 export const isSkillKey = (k) => typeof k === 'string' && k.startsWith('skill:');
 export const validHotkey = (k) => (isSkillKey(k) ? !!SKILLS[k.slice(6)] : !!ITEMS[k]);
 
-const JOB_LINE = { knight: 'swordsman', wizard: 'mage', hunter: 'archer', priest: 'acolyte' };
-export const jobLine = (job) => JOB_LINE[job] || job;
+export const jobLine = (job) => parentJob(job);   // v0.85 ไล่ขึ้นไปถึงอาชีพขั้น 1 (รองรับคลาส 3)
 
 export class Player extends Entity {
   constructor(name, x, y) {
@@ -83,6 +88,7 @@ export class Player extends Entity {
     // เลเวลและค่าสถานะ
     this.jobId = 'novice';
     this.jobLv1 = 0;   // v0.31: Job Lv. ของอาชีพขั้น 1 ตอนเลื่อนขั้น (ได้โบนัสสเตตัสต่อ)
+    this.jobLv2 = 0;   // v0.85: Job Lv. ของอาชีพขั้น 2 ตอนเลื่อนเป็นคลาส 3
     this.baseLevel = 1;
     this.jobLevel = 1;
     this.baseExp = 0;
@@ -158,7 +164,7 @@ export class Player extends Entity {
   bonusSources() {
     const bonus = this.equipBonus();
     const add = (o) => { for (const [k, v] of Object.entries(o || {})) bonus[k] = (bonus[k] || 0) + v; };
-    add(jobStatBonus(this.jobId, this.jobLevel, this.jobLv1));
+    add(jobStatBonus(this.jobId, this.jobLevel, this.jobLv1, this.jobLv2));
     for (const [id, lv] of Object.entries(this.skills)) {
       const sk = SKILLS[id];
       if (sk && sk.passive && lv > 0) add(sk.passive(lv, this));
@@ -582,6 +588,24 @@ export class Player extends Entity {
       ok: !!next && this.jobLevel >= JOB2_JOB_LEVEL && !!questDone };
   }
 
+  // v0.85: เลื่อนเป็นอาชีพคลาส 3 — Base Lv.120 + Job Lv.50 ของขั้น 2 + ผ่านบททดสอบ
+  job3Status(questDone) {
+    const next = THIRD_OF[this.jobId] || null;
+    return { second: jobTier(this.jobId) === 2, third: jobTier(this.jobId) === 3, next, jobLv: this.jobLevel, needJob: JOB3_JOB_LEVEL,
+      baseLv: this.baseLevel, needBase: JOB3_BASE_LEVEL, quest: !!questDone,
+      ok: !!next && this.jobLevel >= JOB3_JOB_LEVEL && this.baseLevel >= JOB3_BASE_LEVEL && !!questDone };
+  }
+
+  changeJob3(questDone) {
+    const st = this.job3Status(questDone);
+    if (!st.ok) return { error: 'ยังไม่ผ่านเงื่อนไขการเลื่อนเป็นอาชีพคลาส 3' };
+    this.jobLv2 = this.jobLevel;
+    this.jobId = st.next; this.jobLevel = 1; this.jobExp = 0; this.buffs = [];
+    this.afterEquipChange();
+    this.hp = this.maxHp; this.sp = this.maxSp;
+    return { job: st.next };
+  }
+
   changeJob2(questDone) {
     const st = this.job2Status(questDone);
     if (!st.ok) return { error: 'ยังไม่ผ่านเงื่อนไขการเลื่อนขั้นอาชีพ' };
@@ -636,7 +660,7 @@ export class Player extends Entity {
   toSave() {
     return {
       name: this.name, x: Math.round(this.x), y: Math.round(this.y), dir: this.dir,
-      job: this.jobId, baseLevel: this.baseLevel, jobLevel: this.jobLevel, jobLv1: this.jobLv1,
+      job: this.jobId, baseLevel: this.baseLevel, jobLevel: this.jobLevel, jobLv1: this.jobLv1, jobLv2: this.jobLv2,
       baseExp: this.baseExp, jobExp: this.jobExp,
       attr: { ...this.attr }, statPoints: this.statPoints, skillPoints: this.skillPoints,
       inventory: this.inventory.toSave(), equip: { ...this.equip }, hotbar: [...this.hotbar], zeny: this.zeny,
@@ -667,7 +691,8 @@ export class Player extends Entity {
     const int = (v, d, min = 0) => (Number.isFinite(v) ? Math.max(min, Math.floor(v)) : d);
     this.baseLevel = int(p.baseLevel, 1, 1);
     this.jobLevel = int(p.jobLevel, 1, 1);
-    this.jobLv1 = jobTier(this.jobId) === 2 ? Math.min(99, int(p.jobLv1, JOB2_JOB_LEVEL, 1)) : 0;
+    this.jobLv1 = jobTier(this.jobId) >= 2 ? Math.min(99, int(p.jobLv1, JOB2_JOB_LEVEL, 1)) : 0;
+    this.jobLv2 = jobTier(this.jobId) === 3 ? Math.min(70, int(p.jobLv2, JOB3_JOB_LEVEL, 1)) : 0;   // v0.85
     this.baseExp = int(p.baseExp, 0);
     this.jobExp = int(p.jobExp, 0);
     if (p.attr) for (const k of STAT_KEYS) this.attr[k] = Math.min(MAX_STAT, int(p.attr[k], 1, 1));
