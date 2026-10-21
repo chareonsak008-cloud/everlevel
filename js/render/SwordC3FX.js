@@ -1,7 +1,7 @@
 // v0.85 สกิลราชันย์คลังศาสตรา (นักดาบคลาส 3): ประตูวงเวททองยิงศาสตรา · ห่าศาสตรา · โซ่ทองตรึงศัตรู · สว่านฟ้าพิภพแตก
 // fx_s3_* · ดาเมจ/จังหวะจาก sk.nf ผ่าน fx_nf · ใช้ตัวช่วยจาก SwordFX/MageFX/MageC3FX
-import { THREE } from './three.js?v=0.86.1';
-import * as TX from './FxTextures.js?v=0.86.1';
+import { THREE } from './three.js?v=0.87.0';
+import * as TX from './FxTextures.js?v=0.87.0';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);
