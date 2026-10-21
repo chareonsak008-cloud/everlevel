@@ -3,9 +3,9 @@
 // ctx = { caster:{pos,facing,height}, targets:[{pos,height}], main, center?, count?,
 //         hit(i, info) → { stun, freeze } | undefined, heal(n), buff(text), anim(kind, dur), shake(a), sky(dark, dur),
 //         hitstop?(t), shock?(pos, s), flash?(color, a), aberrate?(a), punch?(a), lines?(a, dur) }
-import { THREE } from './three.js?v=0.73.0';
-import * as TX from './FxTextures.js?v=0.73.0';
-import { beamTexture } from './Textures.js?v=0.73.0';
+import { THREE } from './three.js?v=0.74.0';
+import * as TX from './FxTextures.js?v=0.74.0';
+import { beamTexture } from './Textures.js?v=0.74.0';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1462,21 +1462,21 @@ export class SkillFX {
 }
 
 // v0.31: เอฟเฟกต์สกิลอาชีพขั้นที่ 2
-import { installJob2FX } from './Job2FX.js?v=0.73.0';
+import { installJob2FX } from './Job2FX.js?v=0.74.0';
 installJob2FX(SkillFX.prototype, { Particles });
 
 // v0.60: สกิลชุดใหม่ (Night Forge) — ตัวจัดจังหวะดาเมจกลาง fx_nf
-import { installNFSkills } from './NFSkills.js?v=0.73.0';
+import { installNFSkills } from './NFSkills.js?v=0.74.0';
 installNFSkills(SkillFX.prototype);
 
 // v0.67: สายดาบชุดใหม่วาดเป็นเอฟเฟกต์ 3 มิติในฉาก (fx_sw_* / fx_kn_*)
-import { installSwordFX } from './SwordFX.js?v=0.73.0';
+import { installSwordFX } from './SwordFX.js?v=0.74.0';
 installSwordFX(SkillFX.prototype);
 
 // v0.68: สายฮีลชุดใหม่ (fx_ac_* / fx_pr_*) — ใช้ตัวช่วยจาก SwordFX
-import { installHealFX } from './HealFX.js?v=0.73.0';
+import { installHealFX } from './HealFX.js?v=0.74.0';
 installHealFX(SkillFX.prototype);
-import { installMageFX } from './MageFX.js?v=0.73.0';
+import { installMageFX } from './MageFX.js?v=0.74.0';
 installMageFX(SkillFX.prototype);
-import { installArcherFX } from './ArcherFX.js?v=0.73.0';
+import { installArcherFX } from './ArcherFX.js?v=0.74.0';
 installArcherFX(SkillFX.prototype);

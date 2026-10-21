@@ -1,8 +1,8 @@
 // v0.68 สกิลสายฮีลชุดใหม่ วาดเป็นเอฟเฟกต์ 3 มิติในฉากจริง (แทน sprite sheet)
 // Acolyte = ทองศักดิ์สิทธิ์ (fx_ac_*) · Priest = เขียวหยก + บัวชมพู (fx_pr_*)
 // ดาเมจ/ฮีล/บัฟยังมาจาก sk.nf ผ่าน fx_nf · ใช้ตัวช่วยจาก SwordFX (swBurst · swFace · swLine · swFlameColumn)
-import { THREE } from './three.js?v=0.73.0';
-import * as TX from './FxTextures.js?v=0.73.0';
+import { THREE } from './three.js?v=0.74.0';
+import * as TX from './FxTextures.js?v=0.74.0';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);
