@@ -1,15 +1,15 @@
-import { FASHION_BUILDERS } from './FashionCollection.js?v=0.78.0';
+import { FASHION_BUILDERS } from './FashionCollection.js?v=0.79.0';
 // ชุดแฟชั่น (v0.9 preview): ปีก · ชุด · หมวก · หน้า · หลัง/หาง · อาวุธ · ออร่า · ผู้ติดตาม
 // ทุกชิ้นสร้างจากโค้ด (ไม่มีไฟล์โมเดล) แล้วติดเข้ากับโครงของ CharacterView
 // ใช้:  const look = costumeLook(baseLook, items);  const view = new CharacterView(look);
 //       const rt = wearCostume(view, items, { world: scene });  ทุกเฟรม rt.update(dt, view)
-import { THREE } from './three.js?v=0.78.0';
-import { toon, toonOwn, bake, gradientMap } from './Toon.js?v=0.78.0';
-import { shadeHex } from './Textures.js?v=0.78.0';
-import * as TX from './FxTextures.js?v=0.78.0';
-import { wuxiaAura } from './AuraBlades.js?v=0.78.0';
-import { Particles } from './SkillFX.js?v=0.78.0';
-import { COSTUME_PETS } from './CostumePets.js?v=0.78.0';   // v0.17: ผู้ติดตามแฟชั่นแบบใหม่ (หน้าเป็นโมเดล เห็นชัดในสไปรต์พิกเซล)
+import { THREE } from './three.js?v=0.79.0';
+import { toon, toonOwn, bake, gradientMap } from './Toon.js?v=0.79.0';
+import { shadeHex } from './Textures.js?v=0.79.0';
+import * as TX from './FxTextures.js?v=0.79.0';
+import { wuxiaAura } from './AuraBlades.js?v=0.79.0';
+import { Particles } from './SkillFX.js?v=0.79.0';
+import { COSTUME_PETS } from './CostumePets.js?v=0.79.0';   // v0.17: ผู้ติดตามแฟชั่นแบบใหม่ (หน้าเป็นโมเดล เห็นชัดในสไปรต์พิกเซล)
 
 /* ================= ตัวช่วยพื้นฐาน ================= */
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -3305,6 +3305,70 @@ const BUILD = {
   pet: (rig, it, rt, L) => PET[it.kind](rig, it.p || {}, rt, L),
   outfit: (rig, it, rt, L) => it.kind === 'pixel' ? null : it.kind === 'fashion24' ? FASHION_BUILDERS.outfit(rig, it.p || {}, rt, L) : outfitParts(rig, it.p || {}, rt, L),
 };
+// v0.79 ออร่าเทศกาล
+Object.assign(AURA_TINT, { festHalloween: '#ff8a1a', festKrathong: '#ffc8ea', festSongkran: '#5ac8ff', festNewyear: '#ffd34d' });
+const orbit = (rig, rt, items, { r = 0.62, y = 0.6, sp = 0.7, bob = 0.08, spin = 0 } = {}) => {
+  const g = group(rig.root);
+  items.forEach((o, i) => { g.add(o); o.userData.a = (i / items.length) * Math.PI * 2; });
+  rt.on(({ t }) => items.forEach((o, i) => { const a = o.userData.a + t * sp; o.position.set(Math.cos(a) * r, y + Math.sin(t * 2 + i) * bob, Math.sin(a) * r); o.rotation.y = -a + spin * t; }));
+  return g;
+};
+Object.assign(AURA, {
+  // ฮาโลวีน: ฟักทองแกะสลักโคจร · ค้างคาวกระพือ · หมอกม่วง
+  festHalloween(rig, p, rt) {
+    const pumpkins = [0, 1, 2].map(() => {
+      const f = new THREE.Group();
+      mesh(sph(0.1, 12, 9), T('#ff8a1a'), f, 0, 0, 0, { s: [1.2, 0.9, 1.1] });
+      mesh(cyl(0.012, 0.016, 0.05, 6), T('#4a7a2a'), f, 0, 0.1, 0);
+      for (const sx of [-1, 1]) mesh(cone(0.02, 0.03, 3), G('#ffd24a', 1.8), f, sx * 0.035, 0.02, 0.1, { r: [Math.PI / 2, 0, Math.PI], noOutline: true });
+      mesh(box(0.06, 0.012, 0.01), G('#ffd24a', 1.8), f, 0, -0.03, 0.105, { noOutline: true });
+      bake(f); return f;
+    });
+    orbit(rig, rt, pumpkins, { r: 0.6, y: 0.55, sp: 0.8 });
+    const bats = [0, 1, 2, 3].map(() => {
+      const b = new THREE.Group();
+      mesh(sph(0.03, 8, 6), T('#2a1a34'), b);
+      const wings = [-1, 1].map((sx) => { const w = group(b, sx * 0.02, 0, 0); mesh(cone(0.05, 0.12, 3), DS('#3a2a4a'), w, sx * 0.06, 0, 0, { r: [0, 0, sx * Math.PI / 2], s: [1, 1, 0.2] }); return w; });
+      b.userData.w = wings; return b;
+    });
+    orbit(rig, rt, bats, { r: 0.85, y: 1.55, sp: -1.3, bob: 0.15 });
+    rt.on(({ t }) => bats.forEach((b, i) => { const f = Math.sin(t * 18 + i) * 0.7; b.userData.w[0].rotation.z = f; b.userData.w[1].rotation.z = -f; }));
+    auraEmitter(rig, rt, 12, (b) => rt.ps('smoke', NB).emit({ pos: ringPos(b, 0.45, 0.05), count: 1, vel: () => V(rand(-0.1, 0.1), rand(0.25, 0.5), rand(-0.1, 0.1)), drag: 0.5, life: [1, 1.5], size: [0.25, 0.4], sizeEnd: 1.8, color: '#3a1a5a', alpha: 0.5 }));
+    auraEmitter(rig, rt, 6, (b) => rt.ps('dot').emit({ pos: discPos(b, 0.7, 0.2, 1.6), count: 1, speed: 0.08, life: [0.6, 1.1], size: [0.05, 0.09], color: ['#ffb21a', '#b46aff'] }));
+  },
+  // ลอยกระทง: กระทงจุดเทียนล่องวน · ระลอกน้ำ · โคมลอยขึ้นฟ้า
+  festKrathong(rig, p, rt) {
+    const kts = [0, 1, 2, 3, 4].map((i) => {
+      const k = new THREE.Group();
+      mesh(cyl(0.09, 0.075, 0.04, 12), T('#3a9a3a'), k);
+      for (let j = 0; j < 6; j++) { const a = (j / 6) * Math.PI * 2; mesh(cone(0.03, 0.07, 4), T(i % 2 ? '#ff9ad0' : '#ffe0f0'), k, Math.cos(a) * 0.06, 0.04, Math.sin(a) * 0.06, { r: [Math.sin(a) * 0.4, 0, -Math.cos(a) * 0.4] }); }
+      mesh(cyl(0.008, 0.008, 0.06, 6), T('#fff6e0'), k, 0, 0.07, 0);
+      mesh(cone(0.012, 0.035, 6), G('#ffcf5a', 2.2), k, 0, 0.115, 0, { noOutline: true });
+      bake(k); return k;
+    });
+    orbit(rig, rt, kts, { r: 0.7, y: 0.05, sp: 0.35, bob: 0.015 });
+    const rings = [0, 1, 2].map((i) => { const m = mesh(new THREE.RingGeometry(0.5, 0.54, 40), unlit('#bfe8ff', { opacity: 0.5, add: true }), rig.root, 0, 0.035, 0, { r: [-Math.PI / 2, 0, 0], keep: true, shadow: false }); m.userData.o = i / 3; return m; });
+    rt.on(({ t }) => rings.forEach((m) => { const k = (t * 0.35 + m.userData.o) % 1; m.scale.setScalar(0.6 + k * 1.1); m.material.opacity = 0.5 * (1 - k); }));
+    auraEmitter(rig, rt, 0.7, (b) => rt.ps('dot').emit({ pos: discPos(b, 0.8, 0.6, 1.0), count: 1, vel: () => V(rand(-0.05, 0.05), rand(0.3, 0.45), rand(-0.05, 0.05)), life: [3.5, 4.5], size: [0.12, 0.15], sizeEnd: 0.5, color: ['#ffe2a0', '#ffc878'], colorEnd: '#ff9a4a' }));
+    auraEmitter(rig, rt, 8, (b) => rt.ps('star').emit({ pos: discPos(b, 0.8, 0.05, 0.2), count: 1, speed: 0.03, life: [0.5, 1], size: [0.06, 0.12], color: ['#ffffff', '#ffe0a0', '#ffd0ec'] }));
+  },
+  // สงกรานต์: สายน้ำพุ่งโค้ง · ละอองรุ้ง · กลีบมะลิโปรย
+  festSongkran(rig, p, rt) {
+    auraEmitter(rig, rt, 40, (b, c) => { const a = c.t * 2.2 + (Math.random() < 0.5 ? 0 : Math.PI); rt.ps('dot').emit({ pos: V(b.x + Math.cos(a) * 0.25, b.y + 0.3, b.z + Math.sin(a) * 0.25), count: 1, vel: () => V(Math.cos(a) * 1.1, rand(2.2, 2.7), Math.sin(a) * 1.1), gravity: -5.5, life: [0.85, 1.0], size: [0.07, 0.11], sizeEnd: 0.5, color: ['#bff0ff', '#7fd8ff', '#ffffff'], colorEnd: '#3aa8ff' }); });
+    auraEmitter(rig, rt, 8, (b) => rt.ps('bubble').emit({ pos: ringPos(b, 0.75, 0.05), count: 1, vel: () => V(rand(-0.1, 0.1), rand(0.2, 0.4), rand(-0.1, 0.1)), life: [0.6, 1], size: [0.06, 0.12], sizeEnd: 1.3, color: ['#dff6ff', '#ffffff'] }));
+    auraEmitter(rig, rt, 7, (b) => rt.ps('petal', NB).emit({ pos: discPos(b, 1.1, 2.2, 2.6), count: 1, vel: () => V(rand(-0.1, 0.2), rand(-0.45, -0.3), rand(-0.1, 0.1)), life: [4, 5], size: [0.08, 0.12], sizeEnd: 0.9, color: ['#ffffff', '#fffbe8', '#ffe68a'] }));
+    auraEmitter(rig, rt, 6, (b) => rt.ps('star').emit({ pos: discPos(b, 0.8, 0.4, 1.8), count: 1, speed: 0.04, life: [0.4, 0.8], size: [0.08, 0.14], color: ['#ff9a9a', '#ffe08a', '#9affb0', '#9ad8ff', '#d0a8ff'] }));
+  },
+  // ปีใหม่: กล่องของขวัญลอยวน · หิมะทอง · พลุดาวเหนือศีรษะ
+  festNewyear(rig, p, rt) {
+    const cols = [['#d8283a', '#3ac86a'], ['#2a8a4a', '#ffd34d'], ['#3a6aff', '#ffffff']];
+    const gifts = cols.map(([c, r]) => { const f = new THREE.Group(); mesh(box(0.13, 0.11, 0.13), T(c), f); mesh(box(0.135, 0.115, 0.03), G(r, 0.5), f); mesh(box(0.03, 0.115, 0.135), G(r, 0.5), f); for (const sx of [-1, 1]) mesh(sph(0.025, 6, 5), G(r, 0.5), f, sx * 0.025, 0.07, 0, { s: [1.4, 0.8, 0.6] }); bake(f); return f; });
+    orbit(rig, rt, gifts, { r: 0.65, y: 0.7, sp: 0.6, bob: 0.1, spin: 1.2 });
+    auraEmitter(rig, rt, 14, (b) => rt.ps('snow').emit({ pos: discPos(b, 1.2, 2.2, 2.7), count: 1, vel: () => V(rand(-0.1, 0.1), rand(-0.5, -0.3), rand(-0.1, 0.1)), life: [4, 5], size: [0.08, 0.14], sizeEnd: 0.8, color: ['#ffffff', '#ffe9a0', '#ffd34d'] }));
+    let timer = 0.5;
+    rt.on(({ dt }) => { timer -= dt; if (timer > 0) return; timer = 1.1 + Math.random() * 0.6; const b = rt.worldPos(rig.root), c = cols[(Math.random() * cols.length) | 0]; const pos = V(b.x + rand(-0.4, 0.4), b.y + 2.4 + Math.random() * 0.4, b.z + rand(-0.4, 0.4)); rt.ps('star').emit({ pos, count: 22, speed: [0.7, 1.2], gravity: -1, drag: 1.6, life: [0.6, 1.0], size: [0.07, 0.13], sizeEnd: 0.2, color: [c[0], '#ffe9a0'], colorEnd: c[1] }); });
+  },
+});
 // v0.41: ออร่าสายยุทธ์ (กระบี่บินวน · เคียวยักษ์ · ลำแสงปลดปล่อยพลัง) — ตั้งค่าทั้งหมดผ่าน p ของชิ้น
 const WX_H = { group, mesh, unlit, spriteOf, shockwaves, flashSprite, burstCycle, scatter, discPos, auraEmitter, lin, rand, V, TX };
 AURA.wuxia = (rig, p, rt) => wuxiaAura(rig, p, rt, WX_H);

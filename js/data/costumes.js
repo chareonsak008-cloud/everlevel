@@ -1,4 +1,4 @@
-import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.78.0';
+import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.79.0';
 // แคตตาล็อกชุดแฟชั่น (v0.9) — ได้จากการเปิดกล่องแฟชั่นสุ่ม (data/fashionBoxes.js) — ชิ้นแฟชั่นเป็น "ชุดทับ" ไม่เพิ่มค่าสถานะ ใส่ทับอุปกรณ์จริงได้
 // slot: wings | outfit | head | face | back | weapon | aura | pet · kind = ชื่อตัวสร้างใน render/Costumes.js · p = ค่าปรับแต่ง
 // rarity: common ธรรมดา | rare หายาก | epic ล้ำค่า | legend ตำนาน | mythic | celestial
@@ -358,6 +358,14 @@ COSTUMES[COSTUMES.length - 1].cash = true;
   const keep = COSTUMES.filter((c) => c.slot === 'aura' || c.kind === 'pixel');
   COSTUMES.length = 0; COSTUMES.push(...keep);
 }
+// v0.79 ออร่าเทศกาล — แลกด้วยของสะสมช่วงเทศกาลเท่านั้น (ได้ถาวร · ไม่อยู่ในกล่องสุ่ม/ร้านเพชร)
+const FX = (id, kind, name, en, rarity, desc, fest) => ({ ...I('aura', id, kind, name, en, rarity, desc), cash: true, fest });
+COSTUMES.push(
+  FX('a_fest_halloween', 'festHalloween', 'ราตรีฟักทองหลอน', 'Haunted Pumpkin Night', 'legend', 'ฟักทองแกะสลักเรืองแสงโคจรรอบตัว ค้างคาวบินวน หมอกม่วงคลุมเท้า', 'halloween'),
+  FX('a_fest_krathong', 'festKrathong', 'สายธารกระทงแสงจันทร์', 'Moonlit Krathong Stream', 'legend', 'กระทงจุดเทียนล่องวนรอบเท้าบนระลอกน้ำ โคมลอยค่อย ๆ ลอยขึ้นฟ้า', 'loykrathong'),
+  FX('a_fest_songkran', 'festSongkran', 'สายน้ำสงกรานต์', 'Songkran Splash', 'legend', 'สายน้ำพุ่งโค้งรอบตัวแตกเป็นละอองรุ้ง กลีบมะลิโปรยปราย', 'songkran'),
+  FX('a_fest_newyear', 'festNewyear', 'ค่ำคืนส่งท้ายปี', 'New Year Eve Glow', 'legend', 'กล่องของขวัญจิ๋วลอยวน หิมะทองโปรย พลุดาวแตกเหนือศีรษะ', 'newyear'),
+);
 export const COSTUME_BY_ID = Object.fromEntries(COSTUMES.map((c) => [c.id, c]));
 
 // ชุดเซ็ตแนะนำ (สวมทีเดียวทั้งชุด)

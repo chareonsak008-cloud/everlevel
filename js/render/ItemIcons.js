@@ -1,9 +1,9 @@
-import { drawEquipmentIcon } from './EquipmentIcons.js?v=0.78.0';   // v0.24.2: ไอคอนอุปกรณ์ชุดใหม่ตามอาชีพ/ขั้น/เกรด
-import { drawMonsterCard, onPortraitReady } from './CardPortraits.js?v=0.78.0';
+import { drawEquipmentIcon } from './EquipmentIcons.js?v=0.79.0';   // v0.24.2: ไอคอนอุปกรณ์ชุดใหม่ตามอาชีพ/ขั้น/เกรด
+import { drawMonsterCard, onPortraitReady } from './CardPortraits.js?v=0.79.0';
 // ไอคอนไอเทม วาดด้วย Canvas (ใช้ทั้งในหน้าต่าง UI และของที่ตกบนพื้น)
-import { ITEMS } from '../data/items.js?v=0.78.0';
-import { shadeHex } from './Textures.js?v=0.78.0';
-import { UTIL_DRAW } from './UtilityIcons.js?v=0.78.0';   // v0.13: ไอคอนไอเทมใช้งานชุดใหม่
+import { ITEMS } from '../data/items.js?v=0.79.0';
+import { shadeHex } from './Textures.js?v=0.79.0';
+import { UTIL_DRAW } from './UtilityIcons.js?v=0.79.0';   // v0.13: ไอคอนไอเทมใช้งานชุดใหม่
 
 const S = 64;
 const LINE = '#2a1d2c';
@@ -198,6 +198,36 @@ const DRAW = {
     g.fillStyle = shadeHex(c, 0.1); g.beginPath(); g.arc(35, 30, 9, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#fff8e0'; for (const [x, y, r] of [[41, 41, 1.6], [24, 24, 1.3], [44, 26, 1.1]]) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
     shine(g, 22, 20, 5, 3, 0.6);
+  },
+  // v0.79 ของสะสมเทศกาล
+  candy(g, c, c2 = '#7a3aff') {   // ลูกอมห่อกระดาษ ปลายบิดสองข้าง ลายทาง
+    path(g, (g) => { g.moveTo(16, 32); g.lineTo(4, 22); g.lineTo(6, 32); g.lineTo(4, 42); g.closePath(); }, shadeHex(c2, 0.15), 2.5);
+    path(g, (g) => { g.moveTo(48, 32); g.lineTo(60, 22); g.lineTo(58, 32); g.lineTo(60, 42); g.closePath(); }, shadeHex(c2, 0.15), 2.5);
+    path(g, (g) => g.ellipse(32, 32, 17, 13, 0, 0, Math.PI * 2), grad(g, 15, 19, 49, 45, shadeHex(c, 0.35), shadeHex(c, -0.3)));
+    g.save(); g.beginPath(); g.ellipse(32, 32, 16, 12, 0, 0, Math.PI * 2); g.clip(); g.strokeStyle = shadeHex(c2, 0.2); g.lineWidth = 3.5;
+    for (let x = 8; x < 60; x += 9) { g.beginPath(); g.moveTo(x, 18); g.lineTo(x + 14, 46); g.stroke(); } g.restore();
+    g.fillStyle = '#2a1d2c'; for (const [x, y] of [[27, 29], [37, 29]]) { g.beginPath(); g.moveTo(x - 3, y + 2); g.lineTo(x, y - 3); g.lineTo(x + 3, y + 2); g.closePath(); g.fill(); }
+    g.beginPath(); g.moveTo(25, 36); for (let i = 0; i <= 6; i++) g.lineTo(25 + i * 2.4, 36 + (i % 2 ? 2.5 : 0)); g.lineTo(39, 38); g.lineTo(25, 38); g.closePath(); g.fill();
+    shine(g, 24, 25, 5, 2.4, 0.6);
+  },
+  lotus(g, c) {   // ดอกบัวบานบนใบตอง + เทียนเล็ก
+    path(g, (g) => g.ellipse(32, 48, 24, 8, 0, 0, Math.PI * 2), grad(g, 8, 40, 56, 56, '#6ac84a', '#2e7a2a'));
+    const pet = (a, r, col) => { g.save(); g.translate(32, 44); g.rotate(a); path(g, (g) => { g.moveTo(0, 0); g.bezierCurveTo(-9, -r * 0.4, -6, -r * 0.9, 0, -r); g.bezierCurveTo(6, -r * 0.9, 9, -r * 0.4, 0, 0); }, col, 2); g.restore(); };
+    for (const a of [-1.25, 1.25, -0.75, 0.75]) pet(a, 22, grad(g, 0, 20, 0, 44, shadeHex(c, 0.1), shadeHex(c, -0.25)));
+    for (const a of [-0.32, 0.32, 0]) pet(a, 28, grad(g, 0, 14, 0, 44, shadeHex(c, 0.45), shadeHex(c, -0.05)));
+    g.fillStyle = '#ffd27a'; g.beginPath(); g.ellipse(32, 8, 2.6, 4.5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(255,220,120,0.35)'; g.beginPath(); g.arc(32, 9, 8, 0, Math.PI * 2); g.fill();
+    shine(g, 27, 26, 2, 5, 0.5);
+  },
+  silverbowl(g, c, c2 = '#5ac8ff') {   // ขันเงินลายกนก มีน้ำอบ + ดอกมะลิ
+    path(g, (g) => g.ellipse(32, 26, 24, 7, 0, 0, Math.PI * 2), grad(g, 8, 20, 56, 32, shadeHex(c2, 0.4), shadeHex(c2, -0.1)));
+    path(g, (g) => { g.moveTo(8, 26); g.bezierCurveTo(10, 48, 22, 54, 32, 54); g.bezierCurveTo(42, 54, 54, 48, 56, 26); g.bezierCurveTo(48, 32, 16, 32, 8, 26); }, grad(g, 8, 26, 56, 54, '#ffffff', shadeHex(c, -0.35)));
+    g.strokeStyle = shadeHex(c, -0.4); g.lineWidth = 1.4;
+    for (let i = 0; i < 6; i++) { const x = 14 + i * 7.2; g.beginPath(); g.arc(x, 40, 3, 0, Math.PI * 2); g.stroke(); }
+    g.beginPath(); g.moveTo(12, 34); g.bezierCurveTo(24, 38, 40, 38, 52, 34); g.stroke();
+    g.fillStyle = '#ffffff'; for (const [x, y] of [[24, 24], [38, 25], [31, 22]]) { for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; g.beginPath(); g.arc(x + Math.cos(a) * 2.4, y + Math.sin(a) * 1.4, 1.6, 0, Math.PI * 2); g.fill(); } }
+    g.fillStyle = '#ffd34a'; for (const [x, y] of [[24, 24], [38, 25], [31, 22]]) { g.beginPath(); g.arc(x, y, 1, 0, Math.PI * 2); g.fill(); }
+    shine(g, 18, 40, 2.5, 6, 0.55);
   },
   // กล่องแฟชั่นสุ่ม (v0.9): c = สีกล่อง, c2 = สีริบบิ้น, tier 1 ไม้ · 2 เงิน · 3 ทองคำ
   giftbox(g, c, c2 = '#ffd27a', tier = 1) {

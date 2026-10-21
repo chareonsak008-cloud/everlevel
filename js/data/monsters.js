@@ -3,14 +3,16 @@
 // attackDelay = วินาทีต่อการโจมตี 1 ครั้ง | respawn = [ต่ำสุด, สูงสุด] วินาที
 // baseExp / jobExp = EXP ที่ผู้เล่นได้เมื่อกำจัด
 // drops = [ไอเทม, โอกาสดรอป 0..1] สุ่มแยกกันทีละชิ้น
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.78.0';
-import { ASCEND_MONSTERS } from './ascendData.js?v=0.78.0';   // v0.46 Lv.100–150
-import { BASE_ITEMS } from './items.js?v=0.78.0';
-import { WEAPON_DEFS } from './weapons.js?v=0.78.0';
-import { OFFHAND_DROPS } from './offhand.js?v=0.78.0';
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.79.0';
+import { ASCEND_MONSTERS } from './ascendData.js?v=0.79.0';   // v0.46 Lv.100–150
+import { BASE_ITEMS } from './items.js?v=0.79.0';
+import { WEAPON_DEFS } from './weapons.js?v=0.79.0';
+import { OFFHAND_DROPS } from './offhand.js?v=0.79.0';
+import { FEST_MONSTERS } from './festivals.js?v=0.79.0';   // v0.79 มอนเทศกาล
 export const MONSTERS = {
   ...ENDGAME_MONSTERS,
   ...ASCEND_MONSTERS,
+  ...FEST_MONSTERS,
   bloblet: {
     name: 'บล็อบเล็ต', level: 1, hp: 32, baseExp: 8, jobExp: 6, atk: [4, 6], def: 0, mdef: 0, hit: 76, flee: 3, crit: 0,
     speed: 32, attackDelay: 1.6, attackRange: 22, aggressive: false, respawn: [6, 9],

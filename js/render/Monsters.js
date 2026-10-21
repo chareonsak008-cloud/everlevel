@@ -1,10 +1,10 @@
 // v0.17: มอนสเตอร์ออกแบบใหม่ทั้งหมด (ใช้ถ่ายเป็นสไปรต์พิกเซลแบบเกม RPG — render/PixelSprites.js)
 // แต่ละชนิด = build (สร้างโมเดลจากชิ้นรูปทรง) + anim (ท่าทางต่อเฟรม) · ส่วนกลาง: กระพริบตอนโดนตี ตาย เกิดใหม่ แช่แข็ง มึน ทุบพื้น
-import { THREE } from './three.js?v=0.78.0';
-import { lin, mergeGeometries } from './Geo.js?v=0.78.0';
-import { toon, toonOwn, addOutline } from './Toon.js?v=0.78.0';
-import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.78.0';
-import { lerpAngle, damp } from '../core/util.js?v=0.78.0';
+import { THREE } from './three.js?v=0.79.0';
+import { lin, mergeGeometries } from './Geo.js?v=0.79.0';
+import { toon, toonOwn, addOutline } from './Toon.js?v=0.79.0';
+import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.79.0';
+import { lerpAngle, damp } from '../core/util.js?v=0.79.0';
 
 const PI = Math.PI;
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -1230,4 +1230,104 @@ DEFS.eclipsewyrm = {
     if (a.slam >= 0) { P.head.rotation.x = -0.7 * Math.sin(a.slam * PI); P.wings[0].rotation.z = 0.9; P.wings[1].rotation.z = -0.9; }
   },
 };
+/* ---------- v0.79: มอนเทศกาล (ฮาโลวีน · ลอยกระทง · สงกรานต์ · ปีใหม่) — ออกแบบใหม่ ---------- */
+// ฟักทองหลอน: ฟักทองเด้งได้ หน้าแกะสลักเรืองแสง ก้านบิด ใบเดียว (บอสใส่หมวกแม่มดใบใหญ่)
+DEFS.pumpkin = {
+  build(v, d) {
+    const P = {}, g = P.blob = grp(v.body); g.scale.setScalar(d.modelScale || 1);
+    const skin = v.own(d.color || '#ff8a1a', { emissive: lin(d.color || '#ff8a1a').multiplyScalar(0.08) });
+    add(g, ridges(sph(0.4, 26, 18).scale(1.18, 0.86, 1.1), 10, 0.045), skin, 0, 0.36, 0);
+    const glow = toon('#ffe27a', { emissive: '#ffb21a', emissiveIntensity: 1.6 });
+    for (const sx of [-1, 1]) { const e = add(g, cone(0.075, 0.1, 3), glow, sx * 0.13, 0.46, 0.41, false); e.rotation.x = PI / 2; e.rotation.z = PI; e.scale.set(1, 1, 0.3); }
+    add(g, cone(0.04, 0.06, 3), glow, 0, 0.37, 0.43, false).rotation.x = PI / 2;
+    for (let i = 0; i < 5; i++) { const t = add(g, cone(0.045, 0.07, 3), glow, -0.16 + i * 0.08, 0.26 + (i % 2) * 0.02, 0.41, false); t.rotation.x = PI / 2; t.rotation.z = i % 2 ? 0 : PI; t.scale.set(1, 1, 0.3); }
+    const stem = toon('#5a7a2a');
+    add(g, tube([[0, 0.66, 0], [0.02, 0.76, -0.02], [0.08, 0.82, -0.05]], [0.05, 0.035, 0.022], 7, 8), stem);
+    add(g, sph(0.09, 10, 6).scale(1.6, 0.25, 0.9), toon('#6ab83a'), -0.1, 0.7, 0.02).rotation.z = 0.5;
+    if (d.hat) {
+      const hat = grp(g, 0.04, 0.72, -0.02, [0, 0, -0.18]), hm = toon('#3a2050'), band = toon('#a65aff', { emissive: '#7a2aff', emissiveIntensity: 0.4 });
+      add(hat, cyl(0.42, 0.42, 0.03, 24), hm); add(hat, tube([[0, 0, 0], [0, 0.3, 0], [0.08, 0.55, -0.05], [0.24, 0.62, -0.12]], [0.22, 0.13, 0.06, 0.02], 10, 14), hm);
+      add(hat, cyl(0.225, 0.225, 0.06, 20), band, 0, 0.05, 0);
+    }
+    return P;
+  },
+  anim: (v, P, s) => animBlob(v, P, s),
+};
+// ภูตกระทง: กระทงใบตองพับกลีบ ดอกบัวชมพูซ้อนชั้น เทียนและธูปเรืองแสง ลอยตัวโยกเบา ๆ
+DEFS.krathong = {
+  build(v, d) {
+    const core = grp(v.body, 0, 0.35); core.scale.setScalar(d.modelScale || 1);
+    const leaf = v.own('#4aa83a'), leafD = toon('#2e7a2a'), petal = toon(d.color || '#ff9ad0', { emissive: '#ff6ab8', emissiveIntensity: 0.18 }), petalL = toon('#ffe0f0');
+    add(core, cyl(0.42, 0.34, 0.16, 20), leafD, 0, 0, 0);
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * PI * 2, f = add(core, cone(0.09, 0.22, 4), leaf, Math.cos(a) * 0.4, 0.1, Math.sin(a) * 0.4); f.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5); }
+    const lotus = P_lotus(core, petal, petalL);
+    const wax = toon('#fff6e0'), flame = toon('#ffd27a', { emissive: '#ff9a1a', emissiveIntensity: 2 });
+    add(core, cyl(0.03, 0.03, 0.22, 8), wax, 0, 0.36, 0);
+    const fl = add(core, cone(0.035, 0.1, 8), flame, 0, 0.52, 0, false);
+    const sticks = [-1, 1].map((sx) => { const st = grp(core, sx * 0.1, 0.3, -0.06, [0, 0, sx * 0.15]); add(st, cyl(0.008, 0.008, 0.3, 5), toon('#c88a4a'), 0, 0.1, 0); add(st, sph(0.018, 6, 4), flame, 0, 0.26, 0, false); return st; });
+    eyes(core, 0.02, 0.38, 0.045, 0.12);
+    return { core, fl, lotus, sticks };
+  },
+  anim(v, P, { t, moving, atk }) {
+    P.core.position.y = 0.35 + Math.sin(t * 2.2) * 0.07 - atk * 0.1;
+    P.core.rotation.z = Math.sin(t * 1.4) * 0.08; P.core.rotation.x = atk * 0.45 + (moving ? 0.1 : 0);
+    P.fl.scale.set(1, 0.85 + Math.sin(t * 18) * 0.15, 1);
+    P.lotus.rotation.y = t * 0.4;
+    v.shadow.scale.setScalar(P.shadow0 * (1 - Math.sin(t * 2.2) * 0.06));
+  },
+};
+function P_lotus(parent, petal, petalL) {
+  const g = grp(parent, 0, 0.1, 0);
+  for (let ring = 0; ring < 3; ring++) {
+    const n = 8 - ring * 2, r = 0.26 - ring * 0.08, tilt = 0.5 + ring * 0.35;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * PI * 2 + ring * 0.4, p = grp(g, Math.cos(a) * r, ring * 0.05, Math.sin(a) * r);
+      p.rotation.y = -a + PI / 2; p.rotation.x = -tilt;
+      add(p, sph(0.09, 10, 8).scale(0.7, 0.25, 1.4), ring === 2 ? petalL : petal, 0, 0.05, 0.06);
+    }
+  }
+  add(g, sph(0.07, 10, 8), petalL, 0, 0.16, 0);
+  return g;
+}
+// ช้างน้อยสาดน้ำ: ช้างตัวกลมสีฟ้าเทา หูใหญ่ด้านในชมพู งวงชูขึ้น ห้อยพวงมาลัยมะลิ
+DEFS.babyele = {
+  build(v, d) {
+    const skin = v.own(d.color || '#9ab8d8'), inner = toon('#ffb8c8'), dark = toon(shadeHex(d.color || '#9ab8d8', -0.3));
+    const torso = grp(v.body, 0, 0.42); torso.scale.setScalar(d.modelScale || 1);
+    add(torso, sph(0.36, 18, 14).scale(1, 0.9, 1.2), skin, 0, 0, 0);
+    const head = grp(torso, 0, 0.18, 0.36); add(head, sph(0.26, 16, 12), skin);
+    for (const sx of [-1, 1]) { const ear = grp(head, sx * 0.24, 0.04, -0.04, [0, sx * 0.4, 0]); add(ear, sph(0.2, 14, 10).scale(0.25, 1, 1), skin); add(ear, sph(0.15, 12, 8).scale(0.18, 1, 1), inner, sx * 0.02, 0, 0.01, false); }
+    const trunk = grp(head, 0, -0.06, 0.22); add(trunk, tube([[0, 0, 0], [0, -0.08, 0.1], [0, -0.02, 0.22], [0, 0.12, 0.28]], [0.07, 0.06, 0.045, 0.04], 8, 14), skin);
+    eyes(head, 0.06, 0.22, 0.045, 0.1);
+    add(head, sph(0.03, 8, 6).scale(1.4, 0.7, 0.4), inner, -0.15, -0.04, 0.2, false); add(head, sph(0.03, 8, 6).scale(1.4, 0.7, 0.4), inner, 0.15, -0.04, 0.2, false);
+    const gar = [], white = toon('#ffffff', { emissive: '#ffffff', emissiveIntensity: 0.15 }), yel = toon('#ffd34a');
+    for (let i = 0; i < 14; i++) { const a = (i / 14) * PI * 2; gar.push(add(torso, sph(0.04, 8, 6), i % 4 === 0 ? yel : white, Math.cos(a) * 0.27, 0.12 + Math.sin(a) * 0.04 - 0.02, 0.28 + Math.sin(a) * 0.12, false)); }
+    const legs = [];
+    for (const sx of [-1, 1]) for (const z of [0.2, -0.2]) { const l = grp(torso, sx * 0.2, -0.18, z); add(l, cyl(0.1, 0.11, 0.26, 10), skin, 0, -0.1); add(l, cyl(0.115, 0.115, 0.04, 10), dark, 0, -0.22); legs.push(l); }
+    const tail = grp(torso, 0, 0.05, -0.42); add(tail, tube([[0, 0, 0], [0, -0.1, -0.06], [0, -0.18, -0.06]], [0.025, 0.02, 0.01], 6, 6), skin);
+    return { torso, head, legs, tail, trunk, y0: 0.42 };
+  },
+  anim(v, P, a) { animQuad(v, P, a, { stride: 0.5, rate: 1.2, bob: 0.04 }); P.trunk.rotation.x = -0.3 + Math.sin(a.t * 2) * 0.15 - a.atk * 0.9; },
+};
+// ตุ๊กตาหิมะซน: ก้อนหิมะสามชั้น ผ้าพันคอแดง หมวกทรงสูง แขนกิ่งไม้ จมูกแครอต เด้งไปมา
+DEFS.snowman = {
+  build(v, d) {
+    const P = {}, g = P.blob = grp(v.body); g.scale.setScalar(d.modelScale || 1);
+    const snow = v.own('#f4faff', { emissive: lin('#cfe8ff').multiplyScalar(0.12) }), coal = toon('#1e1a24'), scarf = toon(d.color || '#d8283a');
+    add(g, sph(0.32, 18, 14), snow, 0, 0.3, 0); add(g, sph(0.24, 16, 12), snow, 0, 0.72, 0); add(g, sph(0.18, 16, 12), snow, 0, 1.06, 0);
+    add(g, new THREE.TorusGeometry(0.19, 0.05, 8, 20), scarf, 0, 0.9, 0).rotation.x = PI / 2;
+    add(g, sph(0.06, 8, 6).scale(1, 2.4, 0.6), scarf, 0.12, 0.76, 0.17).rotation.z = 0.3;
+    for (const sx of [-1, 1]) add(g, sph(0.025, 8, 6), coal, sx * 0.065, 1.1, 0.16, false);
+    add(g, cone(0.035, 0.16, 8), toon('#ff8a2a'), 0, 1.05, 0.25).rotation.x = PI / 2;
+    for (let i = 0; i < 3; i++) add(g, sph(0.03, 8, 6), coal, 0, 0.82 - i * 0.12 + (i ? -0.04 : 0), 0.23 - i * 0.01, false);
+    const stick = toon('#6a4a2a');
+    for (const sx of [-1, 1]) add(g, tube([[sx * 0.2, 0.75, 0], [sx * 0.42, 0.9, 0.02], [sx * 0.52, 1.02, 0.04]], [0.022, 0.016, 0.008], 6, 8), stick);
+    const hat = toon('#24202c'), band = toon(d.color || '#d8283a');
+    add(g, cyl(0.2, 0.2, 0.03, 20), hat, 0, 1.2, 0); add(g, cyl(0.13, 0.13, 0.22, 18), hat, 0, 1.32, 0); add(g, cyl(0.135, 0.135, 0.045, 18), band, 0, 1.24, 0);
+    if (d.hat) add(g, oct(0.06), toon('#ffe27a', { emissive: '#ffc83a', emissiveIntensity: 1.2 }), 0, 1.5, 0, false);
+    return P;
+  },
+  anim: (v, P, s) => animBlob(v, P, s),
+};
+
 export const MONSTER_MODEL_IDS = Object.keys(DEFS);

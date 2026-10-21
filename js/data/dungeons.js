@@ -1,7 +1,7 @@
 // v0.32: ดันเจี้ยนถ้ำ + หอคอยไต่ชั้น — ข้อมูล · สูตรปรับความยากมอนสเตอร์ · สร้างแผนที่แต่ละชั้น (สุ่มตาม seed)
 // ปรับสมดุลได้จากไฟล์นี้ไฟล์เดียว
-import { ZENY_INCOME } from '../config.js?v=0.78.0';
-import { MONSTERS } from './monsters.js?v=0.78.0';
+import { ZENY_INCOME } from '../config.js?v=0.79.0';
+import { MONSTERS } from './monsters.js?v=0.79.0';
 
 /* ---------- ค่าหลัก ---------- */
 export const CAVE = {
@@ -42,7 +42,7 @@ export const refHp = (L) => 32 * Math.pow(f(L), 1.85) * over(L, 1.055);
 export const refAtk = (L) => 5 * Math.pow(f(L), 1.55) * over(L, 1.03);
 export const refExp = (L) => 8 * Math.pow(f(Math.min(L, 150)), 2.0);
 
-export const NORMAL_MOBS = Object.keys(MONSTERS).filter((k) => { const m = MONSTERS[k]; return !m.mvp && !m.worldBoss && !m.boss && m.level; })
+export const NORMAL_MOBS = Object.keys(MONSTERS).filter((k) => { const m = MONSTERS[k]; return !m.mvp && !m.worldBoss && !m.boss && !m.fest && m.level; })
   .sort((a, b) => MONSTERS[a].level - MONSTERS[b].level);
 export const BOSS_MOBS = ['gnarlroot', 'glacia', 'ignarok', 'aurex', 'nocthar'].filter((k) => MONSTERS[k]);
 
