@@ -65,6 +65,7 @@ export class SettingsWindow {
     toggle(ui, 'showFps', 'แสดง FPS');
     toggle(ui, 'showHelp', 'แสดงแผงคำแนะนำปุ่ม', 'เฉพาะคอมพิวเตอร์');
     toggle(ui, 'showOthers', 'แสดงผู้เล่นคนอื่น', 'โหมดออนไลน์');
+    toggle(ui, 'dayCycle', 'กลางวัน · ตอนเย็น · กลางคืน', 'ปิด = สว่างแบบกลางวันตลอด');
     toggle(ui, 'questNav', 'ลูกศรนำทางเควส', 'ชี้ทางไปเป้าหมายเควส');
     toggle(ui, 'partyInvites', 'รับคำเชิญเข้าปาร์ตี้', 'ปิด = ปฏิเสธอัตโนมัติ');
 

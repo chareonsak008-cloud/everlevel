@@ -2,9 +2,12 @@
 const CHANNELS = [['s', 'ทั่วไป'], ['w', 'โลก'], ['p', 'ปาร์ตี้'], ['g', 'กิลด์'], ['t', 'กระซิบ']];
 const HINT = { s: 'คุยกับคนในแผนที่นี้… (Enter)', w: 'แชตโลก — ทุกแผนที่เห็น…', p: 'คุยในปาร์ตี้…', g: 'คุยในกิลด์…', t: 'ข้อความกระซิบ…' };
 
+const SIZES = [['s', 'เล็ก'], ['m', 'กลาง'], ['l', 'ใหญ่']];   // v0.86 ขนาดกล่องแชต
+
 export class ChatBox {
-  constructor(root, { onSend, onOpen, onChannel }) {
+  constructor(root, { onSend, onOpen, onChannel, settings, onSettings }) {
     this.root = root;
+    this.settings = settings || {}; this.onSettings = onSettings || (() => {});
     this.onSend = onSend; this.onOpen = onOpen || (() => {}); this.onChannel = onChannel || (() => {});
     // v0.38: แถบเลือกช่องแชต — กดเลือกแล้วพิมพ์ได้เลย (หรือพิมพ์ /p /g /o /w ชื่อ นำหน้า)
     this.tabs = root.querySelector('#chatTabs');
@@ -17,6 +20,13 @@ export class ChatBox {
         b.addEventListener('click', () => { this.setChannel(c); if (c === 't' && !this.toInput.value) this.toInput.focus(); else this.focus(); });
         this.tabs.append(b);
       }
+      // v0.86 ปุ่มซ่อน/แสดงข้อความระบบ + ปุ่มขยาย/ย่อกล่องแชต
+      const tools = document.createElement('span'); tools.className = 'chat-tools';
+      tools.innerHTML = '<button type="button" class="ct-sys" title="ซ่อน/แสดงข้อความระบบ (เก็บของ ใช้สกิล ฯลฯ)"></button><button type="button" class="ct-size" title="ขยาย/ย่อกล่องแชต"></button>';
+      for (const b of tools.children) b.addEventListener('pointerdown', (e) => e.preventDefault());
+      tools.querySelector('.ct-sys').addEventListener('click', () => this.setSys(!this.showSys));
+      tools.querySelector('.ct-size').addEventListener('click', () => { const i = SIZES.findIndex(([k]) => k === this.size); this.setSize(SIZES[(i + 1) % SIZES.length][0]); });
+      this.tabs.append(tools); this.tools = tools;
       for (const ev of ['pointerdown', 'wheel', 'contextmenu', 'touchstart']) this.tabs.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
     }
     if (this.toInput) {
@@ -62,6 +72,27 @@ export class ChatBox {
       this.fadeTimer = setTimeout(() => this.wrap.classList.remove('fresh'), 6000);
     }).observe(this.box, { childList: true });
     this.setChannel('s');
+    this.setSys(this.settings.chatSys !== false, false);
+    this.setSize(['s', 'm', 'l'].includes(this.settings.chatSize) ? this.settings.chatSize : 'm', false);
+  }
+
+  // v0.86 แสดง/ซ่อนข้อความระบบในกล่องแชต (แชตผู้เล่นแสดงเสมอ)
+  setSys(on, save = true) {
+    this.showSys = on;
+    this.wrap.classList.toggle('hide-sys', !on);
+    const b = this.tools && this.tools.querySelector('.ct-sys');
+    if (b) { b.textContent = on ? '🔔 ระบบ' : '🔕 ระบบ'; b.setAttribute('aria-pressed', String(!on)); }
+    this.box.scrollTop = this.box.scrollHeight;
+    if (save) { this.settings.chatSys = on; this.onSettings(); }
+  }
+  // v0.86 ขนาดกล่องแชต เล็ก/กลาง/ใหญ่ (ใหญ่ = เลื่อนอ่านย้อนหลังได้ยาว)
+  setSize(k, save = true) {
+    this.size = k;
+    this.wrap.dataset.size = k;
+    const b = this.tools && this.tools.querySelector('.ct-size');
+    if (b) b.textContent = k === 'l' ? '⤡ ย่อ' : '⤢ ' + (k === 's' ? 'กลาง' : 'ใหญ่');
+    this.box.scrollTop = this.box.scrollHeight;
+    if (save) { this.settings.chatSize = k; this.onSettings(); }
   }
 
   // มือถือ: กล่องแชตที่ขยายแล้วไปอยู่ใต้แถบสถานะตัวละคร/แผนที่ย่อ ไม่บังตัวละครกลางจอ และคีย์บอร์ดไม่บังช่องพิมพ์

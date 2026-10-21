@@ -1,6 +1,6 @@
 // มอนสเตอร์: ค่าสถานะ + สถานะ AI (ตรรกะล้วน การวาดอยู่ใน render/Monsters.js)
-import { Entity } from './Entity.js?v=0.85.0';
-import { MONSTERS } from '../data/monsters.js?v=0.85.0';
+import { Entity } from './Entity.js?v=0.86.0';
+import { MONSTERS } from '../data/monsters.js?v=0.86.0';
 
 let nextId = 1;
 

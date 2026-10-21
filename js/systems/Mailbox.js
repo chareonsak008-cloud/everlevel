@@ -2,11 +2,11 @@
 // · ของขวัญต้อนรับ: ทุกตัวละครได้ 1 ฉบับ (เลือกชุดแฟชั่น 1 เซ็ต + สัตว์เลี้ยง 1 ตัว + ของใช้เริ่มต้น) — ใช้ได้ทุกโหมด
 // · จดหมายจากแอดมิน (เซิร์ฟเวอร์ Supabase): ส่งถึงทุกคนหรือระบุชื่อตัวละคร · รับได้บัญชีละครั้งหรือตัวละครละครั้ง
 // · v0.18: จดหมายจากระบบเกม (รางวัลเช็กอินรายวัน) เก็บในเซฟตัวละคร player.mail.box — sys: true
-import { ITEMS } from '../data/items.js?v=0.85.0';
-import { PETS } from '../data/pets.js?v=0.85.0';
-import { MAX_ZENY } from '../data/shops.js?v=0.85.0';
-import { normMail, setById, hasGift } from '../data/mail.js?v=0.85.0';
-import { COSTUMES, COSTUME_BY_ID } from '../data/costumes.js?v=0.85.0';
+import { ITEMS } from '../data/items.js?v=0.86.0';
+import { PETS } from '../data/pets.js?v=0.86.0';
+import { MAX_ZENY } from '../data/shops.js?v=0.86.0';
+import { normMail, setById, hasGift } from '../data/mail.js?v=0.86.0';
+import { COSTUMES, COSTUME_BY_ID } from '../data/costumes.js?v=0.86.0';
 
 const REFRESH_SEC = 180;
 
@@ -125,6 +125,7 @@ export class Mailbox {
     const got = [];
     for (const [iid, q] of m.items) { const n = pl.inventory.add(iid, q, true); if (n) got.push(`${ITEMS[iid].name} x${n}`); }   // v0.16: รับแล้วต้องได้ครบ (ระหว่างรอเซิร์ฟเวอร์กระเป๋าอาจเต็ม)
     if (m.zeny) { pl.zeny = Math.min(MAX_ZENY, pl.zeny + m.zeny); got.push(`${m.zeny.toLocaleString('en-US')} Zeny`); }
+    if (m.gems) got.push(`💎 ${m.gems.toLocaleString('en-US')} เพชร${m.per === 'char' ? ' (บัญชีละครั้ง)' : ''}`);   // v0.86 เซิร์ฟเวอร์เพิ่มเพชรให้แล้วตอนบันทึกการรับ
     let setIds = null, petId = null;
     if (choice.set && m.picks.some((p) => p.kind === 'set')) {
       const s = setById(choice.set);
@@ -148,6 +149,7 @@ export class Mailbox {
     if (m.local && !m.sys && setIds && !Object.keys(pl.fashion.worn).length) g.wearFashionSet(setIds);
     if (m.local && !m.sys && petId && !pl.pets.active) g.summonPet(petId);
     g.refreshItemsUI(); g.hud.setPlayer(pl); g.status.render(); g.ward.render(); g.petWin.render();
+    if (m.gems && g.cash && g.cash.open && g.cash.load) g.cash.load();   // v0.86 อัปเดตยอดเพชรในร้าน
     g.dirty = true;
     g.saveNow(false, true);   // บันทึกทันที กันรับซ้ำ
     this.changed();

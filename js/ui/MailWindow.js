@@ -1,14 +1,14 @@
 // หน้าต่างจดหมาย (v0.15 · ปุ่ม M / 📬) — อ่านจดหมาย · รับของ · เลือกชุดแฟชั่น/สัตว์เลี้ยง
 // แอดมิน: แท็บ "ส่งจดหมาย (GM)" ส่งไอเทม/Zeny/ตัวเลือกถึงทุกคนหรือระบุชื่อตัวละคร
-import { ITEMS } from '../data/items.js?v=0.85.0';
-import { SETS, COSTUMES, COSTUME_BY_ID } from '../data/costumes.js?v=0.85.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.85.0';
-import { PETS, PET_ORDER, PET_RARITY } from '../data/pets.js?v=0.85.0';
-import { FASHION_RARITY } from '../data/fashionBoxes.js?v=0.85.0';
-import { PICK_LABEL, MAIL_MAX_ITEMS, MAIL_MAX_ZENY, setById, setTier, hasGift } from '../data/mail.js?v=0.85.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.85.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.85.0';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.85.0';
+import { ITEMS } from '../data/items.js?v=0.86.0';
+import { SETS, COSTUMES, COSTUME_BY_ID } from '../data/costumes.js?v=0.86.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.86.0';
+import { PETS, PET_ORDER, PET_RARITY } from '../data/pets.js?v=0.86.0';
+import { FASHION_RARITY } from '../data/fashionBoxes.js?v=0.86.0';
+import { PICK_LABEL, MAIL_MAX_ITEMS, MAIL_MAX_ZENY, MAIL_MAX_GEMS, setById, setTier, hasGift } from '../data/mail.js?v=0.86.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.86.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.86.0';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.86.0';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtDate = (t) => (t ? new Date(t).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
@@ -122,7 +122,7 @@ export class MailWindow {
 
     // ของแนบ
     const att = d.querySelector('.ml-att');
-    if (m.items.length || m.zeny) {
+    if (m.items.length || m.zeny || m.gems) {
       att.innerHTML = '<h4>ของแนบ</h4><div class="ml-chips"></div>';
       const chips = att.querySelector('.ml-chips');
       for (const [id, q] of m.items) {
@@ -133,6 +133,7 @@ export class MailWindow {
         chips.append(c);
       }
       if (m.zeny) { const c = document.createElement('span'); c.className = 'ml-chip zeny'; c.innerHTML = `<i aria-hidden="true">💰</i><span>${m.zeny.toLocaleString('en-US')} Zeny</span>`; chips.append(c); }
+      if (m.gems) { const c = document.createElement('span'); c.className = 'ml-chip zeny gems'; c.innerHTML = `<i aria-hidden="true">💎</i><span>${m.gems.toLocaleString('en-US')} เพชร</span>`; chips.append(c); }
     }
 
     // ตัวเลือก (ชุดแฟชั่น / สัตว์เลี้ยง)
@@ -238,6 +239,8 @@ export class MailWindow {
       <datalist id="gmItemList">${itemOpts}</datalist>
       <div class="gm-chips"></div>
       <label class="gm-zeny">Zeny<input name="zeny" type="number" min="0" max="${MAIL_MAX_ZENY}" value="0"></label>
+      <label class="gm-zeny gm-gems">💎 เพชร<input name="gems" type="number" min="0" max="${MAIL_MAX_GEMS}" value="0"></label>
+      <p class="gm-note">แจกเพชร: เข้าบัญชีผู้เล่นตอนกดรับจดหมาย · บัญชีละครั้งเสมอ (แม้ตั้งเป็นตัวละครละครั้ง) · ส่งถึงทุกคน = ทุกบัญชีได้คนละเท่านี้</p>
       <details class="gm-det"><summary>ให้ผู้เล่นเลือกชุดแฟชั่น 1 เซ็ต (ติ๊กเซ็ตที่เป็นตัวเลือก)</summary><div class="gm-cks">${setOpts}</div></details>
       <details class="gm-det"><summary>ให้ชิ้นแฟชั่น — ปีก/ออร่า (ติ๊ก 1 ชิ้น = ให้ชิ้นนั้นเลย · ติ๊กหลายชิ้น = ผู้เล่นเลือก 1)</summary><div class="gm-cks">${fashOpts}</div></details>
       <details class="gm-det"><summary>ให้ผู้เล่นเลือกสัตว์เลี้ยง 1 ตัว (ติ๊กตัวที่เป็นตัวเลือก)</summary><div class="gm-cks">${petOpts}</div></details>
@@ -284,6 +287,7 @@ export class MailWindow {
     const to = toAll ? null : $('[name=toName]').value.trim();
     const title = $('[name=title]').value.trim(), body = $('[name=body]').value.trim();
     const zeny = Math.max(0, Math.min(MAIL_MAX_ZENY, Math.floor(+$('[name=zeny]').value) || 0));
+    const gems = Math.max(0, Math.min(MAIL_MAX_GEMS, Math.floor(+$('[name=gems]').value) || 0));   // v0.86
     const sets = [...pane.querySelectorAll('[name=gmSet]:checked')].map((x) => x.value);
     const pets = [...pane.querySelectorAll('[name=gmPet]:checked')].map((x) => x.value);
     const fash = [...pane.querySelectorAll('[name=gmFash]:checked')].map((x) => x.value);
@@ -296,21 +300,21 @@ export class MailWindow {
     // กดครั้งแรก = ถามยืนยัน (ส่งถึงทุกคนแล้วลบได้ แต่คนที่รับไปแล้วจะไม่ถูกดึงของคืน)
     if (!this.confirmUntil || this.confirmUntil < Date.now()) {
       this.confirmUntil = Date.now() + 5000;
-      msg.textContent = `กด "ส่งจดหมาย" อีกครั้งเพื่อยืนยันส่งถึง${toAll ? 'ผู้เล่นทุกคน' : ' ' + to}`;
+      msg.textContent = `กด "ส่งจดหมาย" อีกครั้งเพื่อยืนยันส่งถึง${toAll ? 'ผู้เล่นทุกคน' : ' ' + to}${gems ? ` · แจก 💎 ${gems.toLocaleString('en-US')} เพชร${toAll ? 'ต่อบัญชี' : ''}` : ''}`;
       return;
     }
     this.confirmUntil = 0;
     const days = +$('[name=exp]').value;
     go.disabled = true; msg.textContent = 'กำลังส่ง…';
     const err = await this.g.online.sendMail({
-      to, title, body, items: this.gmItems, zeny, picks, per: $('[name=per]').value,
+      to, title, body, items: this.gmItems, zeny, gems, picks, per: $('[name=per]').value,
       sender: 'GM', expires: days ? Date.now() + days * 86400000 : 0,
     });
     go.disabled = false;
     if (err) { msg.textContent = 'ส่งไม่สำเร็จ: ' + err; return; }
     msg.textContent = '✔ ส่งจดหมายแล้ว';
     this.g.hud.log(`✉ ส่งจดหมาย "${title}" ถึง${toAll ? 'ผู้เล่นทุกคน' : ' ' + to}แล้ว`, 'sys');
-    this.gmItems = []; $('[name=title]').value = ''; $('[name=body]').value = ''; $('[name=zeny]').value = 0;
+    this.gmItems = []; $('[name=title]').value = ''; $('[name=body]').value = ''; $('[name=zeny]').value = 0; $('[name=gems]').value = 0;
     for (const x of pane.querySelectorAll('.gm-cks input')) x.checked = false;
     this.renderGMItems();
     await this.box.refresh();

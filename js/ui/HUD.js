@@ -1,8 +1,8 @@
 // หน้าจอข้อมูล (DOM): สถานะตัวละคร, แชท, ชื่อแผนที่, FPS, บัฟ
-import { SKILLS } from '../data/skills.js?v=0.85.0';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.85.0';
-import { ITEMS } from '../data/items.js?v=0.85.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.85.0';
+import { SKILLS } from '../data/skills.js?v=0.86.0';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.86.0';
+import { ITEMS } from '../data/items.js?v=0.86.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.86.0';
 export class HUD {
   constructor(root) {
     this.el = {
@@ -158,8 +158,16 @@ export class HUD {
       const n = document.createElement('span'); n.className = 'vip-name'; n.textContent = who;
       line.append(pre, b, n, ` : ${text}`);
     } else line.textContent = who ? `${pre}${who} : ${text}` : text;
-    this.el.chat.append(line);
-    while (this.el.chat.children.length > 40) this.el.chat.firstChild.remove();
+    // v0.86 แยกข้อความผู้เล่น (u) กับข้อความระบบ (k) — ซ่อนข้อความระบบได้ · เก็บแยกกันไม่ให้ระบบดันแชตผู้เล่นหาย
+    const user = !!who || /\b(pc|world|party|guild|whisper|shout|chat)\b/.test(type);
+    line.classList.add(user ? 'u' : 'k');
+    const box = this.el.chat;
+    const near = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+    box.append(line);
+    const lim = user ? 150 : 80, cls = user ? 'u' : 'k';
+    let n = 0; for (const el of box.children) if (el.classList.contains(cls)) n++;
+    for (let el = box.firstElementChild; n > lim && el;) { const nx = el.nextElementSibling; if (el.classList.contains(cls)) { el.remove(); n--; } el = nx; }
+    if (near || user) box.scrollTop = box.scrollHeight;   // อยู่ล่างสุด = เลื่อนตาม · กำลังเลื่อนอ่านย้อนหลัง = ไม่กระโดด
   }
 
   setCoords(tx, ty) {

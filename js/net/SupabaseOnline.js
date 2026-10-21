@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.85.0';
-import { SideChannel } from './SideChannel.js?v=0.85.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.86.0';
+import { SideChannel } from './SideChannel.js?v=0.86.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -290,11 +290,14 @@ export class SupabaseOnline extends Online {
   /* ---------- v0.15: จดหมาย (ตาราง mails / mail_claims / admins จาก supabase/mail.sql) ---------- */
   // คืน { mails, claims, admin } · โยน error ถ้าเซิร์ฟเวอร์ยังไม่มีตาราง
   async fetchMail() {
-    const [m, c, a] = await Promise.all([
-      this.sb.from('mails').select('id,to_name,sender,title,body,items,zeny,picks,per,created_at,expires_at').order('created_at', { ascending: false }).limit(60),
+    const cols = 'id,to_name,sender,title,body,items,zeny,picks,per,created_at,expires_at';
+    const q = (extra) => this.sb.from('mails').select(cols + extra).order('created_at', { ascending: false }).limit(60);
+    let [m, c, a] = await Promise.all([
+      q(this.noMailGems ? '' : ',gems'),   // v0.86 เพชรจาก GM
       this.sb.from('mail_claims').select('mail_id,cid').limit(1000),
       this.sb.from('admins').select('user_id').limit(1),
     ]);
+    if (m.error && !this.noMailGems && /gems/.test(m.error.message || '')) { this.noMailGems = true; m = await q(''); }   // ยังไม่ได้รัน update_v0.86.sql
     if (m.error) throw m.error;
     if (c.error) throw c.error;
     return { mails: m.data || [], claims: c.data || [], admin: !a.error && Array.isArray(a.data) && a.data.length > 0 };
@@ -313,6 +316,7 @@ export class SupabaseOnline extends Online {
     const { error } = await this.sb.from('mails').insert({
       to_name: m.to || null, sender: m.sender || 'GM', title: m.title, body: m.body || '',
       items: m.items || [], zeny: m.zeny || 0, picks: m.picks || [], per: m.per === 'char' ? 'char' : 'account',
+      ...(m.gems ? { gems: m.gems } : {}),   // v0.86 แจกเพชร (ต้องรัน update_v0.86.sql)
       expires_at: m.expires ? new Date(m.expires).toISOString() : null,
     });
     if (!error) return null;

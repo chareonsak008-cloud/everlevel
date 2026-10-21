@@ -2419,3 +2419,22 @@ body.touch .hud > :is(.panel.char, .buffs, .panel.mini, .topbar, .qtrack, .hotba
 .bubble.bubble-side { box-sizing: border-box; }
 .bubble.bubble-side::after { left: -7px; top: 50%; bottom: auto; margin: -6px 0 0; border-right: 0; border-bottom: 1.5px solid rgba(60, 40, 70, 0.55); border-left: 1.5px solid rgba(60, 40, 70, 0.55); background: #faf4e6; }
 .bubble.bubble-side.flip::after { left: auto; right: -7px; border-left: 0; border-right: 1.5px solid rgba(60, 40, 70, 0.55); }
+
+/* v0.86 ป้ายช่วงเวลาในเกม (ใต้แผนที่ย่อ) */
+.day-badge { position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%); padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; color: #fff6e0; background: rgba(20, 16, 30, 0.72); border: 1px solid rgba(255, 220, 160, 0.35); pointer-events: none; }
+.day-tint { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; transition: background 1s linear; }
+#game.title .day-tint { visibility: hidden; }
+
+/* v0.86 กล่องแชต: ซ่อนข้อความระบบ · ขยาย/ย่อ · เลื่อนอ่านย้อนหลังได้ */
+#chatWrap .chat { display: block; overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 214, 140, 0.35) transparent; }
+#chatWrap .chat::-webkit-scrollbar { width: 6px; } #chatWrap .chat::-webkit-scrollbar-thumb { background: rgba(255, 214, 140, 0.35); border-radius: 3px; }
+#chatWrap.hide-sys .chat > .k { display: none; }
+#chatWrap[data-size="s"] .chat { max-height: 70px; }
+#chatWrap[data-size="m"] .chat { max-height: 128px; }
+#chatWrap[data-size="l"] .chat { max-height: min(46vh, 380px); background: rgba(20, 14, 28, 0.78); -webkit-mask-image: none; mask-image: none; }
+.chat-tools { display: inline-flex; gap: 3px; margin-left: auto; }
+.chat-tabs .chat-tools button { padding: 4px 8px; }
+.chat-tabs .chat-tools .ct-sys[aria-pressed="true"] { color: #ffb0a0; border-color: rgba(255, 150, 130, 0.45); }
+body.touch #chatWrap.open[data-size="l"] .chat { max-height: min(52vh, 360px); }
+body.touch #chatWrap.open[data-size="s"] .chat { max-height: 90px; }
+#chatWrap[data-size="l"] { z-index: 20; }

@@ -13,6 +13,9 @@ export const DEFAULT_SETTINGS = {
   showOthers: true,     // แสดงผู้เล่นคนอื่น (ออนไลน์)
   chatSound: true,
   questNav: true,       // v0.38 ลูกศรนำทางเควส
+  dayCycle: true,       // v0.86 กลางวัน/ตอนเย็น/กลางคืน
+  chatSys: true,        // v0.86 แสดงข้อความระบบในกล่องแชต
+  chatSize: 'm',        // v0.86 ขนาดกล่องแชต s | m | l
   partyInvites: true,   // v0.38 รับคำเชิญปาร์ตี้
 };
 

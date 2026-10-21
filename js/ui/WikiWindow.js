@@ -1,33 +1,33 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.85.0';
-import { MONSTERS } from '../data/monsters.js?v=0.85.0';
-import { MAPS } from '../data/maps/index.js?v=0.85.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.85.0';
-import { CARD_SETS } from '../data/collection.js?v=0.85.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.85.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.85.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.85.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.85.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.85.0';
-import { SHOPS, SELL_RATE, STORAGE_CAPACITY } from '../data/shops.js?v=0.85.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.85.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.85.0';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.85.0';
-import { rollFits } from '../data/affixes.js?v=0.85.0';
-import { statsToBonus } from '../data/affixes.js?v=0.85.0';
-import { VIP_PERKS } from './CashShop.js?v=0.85.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.85.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.85.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.85.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.86.0';
+import { MONSTERS } from '../data/monsters.js?v=0.86.0';
+import { MAPS } from '../data/maps/index.js?v=0.86.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.86.0';
+import { CARD_SETS } from '../data/collection.js?v=0.86.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, jobTier, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.86.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.86.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, LUCK_CAP, boostedRate, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.86.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.86.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.86.0';
+import { SHOPS, SELL_RATE, SELL_RATE_EQUIP, STORAGE_CAPACITY, sellPrice } from '../data/shops.js?v=0.86.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.86.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.86.0';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.86.0';
+import { rollFits } from '../data/affixes.js?v=0.86.0';
+import { statsToBonus } from '../data/affixes.js?v=0.86.0';
+import { VIP_PERKS } from './CashShop.js?v=0.86.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.86.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.86.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.86.0';
 // v0.77 คู่มือระบบใหม่ (ภารกิจรายวัน · ดันเจี้ยนปาร์ตี้ · อันดับฤดูกาล · ฉายา · หลอมนิรันดร์กาล)
-import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.85.0';
-import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.85.0';
-import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.85.0';
-import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.85.0';
-import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.85.0';   // v0.78
-import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.85.0';   // v0.79
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.85.0';
+import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.86.0';
+import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.86.0';
+import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.86.0';
+import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.86.0';
+import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.86.0';   // v0.78
+import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.86.0';   // v0.79
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.86.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -111,7 +111,7 @@ export class WikiWindow {
     if (s === 'item') return itemList().filter(([, it]) => this.f.cat === 'all' || (it.cat || it.type) === this.f.cat)
       .map(([id, it]) => ({ id, name: it.name, sub: it.effect || (it.heal ? 'ฟื้นฟู' : it.type === 'etc' ? 'วัตถุดิบ / ของตีบวก' : ''), icon: iconURL(id), color: rcol(it.rarity) }));
     if (s === 'pet') return PET_ORDER.map((id) => ({ id, name: PETS[id].name, sub: PET_RARITY[PETS[id].tier].name, color: PET_RARITY[PETS[id].tier].color }));
-    if (s === 'job') return Object.entries(JOBS).map(([id, j]) => ({ id, name: `${j.thai} (${j.name})`, sub: j.parent ? `อาชีพขั้น 2 ต่อจาก${jobTh(j.parent)}` : id === 'novice' ? 'อาชีพเริ่มต้น' : 'อาชีพขั้น 1', color: j.color }));
+    if (s === 'job') return Object.entries(JOBS).map(([id, j]) => ({ id, name: `${j.thai} (${j.name})`, sub: j.tier === 3 ? `อาชีพคลาส 3 ต่อจาก${jobTh(j.parent)}` : j.parent ? `อาชีพขั้น 2 ต่อจาก${jobTh(j.parent)}` : id === 'novice' ? 'อาชีพเริ่มต้น' : 'อาชีพขั้น 1', color: j.color }));
     return [];
   }
 
@@ -219,7 +219,7 @@ function equipPage(id) {
     ['อาชีพที่ใช้ได้', it.jobs ? esc(it.jobs.filter((j) => j !== 'novice' || it.jobs.length === 1).map(jobTh).join(', ')) : 'ทุกอาชีพ'],
     it.element && it.element !== 'neutral' ? ['ธาตุ', esc(it.element)] : null,
     it.twoHand ? ['ถือ', 'สองมือ'] : null,
-    ['ราคาขายร้าน', fmt((it.price || 0) * SELL_RATE) + ' z'],
+    ['ราคาขายร้าน', fmt(sellPrice(id)) + ' z'],
   ]);
   if (it.desc) h += `<p class="wk-desc">${esc(it.desc)}</p>`;
   if (it.style || it.tradeoff) h += `<p class="wk-muted">${esc([it.style, it.tradeoff && 'จุดด้อย: ' + it.tradeoff].filter(Boolean).join(' · '))}</p>`;
@@ -258,7 +258,9 @@ function mobPage(id) {
   let h = head(`<img alt="" data-mob="${esc(id)}">`, m.name, m.mvp || m.worldBoss ? '#ffb347' : '#ffe8a8', esc(`Lv.${m.level} · ${tag}`));
   const atk = Array.isArray(m.atk) ? `${fmt(m.atk[0])}–${fmt(m.atk[1])}` : fmt(m.atk);
   h += stats([['HP', fmt(m.hp)], ['ATK', atk], ['DEF', m.def ?? '-'], ['MDEF', m.mdef ?? '-'], ['HIT', m.hit ?? '-'], ['FLEE', m.flee ?? '-'], ['Base EXP', fmt(m.baseExp)], ['Job EXP', fmt(m.jobExp)]]);
-  if (m.respawn) h += `<p class="wk-muted">เกิดใหม่ทุก ${(Array.isArray(m.respawn) ? m.respawn : [m.respawn]).map((x) => Math.max(2, Math.round(x * (m.mvp || m.worldBoss || m.boss ? 1 : RESPAWN_MUL)))).join('–')} วินาที${m.mvp ? ' (MVP สุ่มจุดเกิดทั่วแผนที่)' : ''}</p>`;
+  if (m.worldBoss) { /* บอสโลกเกิดตามเวลาในตารางด้านล่าง */ }
+  else if (m.mvp) h += `<p class="wk-muted">เกิดใหม่ 2 ชั่วโมงหลังถูกปราบ (MVP สุ่มจุดเกิดทั่วแผนที่)</p>`;   // v0.85
+  else if (m.respawn) h += `<p class="wk-muted">เกิดใหม่ทุก ${(Array.isArray(m.respawn) ? m.respawn : [m.respawn]).map((x) => Math.max(2, Math.round(x * (m.boss ? 1 : RESPAWN_MUL)))).join('–')} วินาที</p>`;
   const maps = I.mobMaps[id] || [];
   if (m.worldBoss) { const wb = Object.values(WORLD_BOSSES).find((b) => b.base && id.includes(b.base)) || Object.values(WORLD_BOSSES).find((b) => b.name === m.name); if (wb) h += `<p>🌍 เกิดทุกวันเวลา <b>${wb.hour}:00 น.</b> (เวลาไทย) ที่ ${mapLink(wb.map)} · อยู่ 30 นาที · ดูรางวัลที่ปุ่ม "บอส"</p>`; }
   if (maps.length) h += `<h4>พบได้ที่</h4><p>${maps.map(mapLink).join(' · ')}</p>`;
@@ -310,6 +312,8 @@ function jobPage(id) {
   h += stats([['Job Lv. สูงสุด', j.maxJobLevel], ['HP', `×${j.hp}`], ['SP', `×${j.sp}`], ['อาวุธ', esc((j.weapons || []).filter((w) => w !== 'none').map((w) => WPN_TH[w] || w).join(', ') || '-')], js ? [`โบนัสสเตตัสที่ Job Lv.${j.maxJobLevel}`, esc(js)] : null]);
   if (id === 'novice') h += `<p>เมื่อถึง <b>Job Lv.${JOB_CHANGE_JOB_LEVEL}</b> และอัปสกิลทักษะพื้นฐานครบ Lv.9 ไปหา <b>ออเรล</b> ที่หอสมาคมในเมืองเพื่อเปลี่ยนอาชีพขั้น 1</p>`;
   else if (!j.parent) h += `<p>ถึง <b>Job Lv.${JOB2_JOB_LEVEL}</b> และทำเควสต์เลื่อนขั้นสำเร็จ จะเปลี่ยนเป็นอาชีพขั้น 2 ได้: ${Object.entries(JOBS).filter(([, x]) => x.parent === id).map(([k, x]) => link('job', k, x.thai, x.color)).join(', ')}</p>`;
+  else if (jobTier(id) === 2) h += `<p>ถึง <b>Base Lv.${JOB3_BASE_LEVEL}</b> + <b>Job Lv.${JOB3_JOB_LEVEL}</b> และผ่านเควสต์บททดสอบจาก <b>ออเรล</b> จะเลื่อนเป็นอาชีพคลาส 3 ได้: ${Object.entries(JOBS).filter(([, x]) => x.parent === id).map(([k, x]) => link('job', k, x.thai, x.color)).join(', ')}</p>`;   // v0.85
+  else if (jobTier(id) === 3) h += `<p>อาชีพคลาส 3 ต่อจาก ${link('job', j.parent, JOBS[j.parent].thai, JOBS[j.parent].color)} · เงื่อนไข Base Lv.${JOB3_BASE_LEVEL} + Job Lv.${JOB3_JOB_LEVEL} ของ${JOBS[j.parent].thai} + เควสต์บททดสอบจากออเรล · เรียนสกิลของขั้น 1 และขั้น 2 ต่อได้ และได้โบนัสสเตตัสจากทุกขั้นที่ฝึกมา</p>`;
   const sk = Object.entries(SKILLS).filter(([, s]) => s.job === id);
   if (sk.length) h += `<h4>สกิล (${sk.length})</h4>` + table(['สกิล', 'ประเภท', 'Lv.', 'SP', 'รายละเอียด'], sk.map(([, s]) => [`<b>${esc(s.name)}</b>${s.req ? `<br><small class="wk-muted">ต้องมี ${Object.entries(s.req).map(([r, l]) => `${esc(SKILLS[r] ? SKILLS[r].name : r)} Lv.${l}`).join(', ')}</small>` : ''}`, KIND_NAME[s.kind] || s.kind || '', s.maxLv || 1, (() => { const a = skillSp(s, 1), b = skillSp(s, s.maxLv || 1); return !a && !b ? '-' : a === b ? a : `${a}–${b}`; })(), esc(s.desc || '')]), 'wk-skill');
   return h;
@@ -357,17 +361,17 @@ const GUIDES = [
       ['นักดาบ / อัศวิน', 'STR', 'VIT · DEX', 'อึด ตีแรง เหมาะยืนแนวหน้า'], ['นักเวทย์ / จอมเวท', 'INT', 'DEX · VIT', 'DEX ลดเวลาร่าย · VIT กันตายง่าย'],
       ['นักธนู / นักล่า', 'DEX', 'AGI · LUK', 'DEX = ดาเมจ + ความแม่น ยิงจากระยะไกล'], ['นักบวช / นักบวชชั้นสูง', 'INT', 'VIT · DEX', 'ฮีลแรงตาม INT เหมาะเล่นปาร์ตี้'],
     ]) + P('ไม่ต้องกลัวอัปผิด — รีเซ็ตฟรีจนถึง Lv.' + STAT_RESET_FREE_LEVEL) },
-  { id: 'jobs', title: '🧬 อาชีพ', sub: 'เปลี่ยนอาชีพขั้น 1 / 2', html: () =>
-    P(`ทุกคนเริ่มเป็น <b>Novice</b> · Job Lv.${JOB_CHANGE_JOB_LEVEL} เปลี่ยนอาชีพขั้น 1 · Job Lv.${JOB2_JOB_LEVEL} + เควสต์เลื่อนขั้น เปลี่ยนอาชีพขั้น 2 (ได้โบนัสสเตตัสจาก Job Lv. ขั้น 1 ติดไปด้วย)`) +
-    table(['อาชีพ', 'แนวทาง', 'ขั้น 2'], Object.entries(JOBS).filter(([k, j]) => k !== 'novice' && !j.parent).map(([k, j]) => [link('job', k, j.thai, j.color), esc(j.role || ''), Object.entries(JOBS).filter(([, x]) => x.parent === k).map(([kk, x]) => link('job', kk, x.thai, x.color)).join(', ')])) +
+  { id: 'jobs', title: '🧬 อาชีพ', sub: 'เปลี่ยนอาชีพขั้น 1 / 2 / คลาส 3', html: () =>
+    P(`ทุกคนเริ่มเป็น <b>Novice</b> · Job Lv.${JOB_CHANGE_JOB_LEVEL} เปลี่ยนอาชีพขั้น 1 · Job Lv.${JOB2_JOB_LEVEL} + เควสต์เลื่อนขั้น เปลี่ยนอาชีพขั้น 2 (ได้โบนัสสเตตัสจาก Job Lv. ขั้น 1 ติดไปด้วย) · <b>Base Lv.${JOB3_BASE_LEVEL} + Job Lv.${JOB3_JOB_LEVEL}</b> ของขั้น 2 + เควสต์บททดสอบ เลื่อนเป็น <b>อาชีพคลาส 3</b> (Job Lv. สูงสุด 50 · สกิลใหม่ 5 อย่าง)`) +
+    table(['อาชีพ', 'แนวทาง', 'ขั้น 2', 'คลาส 3'], Object.entries(JOBS).filter(([k, j]) => k !== 'novice' && !j.parent).map(([k, j]) => { const sub = Object.entries(JOBS).filter(([, x]) => x.parent === k); return [link('job', k, j.thai, j.color), esc(j.role || ''), sub.map(([kk, x]) => link('job', kk, x.thai, x.color)).join(', '), sub.flatMap(([kk]) => Object.entries(JOBS).filter(([, y]) => y.parent === kk)).map(([k3, y]) => link('job', k3, y.thai, y.color)).join(', ') || '-']; })) +
     P('ดูสกิลทั้งหมดของแต่ละอาชีพได้ที่แท็บ "อาชีพ & สกิล"') },
   { id: 'refine', title: '🔨 การตีบวก', sub: '+1 ถึง +10 · หินกันแตก · หินนำโชค', html: () =>
     P('ตีบวกได้ที่ <b>ช่างตีเหล็ก</b> (โรงตีเหล็กการ์ธในเมือง) · ใช้ <b>ผลึกตีบวกอาวุธ</b> สำหรับอาวุธ และ <b>ผลึกตีบวกเกราะ</b> สำหรับหมวก/ชุด/โล่/ผ้าคลุม/รองเท้า ครั้งละ 1 ก้อน + ค่าตี · เครื่องประดับตีไม่ได้') +
-    table(['ขั้น', 'โอกาสสำเร็จ', 'ค่าตี', 'ถ้าล้มเหลว'], Array.from({ length: REFINE_MAX }, (_, i) => { const n = i + 1; return [`+${n}`, `${REFINE_RATE[n]}%${n > SAFE_LIMIT ? ` <small class="wk-good">(${Math.min(100, REFINE_RATE[n] + LUCK_BONUS)}% ด้วยหินนำโชค)</small>` : ''}`, fmt(refineFee(n)) + ' z', n <= SAFE_LIMIT ? 'ไม่เสียอะไร (สำเร็จแน่นอน)' : n >= BREAK_FROM ? '<span class="wk-bad">อุปกรณ์แตกหาย!</span>' : 'ระดับลดลง 1']; })) +
+    table(['ขั้น', 'โอกาสสำเร็จ', 'ค่าตี', 'ถ้าล้มเหลว'], Array.from({ length: REFINE_MAX }, (_, i) => { const n = i + 1; return [`+${n}`, `${REFINE_RATE[n]}%${n > SAFE_LIMIT ? ` <small class="wk-good">(${boostedRate(REFINE_RATE[n], LUCK_BONUS)}% ด้วยหินนำโชค)</small>` : ''}`, fmt(refineFee(n)) + ' z', n <= SAFE_LIMIT ? 'ไม่เสียอะไร (สำเร็จแน่นอน)' : n >= BREAK_FROM ? '<span class="wk-bad">อุปกรณ์แตกหาย!</span>' : 'ระดับลดลง 1']; })) +
     `<h4>หินช่วยตีบวก</h4>` + UL([
       `${itemLink('refine_guard')} — ใช้ตอนตี +${BREAK_FROM} ขึ้นไป ถ้าล้มเหลวของ <b>ไม่แตก</b> (แต่ระดับยังลด 1)`,
-      `${itemLink('refine_luck')} — ใช้ตอนตี +${SAFE_LIMIT + 1} ขึ้นไป โอกาสสำเร็จ <b>+${LUCK_BONUS}%</b> (รวมแล้วไม่เกิน 80%)`,
-      'ใช้ทั้งสองอย่างพร้อมกันได้ · หาได้จากร้านเพชร, ดรอปจากมอนทุกตัว (โอกาสต่ำ), MVP, บอสโลก, ดันเจี้ยน และเควสต์',
+      `${itemLink('refine_luck')} — ใช้ตอนตี +${SAFE_LIMIT + 1} ขึ้นไป โอกาสสำเร็จ <b>+${LUCK_BONUS}%</b> (รวมแล้วไม่เกิน ${LUCK_CAP}%)`,
+      'ใช้ทั้งสองอย่างพร้อมกันได้ · หาได้จากร้านเพชร, ดรอปจากมอนทุกตัว (โอกาสต่ำมาก), MVP (2–3%), บอสโลก (หินนำโชคเฉพาะดาเมจอันดับ 1), ดันเจี้ยน และเควสต์',
       'สัตว์เลี้ยงกิเลน "เทียนหยุน" เพิ่มโอกาสตี +5 ขึ้นไปอีก 5%',
     ]) +
     `<h4>โบนัสจากการตีบวก</h4>` + UL(['อาวุธ: ATK เพิ่มทุกขั้น (ยิ่งหายากยิ่งเพิ่มมาก) และตั้งแต่ +8 ได้เพิ่มเป็นสองเท่าต่อขั้น · ไม้เท้าได้ MATK ด้วย', 'ชุดเกราะ: DEF +1 ต่อขั้น · ชุดตั้งแต่ +5 ได้ MDEF · ตั้งแต่ +8 ได้ Max HP เพิ่ม', 'ดูตารางโบนัส +1~+10 ของอุปกรณ์แต่ละชิ้นได้ในแท็บ "อุปกรณ์"']) +
@@ -402,20 +406,20 @@ const GUIDES = [
   { id: 'auto', title: '🤖 ล่าอัตโนมัติ', sub: 'บอทในตัวเกม', html: () =>
     UL(['กด ' + K('Z') + ' เริ่ม/หยุด · ' + K('H') + ' ตั้งค่า', 'เลือกมอนที่จะล่า ระยะการล่า สกิลที่ใช้ และใช้ยาเมื่อ HP/SP ต่ำกว่ากี่ %', 'บอทจะหยุดเองเมื่อยาหมดหรือกระเป๋าเต็ม (VIP: ซื้อยาเติมให้อัตโนมัติ)', 'ใช้คู่กับสัตว์เลี้ยงเก็บของ จะเก็บเลเวลได้สบายมาก']) },
   { id: 'economy', title: '💰 Zeny · ร้านค้า · ตลาด · เทรด', sub: 'หาเงิน ซื้อขาย แลกของ', html: () =>
-    UL([`ขายของให้ร้านค้า NPC ได้ ${Math.round(SELL_RATE * 100)}% ของราคา`, `คลังเก็บของ (NPC) เก็บได้ ${STORAGE_CAPACITY} ช่อง ใช้ร่วมได้`, '<b>ตลาด</b> (นายตลาดในเมือง): ฝากขายได้แม้ออฟไลน์ อยู่ 7 วัน มีคนซื้อเงินเข้าทันที · คนทั่วไปลงได้ 2 รายการ ค่าธรรมเนียม 7% · VIP 5 รายการ 3%', '<b>แลกเปลี่ยน</b>: คลิกผู้เล่น → แลกเปลี่ยน วางของ/Zeny แล้วทั้งคู่กดยืนยัน · ให้ของฝ่ายเดียวได้', 'ของจากร้านเพชรบางชิ้นซื้อขายในตลาดได้ — หาเพชรได้โดยไม่ต้องเติมเงิน', '<b>ตลาดแลกเพชร</b> (ปุ่ม "แลกเพชร" ด้านบน): ซื้อ/ขายเพชรกับผู้เล่นด้วย Zeny ได้ทุกที่ · ซื้อขายทันทีหรือตั้งราคารอ · มีกราฟราคาและความลึกตลาด · ค่าธรรมเนียมฝั่งละ 7% (VIP 3%)', 'Zeny หายาก: ขายของให้ NPC ได้น้อย — ของดีควรขายผ่านตลาดให้ผู้เล่น']) },
+    UL([`ขายของให้ร้านค้า NPC ได้ ${Math.round(SELL_RATE * 100)}% ของราคา (อุปกรณ์/อาวุธ ${Math.round(SELL_RATE_EQUIP * 100)}%)`, `คลังเก็บของ (NPC) เก็บได้ ${STORAGE_CAPACITY} ช่อง ใช้ร่วมได้`, '<b>ตลาด</b> (นายตลาดในเมือง): ฝากขายได้แม้ออฟไลน์ อยู่ 7 วัน มีคนซื้อเงินเข้าทันที · คนทั่วไปลงได้ 2 รายการ ค่าธรรมเนียม 7% · VIP 5 รายการ 3%', '<b>แลกเปลี่ยน</b>: คลิกผู้เล่น → แลกเปลี่ยน วางของ/Zeny แล้วทั้งคู่กดยืนยัน · ให้ของฝ่ายเดียวได้', 'ของจากร้านเพชรบางชิ้นซื้อขายในตลาดได้ — หาเพชรได้โดยไม่ต้องเติมเงิน', '<b>ตลาดแลกเพชร</b> (ปุ่ม "แลกเพชร" ด้านบน): ซื้อ/ขายเพชรกับผู้เล่นด้วย Zeny ได้ทุกที่ · ซื้อขายทันทีหรือตั้งราคารอ · มีกราฟราคาและความลึกตลาด · ค่าธรรมเนียมฝั่งละ 7% (VIP 3%)', 'Zeny หายาก: ขายของให้ NPC ได้น้อย — ของดีควรขายผ่านตลาดให้ผู้เล่น']) },
   { id: 'boss', title: '👹 บอสโลก & MVP', sub: 'เวลาเกิด · รางวัล', html: () =>
     `<h4>บอสโลก</h4>` + table(['บอส', 'เวลาเกิด (ไทย)', 'แผนที่', 'HP'], Object.values(WORLD_BOSSES).map((b) => [esc(b.name), `${b.hour}:00 น. (อยู่ 30 นาที)`, mapLink(b.map), fmt(b.hp)])) +
-    UL([`ทุกคนที่ตีโดนได้รางวัลทางจดหมาย · ดาเมจอันดับ 1–3 ได้โบนัสเพิ่ม · มีโอกาส ${Math.round(((Object.values(WORLD_BOSSES)[0] || {}).reward?.chance?.p || 0) * 100)}% ได้อาวุธพิเศษ · เซิร์ฟเวอร์รับดาเมจไม่เกิน 15,000 ต่อครั้ง ต้องช่วยกันหลายคน`, 'กดปุ่ม "บอส" ด้านบนเพื่อดูเวลาที่เหลือและรางวัล']) +
-    `<h4>บอส MVP</h4>` + UL(['<b>MVP ร่วม:</b> ทุกคนในแผนที่เห็นและตี MVP ตัวเดียวกัน เลือดลดพร้อมกัน — ชวนเพื่อนมารุมได้', 'แต่ละแผนที่มี MVP ประจำ 1 ตัว สุ่มจุดเกิดทั่วแผนที่ · ยืนประจำจุดที่เกิด · เกิดใหม่ตามเวลา (ดูเวลาที่ปุ่ม "บอส")', 'ปราบแล้ว: ทุกคนที่ทำดาเมจ ≥1% ได้ EXP ตามสัดส่วนดาเมจ (ขั้นต่ำ 30% ของ EXP เต็ม) และสุ่มของดรอปของตัวเอง', 'ดาเมจ <b>อันดับ 1</b> = MVP ลุ้นรางวัล MVP ประจำอาชีพ 25% + โอกาสดรอปเต็ม · อันดับอื่นได้โอกาสดรอปครึ่งหนึ่ง', 'MVP ดรอปของดีและหินตีบวกบ่อยกว่ามอนปกติ', '<b>การ์ด MVP</b> หายากมาก (0.02% ต่อการปราบ) ลุ้นได้เฉพาะคนที่ได้ MVP · ซื้อขายกันได้ในตลาด']) },
+    UL([`ทุกคนที่ตีโดนได้รางวัลทางจดหมาย · ดาเมจอันดับ 1–3 ได้โบนัสเพิ่ม (หินนำโชคเฉพาะอันดับ 1) · เลือดเยอะและตีแรงมาก ต้องรวมกลุ่มตี · มีโอกาส ${Math.round(((Object.values(WORLD_BOSSES)[0] || {}).reward?.chance?.p || 0) * 100)}% ได้อาวุธพิเศษ · เซิร์ฟเวอร์รับดาเมจไม่เกิน 15,000 ต่อครั้ง ต้องช่วยกันหลายคน`, 'กดปุ่ม "บอส" ด้านบนเพื่อดูเวลาที่เหลือและรางวัล']) +
+    `<h4>บอส MVP</h4>` + UL(['<b>MVP ร่วม:</b> ทุกคนในแผนที่เห็นและตี MVP ตัวเดียวกัน เลือดลดพร้อมกัน — ชวนเพื่อนมารุมได้', 'แต่ละแผนที่มี MVP ประจำ 1 ตัว สุ่มจุดเกิดทั่วแผนที่ · ยืนประจำจุดที่เกิด · <b>เกิดใหม่ 2 ชั่วโมงหลังถูกปราบ</b> (ดูเวลาที่ปุ่ม "บอส")', '<b>MVP อึดและตีแรงมาก</b> — แนะนำให้ไปเป็นปาร์ตี้ พกยาและ ' + itemLink('phoenix_feather') + ' ไปด้วย', 'ปราบแล้ว: ทุกคนที่ทำดาเมจ ≥1% ได้ EXP ตามสัดส่วนดาเมจ (ขั้นต่ำ 30% ของ EXP เต็ม) และสุ่มของดรอปของตัวเอง', 'ดาเมจ <b>อันดับ 1</b> = MVP ลุ้นรางวัล MVP ประจำอาชีพ 25% + โอกาสดรอปเต็ม · อันดับอื่นได้โอกาสดรอปครึ่งหนึ่ง', 'MVP ดรอปของดีและหินตีบวกบ่อยกว่ามอนปกติ (หินนำโชค 2% · คริสตัลพิทักษ์ 3%)', '<b>การ์ด MVP</b> หายากมาก (0.02% ต่อการปราบ) ลุ้นได้เฉพาะคนที่ได้ MVP · ซื้อขายกันได้ในตลาด']) },
   { id: 'dungeon', title: '🏰 ดันเจี้ยน & หอคอย', sub: 'เนื้อหาท้าทาย', html: () =>
-    UL([`<b>${esc(CAVE.name)}</b> — ${CAVE.floors} ชั้น · เข้าได้วันละ ${CAVE.daily} รอบ · Lv.${CAVE.minLv}+ · มอนและบอสปรับเลเวลตามผู้เล่น ชั้นสุดท้ายมีหีบรางวัล`, `<b>${esc(TOWER.name)}</b> — Lv.${TOWER.minLv}+ ไต่ขึ้นไปเรื่อย ๆ ไม่มีที่สิ้นสุด · มีเวลาจำกัดต่อชั้น · จุดเซฟทุก ${TOWER.checkpoint} ชั้น · ทุก 5/10/25 ชั้นได้รางวัลพิเศษ`, 'เข้าได้จาก NPC ในเมือง']) },
+    UL([`<b>${esc(CAVE.name)}</b> — ${CAVE.floors} ชั้น · เข้าได้วันละ ${CAVE.daily} รอบ · Lv.${CAVE.minLv}+ · มอนและบอสปรับเลเวลตามผู้เล่น ชั้นสุดท้ายมีหีบรางวัล`, `<b>${esc(TOWER.name)}</b> — Lv.${TOWER.minLv}+ ไต่ขึ้นไปเรื่อย ๆ ไม่มีที่สิ้นสุด · มีเวลาจำกัดต่อชั้น (${Math.round(TOWER.time / 60)} นาที · ชั้นบอส ${Math.round(TOWER.bossTime / 60)} นาที) · จุดเซฟทุก ${TOWER.checkpoint} ชั้น · ทุก 5/10/25 ชั้นได้รางวัลพิเศษ`, '<b>ความยาก:</b> มอนในถ้ำและหอคอยเลือด ×5 ตีแรง ×2 · บอสท้ายชั้นอึดกว่ามอนธรรมดาหลายเท่า — อัปอุปกรณ์และพกยาให้พร้อม', 'เข้าได้จาก NPC ในเมือง']) },
   { id: 'daily', title: '📜 ภารกิจรายวัน', sub: 'ปุ่ม "ภารกิจ" แถบบน · รีเซ็ตทุกเที่ยงคืน', html: () =>
     `<h4>วิธีเล่น</h4>` + UL([`กดปุ่ม <b>ภารกิจ</b> (ม้วนคัมภีร์) ที่แถบไอคอนด้านบน · ได้ภารกิจวันละ <b>${DAILY_COUNT}</b> อย่าง สุ่มตามเลเวล (ข้อแรกเป็นงานล่ามอนเสมอ)`, 'ทำไปเรื่อย ๆ ความคืบหน้านับเอง · ทำเสร็จกด <b>รับรางวัล</b> ทีละข้อ · ตัวเลขแดงบนปุ่มบอกว่ามีรางวัลรอรับ', `ไม่ชอบภารกิจไหน กด <b>↻ เปลี่ยน</b> ได้วันละ ${DAILY_REROLLS} ครั้ง (เฉพาะข้อที่ยังไม่เสร็จ)`, 'รีเซ็ตเที่ยงคืนเวลาไทย (ใช้เวลาเซิร์ฟเวอร์ เลื่อนนาฬิกาเครื่องไม่ได้ผล)']) +
     `<h4>ภารกิจที่สุ่มได้</h4>` + table(['', 'ภารกิจ', 'เลเวล'], Object.values(DAILY_TASKS).map((t) => [t.icon, `<b>${esc(t.name)}</b>`, t.minLv ? `Lv.${t.minLv}+${t.online ? ' · ออนไลน์' : ''}` : 'ทุกเลเวล'])) +
-    `<h4>รางวัล</h4>` + UL(['ต่อข้อ: EXP 3% ของหลอดเลเวล + Zeny', 'ทำครบทุกข้อ เปิด <b>กล่องรางวัล</b>: EXP 6% + Zeny + ผลึกตีบวกอาวุธ/เกราะ + ยา (Lv.60+ ได้นมผึ้งหลวง)', `ทำครบต่อเนื่องทุก ${DAILY_STREAK_BIG} วัน ได้ <b>กล่องใหญ่</b> เพิ่มคริสตัลพิทักษ์ + หินนำโชค · ขาดวันเดียวนับใหม่`]) },
+    `<h4>รางวัล</h4>` + UL(['ต่อข้อ: EXP 3% ของหลอดเลเวล + Zeny', 'ทำครบทุกข้อ เปิด <b>กล่องรางวัล</b>: EXP 6% + Zeny + ผลึกตีบวกอาวุธ/เกราะ + ยา (Lv.60+ ได้นมผึ้งหลวง)', `ทำครบต่อเนื่องทุก ${DAILY_STREAK_BIG} วัน ได้ <b>กล่องใหญ่</b> เพิ่มคริสตัลพิทักษ์ · ขาดวันเดียวนับใหม่`]) },
   { id: 'partydg', title: `🌙 ดันเจี้ยนปาร์ตี้ · ${PD.name}`, sub: `เล่นร่วมกัน ${PD.minPlayers}–${PD.maxPlayers} คน · สัปดาห์ละ ${PD.weekly} รอบ`, html: () =>
     `<h4>วิธีเข้า</h4>` + UL(['ตั้งปาร์ตี้ (คลิกผู้เล่น → ชวนเข้าปาร์ตี้ หรือหน้าต่างผู้เล่นออนไลน์ 👥)', `ให้เพื่อนในปาร์ตี้อยู่แผนที่เดียวกันอย่างน้อย ${PD.minPlayers} คน · ทุกคน Base Lv.${PD.minLv}+`, '<b>หัวหน้าปาร์ตี้</b> คุยกับ <b>บรอม</b> ในเมือง → "ดันเจี้ยนปาร์ตี้ · วิหารผนึกจันทรา" → <b>เปิดวิหาร</b>', `เพื่อนจะเด้งคำเชิญ กด <b>เข้าร่วม</b> ภายใน ${PD.joinWindow} วินาทีหลังบอสตื่น (มีเวลาเตรียมตัว ${PD.prep} วินาที)`, 'หลุด/หมดสติ กลับเข้าได้ที่บรอม → "กลับเข้าวิหาร" ถ้ารอบยังไม่จบ']) +
-    `<h4>การต่อสู้</h4>` + UL(['ทุกคนตีบอสตัวเดียวกัน เลือดบอสเก็บที่เซิร์ฟเวอร์ · เลือดเพิ่มตามจำนวนคน · เลเวลบอส = เลเวลหัวหน้า', '<b>วงม่วงกระจาย</b> (ทุก 10 วิ): เดินออกจากวงก่อนระเบิด', '<b>ตราแยก</b> (ตราม่วงบนหัวใครสักคน): คนนั้นต้องเดินออกห่าง คนอื่นอย่ายืนใกล้', '<b>ตราแบ่งรับ</b> (ตราทอง): ทุกคนเข้าไปยืนรวมกับคนที่โดน ดาเมจหารตามจำนวนคน — ยืนคนเดียวเจ็บมาก', `${Math.round(PD.enrage / 60)} นาทีขึ้นไปบอสคลั่ง · ครบ ${Math.round(PD.time / 60)} นาทีถือว่าล้มเหลว (ไม่เสียโควตา)`, 'สายฮีลช่วยได้มาก — ฮีล/บัฟถึงเพื่อนในปาร์ตี้']) +
+    `<h4>การต่อสู้</h4>` + UL(['ทุกคนตีบอสตัวเดียวกัน เลือดบอสเก็บที่เซิร์ฟเวอร์ · เลือดเพิ่มตามจำนวนคน · เลเวลบอส = เลเวลหัวหน้า · <b>บอสอึดและตีแรงมาก</b> ต้องช่วยกันจริงจัง', '<b>วงม่วงกระจาย</b> (ทุก 10 วิ): เดินออกจากวงก่อนระเบิด', '<b>ตราแยก</b> (ตราม่วงบนหัวใครสักคน): คนนั้นต้องเดินออกห่าง คนอื่นอย่ายืนใกล้', '<b>ตราแบ่งรับ</b> (ตราทอง): ทุกคนเข้าไปยืนรวมกับคนที่โดน ดาเมจหารตามจำนวนคน — ยืนคนเดียวเจ็บมาก', `${Math.round(PD.enrage / 60)} นาทีขึ้นไปบอสคลั่ง · ครบ ${Math.round(PD.time / 60)} นาทีถือว่าล้มเหลว (ไม่เสียโควตา)`, 'สายฮีลช่วยได้มาก — ฮีล/บัฟถึงเพื่อนในปาร์ตี้']) +
     `<h4>รางวัล</h4>` + UL([`${esc(PD_REWARD_TEXT)} + EXP บอส · ส่งทางจดหมาย`, `ต้องมีผู้ทำดาเมจอย่างน้อย ${PD.minPlayers} คน · ได้รางวัลสัปดาห์ละ ${PD.weekly} รอบต่อบัญชี (รีเซ็ตวันจันทร์)`, 'เหรียญผนึกแลกเปลี่ยน/ลงตลาดไม่ได้']) +
     `<h4>ร้านแลกเหรียญผนึก (บรอม)</h4>` + table(['ของ', 'จำนวน', 'เหรียญ'], PD_SHOP.filter((x) => ITEMS[x.id]).map((x) => [itemLink(x.id), '×' + x.n, x.cost])) },
   { id: 'season', title: '🏆 อันดับประจำฤดูกาล', sub: 'ปุ่ม "อันดับ" · รีเซ็ตทุกเดือน', html: () =>
@@ -430,7 +434,7 @@ const GUIDES = [
     return UL(['<b>นิรันดร์กาล · รุ้งสุริยา</b> = เกรดสูงสุดในเกม (เหนือเทพสวรรค์) · <b>ได้จากการหลอมเท่านั้น</b>', 'ใส่ได้ Base Lv.145+ · ชุดละ 7 ชิ้นต่อสายอาชีพ (อาวุธ มือรอง หัว ชุด ผ้าคลุม รองเท้า แหวน) · อาชีพขั้น 2 ใช้ชุดสายตัวเองได้', 'ค่าพลังตายตัวสูงสุด (ไม่มีค่าสุ่ม) · ตีบวก/ใส่การ์ดได้ · โบนัสเซ็ต 2/4/6 ชิ้น', 'หลอมที่ <b>การ์ธ</b> (ช่างตีเหล็ก) → "✦ หลอมอุปกรณ์นิรันดร์กาล" · ซื้อขายในตลาดได้']) +
       `<h4>4 เซ็ตประจำสาย</h4>` + table(['สาย', 'เซ็ต', 'อาวุธ'], Object.entries(ETERNAL_LINES).map(([k, L]) => [`${L.icon} ${esc((JOBS[L.job] || {}).name || L.job)} / ${esc((JOBS[L.job2] || {}).name || L.job2)}`, `<b>${esc(L.name)}</b>`, itemLink(eternalId(k, 'weapon'))])) +
       `<h4>สูตรหลอม</h4>` + table(['', 'อาวุธ', 'เกราะ/มือรอง 1 ชิ้น'], [['ฐาน', 'อาวุธเทพสวรรค์ของสาย', 'อุปกรณ์เทพสวรรค์ช่องเดียวกัน'], ...W.mats.map(([id, n], i) => [itemLink(id), '×' + n, '×' + A.mats[i][1]]), ['Zeny', fmt(W.zeny), fmt(A.zeny)], ['<b>โอกาสสำเร็จ</b>', `<b>${Math.round(W.rate * 100)}%</b>`, `<b>${Math.round(A.rate * 100)}%</b>`]]) +
-      UL([`ใช้ ${nm('refine_luck')} เพิ่มโอกาสได้ก้อนละ +${Math.round(LUCK_STEP * 100)}% (สูงสุด ${LUCK_MAX} ก้อน)`, '<b>ล้มเหลว</b> = เสียวัตถุดิบและ Zeny ทั้งหมด (อุปกรณ์ฐานยังอยู่) · <b>สำเร็จ</b> = ฐานถูกใช้ไป (ระดับตีบวก/การ์ดของฐานหาย · เลือกชิ้นที่ตีบวกน้อยสุดให้อัตโนมัติ)']) +
+      UL([`ใช้ ${nm('refine_luck')} เพิ่มโอกาสได้ก้อนละ +${Math.round(LUCK_STEP * 100)}% (สูงสุด ${LUCK_MAX} ก้อน · รวมแล้วไม่เกิน 80%)`, '<b>ล้มเหลว</b> = เสียวัตถุดิบและ Zeny ทั้งหมด (อุปกรณ์ฐานยังอยู่) · <b>สำเร็จ</b> = ฐานถูกใช้ไป (ระดับตีบวก/การ์ดของฐานหาย · เลือกชิ้นที่ตีบวกน้อยสุดให้อัตโนมัติ)']) +
       `<h4>หา${esc(nm('eternal_shard'))}</h4>` + UL([`มอนปกติใน ${mapLink(SHARD_DROPS.mapMobs)} (หายากมาก)`, ...Object.entries(SHARD_DROPS.mvp).map(([m, p]) => `MVP ${MONSTERS[m] ? esc(MONSTERS[m].name) : m} ${Math.round(p * 100)}% (ดาเมจอันดับ 1 ได้โอกาสเต็ม)`), `ร้านเหรียญผนึก (บรอม) ${(PD_SHOP.find((x) => x.id === 'eternal_shard') || {}).cost || '-'} เหรียญ`]);
   } },
   { id: 'arena', title: `⚔ ${AR.name} (อารีน่า PvP)`, sub: 'ปุ่ม "อารีน่า" แถบบน · ดวล 1v1 · ทีม 3v3', html: () =>

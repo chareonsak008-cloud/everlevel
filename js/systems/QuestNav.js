@@ -2,18 +2,27 @@
 // · ส่งเควสได้แล้ว → NPC ที่รับส่ง · ล่ามอน → จุดเกิด/ตัวที่ใกล้ที่สุด · เก็บของ → มอนที่ดรอปของนั้น · ไปแผนที่ → แผนที่นั้น
 // · เป้าหมายอยู่แผนที่อื่น → ชี้ประตูวาร์ปที่พาไปทางนั้น (หาเส้นทางสั้นสุดผ่านประตูของแต่ละแผนที่)
 // · ไม่มีเควสที่ทำอยู่ → ไม่แสดงลูกศร (v0.40.1) · เปิด/ปิดได้ที่ปุ่ม 🧭 บนแถบติดตามเควส
-import { QUESTS } from '../data/quests.js?v=0.85.0';
-import { MAPS } from '../data/maps/index.js?v=0.85.0';
-import { MONSTERS } from '../data/monsters.js?v=0.85.0';
-import { THREE } from '../render/three.js?v=0.85.0';
-import { TILE } from '../config.js?v=0.85.0';
+import { QUESTS } from '../data/quests.js?v=0.86.0';
+import { MAPS } from '../data/maps/index.js?v=0.86.0';
+import { MONSTERS } from '../data/monsters.js?v=0.86.0';
+import { THREE } from '../render/three.js?v=0.86.0';
+import { TILE } from '../config.js?v=0.86.0';
+import { WARP_ROUTES } from '../data/shops.js?v=0.86.0';
 
 let IDX = null;
 function index() {
   if (IDX) return IDX;
-  const npc = {}, mob = {}, drop = {};
+  const npc = {}, mob = {}, drop = {}, warps = {}, svc = {};
   for (const [mid, M] of Object.entries(MAPS)) {
-    for (const n of M.npcs || []) npc[n.id] = { map: mid, x: (n.x + 0.5) * TILE, y: (n.y + 0.5) * TILE, name: n.name };
+    for (const n of M.npcs || []) {
+      const N = { map: mid, x: (n.x + 0.5) * TILE, y: (n.y + 0.5) * TILE, name: n.name, id: n.id };
+      npc[n.id] = N;
+      const sv = n.service || {};
+      // v0.86 นักเวทย์วาร์ป: แผนที่ที่วาร์ปไปได้จาก NPC ตัวนี้
+      if (sv.type === 'warp') for (const r of WARP_ROUTES[sv.routes] || []) if (MAPS[r.map] && r.map !== mid) (warps[mid] ||= []).push({ to: r.map, npc: N });
+      if (sv.type && !(sv.type in svc)) svc[sv.type] = N;
+      if (sv.refine && !svc.refine) svc.refine = N;
+    }
     for (const s of M.spawns || []) {
       const a = (s.areas || [])[0];
       if (!a) continue;
@@ -21,25 +30,32 @@ function index() {
     }
   }
   for (const [id, m] of Object.entries(MONSTERS)) for (const [it] of m.drops || []) (drop[it] ||= []).push(id);
-  IDX = { npc, mob, drop };
+  IDX = { npc, mob, drop, warps, svc };
   return IDX;
 }
 
-// เส้นทางผ่านประตู: คืนประตูแรกบนแผนที่ปัจจุบันที่พาไปสู่แผนที่เป้าหมาย (หรือ null)
-function firstPortal(from, to) {
+// v0.86 เส้นทางไปแผนที่เป้าหมาย: เดินผ่านประตู หรือคุยกับนักเวทย์วาร์ป (แผนที่ที่ไปได้ทางวาร์ปอย่างเดียวก็นำทางได้)
+// คืนขั้นแรกบนแผนที่ปัจจุบัน { portal } | { npc, to } หรือ null
+function edges(m) {
+  const out = [];
+  for (const p of (MAPS[m] && MAPS[m].portals) || []) if (MAPS[p.to]) out.push({ to: p.to, portal: p });
+  for (const w of index().warps[m] || []) out.push({ to: w.to, npc: w.npc });
+  return out;
+}
+function firstStep(from, to) {
   if (from === to) return null;
   const prev = { [from]: null }, q = [from];
   while (q.length) {
     const cur = q.shift();
-    for (const p of (MAPS[cur] && MAPS[cur].portals) || []) {
-      if (!MAPS[p.to] || p.to in prev) continue;
-      prev[p.to] = { from: cur, portal: p };
-      if (p.to === to) {
+    for (const e of edges(cur)) {
+      if (e.to in prev) continue;
+      prev[e.to] = { from: cur, e };
+      if (e.to === to) {
         let step = prev[to];
         while (step.from !== from) step = prev[step.from];
-        return step.portal;
+        return step.e;
       }
-      q.push(p.to);
+      q.push(e.to);
     }
   }
   return null;
@@ -49,7 +65,7 @@ function hops(from, to) {
   const seen = new Set([from]); let fr = [from], d = 0;
   while (fr.length) {
     d++; const nx = [];
-    for (const m of fr) for (const p of (MAPS[m] && MAPS[m].portals) || []) if (MAPS[p.to] && !seen.has(p.to)) { if (p.to === to) return d; seen.add(p.to); nx.push(p.to); }
+    for (const m of fr) for (const e of edges(m)) if (!seen.has(e.to)) { if (e.to === to) return d; seen.add(e.to); nx.push(e.to); }
     fr = nx;
   }
   return 99;
@@ -96,6 +112,15 @@ export class QuestNav {
     for (let i = 0; i < q.goals.length; i++) {
       const goal = q.goals[i];
       if (prog[i] && prog[i].done) continue;
+      // v0.86 เป้าหมายที่ไม่มีจุดบนแผนที่ → ชี้ NPC ที่เกี่ยวข้อง / มอนใกล้ตัว
+      if (goal.type === 'job' && I.svc.job) return npcGoal(I.svc.job.id, 'เปลี่ยนอาชีพที่');
+      if ((goal.type === 'refine' || goal.type === 'socket') && I.svc.refine) return npcGoal(I.svc.refine.id, goal.type === 'refine' ? 'ตีบวกที่' : 'ใส่การ์ดที่');
+      if (goal.type === 'hunt') {
+        const pl = g.player; let best = null, bd = Infinity;
+        for (const m of g.mobs ? g.mobs.list : []) if (!m.dead && !(m.data && (m.data.mvp || m.data.worldBoss))) { const d = Math.hypot(m.x - pl.x, m.y - pl.y); if (d < bd) { bd = d; best = m; } }
+        if (best) return { map: here, x: best.x, y: best.y, label: q.name, sub: `กำจัดมอนสเตอร์ ${prog[i].cur}/${prog[i].n}`, mob: true };
+        continue;
+      }
       if (goal.type === 'visit' && MAPS[goal.map]) { const M = MAPS[goal.map]; return { map: goal.map, x: M.width * TILE / 2, y: M.height * TILE / 2, label: q.name, sub: `ไปที่ ${M.name || goal.map}`, area: true }; }
       let mobs = null, verb = '';
       if (goal.type === 'kill') { mobs = [goal.mob]; verb = `กำจัด ${(MONSTERS[goal.mob] || {}).name || goal.mob} ${prog[i].cur}/${prog[i].n}`; }
@@ -125,14 +150,20 @@ export class QuestNav {
     const here = g.map.id, pl = g.player;
     let tx = G.x, ty = G.y, sub = G.sub;
     if (G.map !== here) {
-      if (!this.step) this.step = firstPortal(here, G.map) || 'none';
-      const p = this.step;
-      if (p === 'none') { this.el.hidden = true; return; }
-      tx = (p.x + p.w / 2) * TILE; ty = (p.y + p.h / 2) * TILE;
-      sub = `${G.sub} → ${MAPS[G.map].name || G.map} (ประตู ${p.label || MAPS[p.to].name || p.to})`;
+      if (!this.step) this.step = firstStep(here, G.map) || 'none';
+      const st = this.step;
+      if (st === 'none') { this.el.hidden = true; return; }
+      if (st.portal) {
+        const p = st.portal;
+        tx = (p.x + p.w / 2) * TILE; ty = (p.y + p.h / 2) * TILE;
+        sub = `${G.sub} → ${MAPS[G.map].name || G.map} (ประตู ${p.label || MAPS[p.to].name || p.to})`;
+      } else {   // v0.86 ต้องวาร์ปผ่าน NPC
+        tx = st.npc.x; ty = st.npc.y;
+        sub = `${G.sub} → ${MAPS[G.map].name || G.map} (วาร์ปที่ ${st.npc.name} → ${MAPS[st.to].name || st.to})`;
+      }
     }
     const dist = Math.hypot(tx - pl.x, ty - pl.y);
-    const near = G.map === here && dist < (G.area ? 6 : 2.2) * TILE;
+    const near = (G.map === here && dist < (G.area ? 6 : 2.2) * TILE) || (G.map !== here && this.step && this.step.npc && dist < 2.2 * TILE);
     if (near) { this.el.hidden = true; return; }
     // ฉายตำแหน่งตัวเรา + เป้าหมายลงจอ แล้วหมุนลูกศรตามทิศบนจอ (กล้องหมุนก็ยังชี้ถูก)
     const cam = g.gfx.camera, cw = g.gfx.cw || innerWidth, ch = g.gfx.ch || innerHeight;
