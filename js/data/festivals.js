@@ -59,7 +59,7 @@ export const FEST_SHOP = [
   { id: 'phoenix_feather', n: 1, cost: 5 },
   { id: 'box_silver', n: 1, cost: 6 },
   { id: 'egg_moon', n: 1, cost: 12 },
-  { id: 'refine_luck', n: 1, cost: 30 },
+  { id: 'refine_luck', n: 1, cost: 90 },   // v0.85 แพงขึ้น
   { id: 'refine_guard', n: 1, cost: 30 },
   { id: 'box_gold', n: 1, cost: 40 },
 ];
@@ -84,7 +84,7 @@ const boss = (name, model, color, token, extra = {}) => ({
   speed: 34, attackDelay: 1.7, attackRange: 34, aggressive: true, aggroRange: 110, respawn: [600, 900],
   model, color, height: 2.4, radius: 0.9, modelScale: 2.2, leash: 20, hat: true, fest: true, festBoss: true,
   boss: { slam: { cd: [7, 10], radius: 2.6, windup: 1.3, mult: 1.4, knock: 2 }, roots: { cd: [9, 13], radius: 1.5, windup: 1.1, mult: 1.1, secs: 1.4 }, enrage: 0.3 },
-  drops: [...Array.from({ length: 12 }, () => [token, 1]), ...Array.from({ length: 8 }, () => [token, 0.5]), ['refine_w', 0.5], ['refine_a', 0.5], ['refine_luck', 0.03], ['refine_guard', 0.03]],
+  drops: [...Array.from({ length: 12 }, () => [token, 1]), ...Array.from({ length: 8 }, () => [token, 0.5]), ['refine_w', 0.5], ['refine_a', 0.5], ['refine_luck', 0.01], ['refine_guard', 0.03]],
   ...extra,
 });
 export const FEST_MONSTERS = {

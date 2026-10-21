@@ -6,8 +6,9 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.84.0';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.84.0';   // v0.31: อาชีพขั้นที่ 2 · v0.35: ชุดใหม่
+import { JOBS } from './progression.js?v=0.85.0';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.85.0';
+import { job3Skills, JOB3_PARTY } from './job3Skills.js?v=0.85.0';   // v0.85 อาชีพคลาส 3
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
@@ -257,11 +258,12 @@ export const SKILLS = {
 };
 
 Object.assign(SKILLS, JOB2_SKILLS);
+Object.assign(SKILLS, job3Skills(healAmount));   // v0.85
 
 // v0.65.2 ฮีล/บัฟ/โล่ของสายนักบวช ส่งถึงเพื่อนในปาร์ตี้ที่อยู่แมพเดียวกันในรัศมี (ช่อง) — Game.supportParty / Social.sendSupport
 // ลูกแสง/เมล็ดชีวิต (ดูดเลือดกลับตัวเอง) ไม่อยู่ในรายการ
 // v0.68 สายฮีลแยกโจมตี/ฮีลแล้ว → เฉพาะสกิลฮีล/บัฟ 4 สกิล (ไม้ตายเป็นโจมตีล้วน)
-export const PARTY_SUPPORT = { healing_pillar: 6, light_blessing: 6, healing_rain: 6, lotus_sanctuary: 5 };
+export const PARTY_SUPPORT = { healing_pillar: 6, light_blessing: 6, healing_rain: 6, lotus_sanctuary: 5, ...JOB3_PARTY };
 for (const [id, r] of Object.entries(PARTY_SUPPORT)) {
   const sk = SKILLS[id]; if (!sk) continue;
   sk.party = r;
@@ -278,7 +280,12 @@ export const skillCast = (sk, lv) => sval(sk.cast, lv) || 0;
 export const jobSkills = (job) => Object.keys(SKILLS).filter((id) => SKILLS[id].job === job);
 
 // สกิลที่อาชีพนี้เรียนได้ (อาชีพแรกเรียนสกิล Novice ได้ด้วย)
-export const skillTrees = (job) => (job === 'novice' ? ['novice'] : JOBS[job] && JOBS[job].parent ? ['novice', JOBS[job].parent, job] : ['novice', job]);   // v0.31: ขั้น 2 เรียนสกิลขั้น 1 ต่อได้
+export const skillTrees = (job) => {   // v0.31: ขั้น 2 เรียนสกิลขั้น 1 ต่อได้ · v0.85: คลาส 3 เรียนได้ทั้งสาย
+  if (job === 'novice' || !JOBS[job]) return ['novice'];
+  const line = [job]; let j = job;
+  while (JOBS[j] && JOBS[j].parent) { j = JOBS[j].parent; line.unshift(j); }
+  return ['novice', ...line];
+};   // v0.31: ขั้น 2 เรียนสกิลขั้น 1 ต่อได้
 
 export const KIND_NAME = { passive: 'ติดตัว', active: 'กดใช้' };
 export const jobName = (job) => (JOBS[job] || JOBS.novice).name;

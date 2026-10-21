@@ -53,6 +53,27 @@ export const JOBS = {
     jobStats: { int: 0.16, vit: 0.1, luk: 0.08, dex: 0.06 }, weapons: ['none', 'mace', 'staff'], gift: 'wpn_priest_scepter',
     role: 'บัวฟื้นชีพ ปราการแสง พิพากษาเทวทูต', desc: 'ผู้ได้รับพรจากเทวทูต ฟื้นฟูด้วยบัวทอง กางปราการแสงสวรรค์ ปักดาบพิพากษา และเรียกเทวทูตลงพิพากษาศัตรู',
   },
+  /* ---------- v0.85: อาชีพคลาส 3 (parent = อาชีพขั้นที่ 2 · ต้อง Base Lv.120 + Job Lv.50 ของขั้น 2 + ผ่านบททดสอบ) ---------- */
+  heroking: {
+    name: 'Sovereign', thai: 'ราชันย์คลังศาสตรา', crest: 'R', color: '#ffc838', parent: 'knight', tier: 3, maxJobLevel: 50, hp: 2.4, sp: 1.05, jobExp: 4.2,
+    jobStats: { str: 0.26, vit: 0.18, dex: 0.12, agi: 0.08 }, weapons: ['none', 'knife', 'sword', 'mace'],
+    role: 'ราชันย์ประตูทอง ห่าศาสตรา', desc: 'ราชันย์ผู้ครองคลังศาสตราทอง เปิดประตูวงเวทนับสิบยิงอาวุธนับร้อย ตรึงศัตรูด้วยโซ่ทอง และปลดปล่อยสว่านฟ้าฉีกพิภพ',
+  },
+  archmage: {
+    name: 'Archmage', thai: 'จอมเวทพันปี', crest: 'A', color: '#9ad4ff', parent: 'wizard', tier: 3, maxJobLevel: 50, hp: 1.05, sp: 3.6, jobExp: 4.2,
+    jobStats: { int: 0.3, dex: 0.16, agi: 0.06 }, weapons: ['none', 'knife', 'staff'],
+    role: 'ลำแสงเวทบริสุทธิ์ ปิดล้อมพันวงเวท', desc: 'จอมเวทยุคโบราณผู้ร่ายวงเวทเรขาคณิตขาวทอง ยิงลำแสงพิฆาต กางม่านหกเหลี่ยม เบ่งบานทุ่งดอกไม้รักษา และปิดล้อมศัตรูด้วยวงเวทนับพัน',
+  },
+  bladearcher: {
+    name: 'Bladeweaver', thai: 'นักธนูถักศาสตรา', crest: 'B', color: '#9ad8ff', parent: 'hunter', tier: 3, maxJobLevel: 50, hp: 1.55, sp: 1.8, jobExp: 4.2,
+    jobStats: { dex: 0.28, agi: 0.16, str: 0.08, luk: 0.06 }, weapons: ['none', 'knife', 'bow'],
+    role: 'ศาสตราเส้นแสง สมรภูมิพันศาสตรา', desc: 'นักธนูผู้ถักศาสตราจากเส้นแสงสีฟ้า ยิงศรเกลียวทะลวง ขว้างดาบคู่ขาวดำ กางม่านกลีบแสง และเปิดสมรภูมิที่มีดาบนับไม่ถ้วนปักทั่วทุ่ง',
+  },
+  goddess: {
+    name: 'Seraph', thai: 'เทพธิดาแห่งแสง', crest: 'S', color: '#ffd890', parent: 'priest', tier: 3, maxJobLevel: 50, hp: 1.6, sp: 3.0, jobExp: 4.2,
+    jobStats: { int: 0.2, vit: 0.14, luk: 0.1, dex: 0.08 }, weapons: ['none', 'mace', 'staff'],
+    role: 'แสงรักษา ปีกเทพธิดา พิพากษา', desc: 'เทพธิดาผู้มีปีกแสงหลายคู่ ชำระศัตรูด้วยลูกแสง โปรยขนนกพิพากษา รักษาเพื่อนทั้งปาร์ตี้ และตื่นรู้เป็นร่างเทพธิดาเต็มพลัง',
+  },
 };
 export const FIRST_JOBS = ['swordsman', 'mage', 'archer', 'acolyte'];
 export const JOB_CHANGE_JOB_LEVEL = 10;
@@ -60,17 +81,27 @@ export const JOB_CHANGE_JOB_LEVEL = 10;
 export const SECOND_JOBS = ['knight', 'wizard', 'hunter', 'priest'];
 export const SECOND_OF = { swordsman: 'knight', mage: 'wizard', archer: 'hunter', acolyte: 'priest' };
 export const JOB2_JOB_LEVEL = 40;
-export const parentJob = (job) => (JOBS[job] && JOBS[job].parent) || job;          // อาชีพขั้น 1 ของสายนี้
+// v0.85: อาชีพคลาส 3
+export const THIRD_JOBS = ['heroking', 'archmage', 'bladearcher', 'goddess'];
+export const THIRD_OF = { knight: 'heroking', wizard: 'archmage', hunter: 'bladearcher', priest: 'goddess' };
+export const JOB3_JOB_LEVEL = 50;     // Job Lv. ของอาชีพขั้น 2 ที่ต้องมี
+export const JOB3_BASE_LEVEL = 120;   // Base Lv. ที่ต้องมี
+// อาชีพขั้น 1 ของสายนี้ (คลาส 3 → ไล่ขึ้นไปจนถึงขั้น 1)
+export const parentJob = (job) => { let j = job; while (JOBS[j] && JOBS[j].parent) j = JOBS[j].parent; return j; };
+// สายอาชีพตั้งแต่ขั้น 1 ถึงอาชีพปัจจุบัน เช่น heroking → ['swordsman', 'knight', 'heroking']
+export const jobAncestry = (job) => { const out = [job]; let j = job; while (JOBS[j] && JOBS[j].parent) { j = JOBS[j].parent; out.unshift(j); } return out; };
 export const jobTier = (job) => (job === 'novice' || !JOBS[job] ? 0 : JOBS[job].tier || 1);
-export const isJobLine = (job, base) => job === base || parentJob(job) === base;  // อยู่ในสายอาชีพ base ไหม
+export const isJobLine = (job, base) => jobAncestry(job).includes(base);  // อยู่ในสายอาชีพ base ไหม
 
 // โบนัสสเตตัสจาก Job Level
-export function jobStatBonus(job, jobLevel, firstJobLevel = 0) {
+export function jobStatBonus(job, jobLevel, firstJobLevel = 0, secondJobLevel = 0) {
   const out = {};
-  for (const [k, r] of Object.entries((JOBS[job] || JOBS.novice).jobStats)) out[k] = Math.floor(jobLevel * r);
-  // v0.31: อาชีพขั้น 2 ได้โบนัสจาก Job Lv. ของอาชีพขั้น 1 ที่ฝึกมาแล้วด้วย
-  const par = JOBS[job] && JOBS[job].parent;
-  if (par && firstJobLevel > 0) for (const [k, r] of Object.entries(JOBS[par].jobStats)) out[k] = (out[k] || 0) + Math.floor(firstJobLevel * r);
+  const add = (j, lv) => { if (!JOBS[j] || !(lv > 0)) return; for (const [k, r] of Object.entries(JOBS[j].jobStats)) out[k] = (out[k] || 0) + Math.floor(lv * r); };
+  add(JOBS[job] ? job : 'novice', jobLevel);
+  // v0.31: อาชีพขั้น 2 ได้โบนัสจาก Job Lv. ของอาชีพขั้น 1 ที่ฝึกมาแล้วด้วย · v0.85: คลาส 3 ได้ทั้งขั้น 1 และขั้น 2
+  const line = jobAncestry(job);
+  if (line.length >= 2) add(line[0], firstJobLevel);
+  if (line.length >= 3) add(line[1], secondJobLevel);
   return out;
 }
 

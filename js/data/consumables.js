@@ -308,7 +308,7 @@ export const QUEST_EXTRA_REWARDS = {
   m11_glacia: [['bag_expand', 1], ['elixir', 2]],
   m13_fire_trial: [['flame_tonic', 3], ['exp_2', 1]],
   m14_scales: [['storage_expand', 1]],
-  m15_ignarok: [['bag_expand', 1], ['card_clover', 1], ['refine_luck', 2]],
+  m15_ignarok: [['bag_expand', 1], ['card_clover', 1], ['refine_luck', 1]],
   s2_first_card: [['card_clover', 1]],
   d_bloblet: [['warp_leaf', 3]],
   d_jelly: [['regen_candy', 2]],

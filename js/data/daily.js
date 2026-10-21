@@ -1,8 +1,8 @@
 // v0.74 กระดานภารกิจรายวัน — ข้อมูลภารกิจ (สุ่มวันละ 4 อย่าง · รีเซ็ตเที่ยงคืนเวลาไทย)
 // type = เหตุการณ์ที่นับความคืบหน้า (เรียก DailyBoard.bump(type, ...) จากระบบเกม)
 // n(lv) = จำนวนเป้าหมาย · minLv = เลเวลขั้นต่ำที่สุ่มเจอ · online = ต้องเล่นออนไลน์ (ปาร์ตี้)
-import { MAPS } from './maps/index.js?v=0.84.0';
-import { MONSTERS } from './monsters.js?v=0.84.0';
+import { MAPS } from './maps/index.js?v=0.85.0';
+import { MONSTERS } from './monsters.js?v=0.85.0';
 
 export const DAILY_COUNT = 4;          // ภารกิจต่อวัน
 export const DAILY_REROLLS = 1;        // เปลี่ยนภารกิจฟรีวันละกี่ครั้ง
@@ -24,7 +24,7 @@ export const DAILY_TASKS = {
 export const DAILY_REWARD = {
   task: (lv) => ({ expPct: 0.03, zeny: 2000 + lv * 300 }),
   bonus: (lv) => ({ expPct: 0.06, zeny: 5000 + lv * 500, items: [['refine_w', 1], ['refine_a', 1], ...(lv >= 60 ? [['royal_jelly', 2]] : [[lv >= 25 ? 'orange_potion' : 'red_potion', 10]])] }),
-  big: (lv) => ({ items: [['refine_guard', 1], ['refine_luck', 1], ...(lv >= 60 ? [['royal_jelly', 5]] : [])] }),
+  big: (lv) => ({ items: [['refine_guard', 1], ...(lv >= 60 ? [['royal_jelly', 5]] : [])] }),
 };
 
 // แผนที่ล่าที่เหมาะกับเลเวล (ช่วงเลเวลมอนปกติในแผนที่)

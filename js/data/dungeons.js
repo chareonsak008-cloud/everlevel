@@ -1,7 +1,7 @@
 // v0.32: ดันเจี้ยนถ้ำ + หอคอยไต่ชั้น — ข้อมูล · สูตรปรับความยากมอนสเตอร์ · สร้างแผนที่แต่ละชั้น (สุ่มตาม seed)
 // ปรับสมดุลได้จากไฟล์นี้ไฟล์เดียว
-import { ZENY_INCOME } from '../config.js?v=0.84.0';
-import { MONSTERS } from './monsters.js?v=0.84.0';
+import { ZENY_INCOME } from '../config.js?v=0.85.0';
+import { MONSTERS } from './monsters.js?v=0.85.0';
 
 /* ---------- ค่าหลัก ---------- */
 export const CAVE = {
@@ -10,13 +10,16 @@ export const CAVE = {
   daily: 3,             // เข้าได้กี่รอบต่อวัน
   minLv: 15,
   clearPct: 0.8,        // กำจัดมอนครบกี่ % แล้วบอสท้ายชั้นจะปรากฏ
-  elite: { hp: 1.6, atk: 1.12, exp: 1.6 },
-  boss: { hp: 14, atk: 1.3, exp: 12 }, finalBoss: { hp: 22, atk: 1.4, exp: 25 },
+  // v0.85 ยากขึ้น: มอนในถ้ำเลือด ×5 ตีแรง ×2 · บอสเลือด ×5 (ตีแรง ×2 มาจากค่าพื้นฐานของบอส MVP แล้ว)
+  elite: { hp: 8, atk: 2.24, exp: 1.6 },
+  boss: { hp: 70, atk: 1.3, exp: 12 }, finalBoss: { hp: 110, atk: 1.4, exp: 25 },
 };
 export const TOWER = {
   id: 'tower', name: 'หอคอยนิรันดร์', en: 'Endless Spire',
   minLv: 10,
-  time: 150, bossTime: 210,   // วินาทีต่อชั้น (ชั้นบอส)
+  time: 300, bossTime: 420,   // วินาทีต่อชั้น (ชั้นบอส) · v0.85 มอนอึดขึ้น 5 เท่า → ให้เวลา 2 เท่า
+  mob: { hp: 5, atk: 2 },     // v0.85 มอนในหอคอย เลือด ×5 ตีแรง ×2
+  bossHp: 5,                  // v0.85 บอสหอคอย เลือด ×5 (ตีแรง ×2 มาจากค่าพื้นฐานบอส MVP)
   checkpoint: 10,             // เริ่มใหม่จากชั้นเช็กพอยต์ได้ทุก 10 ชั้น
   heal: 0.25,                 // ผ่านชั้นแล้วฟื้น HP/SP กี่ %
 };
@@ -76,8 +79,8 @@ export function scaledData(type, L, mul = {}) {
 /* ---------- ของรางวัล ---------- */
 // ของตกจากมอนในดันเจี้ยน (ต่อตัว) · บอสท้ายชั้น · กล่องรางวัลเมื่อผ่านครบ
 export const CAVE_MOB_DROPS = [['refine_w', 0.03], ['refine_a', 0.03], ['white_potion', 0.06]];
-export const CAVE_BOSS_DROPS = [['refine_w', 0.7], ['refine_a', 0.7], ['refine_guard', 0.04], ['exp_15', 0.12], ['drop_15', 0.08], ['refine_luck', 0.03]];
-export const CAVE_FINAL_DROPS = [['refine_w', 1], ['refine_a', 1], ['refine_guard', 0.12], ['exp_2', 0.15], ['refine_luck', 0.12], ['card_clover', 0.04]];
+export const CAVE_BOSS_DROPS = [['refine_w', 0.7], ['refine_a', 0.7], ['refine_guard', 0.04], ['exp_15', 0.12], ['drop_15', 0.08], ['refine_luck', 0.01]];   // v0.85 หินนำโชค 3% → 1%
+export const CAVE_FINAL_DROPS = [['refine_w', 1], ['refine_a', 1], ['refine_guard', 0.06], ['exp_2', 0.15], ['refine_luck', 0.04], ['card_clover', 0.04]];   // v0.85 หินลดลง
 export function caveChest(lv) {
   return { zeny: Math.round((1500 + lv * 220) * ZENY_INCOME), items: [['refine_w', 2], ['refine_a', 2], ...(lv >= 50 ? [['refine_guard', 1]] : []), ['exp_15', 1]] };
 }
@@ -85,7 +88,8 @@ export function caveChest(lv) {
 export function towerFloorReward(floor) {
   const L = towerLevel(floor), items = [];
   if (floor % 5 === 0) items.push([floor % 10 === 0 ? 'refine_w' : 'refine_a', 1 + Math.floor(floor / 30)]);
-  if (floor % 10 === 0) items.push([floor >= 50 ? 'refine_luck' : 'refine_w', 1], [floor >= 30 ? 'exp_2' : 'exp_15', 1]);
+  if (floor % 10 === 0) items.push([floor >= 50 && floor % 20 === 0 ? 'refine_luck' : 'refine_w', 1],   // v0.85 หินนำโชคทุก 20 ชั้น
+    [floor >= 30 ? 'exp_2' : 'exp_15', 1]);
   if (floor % 25 === 0) items.push(['refine_guard', 1]);
   return { zeny: Math.round(40 * L * (floor % 10 === 0 ? 4 : floor % 5 === 0 ? 2 : 1) * ZENY_INCOME), items };
 }

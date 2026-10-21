@@ -3,12 +3,12 @@
 // attackDelay = วินาทีต่อการโจมตี 1 ครั้ง | respawn = [ต่ำสุด, สูงสุด] วินาที
 // baseExp / jobExp = EXP ที่ผู้เล่นได้เมื่อกำจัด
 // drops = [ไอเทม, โอกาสดรอป 0..1] สุ่มแยกกันทีละชิ้น
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.84.0';
-import { ASCEND_MONSTERS } from './ascendData.js?v=0.84.0';   // v0.46 Lv.100–150
-import { BASE_ITEMS } from './items.js?v=0.84.0';
-import { WEAPON_DEFS } from './weapons.js?v=0.84.0';
-import { OFFHAND_DROPS } from './offhand.js?v=0.84.0';
-import { FEST_MONSTERS } from './festivals.js?v=0.84.0';   // v0.79 มอนเทศกาล
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.85.0';
+import { ASCEND_MONSTERS } from './ascendData.js?v=0.85.0';   // v0.46 Lv.100–150
+import { BASE_ITEMS } from './items.js?v=0.85.0';
+import { WEAPON_DEFS } from './weapons.js?v=0.85.0';
+import { OFFHAND_DROPS } from './offhand.js?v=0.85.0';
+import { FEST_MONSTERS } from './festivals.js?v=0.85.0';   // v0.79 มอนเทศกาล
 export const MONSTERS = {
   ...ENDGAME_MONSTERS,
   ...ASCEND_MONSTERS,
@@ -166,3 +166,12 @@ MONSTERS.capling.drops.push(['hunter_bow', .06], ['chapel_mace', .05]);
 // v0.25: อาวุธใหม่ 48 ชิ้น — ดรอปตามตาราง drop ใน data/weapons.js
 for (const d of WEAPON_DEFS) for (const x of d.drop) if (MONSTERS[x.monster]) MONSTERS[x.monster].drops.push([d.id, x.rate]);
 for (const [mob, id, rate] of OFFHAND_DROPS) if (MONSTERS[mob]) MONSTERS[mob].drops.push([id, rate]);   // v0.25.2
+
+// v0.85 บอสยากขึ้น: MVP และบอสโลก เลือด ×5 · ตีแรง ×2 · MVP เกิดใหม่ทุก 2 ชั่วโมง (เลือด MVP/บอสโลกจริงอยู่ที่เซิร์ฟเวอร์ — supabase/update_v0.85.sql ตั้งให้ตรงกัน)
+export const BOSS_HARD = { hp: 5, atk: 2, mvpRespawn: 7200 };
+for (const m of Object.values(MONSTERS)) {
+  if (!m.mvp && !m.worldBoss) continue;
+  m.hp = Math.round(m.hp * BOSS_HARD.hp);
+  m.atk = m.atk.map((v) => Math.round(v * BOSS_HARD.atk));
+  if (m.mvp) m.respawn = [BOSS_HARD.mvpRespawn, BOSS_HARD.mvpRespawn];
+}

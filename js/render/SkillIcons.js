@@ -1,8 +1,8 @@
 // ไอคอนสกิล วาดด้วย Canvas: เหรียญสีประจำสกิล + สัญลักษณ์สีขาวตัดเส้นเข้ม
-import { SKILLS } from '../data/skills.js?v=0.84.0';
-import { shadeHex } from './Textures.js?v=0.84.0';
-import { PIXEL } from './PixelSprites.js?v=0.84.0';
-import { pixelizeCanvas } from './PixelArt.js?v=0.84.0';
+import { SKILLS } from '../data/skills.js?v=0.85.0';
+import { shadeHex } from './Textures.js?v=0.85.0';
+import { PIXEL } from './PixelSprites.js?v=0.85.0';
+import { pixelizeCanvas } from './PixelArt.js?v=0.85.0';
 
 const S = 64;
 const LINE = '#1c1222';
@@ -400,6 +400,124 @@ const DRAW = {
       glyph(g, (g) => { g.moveTo(x - 5, y + 34); g.lineTo(x + 5, y + 34); g.lineTo(x, y + 48); g.closePath(); }, '#ffffff', 3);
     }
     stroke(g, (g) => g.ellipse(32, 56, 22, 5, 0, 0, Math.PI * 2), '#ffd27a', 2.5);
+  },
+  // ---------- v0.85 อาชีพคลาส 3 (ไอคอนเฉพาะ 20 สกิล) ----------
+  c3_gate(g) {   // วงเวทประตูทอง + ดาบพุ่งออกกลางวง
+    stroke(g, (g) => g.arc(26, 30, 18, 0, Math.PI * 2), '#ffd24a', 3);
+    stroke(g, (g) => g.arc(26, 30, 11, 0, Math.PI * 2), '#fff0a0', 2);
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; stroke(g, (g) => { g.moveTo(26 + Math.cos(a) * 14, 30 + Math.sin(a) * 14); g.lineTo(26 + Math.cos(a) * 18, 30 + Math.sin(a) * 18); }, '#ffd24a', 2); }
+    glyph(g, (g) => { g.moveTo(24, 34); g.lineTo(52, 12); g.lineTo(56, 8); g.lineTo(54, 16); g.lineTo(28, 38); g.closePath(); }, '#ffffff', 3.5);
+    stroke(g, (g) => { g.moveTo(22, 30); g.lineTo(30, 40); }, '#ffd24a', 3);
+  },
+  c3_armrain(g) {   // ประตูทอง 3 บานบนฟ้า + ศาสตราตกลง
+    for (const x of [14, 32, 50]) stroke(g, (g) => g.ellipse(x, 12, 8, 3.5, 0, 0, Math.PI * 2), '#ffd24a', 2.5);
+    for (const [x, y] of [[14, 20], [32, 28], [50, 22]]) glyph(g, (g) => { g.moveTo(x - 2.5, y - 6); g.lineTo(x + 2.5, y - 6); g.lineTo(x + 2.5, y + 14); g.lineTo(x, y + 20); g.lineTo(x - 2.5, y + 14); g.closePath(); }, '#ffffff', 3);
+    stroke(g, (g) => { g.moveTo(8, 58); g.lineTo(56, 58); }, '#ffb020', 2.5);
+  },
+  c3_chain(g) {   // โซ่ทองไขว้ตรึงกลาง
+    for (const [a, b] of [[[8, 10], [56, 54]], [[56, 10], [8, 54]]]) {
+      for (let i = 0; i < 5; i++) { const k = (i + 0.5) / 5, x = a[0] + (b[0] - a[0]) * k, y = a[1] + (b[1] - a[1]) * k, ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+        stroke(g, (g) => g.ellipse(x, y, 6, 3.5, ang + (i % 2 ? Math.PI / 2 : 0), 0, Math.PI * 2), i % 2 ? '#fff0a0' : '#ffc838', 2.5); }
+    }
+    glyph(g, (g) => g.arc(32, 32, 6, 0, Math.PI * 2), '#ffffff', 3);
+  },
+  c3_crown(g) {   // มงกุฎ + รัศมีทอง
+    for (let i = 0; i < 9; i++) { const a = Math.PI + (i / 8) * Math.PI; stroke(g, (g) => { g.moveTo(32 + Math.cos(a) * 18, 34 + Math.sin(a) * 18); g.lineTo(32 + Math.cos(a) * 28, 34 + Math.sin(a) * 28); }, '#fff0a0', 2); }
+    glyph(g, (g) => { g.moveTo(14, 50); g.lineTo(12, 26); g.lineTo(22, 36); g.lineTo(32, 20); g.lineTo(42, 36); g.lineTo(52, 26); g.lineTo(50, 50); g.closePath(); }, '#ffffff', 4);
+    for (const x of [22, 32, 42]) glyph(g, (g) => g.arc(x, 44, 2.5, 0, Math.PI * 2), '#ffd24a', 2);
+  },
+  c3_drill(g) {   // ดาบทรงสว่านเกลียว + ลมหมุน
+    glyph(g, (g) => { g.moveTo(10, 54); g.lineTo(18, 38); g.lineTo(50, 10); g.lineTo(26, 46); g.closePath(); }, '#ffffff', 4);
+    for (const k of [0.3, 0.5, 0.7]) { const x = 10 + 40 * k, y = 54 - 44 * k; stroke(g, (g) => g.ellipse(x, y, 9 - k * 7, 3, -0.84, 0, Math.PI * 2), '#ff4a3a', 2.5); }
+    stroke(g, (g) => { g.moveTo(6, 58); g.lineTo(14, 50); }, '#ffd24a', 4);
+  },
+  c3_ray(g) {   // วงเวท 3 ชั้นเรียง + ลำแสง
+    for (const [x, r] of [[14, 12], [24, 10], [33, 8]]) stroke(g, (g) => g.ellipse(x, 32, 3.5, r, 0, 0, Math.PI * 2), '#9ad4ff', 2.5);
+    glyph(g, (g) => { g.moveTo(34, 27); g.lineTo(60, 29); g.lineTo(60, 35); g.lineTo(34, 37); g.closePath(); }, '#ffffff', 3.5);
+    stroke(g, (g) => { g.moveTo(4, 46); g.lineTo(12, 38); }, '#e8c050', 4);
+  },
+  c3_lightlance(g) {   // วงเวทบนฟ้า + หอกแสงพุ่งลง
+    stroke(g, (g) => g.ellipse(32, 12, 22, 6, 0, 0, Math.PI * 2), '#bfe8ff', 2.5);
+    stroke(g, (g) => g.ellipse(32, 12, 12, 3, 0, 0, Math.PI * 2), '#ffffff', 2);
+    for (const [x, y] of [[16, 24], [32, 30], [48, 24], [24, 40], [40, 40]]) glyph(g, (g) => { g.moveTo(x, y + 16); g.lineTo(x + 3, y + 6); g.lineTo(x + 1.2, y + 6); g.lineTo(x + 1.2, y - 4); g.lineTo(x - 1.2, y - 4); g.lineTo(x - 1.2, y + 6); g.lineTo(x - 3, y + 6); g.closePath(); }, '#ffffff', 2.5);
+  },
+  c3_hexdome(g) {   // โดมแผ่นหกเหลี่ยม
+    const hex = (g, x, y, r) => { for (let i = 0; i <= 6; i++) { const a = Math.PI / 6 + (i / 6) * Math.PI * 2; i ? g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r) : g.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } };
+    for (const [x, y] of [[32, 18], [22, 30], [42, 30], [14, 44], [32, 42], [50, 44]]) glyph(g, (g) => hex(g, x, y, 7.5), '#e2f4ff', 3);
+    stroke(g, (g) => { g.moveTo(6, 54); g.lineTo(58, 54); }, '#9ad4ff', 3);
+  },
+  c3_flowerfield(g) {   // ทุ่งดอกไม้บานรอบวง
+    stroke(g, (g) => g.ellipse(32, 46, 26, 9, 0, 0, Math.PI * 2), '#bfffd0', 2.5);
+    for (const [x, y, r] of [[32, 26, 8], [16, 40, 5.5], [48, 40, 5.5], [24, 52, 4.5], [42, 52, 4.5]]) {
+      for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2 - Math.PI / 2; glyph(g, (g) => g.arc(x + Math.cos(a) * r * 0.8, y + Math.sin(a) * r * 0.8, r * 0.55, 0, Math.PI * 2), '#ffd0e4', 2.5); }
+      glyph(g, (g) => g.arc(x, y, r * 0.4, 0, Math.PI * 2), '#fff6a0', 2);
+    }
+  },
+  c3_circles(g) {   // วงเวทล้อมรอบเป้า + ลำแสงลงกลาง
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; stroke(g, (g) => g.arc(32 + Math.cos(a) * 21, 34 + Math.sin(a) * 15, 5, 0, Math.PI * 2), '#e2f4ff', 2.5); }
+    glyph(g, (g) => { g.moveTo(27, 2); g.lineTo(37, 2); g.lineTo(35, 40); g.lineTo(29, 40); g.closePath(); }, '#ffffff', 3);
+    glyph(g, (g) => g.arc(32, 40, 6, 0, Math.PI * 2), '#fff6c8', 3);
+  },
+  c3_spiralarrow(g) {   // ศรเกลียวพุ่งเฉียง
+    glyph(g, (g) => { g.moveTo(56, 8); g.lineTo(42, 14); g.lineTo(50, 22); g.closePath(); }, '#ffffff', 3);
+    stroke(g, (g) => { g.moveTo(10, 54); g.lineTo(48, 16); }, '#ffffff', 3);
+    for (const k of [0.25, 0.45, 0.65]) { const x = 10 + 38 * k, y = 54 - 38 * k; stroke(g, (g) => g.ellipse(x, y, 7, 3, -0.78, 0, Math.PI * 2), '#9ad8ff', 2.5); }
+  },
+  c3_twinblades(g) {   // ดาบสั้นโค้งขาวดำไขว้กัน
+    glyph(g, (g) => { g.moveTo(10, 50); g.quadraticCurveTo(18, 14, 52, 10); g.quadraticCurveTo(26, 22, 18, 52); g.closePath(); }, '#ffffff', 3.5);
+    glyph(g, (g) => { g.moveTo(54, 50); g.quadraticCurveTo(46, 14, 12, 10); g.quadraticCurveTo(38, 22, 46, 52); g.closePath(); }, '#3a3a48', 3.5);
+    stroke(g, (g) => { g.moveTo(8, 56); g.lineTo(16, 48); g.moveTo(56, 56); g.lineTo(48, 48); }, '#c8a050', 4);
+  },
+  c3_petals(g) {   // ม่านกลีบแสงบานเป็นโล่
+    for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2 - Math.PI / 2; g.save(); g.translate(32, 32); g.rotate(a);
+      glyph(g, (g) => { g.moveTo(0, -2); g.quadraticCurveTo(9, -14, 0, -27); g.quadraticCurveTo(-9, -14, 0, -2); }, '#ffd8ee', 2.5); g.restore(); }
+    glyph(g, (g) => g.arc(32, 32, 5, 0, Math.PI * 2), '#ffffff', 2.5);
+  },
+  c3_bladerain(g) {   // ดาบเส้นโครงแสงพุ่งลง
+    for (const [x, y] of [[16, 8], [32, 4], [48, 10], [24, 26], [42, 28]]) {
+      stroke(g, (g) => { g.moveTo(x - 3, y); g.lineTo(x + 3, y); g.lineTo(x + 3, y + 16); g.lineTo(x, y + 22); g.lineTo(x - 3, y + 16); g.closePath(); g.moveTo(x - 6, y); g.lineTo(x + 6, y); }, '#9ad8ff', 2);
+    }
+    stroke(g, (g) => { g.moveTo(6, 58); g.lineTo(58, 58); }, '#ffffff', 2);
+  },
+  c3_bladefield(g) {   // ทุ่งดาบปักพื้น + เฟืองบนฟ้า
+    stroke(g, (g) => g.arc(44, 16, 10, 0, Math.PI * 2), '#ffb04a', 2.5);
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; stroke(g, (g) => { g.moveTo(44 + Math.cos(a) * 10, 16 + Math.sin(a) * 10); g.lineTo(44 + Math.cos(a) * 14, 16 + Math.sin(a) * 14); }, '#ffb04a', 3); }
+    for (const [x, y, t] of [[12, 30, -0.2], [26, 26, 0.1], [40, 34, -0.1], [54, 32, 0.2]]) { g.save(); g.translate(x, y); g.rotate(t);
+      glyph(g, (g) => { g.moveTo(-2.5, 0); g.lineTo(2.5, 0); g.lineTo(2.5, 20); g.lineTo(-2.5, 20); g.closePath(); }, '#ffffff', 2.5);
+      stroke(g, (g) => { g.moveTo(-6, 2); g.lineTo(6, 2); }, '#c8a050', 2.5); g.restore(); }
+    stroke(g, (g) => { g.moveTo(4, 54); g.lineTo(60, 54); }, '#ff7a3a', 3);
+  },
+  c3_lightorb(g) {   // ลูกแสงระหว่างสองมือ
+    glyph(g, (g) => g.arc(32, 28, 11, 0, Math.PI * 2), '#fff6c8', 3.5);
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; stroke(g, (g) => { g.moveTo(32 + Math.cos(a) * 14, 28 + Math.sin(a) * 14); g.lineTo(32 + Math.cos(a) * 19, 28 + Math.sin(a) * 19); }, '#ffe8a0', 2); }
+    glyph(g, (g) => { g.moveTo(8, 56); g.quadraticCurveTo(10, 40, 20, 38); g.lineTo(24, 44); g.quadraticCurveTo(18, 48, 18, 56); g.closePath(); }, '#ffffff', 3);
+    glyph(g, (g) => { g.moveTo(56, 56); g.quadraticCurveTo(54, 40, 44, 38); g.lineTo(40, 44); g.quadraticCurveTo(46, 48, 46, 56); g.closePath(); }, '#ffffff', 3);
+  },
+  c3_featherblade(g) {   // ขนนกแสงตกลงเป็นใบมีด
+    for (const [x, y, t] of [[18, 10, 0.4], [36, 16, -0.3], [26, 34, 0.2], [46, 36, -0.4]]) { g.save(); g.translate(x, y); g.rotate(t);
+      glyph(g, (g) => { g.moveTo(0, -10); g.quadraticCurveTo(7, 0, 0, 14); g.quadraticCurveTo(-7, 0, 0, -10); }, '#fff2c8', 2.5);
+      stroke(g, (g) => { g.moveTo(0, -8); g.lineTo(0, 12); }, '#ffc070', 1.5); g.restore(); }
+    stroke(g, (g) => { g.moveTo(10, 58); g.lineTo(54, 58); }, '#ffe8a0', 2.5);
+  },
+  c3_goddessheal(g) {   // หัวใจมีปีก
+    glyph(g, (g) => { g.moveTo(22, 30); g.bezierCurveTo(10, 14, 0, 26, 4, 34); g.bezierCurveTo(10, 32, 14, 38, 20, 40); }, '#fff2c8', 3);
+    glyph(g, (g) => { g.moveTo(42, 30); g.bezierCurveTo(54, 14, 64, 26, 60, 34); g.bezierCurveTo(54, 32, 50, 38, 44, 40); }, '#fff2c8', 3);
+    glyph(g, (g) => { g.moveTo(32, 52); g.bezierCurveTo(16, 40, 16, 22, 26, 22); g.bezierCurveTo(30, 22, 32, 26, 32, 28); g.bezierCurveTo(32, 26, 34, 22, 38, 22); g.bezierCurveTo(48, 22, 48, 40, 32, 52); }, '#ffffff', 3.5);
+    stroke(g, (g) => { g.moveTo(32, 32); g.lineTo(32, 44); g.moveTo(26, 38); g.lineTo(38, 38); }, '#ffc070', 3);
+  },
+  c3_wingcocoon(g) {   // ปีกโอบห่อเป็นโดม
+    glyph(g, (g) => { g.moveTo(32, 56); g.bezierCurveTo(8, 56, 4, 30, 18, 12); g.bezierCurveTo(20, 26, 24, 40, 32, 46); }, '#fff2c8', 3.5);
+    glyph(g, (g) => { g.moveTo(32, 56); g.bezierCurveTo(56, 56, 60, 30, 46, 12); g.bezierCurveTo(44, 26, 40, 40, 32, 46); }, '#fff2c8', 3.5);
+    glyph(g, (g) => g.arc(32, 34, 6, 0, Math.PI * 2), '#ffffff', 3);
+    stroke(g, (g) => { g.moveTo(14, 24); g.lineTo(20, 30); g.moveTo(50, 24); g.lineTo(44, 30); }, '#ffd890', 2);
+  },
+  c3_awaken(g) {   // ปีก 3 คู่ + รัศมีเทวดา
+    for (const [y, w] of [[22, 26], [32, 22], [42, 16]]) {
+      glyph(g, (g) => { g.moveTo(30, y); g.quadraticCurveTo(30 - w, y - 12, 30 - w - 2, y + 2); g.quadraticCurveTo(22, y + 2, 30, y + 6); }, '#fff2c8', 2.5);
+      glyph(g, (g) => { g.moveTo(34, y); g.quadraticCurveTo(34 + w, y - 12, 34 + w + 2, y + 2); g.quadraticCurveTo(42, y + 2, 34, y + 6); }, '#fff2c8', 2.5);
+    }
+    glyph(g, (g) => { g.moveTo(32, 20); g.lineTo(37, 56); g.lineTo(27, 56); g.closePath(); }, '#ffffff', 3);
+    stroke(g, (g) => g.ellipse(32, 9, 10, 3, 0, 0, Math.PI * 2), '#ffd27a', 2.5);
   },
   angel(g) {
     glyph(g, (g) => { g.moveTo(30, 30); g.bezierCurveTo(16, 8, 4, 16, 4, 30); g.bezierCurveTo(10, 28, 14, 34, 18, 40); g.bezierCurveTo(22, 40, 26, 38, 30, 36); }, '#fff6dc');

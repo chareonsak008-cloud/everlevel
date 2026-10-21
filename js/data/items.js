@@ -6,17 +6,17 @@
 // v0.9: type box = กล่องแฟชั่นสุ่ม (ข้อมูลอยู่ใน data/fashionBoxes.js)
 // v0.10: slots = ช่องการ์ด · type card = การ์ดมอนสเตอร์ (data/cards.js) · วัสดุตีบวก (data/refine.js)
 //        อุปกรณ์ที่ตีบวก/ใส่การ์ดแล้วใช้ "คีย์" แทน id เช่น 'iron_blade*7*card_barkwolf' (ดู itemKey ด้านล่าง)
-import { ENDGAME_ITEMS } from './endgameItems.js?v=0.84.0';
-import { ASCEND_ITEMS } from './ascendData.js?v=0.84.0';   // v0.46 Lv.100–150
-import { ETERNAL_ITEMS, ETERNAL_MATS } from './eternal.js?v=0.84.0';
-import { FEST_ITEMS } from './festivals.js?v=0.84.0';   // v0.79 ของสะสมเทศกาล   // v0.77 อุปกรณ์นิรันดร์กาล (หลอม)
-import { parentJob } from './progression.js?v=0.84.0';
-import { BOX_ITEMS } from './fashionBoxes.js?v=0.84.0';
-import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.84.0';
-import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.84.0';
-import { CONSUMABLES } from './consumables.js?v=0.84.0';
-import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH, extraRollPool, gearRollPool, GEAR_ROLL_SLOTS } from './affixes.js?v=0.84.0';
-import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.84.0';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
+import { ENDGAME_ITEMS } from './endgameItems.js?v=0.85.0';
+import { ASCEND_ITEMS } from './ascendData.js?v=0.85.0';   // v0.46 Lv.100–150
+import { ETERNAL_ITEMS, ETERNAL_MATS } from './eternal.js?v=0.85.0';
+import { FEST_ITEMS } from './festivals.js?v=0.85.0';   // v0.79 ของสะสมเทศกาล   // v0.77 อุปกรณ์นิรันดร์กาล (หลอม)
+import { parentJob, jobAncestry } from './progression.js?v=0.85.0';
+import { BOX_ITEMS } from './fashionBoxes.js?v=0.85.0';
+import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.85.0';
+import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.85.0';
+import { CONSUMABLES } from './consumables.js?v=0.85.0';
+import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH, extraRollPool, gearRollPool, GEAR_ROLL_SLOTS } from './affixes.js?v=0.85.0';
+import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.85.0';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
 
 export const EQUIP_SLOTS = [
   { id: 'head', name: 'หัว' },
@@ -240,7 +240,7 @@ export function bonusText(k, v) {
 }
 
 // สวมใส่อาวุธ/อุปกรณ์นี้ได้ไหมตามอาชีพ
-export const canJobUse = (it, job) => !it.jobs || it.jobs.includes(job) || it.jobs.includes(parentJob(job));   // v0.31: อาชีพขั้น 2 ใช้ของอาชีพขั้น 1 ได้
+export const canJobUse = (it, job) => !it.jobs || jobAncestry(job).some((j) => it.jobs.includes(j));   // v0.85 คลาส 3 ใช้ของทั้งสายได้   // v0.31: อาชีพขั้น 2 ใช้ของอาชีพขั้น 1 ได้
 export const weaponTypeName = (it) => FORM_TH[it.form || it.wtype] || OFFHAND_FORM_TH[it.offhand] || '';
 
 export function describeBonus(bonus = {}) {

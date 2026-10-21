@@ -5,9 +5,9 @@
 //        refine {n} ตีบวกสำเร็จ · socket {n} ใส่การ์ด · level {n}
 // give = ไอเทมที่ได้ทันทีตอนรับเควส · rewards = { exp: [base, job], zeny, items: [[id, จำนวน]] }
 
-import { ZENY_INCOME } from '../config.js?v=0.84.0';
-import { WEEKLY_QUESTS } from './events.js?v=0.84.0';
-import { QUEST_EXTRA_REWARDS } from './consumables.js?v=0.84.0';
+import { ZENY_INCOME } from '../config.js?v=0.85.0';
+import { WEEKLY_QUESTS } from './events.js?v=0.85.0';
+import { QUEST_EXTRA_REWARDS } from './consumables.js?v=0.85.0';
 
 export const QUEST_KIND = {
   main: { name: 'เนื้อเรื่อง', color: '#ffd27a' },
@@ -255,8 +255,42 @@ export const QUESTS = {
     goals: [{ type: 'kill', mob: 'magmaslime', n: 30 }, { type: 'collect', item: 'magma_gel', n: 10 }, { type: 'collect', item: 'wisp_dust', n: 10 }],
     rewards: { exp: [60000, 40000], zeny: 30000, items: [['mana_potion', 20]] },
   },
+  /* ---------- v0.85: บททดสอบเลื่อนเป็นอาชีพคลาส 3 (ต้อง Base Lv.120 + Job Lv.50 ของอาชีพขั้น 2) ---------- */
+  j3_heroking: {
+    kind: 'main', name: 'บททดสอบราชันย์: คลังที่ไม่มีวันหมด', giver: 'aurel', turnIn: 'aurel', jobReq: 'knight', minJobLv: 50, minLevel: 120,
+    intro: 'ราชันย์ต้องมีคลังศาสตราที่ไม่มีวันหมด ไปหุบเขาผลึก ล้มดราคผลึก 60 ตัว แล้วนำแกนจีโอด 20 ชิ้นกับเศษปริซึม 20 ชิ้นกลับมาหลอมเป็นกุญแจประตูทองของเจ้า',
+    wait: 'ดราคผลึกพ่นเศษคริสตัลคมกริบ — กุญแจประตูทองต้องใช้แกนจีโอดที่ยังเรืองแสงอยู่',
+    done: 'กุญแจประตูทองสั่นรับพลังของเจ้าแล้ว! เลือก "เลื่อนขั้นอาชีพ" เมื่อพร้อมจะเป็นราชันย์คลังศาสตรา',
+    goals: [{ type: 'kill', mob: 'crystal_drake', n: 60 }, { type: 'collect', item: 'geode_core', n: 20 }, { type: 'collect', item: 'prism_shard', n: 20 }],
+    rewards: { exp: [900000, 300000], zeny: 120000, items: [['refine_guard', 1]] },
+  },
+  j3_archmage: {
+    kind: 'main', name: 'บททดสอบจอมเวทพันปี: แสงในปริซึม', giver: 'aurel', turnIn: 'aurel', jobReq: 'wizard', minJobLv: 50, minLevel: 120,
+    intro: 'เวทโบราณซ่อนอยู่ในแสงที่หักเหผ่านปริซึม ไปหุบเขาผลึก ล้มวิญญาณปริซึม 60 ตัว แล้วนำเศษปริซึม 30 ชิ้นกับแกนจีโอด 15 ชิ้นกลับมาสร้างวงเวทแห่งพันปี',
+    wait: 'วิญญาณปริซึมหักเหเวทได้ ลองใช้เวทที่ไม่ใช่แสงดูนะ',
+    done: 'วงเวทเรขาคณิตหมุนอยู่เหนือมือเจ้าแล้ว! เลือก "เลื่อนขั้นอาชีพ" เมื่อพร้อมจะเป็นจอมเวทพันปี',
+    goals: [{ type: 'kill', mob: 'prism_wisp', n: 60 }, { type: 'collect', item: 'prism_shard', n: 30 }, { type: 'collect', item: 'geode_core', n: 15 }],
+    rewards: { exp: [900000, 300000], zeny: 120000, items: [['refine_guard', 1]] },
+  },
+  j3_bladearcher: {
+    kind: 'main', name: 'บททดสอบนักธนูถักศาสตรา: ขนนกพายุ', giver: 'aurel', turnIn: 'aurel', jobReq: 'hunter', minJobLv: 50, minLevel: 120,
+    intro: 'ศรที่ถักจากแสงต้องเร็วกว่าพายุ ไปป้อมฟากฟ้า ล้มกริฟฟินพายุ 60 ตัว แล้วนำขนนกฟากฟ้า 25 ผืนกับแกนพายุ 10 ชิ้นกลับมาถักสายธนูเส้นแสง',
+    wait: 'กริฟฟินพายุบินเร็วมาก ตั้งหลักให้ดีก่อนยิง',
+    done: 'สายธนูเส้นแสงสั่นตามลมหายใจเจ้าแล้ว! เลือก "เลื่อนขั้นอาชีพ" เมื่อพร้อมจะเป็นนักธนูถักศาสตรา',
+    goals: [{ type: 'kill', mob: 'storm_griffin', n: 60 }, { type: 'collect', item: 'sky_feather', n: 25 }, { type: 'collect', item: 'storm_core', n: 10 }],
+    rewards: { exp: [900000, 300000], zeny: 120000, items: [['refine_guard', 1]] },
+  },
+  j3_goddess: {
+    kind: 'main', name: 'บททดสอบเทพธิดา: ปีกแห่งฟากฟ้า', giver: 'aurel', turnIn: 'aurel', jobReq: 'priest', minJobLv: 50, minLevel: 120,
+    intro: 'ปีกของเทพธิดาเกิดจากขนนกที่ไม่เคยแตะพื้น ไปป้อมฟากฟ้า ล้มผู้พิทักษ์เมฆา 60 ตัว แล้วนำขนนกฟากฟ้า 30 ผืนกับแกนพายุ 8 ชิ้นกลับมาเพื่อพิธีตื่นรู้',
+    wait: 'ผู้พิทักษ์เมฆาแข็งแกร่ง แต่แสงศรัทธาของเจ้าจะพาเจ้ากลับมาได้เสมอ',
+    done: 'แสงส้มทองห่อตัวเจ้าแล้ว ปีกกำลังจะกาง! เลือก "เลื่อนขั้นอาชีพ" เมื่อพร้อมจะเป็นเทพธิดาแห่งแสง',
+    goals: [{ type: 'kill', mob: 'cloud_sentinel', n: 60 }, { type: 'collect', item: 'sky_feather', n: 30 }, { type: 'collect', item: 'storm_core', n: 8 }],
+    rewards: { exp: [900000, 300000], zeny: 120000, items: [['refine_guard', 1]] },
+  },
 };
 export const JOB2_QUEST = { swordsman: 'j2_knight', mage: 'j2_wizard', archer: 'j2_hunter', acolyte: 'j2_priest' };
+export const JOB3_QUEST = { knight: 'j3_heroking', wizard: 'j3_archmage', hunter: 'j3_bladearcher', priest: 'j3_goddess' };   // v0.85
 
 // v0.50: Zeny รางวัลเควสต์เหลือ 1/3
 for (const q of Object.values(QUESTS)) if (q.rewards && q.rewards.zeny && !q.rewards.zenyBase) { q.rewards.zenyBase = q.rewards.zeny; q.rewards.zeny = Math.max(10, Math.round((q.rewards.zeny * ZENY_INCOME) / 10) * 10); }
