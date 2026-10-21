@@ -1,8 +1,8 @@
 // ข้อมูลจดหมาย (v0.15) — ของขวัญต้อนรับผู้เล่นใหม่ + ตรวจข้อมูลจดหมายจากเซิร์ฟเวอร์
-import { ITEMS } from './items.js?v=0.85.0';
-import { SETS, COSTUME_BY_ID } from './costumes.js?v=0.85.0';
-import { PETS } from './pets.js?v=0.85.0';
-import { TIER_RANK } from './fashionBoxes.js?v=0.85.0';
+import { ITEMS } from './items.js?v=0.86.0';
+import { SETS, COSTUME_BY_ID } from './costumes.js?v=0.86.0';
+import { PETS } from './pets.js?v=0.86.0';
+import { TIER_RANK } from './fashionBoxes.js?v=0.86.0';
 
 // ชุดเซ็ตเริ่มต้นให้เลือก 1 เซ็ต (ระดับธรรมดา–หายาก ไม่แย่งของในกล่องสุ่ม) · สัตว์เลี้ยงระดับธรรมดา–หายาก
 export const WELCOME_SETS = ['s_summer', 's_halloween', 's_ninja', 's_kitty', 's_cafe', 's_snowfest'];
@@ -20,6 +20,7 @@ export const WELCOME_MAIL = {
 export const PICK_LABEL = { set: 'เลือกชุดแฟชั่น 1 เซ็ต', pet: 'เลือกสัตว์เลี้ยง 1 ตัว', fashion: 'เลือกชิ้นแฟชั่น 1 ชิ้น' };   // v0.35.4: fashion = ชิ้นเดี่ยว (ปีก/ออร่า)
 export const MAIL_MAX_ITEMS = 10;
 export const MAIL_MAX_ZENY = 100000000;
+export const MAIL_MAX_GEMS = 100000;   // v0.86 เพชรต่อจดหมาย (ตรงกับ supabase/update_v0.86.sql)
 export const setById = (id) => SETS.find((s) => s.id === id) || null;
 export const setTier = (s) => s.rarity || s.items.map((id) => COSTUME_BY_ID[id]).reduce((t, c) => (c && TIER_RANK[c.rarity] > TIER_RANK[t] ? c.rarity : t), 'common');
 
@@ -47,9 +48,10 @@ export function normMail(r) {
     id: r.id, local: !!r.local,
     sender: str(r.sender, 24) || 'GM', title: str(r.title, 60) || '(ไม่มีหัวข้อ)', body: str(r.body, 600),
     items, zeny: Math.max(0, Math.min(MAIL_MAX_ZENY, Math.floor(+r.zeny) || 0)), picks,
+    gems: r.local ? 0 : Math.max(0, Math.min(MAIL_MAX_GEMS, Math.floor(+r.gems) || 0)),   // v0.86 เพชรจาก GM (เซิร์ฟเวอร์เพิ่มให้ตอนกดรับ)
     per: r.per === 'char' ? 'char' : 'account', to: str(r.to_name, 16) || null,
     at: r.created_at ? Date.parse(r.created_at) || 0 : 0, expires: r.expires_at ? Date.parse(r.expires_at) || 0 : 0,
   };
 }
 
-export const hasGift = (m) => !!(m.items.length || m.zeny || m.picks.length);
+export const hasGift = (m) => !!(m.items.length || m.zeny || m.gems || m.picks.length);

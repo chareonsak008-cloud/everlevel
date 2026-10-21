@@ -1,14 +1,15 @@
 // ร้านค้า · เงิน Zeny · คลังเก็บของ · เส้นทางวาร์ป
 // ปรับเศรษฐกิจของเกมได้จากไฟล์นี้
-import { ITEMS } from './items.js?v=0.85.0';
-import { CONSUMABLES } from './consumables.js?v=0.85.0';
+import { ITEMS } from './items.js?v=0.86.0';
+import { CONSUMABLES } from './consumables.js?v=0.86.0';
 
 export const START_ZENY = 200;          // เงินเริ่มต้นของตัวละครใหม่
 export const MAX_ZENY = 999999999;
-export const SELL_RATE = 0.15;          // v0.50: ขายคืนร้านได้ 15% ของราคา (เดิม 50%) — Zeny หายากขึ้น
+export const SELL_RATE = 0.06;          // v0.86: ขายคืนร้านได้ 6% ของราคา (v0.50 = 15%) — Zeny หายากขึ้น
+export const SELL_RATE_EQUIP = 0.02;    // v0.86: อุปกรณ์/อาวุธขายคืนร้าน 2% (ดรอปเยอะ เคยเป็นแหล่งเงินหลัก)
 export const STORAGE_CAPACITY = 100;    // ช่องคลังเก็บของ (ใช้ร่วมกันทั้งบัญชี)
 
-export const sellPrice = (id) => Math.floor(((ITEMS[id] && ITEMS[id].price) || 0) * SELL_RATE);
+export const sellPrice = (id) => { const it = ITEMS[id]; return Math.floor(((it && it.price) || 0) * (it && it.type === 'equip' ? SELL_RATE_EQUIP : SELL_RATE)); };
 export const buyPrice = (id) => (ITEMS[id] && ITEMS[id].price) || 0;
 export const fmtZ = (n) => `${Math.floor(n).toLocaleString('en-US')} z`;
 

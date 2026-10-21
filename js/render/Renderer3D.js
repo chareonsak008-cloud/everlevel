@@ -1,33 +1,56 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.85.0';
-import { PixelWingSprite } from './PixelWings.js?v=0.85.0';
-import { paintPlate } from '../ui/Nameplates.js?v=0.85.0';
-import { PixelVfx } from './PixelVfx.js?v=0.85.0';
-import { THREE } from './three.js?v=0.85.0';
-import { TILE } from '../config.js?v=0.85.0';
-import { T } from '../data/tileTypes.js?v=0.85.0';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.85.0';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.85.0';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.85.0';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.86.0';
+import { PixelWingSprite } from './PixelWings.js?v=0.86.0';
+import { paintPlate } from '../ui/Nameplates.js?v=0.86.0';
+import { PixelVfx } from './PixelVfx.js?v=0.86.0';
+import { THREE } from './three.js?v=0.86.0';
+import { TILE } from '../config.js?v=0.86.0';
+import { T } from '../data/tileTypes.js?v=0.86.0';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.86.0';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.86.0';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.86.0';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.85.0';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.85.0';
-import { iconCanvas } from './ItemIcons.js?v=0.85.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.85.0';
-import { MonsterView } from './Monsters.js?v=0.85.0';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.85.0';
-import { SkillFX } from './SkillFX.js?v=0.85.0';
-import { PostFX } from './PostFX.js?v=0.85.0';
-import { costumeLook, wearCostume } from './Costumes.js?v=0.85.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.85.0';
-import { PetView } from './Pets.js?v=0.85.0';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.85.0';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.85.0';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.85.0';
-import { gradientMap } from './Toon.js?v=0.85.0';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.85.0';
+} from './Models.js?v=0.86.0';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.86.0';
+import { iconCanvas } from './ItemIcons.js?v=0.86.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.86.0';
+import { MonsterView } from './Monsters.js?v=0.86.0';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.86.0';
+import { SkillFX } from './SkillFX.js?v=0.86.0';
+import { PostFX } from './PostFX.js?v=0.86.0';
+import { costumeLook, wearCostume } from './Costumes.js?v=0.86.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.86.0';
+import { PetView } from './Pets.js?v=0.86.0';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.86.0';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.86.0';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.86.0';
+import { gradientMap } from './Toon.js?v=0.86.0';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.86.0';
+// v0.86 กลางวัน · ตอนเย็น · กลางคืน · รุ่งสาง — ตัวคูณแสง (h=ฟ้า s=แดด e=exposure) + สีที่ผสมเข้าไป (mix)
+const DAY_PRESETS = {
+  day: { name: 'กลางวัน', icon: '☀', h: 1, s: 1, e: 1, mix: 0, glow: 1, tint: [0, 0, 0, 0] },
+  evening: { name: 'ตอนเย็น', icon: '🌇', h: 0.86, s: 0.78, e: 0.97, mix: 0.5, sky: '#ffc08a', ground: '#7a5038', sun: '#ff9a52', fog: '#e8a878', glow: 1.1, tint: [255, 120, 40, 0.16] },
+  night: { name: 'กลางคืน', icon: '🌙', h: 0.5, s: 0.28, e: 0.8, mix: 0.66, sky: '#6a7ec8', ground: '#283050', sun: '#9ab0ff', fog: '#1e2a4c', glow: 1.3, tint: [14, 24, 72, 0.42] },
+  dawn: { name: 'รุ่งสาง', icon: '🌅', h: 0.84, s: 0.72, e: 0.96, mix: 0.42, sky: '#ffc8d8', ground: '#6a5060', sun: '#ffd0a8', fog: '#dcb8c8', glow: 1.1, tint: [255, 150, 170, 0.12] },
+};
+// รอบวันละ 0–1: กลางวัน 0–0.55 → เย็น 0.63–0.70 → กลางคืน 0.77–0.93 → รุ่งสาง 0.97 → กลางวัน
+const DAY_KEYS = [[0, 'day'], [0.55, 'day'], [0.63, 'evening'], [0.7, 'evening'], [0.77, 'night'], [0.93, 'night'], [0.97, 'dawn'], [1, 'day']];
+const _dayCol = new THREE.Color(), _dc1 = new THREE.Color(), _dc2 = new THREE.Color();
+function dayPreset(f) {
+  f = ((f % 1) + 1) % 1;
+  let i = 0; while (i < DAY_KEYS.length - 2 && f >= DAY_KEYS[i + 1][0]) i++;
+  const [f0, a] = DAY_KEYS[i], [f1, b] = DAY_KEYS[i + 1], A = DAY_PRESETS[a], B = DAY_PRESETS[b];
+  const k = f1 > f0 ? (f - f0) / (f1 - f0) : 0, sm = k * k * (3 - 2 * k), L = (x, y) => x + (y - x) * sm;
+  const col = (key) => { const ca = A[key], cb = B[key]; if (!ca && !cb) return null; _dc1.set(ca || cb); _dc2.set(cb || ca); return '#' + _dc1.lerp(_dc2, sm).getHexString(); };
+  const ma = A.mix, mb = B.mix;
+  return { name: sm < 0.5 ? A.name : B.name, icon: sm < 0.5 ? A.icon : B.icon, phase: sm < 0.5 ? a : b,
+    h: L(A.h, B.h), s: L(A.s, B.s), e: L(A.e, B.e), mix: L(ma, mb), glow: L(A.glow, B.glow),
+    tint: [0, 1, 2, 3].map((i) => L(A.tint[i], B.tint[i])),
+    sky: col('sky'), ground: col('ground'), sun: col('sun'), fog: col('fog') };
+}
+export const dayPhaseOf = (f) => dayPreset(f);
 const HONOR_FX_PAD = { legend: 6, mythic: 12, divine: 16 };   // v0.83 ลายประดับฉายาระดับสูงที่ยื่นเหนือกรอบ (px)
 const HONOR_H = { common: 22, rare: 24, epic: 30, legend: 36, mythic: 46, divine: 54 };   // v0.76 ระยะซ้อนฉายาแต่ละระดับ (px)
 const PX_BASE = (() => { const a = new THREE.Color('#dcefff'), b = new THREE.Color('#fff0d6'); return { r: a.r * 0.72 + b.r * 1.45 * 0.5, g: a.g * 0.72 + b.g * 1.45 * 0.5, b: a.b * 0.72 + b.b * 1.45 * 0.5 }; })();   // v0.17: สไปรต์พิกเซลอาร์ต   // v0.13: สัตว์เลี้ยงช่วยเก็บของ
@@ -190,6 +213,11 @@ export class Renderer3D {
     this.sun.intensity = L.sun ?? 1.45; this.sun.color.set(L.sunColor || '#fff0d6');
     this.renderer.toneMappingExposure = L.exposure ?? 0.92;
     this.baseLight = { hemi: this.hemi.intensity, sun: this.sun.intensity };
+    // v0.86 กลางวัน/ตอนเย็น/กลางคืน: จำค่าแสงของแผนที่ไว้เป็นค่ากลางวัน (ดันเจี้ยน/สนามประลอง = ในร่ม ไม่เปลี่ยน)
+    this.themeLight = { hemi: this.hemi.intensity, sun: this.sun.intensity, exposure: this.renderer.toneMappingExposure,
+      sky: this.hemi.color.clone(), ground: this.hemi.groundColor.clone(), sunColor: this.sun.color.clone(), fog: scene.fog.color.clone(), glow: null };
+    this.dayIndoor = !!(map.def.instance || theme.indoor);
+    this.applyDay(true);
     this.sky.dur = 0;
     this.fx.clear(); this.post.reset(); this.punchAmt = 0;
     // ความสว่างเอฟเฟกต์ตามแผนที่: กลางแจ้งสว่าง → ลดแสงบวก/เรืองลง ไม่ให้ขาวโพลน
@@ -518,6 +546,27 @@ export class Renderer3D {
     this.actorQuality(this.characters.get(entity));
     this.pxChar(entity, view);
     view.update(0, entity);
+  }
+
+  // v0.86 ตั้งเวลาในวันของเกม (0–1) · null = ปิดระบบ (กลางวันตลอด)
+  setDayTime(f) { this.dayT = f; this.applyDay(); }
+  applyDay(force = false) {
+    const T = this.themeLight; if (!T) return;
+    const f = this.dayT, P = this.dayIndoor || f == null ? DAY_PRESETS.day : dayPreset(f);
+    const key = this.dayIndoor || f == null ? 'off' : Math.round(f * 2000);
+    if (!force && key === this.dayKey) return;
+    this.dayKey = key; this.dayInfo = P;
+    const mix = (base, col, k) => (col ? base.clone().lerp(_dayCol.set(col), k) : base.clone());
+    this.hemi.color.copy(mix(T.sky, P.sky, P.mix)); this.hemi.groundColor.copy(mix(T.ground, P.ground, P.mix * 0.8));
+    this.sun.color.copy(mix(T.sunColor, P.sun, P.mix));
+    this.scene.fog.color.copy(mix(T.fog, P.fog, P.mix));
+    this.baseLight = { hemi: T.hemi * P.h, sun: T.sun * P.s };
+    if (!(this.sky && this.sky.dur > 0)) { this.hemi.intensity = this.baseLight.hemi; this.sun.intensity = this.baseLight.sun; }
+    this.renderer.toneMappingExposure = T.exposure * P.e;
+    if (this.post && this.baseGlow != null) this.post.strength = this.baseGlow * (P.glow || 1);
+    // ชั้นสีทับฉาก (ใต้ป้ายชื่อ/HUD) — ทำให้กลางคืนมืดจริงแม้พื้นสว่าง (สไปรต์พิกเซลไม่รับแสง 3 มิติเต็มที่)
+    const el = this.dayTintEl || (this.dayTintEl = document.getElementById('dayTint'));
+    if (el) { const t = P.tint || [0, 0, 0, 0]; el.style.background = `rgba(${t[0] | 0}, ${t[1] | 0}, ${t[2] | 0}, ${t[3].toFixed(3)})`; }
   }
 
   // v0.17: สีแสงของแผนที่ปัจจุบันเทียบกับเมือง (ป่ามืด/ภูเขาไฟแดง/ท้องฟ้ามืดตอนสกิลใหญ่) → คูณสีสไปรต์
