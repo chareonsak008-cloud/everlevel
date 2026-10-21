@@ -1,11 +1,11 @@
-import { EVENT_RATES, WORLD_BOSSES } from '../data/events.js?v=0.78.0';
+import { EVENT_RATES, WORLD_BOSSES } from '../data/events.js?v=0.79.0';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const time=s=>s?new Date(s).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',hour12:false}):'ตลอด';
 export class EventWindow {
  constructor(root,g){
   this.g=g;this.open=false;this.el=document.createElement('section');this.el.className='panel event-window';this.el.hidden=true;this.el.setAttribute('aria-label','อีเวนต์และกิจกรรม');root.append(this.el);
   for(const e of ['pointerdown','wheel','contextmenu'])this.el.addEventListener(e,x=>x.stopPropagation());
-  this.el.addEventListener('click',e=>{if(e.target.closest('[data-close]'))this.toggle(false);if(e.target.closest('[data-refresh]'))void g.events.refresh();if(e.target.closest('[data-quests]')){this.toggle(false);g.questWin.tab='weekly';g.toggleQuests(true);}});
+  this.el.addEventListener('click',e=>{if(e.target.closest('[data-close]'))this.toggle(false);if(e.target.closest('[data-refresh]'))void g.events.refresh();if(e.target.closest('[data-fest]')){this.toggle(false);g.festWin&&g.festWin.toggle(true);}if(e.target.closest('[data-quests]')){this.toggle(false);g.questWin.tab='weekly';g.toggleQuests(true);}});
   this.el.addEventListener('submit',async e=>{
    e.preventDefault();const f=e.target;if(!f.matches('form'))return;const b=f.querySelector('button');b.disabled=true;
    const d=new FormData(f),minutes=d.get('duration')==='always'?null:Number(d.get('minutes'));
@@ -17,6 +17,7 @@ export class EventWindow {
   if(!this.open)return;
   if(!force && this.el.querySelector('form')?.contains(document.activeElement))return;const s=this.g.events,state=s.state;
   this.el.innerHTML=`<header><h2>🎉 อีเวนต์และกิจกรรม</h2><button data-close type="button" aria-label="ปิด">✕</button></header>
+  ${(()=>{const F=this.g.festival,a=F?F.active():[];return `<button data-fest type="button" class="ev-fest">${a.length?a.map(f=>f.icon+' '+esc(f.name)).join(' · ')+' — กำลังจัด! เปิดดู':'🎉 อีเวนต์เทศกาล · ปฏิทิน & แลกของ'}</button>`;})()}
   <p>${s.online?'กิจกรรมทั้งเซิร์ฟเวอร์':'โหมดออฟไลน์ · GM ทดสอบเฉพาะเครื่องนี้'}</p><p role="status">${esc(this.message||s.error)}</p>
   <div class="ev-rates"><strong>EXP ×${s.rate('exp')}</strong><strong>ดรอป ×${s.rate('drop')}</strong></div>
   <p>EXP มีผลต่อ Base และ Job จากมอน · ดรอปรวมการ์ด · โอกาสสูงสุด 100% · คูณร่วมกับบัฟไอเทม</p>

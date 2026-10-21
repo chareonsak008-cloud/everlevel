@@ -1,10 +1,10 @@
 // ผู้เล่นคนอื่นในแผนที่เดียวกัน (v0.11) — สร้างจาก presence ของห้องออนไลน์
 // ข้อมูลจากผู้เล่นอื่นเชื่อถือไม่ได้: กรองทุกช่องก่อนใช้ (สี ชื่อ ตัวเลข ไอดีแฟชั่น ข้อความ)
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.78.0';
-import { MAPS } from '../data/maps/index.js?v=0.78.0';
-import { JOBS } from '../data/progression.js?v=0.78.0';
-import { PETS } from '../data/pets.js?v=0.78.0';
-import { titleInfo, MAX_TITLES } from '../data/seasonTitles.js?v=0.78.0';   // v0.76
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.79.0';
+import { MAPS } from '../data/maps/index.js?v=0.79.0';
+import { JOBS } from '../data/progression.js?v=0.79.0';
+import { PETS } from '../data/pets.js?v=0.79.0';
+import { titleInfo, MAX_TITLES } from '../data/seasonTitles.js?v=0.79.0';   // v0.76
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 const ENUMS = {

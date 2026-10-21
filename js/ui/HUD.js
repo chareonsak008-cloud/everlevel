@@ -1,8 +1,8 @@
 // หน้าจอข้อมูล (DOM): สถานะตัวละคร, แชท, ชื่อแผนที่, FPS, บัฟ
-import { SKILLS } from '../data/skills.js?v=0.78.0';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.78.0';
-import { ITEMS } from '../data/items.js?v=0.78.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.78.0';
+import { SKILLS } from '../data/skills.js?v=0.79.0';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.79.0';
+import { ITEMS } from '../data/items.js?v=0.79.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.79.0';
 export class HUD {
   constructor(root) {
     this.el = {
@@ -95,7 +95,7 @@ export class HUD {
     if (m !== this.bossMob) {
       this.bossMob = m; this.bossHp = -1;
       el.boss.hidden = !m;
-      if (m) { el.bossName.textContent = m.name; el.bossLv.textContent = `Lv.${m.level}`; const tg = el.boss.querySelector('.bb-tag'); if (tg) tg.textContent = m.data && m.data.dgBoss ? 'BOSS' : 'MVP'; }   // v0.32: บอสดันเจี้ยน
+      if (m) { el.bossName.textContent = m.name; el.bossLv.textContent = `Lv.${m.level}`; const tg = el.boss.querySelector('.bb-tag'); if (tg) tg.textContent = m.data && m.data.festBoss ? 'เทศกาล' : m.data && m.data.dgBoss ? 'BOSS' : 'MVP'; }   // v0.32: บอสดันเจี้ยน
     }
     // ถ้าเลือกบอสเป็นเป้าหมายอยู่ ใช้แถบบอสแทนกรอบเป้าหมายปกติ
     if (this.targetMob) el.target.hidden = !!m && this.targetMob === m;

@@ -452,3 +452,32 @@ body.touch .ar-chip { top: calc(54px + env(safe-area-inset-top, 0px)); font-size
 @media (max-height: 520px) {
   body .dg-hud.ar-hud { left: calc(8px + env(safe-area-inset-left, 0px)); right: auto; top: calc(92px + env(safe-area-inset-top, 0px)); bottom: auto; transform: none; min-width: 0; width: 200px; max-width: 200px; }
 }
+
+/* v0.79 อีเวนต์เทศกาล */
+.festw { width: 580px; }
+.fw-body { display: flex; flex-direction: column; gap: 8px; }
+.fw-body h3 { margin: 4px 0 0; font-size: 13.5px; color: var(--gold, #ffd36b); }
+.fw-body h3 small { color: var(--muted, #b3b5bd); font-weight: 400; }
+.fw-tabs { flex-wrap: wrap; } .fw-tabs button { flex: 1 1 auto; }
+.fw-cur { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--fc) 10%, transparent); border: 1px solid color-mix(in srgb, var(--fc) 45%, transparent); display: flex; flex-direction: column; gap: 6px; }
+.fw-cur header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fw-cur header b { font-size: 16px; color: var(--fc); }
+.fw-cur header span { font-size: 12px; color: var(--muted, #b3b5bd); }
+.fw-desc { margin: 0; font-size: 12.5px; }
+.fw-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.fw-mobs p { margin: 2px 0; font-size: 12px; }
+.fw-tok { display: grid; justify-items: center; padding: 4px 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.25); }
+.fw-tok img { width: 40px; height: 40px; } .fw-tok b { font-size: 18px; color: #fff; } .fw-tok small { font-size: 10.5px; color: var(--muted, #b3b5bd); }
+.fw-aura { display: grid; grid-template-columns: 72px 1fr auto; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; background: rgba(255, 179, 71, 0.08); border: 1px solid rgba(255, 179, 71, 0.35); }
+.fw-thumb { width: 72px; height: 72px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); object-fit: cover; }
+.fw-aura b { display: block; font-size: 14px; } .fw-aura small { display: block; font-size: 11px; color: var(--muted, #b3b5bd); } .fw-aura p { margin: 3px 0 0; font-size: 12px; }
+.fw-own { color: #9ee59a; font-weight: 600; white-space: nowrap; }
+.fw-shop { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.fw-shop li { display: grid; grid-template-columns: 26px 1fr auto auto; gap: 6px; align-items: center; padding: 3px 6px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); font-size: 12px; }
+.fw-shop li img { width: 26px; height: 26px; } .fw-shop li b { color: var(--gold, #ffd36b); } .fw-shop button { padding: 3px 10px; font-size: 11.5px; }
+.fw-mini { width: 18px; height: 18px; vertical-align: middle; }
+.fw-cal { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.fw-cal li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.04); border-left: 3px solid var(--fc); font-size: 12.5px; }
+.fw-cal li small { color: var(--muted, #b3b5bd); }
+.ev-fest { display: block; width: 100%; margin: 4px 0 6px; padding: 8px 10px; font-weight: 600; color: #ffd36b; background: linear-gradient(90deg, rgba(255, 138, 26, 0.25), rgba(122, 58, 255, 0.25)); border: 1px solid rgba(255, 180, 90, 0.5); border-radius: 8px; }
+@media (max-width: 640px) { .fw-shop { grid-template-columns: 1fr; } .fw-aura { grid-template-columns: 56px 1fr; } .fw-aura .dq-btn, .fw-own { grid-column: 1 / -1; } .fw-thumb { width: 56px; height: 56px; } }
