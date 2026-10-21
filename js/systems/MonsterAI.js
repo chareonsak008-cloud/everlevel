@@ -1,15 +1,16 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.87.0';
-import { MONSTERS } from '../data/monsters.js?v=0.87.0';
-import { Monster } from '../entities/Monster.js?v=0.87.0';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.87.0';
+import { TILE } from '../config.js?v=0.88.0';
+import { MONSTERS } from '../data/monsters.js?v=0.88.0';
+import { Monster } from '../entities/Monster.js?v=0.88.0';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.88.0';
 
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
 
 // v0.52: มอนเกิดเยอะขึ้น/เร็วขึ้น (มอนปกติ) — MVP/บอสคงเดิม
 export const SPAWN_MUL = 2, RESPAWN_MUL = 0.25;   // v0.72 เกิดเยอะขึ้น (×2) และเร็วขึ้น (เวลาเกิดใหม่ ×0.25 · ต่ำสุด 2 วิ)
-const NEAR_CHANCE = 0.7;   // v0.72.1 โอกาสที่มอนธรรมดาจะเกิดใหม่ในวงรอบผู้เล่น/วงออโต้ (ถ้าโซนเกิดของมันทับวงนั้น)
+const NEAR_CHANCE = 0.7, NEAR_CHANCE_AUTO = 1, NEAR_ZONE = 18, AUTO_CAP = 14;   // v0.88 ออโต้: เกิดในวงเสมอ (มีมอนในวงไม่เกิน AUTO_CAP ตัว)
+//   // v0.72.1 โอกาสที่มอนธรรมดาจะเกิดใหม่ในวงรอบผู้เล่น/วงออโต้ (ถ้าโซนเกิดของมันทับวงนั้น)
 const isBossDef = (def) => { const d = MONSTERS[def.mob]; return !d || d.mvp || d.worldBoss || d.boss; };
 
 export class MonsterManager {
@@ -44,13 +45,20 @@ export class MonsterManager {
   spotNear(def, focus, player) {
     if (!focus || !def || !def.areas) return null;
     const r = focus.r * TILE, cx = focus.x, cy = focus.y;
-    for (let tries = 0; tries < 40; tries++) {
+    const inArea = (tx, ty) => def.areas.some(([ax, ay, aw, ah]) => tx >= ax && tx < ax + aw && ty >= ay && ty < ay + ah);
+    // v0.88 เปิดออโต้: มอนที่โซนเกิดอยู่ใกล้วง (ไม่เกิน NEAR_ZONE ช่อง) เกิดในวงได้แม้โซนไม่ทับวง
+    const fx = cx / TILE, fy = cy / TILE;
+    const zoneNear = focus.auto && def.areas.some(([ax, ay, aw, ah]) => Math.hypot(Math.max(ax - fx, 0, fx - (ax + aw)), Math.max(ay - fy, 0, fy - (ay + ah))) <= focus.r + NEAR_ZONE);
+    const center = { x: cx, y: cy };
+    for (let tries = 0; tries < 60; tries++) {
       const a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * r;
       const tx = Math.floor((cx + Math.cos(a) * d) / TILE), ty = Math.floor((cy + Math.sin(a) * d) / TILE);
-      if (!def.areas.some(([ax, ay, aw, ah]) => tx >= ax && tx < ax + aw && ty >= ay && ty < ay + ah)) continue;
       if (this.map.isSolidTile(tx, ty)) continue;
+      if (!inArea(tx, ty) && !(zoneNear && tries >= 20)) continue;   // ลองในโซนเดิมก่อน แล้วค่อยขยาย
       const x = tx * TILE + 8, y = ty * TILE + 8;
+      if (Math.hypot(x - cx, y - cy) > r) continue;
       if (player && Math.hypot(x - player.x, y - player.y) < 3 * TILE) continue;
+      if (focus.auto && !lineClear(this.map, center, { x, y })) continue;   // ไม่เกิดหลังกำแพง/ฝั่งน้ำ
       return { x, y };
     }
     return null;
@@ -63,6 +71,8 @@ export class MonsterManager {
     this.list.push(m);
     return m;
   }
+
+  countIn(f) { const r = f.r * TILE; let n = 0; for (const m of this.list) if (!m.dead && !m.summoned && Math.hypot(m.x - f.x, m.y - f.y) <= r) n++; return n; }
 
   remove(m) { const i = this.list.indexOf(m); if (i >= 0) this.list.splice(i, 1); }
 
@@ -93,7 +103,9 @@ export class MonsterManager {
         if (m.summoned) continue;              // มอนที่บอสเรียกมา ไม่เกิดใหม่
         if (time >= m.respawnAt) {
           const boss = m.data.mvp || m.data.worldBoss || m.data.boss;
-          const p = (!boss && Math.random() < NEAR_CHANCE && this.spotNear(m.spawnDef, this.focus, player)) || this.randomSpot(m.spawnDef) || m.home;   // v0.72.1
+          const f = this.focus, auto = f && f.auto;
+          const want = !boss && Math.random() < (auto ? NEAR_CHANCE_AUTO : NEAR_CHANCE) && (!auto || this.countIn(f) < AUTO_CAP);
+          const p = (want && this.spotNear(m.spawnDef, f, player)) || this.randomSpot(m.spawnDef) || m.home;   // v0.72.1 · v0.88
           m.reset(p.x, p.y);
           hooks.onRespawn && hooks.onRespawn(m);
         }

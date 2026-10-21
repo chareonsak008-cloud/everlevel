@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#3a3a48}canvas{display:block}</style></head><body>
+<script src="../vendor/three.min.js"></script>
+<script type="module">
+import {CharacterView} from '../js/render/Characters.js';
+import {ITEMS} from '../js/data/items.js';
+import {equipmentDesign} from '../js/data/equipmentDesigns.js';
+import {PLAYER_LOOK,JOB_LOOK} from '../js/entities/Player.js';
+import {wearCostume, costumeLook} from '../js/render/Costumes.js';
+import {COSTUME_BY_ID} from '../js/data/costumes.js';
+const q=new URLSearchParams(location.search);
+const rows=(q.get('w')||'wpn_sword_004:swordsman').split(',').map(s=>s.split(':'));
+const poses=(q.get('p')||'idle,walk,a0.2,a0.45,a0.8').split(',');
+const yaw=+(q.get('yaw')||0.6), wing=q.get('wing');
+const C=200,R=230;const W=C*poses.length,H=R*rows.length;
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(W,H);renderer.setPixelRatio(1);renderer.outputEncoding=THREE.sRGBEncoding;renderer.setScissorTest(true);document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.add(new THREE.HemisphereLight('#ffffff','#556',1.1));const sun=new THREE.DirectionalLight('#fff',0.9);sun.position.set(-2,4,3);scene.add(sun);
+const cam=new THREE.PerspectiveCamera(30,C/R,0.1,50);
+const d=+(q.get('d')||5.2), pitch=+(q.get('pitch')||0.35);
+cam.position.set(0,1.0+Math.sin(pitch)*d,Math.cos(pitch)*d);cam.lookAt(0,1.0,0);
+rows.forEach(([id,job,off],ri)=>{
+  const it=ITEMS[id];const equipment={weapon:equipmentDesign(id,it)};if(off)equipment.shield=equipmentDesign(off,ITEMS[off]);const oid=rows[ri][2];if(oid)equipment.shield=equipmentDesign(oid,ITEMS[oid]);
+  poses.forEach((ps,pi)=>{
+    let L={...PLAYER_LOOK,...JOB_LOOK[job],weapon:it.wtype,equipment};if(equipment.shield?.form==='quiver')L.accessory='none';
+    const items={};if(wing){for(const w of wing.split('|')){const c=COSTUME_BY_ID[w];items[c.slot]=c;}L=costumeLook(L,items);}
+    const v=new CharacterView(L);scene.add(v.root);
+    let costume=null;if(wing){costume=wearCostume(v,items,{world:scene,look:L});costume.setViewport(R,30);}
+    const ent={x:0,y:0,angle:yaw,moving:ps==='walk',speedFactor:1,dead:false,cast:ps==='cast'?{}:null};
+    v.root.rotation.y=yaw;
+    if(ps==='h'){for(let i=0;i<30;i++)v.update(1/30,ent);v.attack(it.wtype==='bow'?'shoot':'melee');for(let i=0;i<40;i++){v.update(1/60,ent);costume?.update(1/60,v);}}
+    else if(ps.startsWith('a')||ps.startsWith('s')||ps.startsWith('c')){const kind=ps[0]==='a'?(it.wtype==='bow'?'shoot':['staff'].includes(it.wtype)||['rod','orb','book','scepter'].includes(it.form)?'cast':'melee'):ps[0]==='s'?'shoot':'cast';
+      for(let i=0;i<30;i++)v.update(1/30,ent);v.attack(kind);const tt=+ps.slice(1)*0.34;let t=0;while(t<tt){v.update(1/60,ent);costume?.update(1/60,v);t+=1/60;}}
+    else for(let i=0;i<(ps==='walk'?14:30);i++){v.update(1/30,ent);costume?.update(1/30,v);}
+    v.root.rotation.y=yaw;
+    renderer.setViewport(pi*C,H-(ri+1)*R,C,R);renderer.setScissor(pi*C,H-(ri+1)*R,C,R);renderer.setClearColor(ri%2?'#3e3e4e':'#46465a');renderer.clear();
+    renderer.render(scene,cam);scene.remove(v.root);
+  });
+});
+document.title='done';
+</script></body></html>

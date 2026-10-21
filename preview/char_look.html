@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><title>char look</title>
+<style>body{margin:0;background:#1a1a22;color:#eee;font:14px sans-serif}canvas#out{display:block;image-rendering:pixelated}#gl{position:absolute;left:-9999px}</style></head>
+<body><canvas id="gl" width="64" height="64"></canvas><canvas id="out"></canvas>
+<script src="../vendor/three.min.js"></script>
+<script type="module">
+import { THREE } from '../js/render/three.js';
+import { CharacterView } from '../js/render/Characters.js';
+import { PixelSprites } from '../js/render/PixelSprites.js';
+import { PLAYER_LOOK, JOB_LOOK, JOB_LOOK_V2 } from '../js/entities/Player.js';
+const Q = new URLSearchParams(location.search);
+const v2 = Q.get('v') !== '1', scale = +(Q.get('s') || 3), dirs = (Q.get('d') || '0,-1').split(',').map(Number);
+const jobs = (Q.get('jobs') || 'swordsman,mage,archer,acolyte').split(',');
+const WPN = { swordsman: 'sword', mage: v2 ? 'crook' : 'staff', archer: 'bow', acolyte: 'mace', knight: 'sword', wizard: 'crook', hunter: 'bow', priest: 'mace', novice: 'knife' };
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gl'), alpha: true, antialias: false });
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(15, 1, 0.5, 220);
+camera.position.set(0, Math.sin(60 * Math.PI / 180) * 17, Math.cos(60 * Math.PI / 180) * 17); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
+const px = new PixelSprites(renderer, scene, camera, {}); px.budget = 99;
+const items = [];
+for (const job of jobs) for (const d of dirs) {
+  const L = { ...PLAYER_LOOK, ...(JOB_LOOK[job] || {}), ...(v2 ? JOB_LOOK_V2[job] || {} : {}), weapon: WPN[job], equipment: {}, v2 };
+  if (Q.get('hair')) L.hair = '#' + Q.get('hair');
+  const view = new CharacterView(L); view.phase = 0; view.time = 0.3; view.blinkAt = 99;
+  view.root.rotation.y = d * Math.PI / 4; scene.add(view.root);
+  view.update(0.016, { x: 0, y: 0, angle: d * Math.PI / 4, moving: false, dead: false });
+  view.root.rotation.y = d * Math.PI / 4;
+  const s = px.attach(view, view, 'char', { eyes: PixelSprites.eyeMarkers(view), eyeColor: L.eye, face: view.face });
+  items.push({ s, view });
+}
+for (let i = 0; i < 3; i++) { for (const it of items) { it.view.root.rotation.y = it.view.root.rotation.y; it.s.dirty = true; } px.update(0.016); }
+// copy RTs to sheet
+const out = document.getElementById('out'), W = items.reduce((a, it) => a + it.s.w, 0), H = Math.max(...items.map((it) => it.s.h));
+out.width = W * scale; out.height = H * scale; const ctx = out.getContext('2d'); ctx.imageSmoothingEnabled = false;
+ctx.fillStyle = Q.get('bg') ? '#' + Q.get('bg') : '#e9e6df'; ctx.fillRect(0, 0, out.width, out.height);
+let x = 0;
+for (const it of items) {
+  const { w, h, rt } = it.s, buf = new Uint8Array(w * h * 4); renderer.readRenderTargetPixels(rt, 0, 0, w, h, buf);
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const cx = c.getContext('2d'), id = cx.createImageData(w, h);
+  for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) { const si = ((h - 1 - yy) * w + xx) * 4, di = (yy * w + xx) * 4; const a = buf[si + 3] > 127; id.data[di] = buf[si]; id.data[di + 1] = buf[si + 1]; id.data[di + 2] = buf[si + 2]; id.data[di + 3] = a ? 255 : 0; }
+  cx.putImageData(id, 0, 0);
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse((x + it.s.ax) * scale, (it.s.ay - 2) * scale, 26 * scale, 7 * scale, 0, 0, 7); ctx.fill();
+  ctx.drawImage(c, x * scale, (H - h) * scale, w * scale, h * scale); x += w;
+}
+window.__done = true;
+</script></body></html>

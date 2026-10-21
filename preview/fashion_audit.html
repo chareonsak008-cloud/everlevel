@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"></head><body>
+<script src="../vendor/three.min.js"></script>
+<script type="module">
+import {CharacterView} from '../js/render/Characters.js';
+import {PLAYER_LOOK,JOB_LOOK} from '../js/entities/Player.js';
+import {wearCostume, costumeLook, hasBuilder} from '../js/render/Costumes.js';
+import {COSTUME_BY_ID} from '../js/data/costumes.js';
+const out=[];const warns=[];const ow=console.warn;console.warn=(...a)=>{warns.push(a.map(String).join(' ').slice(0,200));};
+const scene=new THREE.Scene();
+const count=(r)=>{let n=0;r.traverse(o=>{if(o.isMesh)n++;});return n;};
+const base=new CharacterView({...PLAYER_LOOK,...JOB_LOOK.swordsman});const n0=count(base.root);
+for(const it of Object.values(COSTUME_BY_ID)){
+  warns.length=0;
+  try{
+    const items={[it.slot]:it};const L=costumeLook({...PLAYER_LOOK,...JOB_LOOK.swordsman,equipment:{}},items);
+    const v=new CharacterView(L);const g=new THREE.Group();scene.add(g);
+    const rt=wearCostume(v,items,{world:g,look:L});
+    let maxP=0;for(let i=0;i<60;i++){v.update(1/30,{x:0,y:0,angle:0,moving:i>30,dead:false});rt.update(1/30,v);let a=0;for(const p of rt.systems.values())a+=(p.count??p.alive??p.n??0);maxP=Math.max(maxP,a);}
+    const sys=[...rt.systems.values()].map(p=>Object.keys(p).filter(k=>typeof p[k]==='number').map(k=>k+'='+p[k]).join('/')).slice(0,1);
+    out.push({id:it.id,slot:it.slot,kind:it.kind,builder:hasBuilder(it),meshes:count(v.root)-n0,gmeshes:count(g),systems:rt.systems.size,maxP,warn:warns.slice(0,2),sys});
+    scene.remove(g);
+  }catch(e){out.push({id:it.id,slot:it.slot,kind:it.kind,err:String(e).slice(0,200)});}
+}
+window.__out=out;document.title='done';
+</script></body></html>

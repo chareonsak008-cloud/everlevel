@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../css/style.css">
+<style>body{background:#1b1420;color:#eee;font:11px sans-serif;padding:10px;overflow:auto}.grid{display:grid;grid-template-columns:repeat(8,74px);gap:6px}.c{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}.slot{width:64px}</style></head><body><div id="o" class="grid"></div>
+<script type="module">
+import {iconURL} from '../js/render/ItemIcons.js';
+import {ITEMS} from '../js/data/items.js';
+const q=new URLSearchParams(location.search);const mode=q.get('m')||'new';
+const order=['common','uncommon','rare','epic','legend','mythic','celestial'];
+let ids=Object.keys(ITEMS).filter(i=>ITEMS[i].type==='equip'&&!i.includes('*'));
+if(mode==='new')ids=ids.filter(i=>i.startsWith('wpn_'));
+else if(mode==='oldw')ids=ids.filter(i=>!i.startsWith('wpn_')&&ITEMS[i].slot==='weapon');
+else ids=ids.filter(i=>ITEMS[i].slot!=='weapon');
+if(mode!=='new')ids.sort((a,b)=>(ITEMS[a].slot+order.indexOf(ITEMS[a].rarity||'common')).localeCompare(ITEMS[b].slot+order.indexOf(ITEMS[b].rarity||'common')));
+const o=document.getElementById('o');
+for(const id of ids){const it=ITEMS[id];const c=document.createElement('div');c.className='c';c.innerHTML=`<div class="slot r-${it.rarity||'common'}"><img src="${iconURL(id)}"></div><span>${it.name}</span>`;o.append(c);}
+</script></body></html>

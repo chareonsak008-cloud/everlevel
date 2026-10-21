@@ -110,3 +110,17 @@
   }
   body.touch .dlg { scale: var(--winz, 1); transform-origin: 50% 0; }
 }
+
+/* v0.88 ปุ่มพับ/กางแถบไอคอนด้านบน */
+.tb-toggle {
+  position: relative; align-self: center; flex: none; width: 30px; height: 30px; margin-left: 2px; padding: 0;
+  display: grid; place-items: center; border-radius: 999px; cursor: pointer; color: #ffe6a8; font: inherit; font-size: 12px; line-height: 1;
+  background: rgba(10, 8, 20, 0.78); border: 1px solid rgba(255, 214, 140, 0.55); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+.tb-toggle:hover { background: rgba(40, 30, 60, 0.9); }
+.tb-toggle:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.tb-toggle .tb-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; border-radius: 999px; background: #e8384f; box-shadow: 0 0 0 2px #fff; }
+.tb-toggle .tb-dot[hidden] { display: none; }
+.topbar.tb-collapsed > .tb-btn { display: none; }
+.topbar.tb-collapsed { gap: 0; }
+@media (max-width: 720px) { .tb-toggle { width: 28px; height: 28px; } }
