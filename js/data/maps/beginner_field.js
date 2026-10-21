@@ -1,5 +1,5 @@
 // ข้อมูลแผนที่ Beginner Field — ทุ่งหญ้าฝึกฝีมือนอกเมือง
-import { borderTrees, treesAt, scaleMap, FIELD_SCALE } from './helpers.js?v=0.75.0';
+import { borderTrees, treesAt, scaleMap, FIELD_SCALE } from './helpers.js?v=0.76.0';
 
 const W = 72, H = 56;
 

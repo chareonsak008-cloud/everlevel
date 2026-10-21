@@ -1,33 +1,34 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.75.0';
-import { PixelWingSprite } from './PixelWings.js?v=0.75.0';
-import { paintPlate } from '../ui/Nameplates.js?v=0.75.0';
-import { PixelVfx } from './PixelVfx.js?v=0.75.0';
-import { THREE } from './three.js?v=0.75.0';
-import { TILE } from '../config.js?v=0.75.0';
-import { T } from '../data/tileTypes.js?v=0.75.0';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.75.0';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.75.0';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.75.0';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.76.0';
+import { PixelWingSprite } from './PixelWings.js?v=0.76.0';
+import { paintPlate } from '../ui/Nameplates.js?v=0.76.0';
+import { PixelVfx } from './PixelVfx.js?v=0.76.0';
+import { THREE } from './three.js?v=0.76.0';
+import { TILE } from '../config.js?v=0.76.0';
+import { T } from '../data/tileTypes.js?v=0.76.0';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.76.0';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.76.0';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.76.0';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.75.0';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.75.0';
-import { iconCanvas } from './ItemIcons.js?v=0.75.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.75.0';
-import { MonsterView } from './Monsters.js?v=0.75.0';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.75.0';
-import { SkillFX } from './SkillFX.js?v=0.75.0';
-import { PostFX } from './PostFX.js?v=0.75.0';
-import { costumeLook, wearCostume } from './Costumes.js?v=0.75.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.75.0';
-import { PetView } from './Pets.js?v=0.75.0';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.75.0';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.75.0';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.75.0';
-import { gradientMap } from './Toon.js?v=0.75.0';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.75.0';
+} from './Models.js?v=0.76.0';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.76.0';
+import { iconCanvas } from './ItemIcons.js?v=0.76.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.76.0';
+import { MonsterView } from './Monsters.js?v=0.76.0';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.76.0';
+import { SkillFX } from './SkillFX.js?v=0.76.0';
+import { PostFX } from './PostFX.js?v=0.76.0';
+import { costumeLook, wearCostume } from './Costumes.js?v=0.76.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.76.0';
+import { PetView } from './Pets.js?v=0.76.0';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.76.0';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.76.0';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.76.0';
+import { gradientMap } from './Toon.js?v=0.76.0';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.76.0';
+const HONOR_H = { common: 22, rare: 24, epic: 30, legend: 36, mythic: 46, divine: 54 };   // v0.76 ระยะซ้อนฉายาแต่ละระดับ (px)
 const PX_BASE = (() => { const a = new THREE.Color('#dcefff'), b = new THREE.Color('#fff0d6'); return { r: a.r * 0.72 + b.r * 1.45 * 0.5, g: a.g * 0.72 + b.g * 1.45 * 0.5, b: a.b * 0.72 + b.b * 1.45 * 0.5 }; })();   // v0.17: สไปรต์พิกเซลอาร์ต   // v0.13: สัตว์เลี้ยงช่วยเก็บของ
 
 // ความแรงแสงเรืองของแฟชั่นระดับล้ำค่าขึ้นไป (ตอนไม่มีเอฟเฟกต์สกิล)
@@ -708,7 +709,7 @@ export class Renderer3D {
     if (c.view.dispose) c.view.dispose();
     disposeOwned(c.view.root);
     if (c.costume) { c.costume.dispose(); c.costume = null; }
-    for (const el of [c.label, c.bubble, c.hpbar, c.castbar, c.honorEl]) if (el) el.remove();
+    for (const el of [c.label, c.bubble, c.hpbar, c.castbar, ...(c.honorEls || [])]) if (el) el.remove();
     this.characters.delete(entity);
   }
 
@@ -1389,16 +1390,27 @@ export class Renderer3D {
     const p = this.project(x, c.npc ? (c.head + 0.2) * this.vs : -0.05, z);
     setV(c.label, !!p);
     if (c.hpbar) setV(c.hpbar, !!p);
-    if (!p) { if (c.bubble) setH(c.bubble, true); if (c.honorEl) setH(c.honorEl, true); return; }
+    if (!p) { if (c.bubble) setH(c.bubble, true); for (const el of c.honorEls || []) setH(el, true); return; }
     const [sx, sy] = p;
     // v0.18: ฉายาเหนือหัว (ตัวเราและผู้เล่นคนอื่น)
-    const honor = !c.npc && !entity.dead ? entity.honor || '' : '';
-    if (honor || c.honorEl) {
-      if (!c.honorEl) { c.honorEl = document.createElement('div'); c.honorEl.className = 'tag-honor'; c.honorEl.hidden = true; this.labelLayer.append(c.honorEl); }
-      paintHonor(c.honorEl, honor, entity.honorTier || 'common', entity.honorFx || '');   // v0.30: เอฟเฟ็กตามความหายาก
-      const hp2 = honor ? this.project(x, ((c.sheet ? c.sheet.headH : c.head) - 0.12) * this.vs, z) : null;
-      setH(c.honorEl, !hp2);
-      if (hp2) setT(c.honorEl, `translate3d(${hp2[0]}px, ${hp2[1]}px, 0) translate(-50%, -100%)`);
+    // v0.76 ฉายาได้สูงสุด 3 อัน เรียงซ้อนขึ้นไปเป็นแนวตั้ง (อันแรกชิดหัว) · ระยะห่างตามความอลังการของแต่ละระดับ
+    const hons = !c.npc && !entity.dead ? (entity.honors || (entity.honor ? [{ title: entity.honor, tier: entity.honorTier, fx: entity.honorFx }] : [])) : [];
+    c.honorH = 0;
+    if (hons.length || (c.honorEls && c.honorEls.length)) {
+      const els = c.honorEls || (c.honorEls = []);
+      while (els.length < hons.length) { const el = document.createElement('div'); el.className = 'tag-honor'; el.hidden = true; this.labelLayer.append(el); els.push(el); }
+      const hp2 = hons.length ? this.project(x, ((c.sheet ? c.sheet.headH : c.head) - 0.12) * this.vs, z) : null;
+      let off = 0;
+      for (let i = 0; i < els.length; i++) {
+        const h = hons[i], el = els[i];
+        if (!h || !hp2) { setH(el, true); continue; }
+        paintHonor(el, h.title, h.tier || 'common', h.fx || '');   // v0.30: เอฟเฟ็กตามความหายาก
+        setH(el, false);
+        setT(el, `translate3d(${hp2[0]}px, ${hp2[1] - off}px, 0) translate(-50%, -100%)`);
+        el.style.zIndex = String(1 + i);
+        off += HONOR_H[h.tier] || 20;
+      }
+      c.honorH = off;
     }
     if (c.npc) setT(c.label, `translate3d(${sx}px, ${sy}px, 0) translate(-50%, -100%)`);
     else {
@@ -1431,7 +1443,7 @@ export class Renderer3D {
         if (c.lastText !== b.text) { c.bubble.textContent = this.mobile && !c.npc && b.text.length > 56 ? b.text.slice(0, 54) + '…' : b.text; c.lastText = b.text; }   // v0.13: มือถือย่อข้อความยาวในบอลลูน
         setH(c.bubble, false);
         const op = String(Math.min(1, Math.round(b.t * 20) / 10)); if (c.bubble._o !== op) { c.bubble.style.opacity = op; c.bubble._o = op; }
-        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, (c.head + 0.35) * this.vs, z) || p)[1] - (c.honorEl && !c.honorEl.hidden ? (entity.honorTier === 'divine' ? 34 : entity.honorTier === 'mythic' ? 28 : entity.honorTier === 'legend' ? 20 : 16) : 0)}px, 0) translate(-50%, -100%)`);
+        setT(c.bubble, c.npc ? `translate3d(${sx}px, ${sy - 34}px, 0) translate(-50%, -100%)` : `translate3d(${sx}px, ${(this.project(x, (c.head + 0.35) * this.vs, z) || p)[1] - (c.honorH || 0)}px, 0) translate(-50%, -100%)`);
       } else if (!c.bubble.hidden) { c.bubble.hidden = true; c.lastText = ''; }
     }
   }
