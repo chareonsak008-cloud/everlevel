@@ -1,6 +1,6 @@
 // v0.46 Sky Citadel · ปราสาทลอยฟ้า Lv.135–150 · MVP ออเรลิออน เทพบุตรสวรรค์ (ปลายสุดของเกม)
 // ลานหินขาวลอยเหนือเมฆ สวนลอยฟ้า สระสวรรค์ · ท้องพระโรงทางเหนือ
-import { scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.72.0';
+import { scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.73.0';
 const W=80,H=64,lanes=[[0,30,80,4],[38,0,4,64],[14,14,52,4],[14,46,52,4],[14,14,4,36],[62,14,4,36]],camp=[2,25,11,15],court=[28,22,24,20],throne=[30,2,20,12];
 const look={hair:'#fff1b0',skin:'#f6dcc8',eye:'#c8a24a',tunic:'#f4ecd8',pants:'#c8b88a',boot:'#8a7a5a',hairStyle:'long',accessory:'wizard',hatColor:'#e8d8a8',orbColor:'#fff1b0',weapon:'staff'};
 const RAW = {

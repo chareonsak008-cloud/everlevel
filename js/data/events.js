@@ -10,10 +10,10 @@ export function eventRate(e, now = Date.now()) {
 }
 export const WORLD_BOSSES = {
  // v0.47 reward = รางวัลทุกคนที่ร่วมพิชิต (ตรงกับ supabase/worldboss_rewards.sql) · chance = ลุ้นอาวุธ 1 ชิ้นแบบสุ่ม · top = โบนัสดาเมจอันดับ 1–3
- world_aurex: { name:'ออเร็กซ์ จอมทัพโลก', map:'ancient_ruins', tx:58, ty:20, hp:600000, hour:12, level:78, base:'aurex',
-  reward:{ items:[['royal_jelly',5],['refine_w',3],['refine_a',3],['refine_guard',1],['guardian_core',1],['refine_luck',2]], zeny:17000, chance:{ p:0.15, items:['spectral_sword','spectral_staff','spectral_bow','spectral_mace','spectral_knife'] } } },
- world_nocthar: { name:'น็อคธาร์ ราชันคราสโลก', map:'haunted_forest', tx:68, ty:48, hp:1000000, hour:20, level:99, base:'nocthar',
-  reward:{ items:[['royal_jelly',8],['refine_w',4],['refine_a',4],['refine_guard',2],['dread_crown',1],['refine_luck',2]], zeny:27000, chance:{ p:0.15, items:['bloodmoon_sword','bloodmoon_staff','bloodmoon_bow','bloodmoon_mace','bloodmoon_knife'] } } },
+ world_aurex: { name:'ออเร็กซ์ จอมทัพโลก', map:'ancient_ruins', tx:58, ty:20, hp:3000000, hour:12, level:78, base:'aurex',
+  reward:{ items:[['royal_jelly',5],['refine_w',3],['refine_a',3],['refine_guard',1],['guardian_core',1],['refine_luck',2]], zeny:17000, chance:{ p:0.05, items:['spectral_sword','spectral_staff','spectral_bow','spectral_mace','spectral_knife'] } } },
+ world_nocthar: { name:'น็อคธาร์ ราชันคราสโลก', map:'haunted_forest', tx:68, ty:48, hp:5000000, hour:20, level:99, base:'nocthar',
+  reward:{ items:[['royal_jelly',8],['refine_w',4],['refine_a',4],['refine_guard',2],['dread_crown',1],['refine_luck',2]], zeny:27000, chance:{ p:0.05, items:['bloodmoon_sword','bloodmoon_staff','bloodmoon_bow','bloodmoon_mace','bloodmoon_knife'] } } },
 };
 export const WORLD_TOP_BONUS = { items:[['refine_luck',1],['refine_guard',1]], zeny:[21000,14000,7000] };
 export function localBossRuns(now) {

@@ -3,11 +3,11 @@
 // attackDelay = วินาทีต่อการโจมตี 1 ครั้ง | respawn = [ต่ำสุด, สูงสุด] วินาที
 // baseExp / jobExp = EXP ที่ผู้เล่นได้เมื่อกำจัด
 // drops = [ไอเทม, โอกาสดรอป 0..1] สุ่มแยกกันทีละชิ้น
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.72.0';
-import { ASCEND_MONSTERS } from './ascendData.js?v=0.72.0';   // v0.46 Lv.100–150
-import { BASE_ITEMS } from './items.js?v=0.72.0';
-import { WEAPON_DEFS } from './weapons.js?v=0.72.0';
-import { OFFHAND_DROPS } from './offhand.js?v=0.72.0';
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.73.0';
+import { ASCEND_MONSTERS } from './ascendData.js?v=0.73.0';   // v0.46 Lv.100–150
+import { BASE_ITEMS } from './items.js?v=0.73.0';
+import { WEAPON_DEFS } from './weapons.js?v=0.73.0';
+import { OFFHAND_DROPS } from './offhand.js?v=0.73.0';
 export const MONSTERS = {
   ...ENDGAME_MONSTERS,
   ...ASCEND_MONSTERS,
@@ -148,7 +148,7 @@ export const MONSTERS = {
 
 // World variants reuse boss models with larger HP; never appear in normal map spawns.
 // v0.47 บอสโลกมีโมเดลของตัวเอง (ตัวใหญ่ ไม่ซ้ำมอนอื่น): โคลอสซัสศิลา · มังกรคราส
-for (const [id, base, name, hp, look] of [['world_aurex','aurex','ออเร็กซ์ จอมทัพโลก',600000,{model:'colossus',color:'#b8a67a',modelScale:2.4,height:5,radius:2.2}],['world_nocthar','nocthar','น็อคธาร์ ราชันคราสโลก',1000000,{model:'eclipsewyrm',color:'#4a2a52',modelScale:2.1,height:4.6,radius:2.4}]]) {
+for (const [id, base, name, hp, look] of [['world_aurex','aurex','ออเร็กซ์ จอมทัพโลก',3000000,{model:'colossus',color:'#b8a67a',modelScale:2.4,height:5,radius:2.2}],['world_nocthar','nocthar','น็อคธาร์ ราชันคราสโลก',5000000,{model:'eclipsewyrm',color:'#4a2a52',modelScale:2.1,height:4.6,radius:2.4}]]) {
  MONSTERS[id] = {...MONSTERS[base], ...look, name, hp, worldBoss:true, drops:[], baseExp:0, jobExp:0, boss:{...MONSTERS[base].boss, summon:null}};
 }
 
