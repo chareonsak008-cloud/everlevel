@@ -1,0 +1,9 @@
+{
+  "models": 539,
+  "animatedCharacterFrames": 480,
+  "inventoryPortraits": 96,
+  "maxMeshesPerModel": 5,
+  "combatDataUnchanged": true,
+  "oldSaveIDsPreserved": true,
+  "browserQA": false
+}

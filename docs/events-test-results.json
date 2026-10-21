@@ -1,0 +1,24 @@
+{
+  "version": "0.24.0",
+  "rates": [
+    1,
+    2,
+    3,
+    5,
+    10,
+    20,
+    40
+  ],
+  "worldBosses": 2,
+  "weeklyQuests": 3,
+  "weekBoundary": "Monday 00:00 Asia/Bangkok",
+  "questReset": true,
+  "saveReload": true,
+  "duplicateWorldCreditBlocked": true,
+  "spawnPointsReachable": true,
+  "noticeDedup": true,
+  "networkFailClosed": true,
+  "jsTests": "passed",
+  "sqlExecution": false,
+  "browserQA": false
+}
