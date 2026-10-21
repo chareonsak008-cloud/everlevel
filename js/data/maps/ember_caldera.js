@@ -1,6 +1,6 @@
 // ข้อมูลแผนที่ Ember Caldera — ปล่องภูเขาไฟทางตะวันออกของ Frostveil Peaks (v0.11)
 // มอนสเตอร์ Lv.42–66 และ MVP Lv.80 "อิกนารอก มังกรเพลิง" ในปล่องลาวาทางตะวันออก
-import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.86.0';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.86.1';
 
 const W = 84, H = 64;
 
