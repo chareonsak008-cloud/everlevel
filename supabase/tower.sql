@@ -41,3 +41,8 @@ language sql stable security definer set search_path = public as $$
 $$;
 revoke all on function public.tower_board(integer) from public;
 grant execute on function public.tower_board(integer) to anon, authenticated;
+
+-- v0.38: ลบตัวละคร = ลบสถิติหอคอยของช่องนั้นด้วย (เดิมตัวใหม่ในช่องเดียวกันได้สถิติเก่าไป)
+delete from public.tower_records t where not exists (select 1 from public.characters c where c.user_id = t.user_id and c.slot = t.slot);
+alter table public.tower_records drop constraint if exists tower_records_char_fk;
+alter table public.tower_records add constraint tower_records_char_fk foreign key (user_id, slot) references public.characters (user_id, slot) on delete cascade;
