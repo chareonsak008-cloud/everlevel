@@ -1,9 +1,10 @@
 // หน้าจอเข้าเกม (v0.11): เข้าสู่ระบบ → เลือก/สร้างตัวละคร (สูงสุด 3 ตัว)
 // v0.17.1: เอาโหมดออฟไลน์ออก — ต่อเซิร์ฟเวอร์ไม่ได้ = แจ้งเตือน + ปุ่มลองใหม่ (ไม่มีทางเลือกเล่นออฟไลน์)
-import { MAX_CHARS, validName } from '../net/Online.js?v=0.82.0';
-import { MAPS } from '../data/maps/index.js?v=0.82.0';
-import { JOBS } from '../data/progression.js?v=0.82.0';
-import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.82.0';
+import { MAX_CHARS, validName } from '../net/Online.js?v=0.83.0';
+import { BETA } from '../data/beta.js?v=0.83.0';
+import { MAPS } from '../data/maps/index.js?v=0.83.0';
+import { JOBS } from '../data/progression.js?v=0.83.0';
+import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.83.0';
 
 const HAIR = ['#e8a838', '#5e3f27', '#2a2430', '#c4467c', '#b8c8ff', '#e8e2d0', '#d8433a', '#4a8a5a'];
 const STYLES = [['spiky', 'ผมชี้'], ['short', 'ผมสั้น'], ['ponytail', 'หางม้า']];
@@ -18,7 +19,7 @@ export class TitleScreen {
       <div class="tt-sky" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="tt-box">
         <h1 class="tt-logo"><img src="assets/brand/logo.png" alt="Everlevel" draggable="false"></h1>
-        <p class="tt-sub">MMORPG แฟนตาซี — ผจญภัยไปกับเพื่อน ๆ</p>
+        <p class="tt-sub">MMORPG แฟนตาซี — ผจญภัยไปกับเพื่อน ๆ</p>${BETA.on ? `<p class="tt-beta">${BETA.badge}</p>` : ''}
         <div class="tt-panel" aria-live="polite"></div>
         <p class="tt-foot">v${VERSION} · เสียงจะเริ่มเล่นเมื่อแตะหน้าจอครั้งแรก · <a href="equipment.html" target="_blank" rel="noopener">ลองอุปกรณ์ใหม่</a> · <a href="content.html" target="_blank" rel="noopener">ดูเนื้อหา Lv.60–99</a></p>
       </div>`;

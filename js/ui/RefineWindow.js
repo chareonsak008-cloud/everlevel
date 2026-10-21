@@ -1,9 +1,9 @@
 // หน้าต่างตีบวกอุปกรณ์ (v0.10) — เปิดจากการ์ธ ช่างตีเหล็ก
-import { ITEMS, BASE_ITEMS, itemMods, describeBonus, EQUIP_SLOTS } from '../data/items.js?v=0.82.0';
-import { REFINE_RATE, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS, refineBonus } from '../data/refine.js?v=0.82.0';
-import { refineTargets, refineCheck } from '../systems/Forge.js?v=0.82.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.82.0';
-import { fmtZ } from '../data/shops.js?v=0.82.0';
+import { ITEMS, BASE_ITEMS, itemMods, describeBonus, EQUIP_SLOTS } from '../data/items.js?v=0.83.0';
+import { REFINE_RATE, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS, refineBonus } from '../data/refine.js?v=0.83.0';
+import { refineTargets, refineCheck } from '../systems/Forge.js?v=0.83.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.83.0';
+import { fmtZ } from '../data/shops.js?v=0.83.0';
 
 const HAMMER = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M30 30 L52 52" stroke="#8a5a32" stroke-width="7" stroke-linecap="round"/><path d="M14 14 l18 -6 l10 10 l-6 18 z" fill="#c8d0dc" stroke="#2a1d2c" stroke-width="3" stroke-linejoin="round"/><path d="M18 16 l12 -4" stroke="#fff" stroke-width="2" opacity=".7"/></svg>';
 const slotName = (id) => (EQUIP_SLOTS.find((s) => s.id === id) || {}).name || id;

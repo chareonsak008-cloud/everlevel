@@ -4,10 +4,10 @@
 //   ดาเมจที่ทำใส่ร่างเป้าถูกส่งไปหักเลือดจริงที่เซิร์ฟเวอร์ (arena_hit) · เลือดของเราก็อ่านจากเซิร์ฟเวอร์ (โดนตีจริงตามที่เซิร์ฟเวอร์บอก)
 // · การฟื้นเลือดในเครื่อง (สกิลรักษา/ดูดเลือด/ฟื้นตามเวลา/เพื่อนฮีล) ส่งไปให้เซิร์ฟเวอร์ตัดสิน (จำกัดต่อวินาที)
 // · ในสนามทุกคนถูกปรับเป็น Lv.150 (Player.arenaSync) · ห้ามใช้ไอเทม/เปลี่ยนอุปกรณ์/ออโต้
-import { TILE } from '../config.js?v=0.82.0';
-import { ITEMS } from '../data/items.js?v=0.82.0';
-import { START_MAP } from '../data/maps/index.js?v=0.82.0';
-import { AR, AR_SHOP, arMapDef, tierOf, TEAM_COLOR, TEAM_NAME } from '../data/arena.js?v=0.82.0';
+import { TILE } from '../config.js?v=0.83.0';
+import { ITEMS } from '../data/items.js?v=0.83.0';
+import { START_MAP } from '../data/maps/index.js?v=0.83.0';
+import { AR, AR_SHOP, arMapDef, tierOf, TEAM_COLOR, TEAM_NAME } from '../data/arena.js?v=0.83.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const fmtT = (s) => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };

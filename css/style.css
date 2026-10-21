@@ -2396,3 +2396,26 @@ body.touch .hud > :is(.panel.char, .buffs, .panel.mini, .topbar, .qtrack, .hotba
 .cs-cheat.hard{border-left:3px solid #ff5a5a}.cs-cheat.soft{border-left:3px solid #ffc04a}
 .cs-cheat .tm-info small{display:block;line-height:1.45}.cs-cheat .cs-reason{color:#ffd9a0}
 .cs-cheat .tm-foot:empty{display:none}
+
+/* v0.83 Closed Beta */
+.tt-beta{display:inline-block;margin:-8px auto 14px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.04em;color:#1a1206;background:linear-gradient(180deg,#ffe48a,#ffb84a);box-shadow:0 2px 10px rgba(0,0,0,.45)}
+.beta-modal{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,6,14,.62);pointer-events:auto}
+.beta-card{width:min(460px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:20px 22px;text-align:left}
+.beta-card h2{margin:0 0 4px;font-size:20px;color:var(--gold,#ffd45a)}
+.beta-intro{margin:0 0 12px;font-size:14px;opacity:.9}
+.beta-card ul{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:10px}
+.beta-card li{display:flex;gap:10px;align-items:flex-start}
+.beta-card li i{font-style:normal;font-size:20px;line-height:1.2;width:26px;text-align:center;flex:none}
+.beta-card li b{display:block;font-size:14px}.beta-card li small{display:block;font-size:12px;line-height:1.5;opacity:.82}
+.beta-links{margin:0 0 12px;font-size:12px;opacity:.75}.beta-links a{color:inherit}
+.beta-ok{width:100%;padding:10px;font-size:15px}
+.beta-card .beta-ok{border:0;border-radius:10px;cursor:pointer;font-weight:700;color:#1a1206;background:linear-gradient(180deg,#ffe48a,#ffb84a);box-shadow:0 3px 0 #9a6420,0 6px 18px rgba(0,0,0,.35)}
+.beta-card .beta-ok:hover{filter:brightness(1.06)}
+
+/* v0.83 บอลลูนแชทอยู่เหนือฉายาเสมอ */
+.bubble { z-index: 20; }
+
+/* v0.83 บอลลูนแชทผู้เล่นอยู่ข้างตัว · หางชี้เข้าหาตัวละคร */
+.bubble.bubble-side { box-sizing: border-box; }
+.bubble.bubble-side::after { left: -7px; top: 50%; bottom: auto; margin: -6px 0 0; border-right: 0; border-bottom: 1.5px solid rgba(60, 40, 70, 0.55); border-left: 1.5px solid rgba(60, 40, 70, 0.55); background: #faf4e6; }
+.bubble.bubble-side.flip::after { left: auto; right: -7px; border-left: 0; border-right: 1.5px solid rgba(60, 40, 70, 0.55); }
