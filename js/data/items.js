@@ -6,15 +6,16 @@
 // v0.9: type box = กล่องแฟชั่นสุ่ม (ข้อมูลอยู่ใน data/fashionBoxes.js)
 // v0.10: slots = ช่องการ์ด · type card = การ์ดมอนสเตอร์ (data/cards.js) · วัสดุตีบวก (data/refine.js)
 //        อุปกรณ์ที่ตีบวก/ใส่การ์ดแล้วใช้ "คีย์" แทน id เช่น 'iron_blade*7*card_barkwolf' (ดู itemKey ด้านล่าง)
-import { ENDGAME_ITEMS } from './endgameItems.js?v=0.76.0';
-import { ASCEND_ITEMS } from './ascendData.js?v=0.76.0';   // v0.46 Lv.100–150
-import { parentJob } from './progression.js?v=0.76.0';
-import { BOX_ITEMS } from './fashionBoxes.js?v=0.76.0';
-import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.76.0';
-import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.76.0';
-import { CONSUMABLES } from './consumables.js?v=0.76.0';
-import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH, extraRollPool, gearRollPool, GEAR_ROLL_SLOTS } from './affixes.js?v=0.76.0';
-import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.76.0';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
+import { ENDGAME_ITEMS } from './endgameItems.js?v=0.77.0';
+import { ASCEND_ITEMS } from './ascendData.js?v=0.77.0';   // v0.46 Lv.100–150
+import { ETERNAL_ITEMS, ETERNAL_MATS } from './eternal.js?v=0.77.0';   // v0.77 อุปกรณ์นิรันดร์กาล (หลอม)
+import { parentJob } from './progression.js?v=0.77.0';
+import { BOX_ITEMS } from './fashionBoxes.js?v=0.77.0';
+import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.77.0';
+import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.77.0';
+import { CONSUMABLES } from './consumables.js?v=0.77.0';
+import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH, extraRollPool, gearRollPool, GEAR_ROLL_SLOTS } from './affixes.js?v=0.77.0';
+import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.77.0';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
 
 export const EQUIP_SLOTS = [
   { id: 'head', name: 'หัว' },
@@ -36,6 +37,7 @@ export const RARITY = {
   celestial: { name: 'จันทร์โลหิต · แดง', color: '#ff5266' },   // v0.13
   abyssal: { name: 'ห้วงสมุทร · ฟ้าคราม', color: '#3fe6d0' },   // v0.46 ชุด Lv.110
   divine: { name: 'เทพสวรรค์ · ขาวทอง', color: '#fff1b0' },     // v0.46 ชุด Lv.135
+  eternal: { name: 'นิรันดร์กาล · รุ้งสุริยา', color: '#ffd8ff' },   // v0.77 หลอมเท่านั้น
 };
 
 const BASE = {
@@ -126,6 +128,8 @@ const BASE = {
   /* ---------- กล่องแฟชั่นสุ่ม (v0.9) ---------- */
   ...ENDGAME_ITEMS,
   ...ASCEND_ITEMS,
+  ...ETERNAL_ITEMS,
+  ...ETERNAL_MATS,
   ...WEAPON_ITEMS,
   ...OFFHAND_ITEMS,
   ...BOX_ITEMS,
@@ -143,13 +147,13 @@ const BASE = {
 for (const it of Object.values(BASE)) if (it.slot === 'shield' && !it.offhand && !it.jobs) it.jobs = ['novice', 'swordsman'];
 export const BASE_ITEMS = BASE;
 // v0.52: อาวุธทุกชิ้นทุกระดับมีค่าสุ่มพิเศษ 1–3 ค่า (pool เดิมอยู่หน้า → คีย์ของเก่ายังถูกต้อง)
-for (const it of Object.values(BASE)) if (it && it.type === 'equip' && it.slot === 'weapon' && !(it.rolls && it.rolls.v2)) {
+for (const it of Object.values(BASE)) if (it && it.type === 'equip' && it.slot === 'weapon' && !it.noRoll && !(it.rolls && it.rolls.v2)) {
   const old = (it.rolls && it.rolls.pool) || [];
   const have = new Set(old.map((p) => p.stat));
   it.rolls = { pool: [...old, ...extraRollPool(it).filter((p) => !have.has(p.stat))].slice(0, 36), count: [1, 3], v2: true, oldCount: it.rolls && it.rolls.count };
 }
 // v0.58: อุปกรณ์สวมใส่ทุกชิ้นทุกระดับก็มีค่าสุ่มพิเศษ 1–3 ค่าเหมือนอาวุธ (ของเก่าที่ยังไม่สุ่ม = ไม่มีค่าสุ่ม ใช้ได้ปกติ)
-for (const it of Object.values(BASE)) if (it && it.type === 'equip' && GEAR_ROLL_SLOTS.includes(it.slot) && !(it.rolls && it.rolls.v2)) {
+for (const it of Object.values(BASE)) if (it && it.type === 'equip' && GEAR_ROLL_SLOTS.includes(it.slot) && !it.noRoll && !(it.rolls && it.rolls.v2)) {
   const old = (it.rolls && it.rolls.pool) || [];
   const have = new Set(old.map((p) => p.stat));
   it.rolls = { pool: [...old, ...gearRollPool(it).filter((p) => !have.has(p.stat))].slice(0, 36), count: [1, 3], v2: true, oldCount: it.rolls && it.rolls.count };

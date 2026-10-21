@@ -1,5 +1,5 @@
 // v0.75 ดันเจี้ยนปาร์ตี้ "วิหารผนึกจันทรา" — ข้อมูล (เลือดบอส/รางวัล/โควตาตัดสินที่เซิร์ฟเวอร์: supabase/party_dungeon_v0.75.sql)
-import { MONSTERS } from './monsters.js?v=0.76.0';
+import { MONSTERS } from './monsters.js?v=0.77.0';
 
 export const PD = {
   name: 'วิหารผนึกจันทรา',
@@ -29,6 +29,7 @@ export const PD_SHOP = [
   { id: 'refine_guard', n: 1, cost: 25 },
   { id: 'box_gold', n: 1, cost: 40 },
   { id: 'egg_galaxy', n: 1, cost: 60 },
+  { id: 'eternal_shard', n: 1, cost: 40 },   // v0.77 วัตถุดิบหลอมอุปกรณ์นิรันดร์กาล
 ];
 
 // รางวัลต่อรอบ (ส่งเข้าจดหมายโดยเซิร์ฟเวอร์ — ตัวเลขนี้ไว้แสดงในเกมเท่านั้น)

@@ -1,6 +1,6 @@
 // Visual progression is independent of combat stats and existing save IDs.
 // v0.25: แต่ละชิ้นมี "ทรง" ของตัวเอง (form + shape) และสีของตัวเอง — ไม่ได้เปลี่ยนแค่ตามเลเวล/เกรด
-export const DESIGN_GRADES=['common','uncommon','rare','epic','legend','mythic','celestial','abyssal','divine'];
+export const DESIGN_GRADES=['common','uncommon','rare','epic','legend','mythic','celestial','abyssal','divine','eternal'];
 export const DESIGN_THEMES=[
  {name:'นักเดินทาง',metal:'#b9c0c7',cloth:'#56766b',dark:'#654935',gem:'#d9e2c9'},
  {name:'พงไพร',metal:'#b5cf94',cloth:'#426944',dark:'#503e2a',gem:'#98ef8e'},

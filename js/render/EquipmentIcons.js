@@ -1,12 +1,12 @@
 // v0.25.0: ไอคอนอุปกรณ์ — ทุกชิ้นมีทรงของตัวเอง (form + shape) และสีของตัวเอง
 // form = ประเภท 12 แบบตามสเปก (ดาบมือเดียว/สองมือ/หอก, คทา/ไม้เท้า/ออร์บ, กระบอง/คทาศักดิ์สิทธิ์/หนังสือ, ธนูสั้น/ยาว/หน้าไม้)
 // เกรดสูงขึ้นเพิ่มลายทอง อัญมณี ปีก รัศมี ประกาย — วาดบนพิกัด 64x64
-import { shadeHex } from './Textures.js?v=0.76.0';
-import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.76.0';
+import { shadeHex } from './Textures.js?v=0.77.0';
+import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.77.0';
 
 const LINE = '#21151f';
 const TAU = Math.PI * 2;
-export const GRADE_GLOW = ['#e8ecf2', '#7fe07a', '#62b6ff', '#c58bff', '#ffa43a', '#ffd84a', '#ff4058', '#3fe6d0', '#fff1b0'];
+export const GRADE_GLOW = ['#e8ecf2', '#7fe07a', '#62b6ff', '#c58bff', '#ffa43a', '#ffd84a', '#ff4058', '#3fe6d0', '#fff1b0', '#ffd8ff'];
 
 const lg = (g, x0, y0, x1, y1, stops) => { const gr = g.createLinearGradient(x0, y0, x1, y1); stops.forEach((c, i) => gr.addColorStop(i / (stops.length - 1), c)); return gr; };
 const rg = (g, x, y, r0, r1, stops) => { const gr = g.createRadialGradient(x, y, r0, x, y, r1); stops.forEach((c, i) => gr.addColorStop(i / (stops.length - 1), c)); return gr; };
@@ -51,6 +51,12 @@ function aura(g, d) {
     for (let i = 0; i < n; i++) { g.rotate(TAU / n); g.beginPath(); g.moveTo(-1.6, 0); g.lineTo(0, -31); g.lineTo(1.6, 0); g.fill(); }
     g.restore();
   }
+  if (r >= 9) {   // v0.77 นิรันดร์กาล: วงแหวนรุ้งสองชั้น
+    g.save(); g.translate(32, 32); g.lineWidth = 2.2; g.globalAlpha = 0.85;
+    const hues = ['#ff7ab8', '#ffd86a', '#8affb0', '#7ad8ff', '#c89aff', '#ff7ab8'];
+    for (let i = 0; i < 6; i++) { g.strokeStyle = hues[i]; g.beginPath(); g.arc(0, 0, 29, (i / 6) * TAU, ((i + 1) / 6) * TAU); g.stroke(); g.beginPath(); g.arc(0, 0, 24, ((i + 0.5) / 6) * TAU, ((i + 1.5) / 6) * TAU); g.stroke(); }
+    g.restore();
+  }
 }
 function sparkle(g, d) {
   const r = d.rank, c = GRADE_GLOW[r];
@@ -58,6 +64,7 @@ function sparkle(g, d) {
   if (r >= 3) star(g, 10, 52, 2.5 + r * 0.4, c);
   if (r >= 4) { star(g, 56, 46, 3, '#fff3c0'); g.fillStyle = '#ffffff'; for (const [x, y] of [[12, 14], [48, 56], [40, 6]]) { g.beginPath(); g.arc(x, y, 1, 0, TAU); g.fill(); } }
   if (r >= 6) { star(g, 8, 26, 3.5, '#ffffff'); star(g, 46, 30, 2.4, '#fff0f2'); }
+  if (r >= 9) { star(g, 56, 28, 4.2, '#ffd8ff', 6); star(g, 30, 6, 3.2, '#c8f4ff', 6); star(g, 22, 58, 3, '#fff3a0', 6); }
 }
 function palette(d) {
   const r = d.rank;
