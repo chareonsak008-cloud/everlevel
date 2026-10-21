@@ -1,10 +1,11 @@
-import { jobTier } from '../data/progression.js?v=0.75.0';
+import { jobTier } from '../data/progression.js?v=0.76.0';
 // ระบบสะสมและเป้าหมายระยะยาว (v0.18) — สมุดมอนสเตอร์ · ความสำเร็จ/ฉายา · อัลบั้มการ์ด · เช็กอินรายวัน
 // ข้อมูลอยู่ในเซฟตัวละคร (player.col) → ไม่ต้องตั้งค่าเซิร์ฟเวอร์เพิ่ม · โบนัสรวมอยู่ที่ player.colBonus (คิดรวมในค่าสถานะ)
-import { MONSTERS } from '../data/monsters.js?v=0.75.0';
-import { CARDS } from '../data/cards.js?v=0.75.0';
-import { ITEMS, itemMods, describeBonus } from '../data/items.js?v=0.75.0';
-import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, ACHIEVEMENTS, ACH_BY_ID, ACH_COUNTED, MVP_CARDS, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.75.0';
+import { MONSTERS } from '../data/monsters.js?v=0.76.0';
+import { CARDS } from '../data/cards.js?v=0.76.0';
+import { ITEMS, itemMods, describeBonus } from '../data/items.js?v=0.76.0';
+import { titlesOf, holderTitles, MAX_TITLES, SEASON_TITLES } from '../data/seasonTitles.js?v=0.76.0';   // v0.76
+import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, ACHIEVEMENTS, ACH_BY_ID, ACH_COUNTED, MVP_CARDS, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.76.0';
 
 const SET_OF = (o) => Object.keys(o);
 const addTo = (out, o) => { for (const [k, v] of Object.entries(o || {})) out[k] = +(((out[k] || 0) + v).toFixed(4)); return out; };
@@ -121,7 +122,7 @@ export class Collection {
       this.cheer(`ฉายาใหม่: ${fresh[fresh.length - 1].title}`);
     }
     // ยังไม่มีฉายา → ใส่ฉายาแรกให้เลย
-    if (!c.title) c.title = fresh[fresh.length - 1].id;
+    if (!titlesOf(c).length) { c.titles = [fresh[fresh.length - 1].id]; c.title = c.titles[0]; }
     this.apply(true);
     g.dirty = true;
   }
@@ -175,15 +176,24 @@ export class Collection {
   }
 
   /* ---------- ฉายา ---------- */
+  // v0.76 ใส่/ถอดฉายา (สูงสุด 3 อัน) · id ว่าง = ถอดทั้งหมด · คืน 'on' | 'off' | 'full' | false
+  owns(id) { return !!(this.c.ach[id] || holderTitles(this.pl.name).includes(id)); }
   setTitle(id) {
-    const c = this.c;
-    if (id && !c.ach[id]) return false;
-    c.title = id || null;
+    const c = this.c, list = titlesOf(c).filter((x) => this.owns(x));
+    let res;
+    if (!id) { list.length = 0; res = 'off'; }
+    else if (!this.owns(id)) return false;
+    else if (list.includes(id)) { list.splice(list.indexOf(id), 1); res = 'off'; }
+    else if (list.length >= MAX_TITLES) return 'full';
+    else { list.push(id); res = 'on'; }
+    c.titles = list; c.title = list[0] || null;
     this.g.dirty = true;
     this.changed();
-    return true;
+    return res;
   }
-  titleOf(id) { const a = id && ACH_BY_ID[id]; return a ? a.title : ''; }
+  // เลื่อนฉายาขึ้นเป็นอันแรก (อยู่ชิดหัว)
+  firstTitle(id) { const c = this.c, list = titlesOf(c); const i = list.indexOf(id); if (i > 0) { list.splice(i, 1); list.unshift(id); c.titles = list; c.title = id; this.g.dirty = true; this.changed(); } }
+  titleOf(id) { const a = id && ACH_BY_ID[id]; if (a) return a.title; const s = id && SEASON_TITLES[id]; return s ? s.title : ''; }
 
   /* ---------- เช็กอินรายวัน ----------
      วันใหม่ (เวลาเครื่อง) ครั้งแรกที่อยู่ในเกม → นับเช็กอิน + ส่งรางวัลวันที่ 1–7 เข้ากล่องจดหมาย

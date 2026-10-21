@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.75.0';
-import { SideChannel } from './SideChannel.js?v=0.75.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.76.0';
+import { SideChannel } from './SideChannel.js?v=0.76.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -27,7 +27,7 @@ function pickState(p, full) {
   set('vx', clampN(p.vx, -400, 400)); set('vy', clampN(p.vy, -400, 400)); set('tp', clampN(p.tp, 0, 65535)); set('e', clampN(p.e, 0, 20000));   // ความเร็ว (px/วินาที) — ฝั่งรับเดินต่อเองระหว่างแพ็กเก็ต
   if (full) {
     set('n', cutS(p.n, 16)); set('j', cutS(p.j, 16)); set('lv', clampN(p.lv, 1, 999)); set('m', cutS(p.m, 40)); set('u', cutS(p.u, 8));
-    set('pt', cutS(p.pt, 24)); set('ps', clampN(p.ps, 0, 9)); set('tt', cutS(p.tt, 24)); set('gd', clampN(Math.floor(p.gd), 0, 1e9));
+    set('pt', cutS(p.pt, 24)); set('ps', clampN(p.ps, 0, 9)); set('tt', cutS(p.tt, 80)); set('gd', clampN(Math.floor(p.gd), 0, 1e9));
     if (p.lk && typeof p.lk === 'object' && !Array.isArray(p.lk) && JSON.stringify(p.lk).length < 1200) o.lk = p.lk;
     if (Array.isArray(p.fw)) o.fw = p.fw.filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40));
   }
@@ -332,6 +332,13 @@ export class SupabaseOnline extends Online {
     const withSlot = name === 'pd_open' || name === 'pd_join' || name === 'pd_hit';
     const { data, error } = await this.sb.rpc(name, withSlot ? { p_slot: this.slot || 1, ...args } : args);
     if (error) { const e = new Error(error.message || 'pd'); e.missing = error.code === 'PGRST202' || error.code === '42883'; e.code = error.message; throw e; }
+    return data;
+  }
+
+  // v0.76 อันดับประจำฤดูกาล (ต้องรัน supabase/season_v0.76.sql)
+  async seasonRPC(name, args = {}) {
+    const { data, error } = await this.sb.rpc(name, name === 'season_tower' ? { p_slot: this.slot || 1, ...args } : args);
+    if (error) { const e = new Error(error.message || 'season'); e.missing = error.code === 'PGRST202' || error.code === '42883'; throw e; }
     return data;
   }
 

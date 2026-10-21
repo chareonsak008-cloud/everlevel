@@ -1,10 +1,10 @@
 // ผู้เล่นคนอื่นในแผนที่เดียวกัน (v0.11) — สร้างจาก presence ของห้องออนไลน์
 // ข้อมูลจากผู้เล่นอื่นเชื่อถือไม่ได้: กรองทุกช่องก่อนใช้ (สี ชื่อ ตัวเลข ไอดีแฟชั่น ข้อความ)
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.75.0';
-import { MAPS } from '../data/maps/index.js?v=0.75.0';
-import { JOBS } from '../data/progression.js?v=0.75.0';
-import { PETS } from '../data/pets.js?v=0.75.0';
-import { ACH_BY_ID } from '../data/collection.js?v=0.75.0';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.76.0';
+import { MAPS } from '../data/maps/index.js?v=0.76.0';
+import { JOBS } from '../data/progression.js?v=0.76.0';
+import { PETS } from '../data/pets.js?v=0.76.0';
+import { titleInfo, MAX_TITLES } from '../data/seasonTitles.js?v=0.76.0';   // v0.76
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 const ENUMS = {
@@ -66,8 +66,10 @@ class RemotePlayer {
       if (text && fresh) { this.bubble = { text, t: 5 }; this.newSay = text; }
     }
     // v0.18: ฉายา — รับเฉพาะรหัสที่มีในเกม (แสดงชื่อจากข้อมูลในเครื่องเรา ไม่ใช้ข้อความจากคนอื่นตรง ๆ)
-    const ach = typeof P.tt === 'string' && ACH_BY_ID[P.tt] ? ACH_BY_ID[P.tt] : null;
-    this.honor = ach ? ach.title : ''; this.honorTier = ach ? ach.tier : ''; this.honorFx = ach ? ach.fx : '';
+    // v0.76 ใส่ได้ 3 อัน (คั่นด้วย |) · ฉายาฤดูกาลแสดงเฉพาะคนที่อยู่ในหอเกียรติยศจริง
+    this.tt = typeof P.tt === 'string' ? P.tt.slice(0, 80) : '';
+    this.honors = [...new Set(this.tt.split('|'))].slice(0, MAX_TITLES).map((id) => titleInfo(id, this.name)).filter(Boolean);
+    const h0 = this.honors[0]; this.honor = h0 ? h0.title : ''; this.honorTier = h0 ? h0.tier : ''; this.honorFx = h0 ? h0.fx : '';
     this.vip = P.vp === 1;   // v0.45 ป้าย VIP
     this.petId = typeof P.pt === 'string' && PETS[P.pt] ? P.pt : null;   // v0.13: สัตว์เลี้ยงของผู้เล่นคนนี้
     this.petStars = clampNum(Math.floor(P.ps), 0, 5, 0);

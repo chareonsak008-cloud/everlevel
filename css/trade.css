@@ -323,3 +323,31 @@
 .pd-hud .pd-dmg li:first-child { color: #ffd36b; }
 .pd-hud .pd-dmg b { font-variant-numeric: tabular-nums; }
 .pd-hud .pd-dmg { grid-column: 1 / -1; }
+
+/* v0.76 อันดับประจำฤดูกาล */
+.seasonw { width: 560px; }
+.sn-tabs { flex-wrap: wrap; }
+.sn-tabs button { flex: 1 1 auto; }
+.sn-body { display: flex; flex-direction: column; gap: 6px; }
+.sn-desc, .sn-note { margin: 0; font-size: 12px; color: var(--muted, #b3b5bd); }
+.sn-me { margin: 0; padding: 6px 10px; border-radius: 8px; background: rgba(255, 214, 120, 0.08); border: 1px solid rgba(255, 214, 120, 0.3); font-size: 13px; }
+.sn-me b { color: var(--gold, #ffd36b); font-size: 15px; }
+.sn-rw { font-size: 12px; }
+.sn-rw summary { cursor: pointer; color: var(--gold, #ffd36b); }
+.sn-rw p { margin: 4px 0; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.sn-list { max-height: 46vh; overflow: auto; }
+.sn-hall { padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07); }
+.sn-hall h3 { margin: 0 0 4px; font-size: 14px; color: var(--gold, #ffd36b); }
+.sn-hall p { margin: 3px 0; font-size: 12.5px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sn-champ { padding: 1px 7px; border-radius: 6px; background: rgba(255, 255, 255, 0.07); }
+.sn-champ.r1 { background: rgba(255, 214, 90, 0.18); color: #ffe08a; }
+
+/* v0.76 ฉายาซ้อน 3 อันในหน้าความสำเร็จ */
+.cw-live.cw-stack { flex-direction: column; align-items: center; gap: 22px; padding: 50px 0 30px; }
+.cw-tb { display: flex; gap: 4px; margin-top: 4px; }
+.cw-tb button, .cw-ach button[disabled] { font-size: 11px; padding: 3px 8px; }
+.cw-ach button[disabled] { opacity: 0.45; }
+.sn-title { font-weight: 600; }
+.sn-title.t-divine { color: #fff2a8; text-shadow: 0 0 6px rgba(255, 230, 140, 0.8); }
+.sn-title.t-mythic { color: #ff9ae6; text-shadow: 0 0 5px rgba(255, 150, 230, 0.6); }
+.sn-title.t-legend { color: #ffb347; }

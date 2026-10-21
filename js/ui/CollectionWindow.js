@@ -1,13 +1,14 @@
 // สมุดสะสม (v0.18 · ปุ่ม B / 📖) — เป้าหมาย · สมุดมอนสเตอร์ · ความสำเร็จและฉายา · อัลบั้มการ์ด · เช็กอินรายวัน
-import { MONSTERS } from '../data/monsters.js?v=0.75.0';
-import { ITEMS, describeBonus } from '../data/items.js?v=0.75.0';
-import { CARDS } from '../data/cards.js?v=0.75.0';
-import { CARD_COMBOS, effectText } from '../data/cardCatalog.js?v=0.75.0';
-import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, CARD_TOTAL, ACHIEVEMENTS, ACH_CATS, TIER_LABEL, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.75.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.75.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.75.0';
-import { localDay } from '../systems/Collection.js?v=0.75.0';
-import { honorInner, injectTitleCss } from './TitleFx.js?v=0.75.0';
+import { MONSTERS } from '../data/monsters.js?v=0.76.0';
+import { ITEMS, describeBonus } from '../data/items.js?v=0.76.0';
+import { CARDS } from '../data/cards.js?v=0.76.0';
+import { CARD_COMBOS, effectText } from '../data/cardCatalog.js?v=0.76.0';
+import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, CARD_TOTAL, ACHIEVEMENTS, ACH_CATS, TIER_LABEL, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.76.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.76.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.76.0';
+import { localDay } from '../systems/Collection.js?v=0.76.0';
+import { honorInner, injectTitleCss } from './TitleFx.js?v=0.76.0';
+import { titlesOf, holderTitles, SEASON_TITLES, MAX_TITLES, seasonInfo } from '../data/seasonTitles.js?v=0.76.0';   // v0.76
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (n) => Math.floor(n).toLocaleString('en-US');
@@ -37,7 +38,13 @@ export class CollectionWindow {
     for (const b of el.querySelectorAll('[data-tab]')) b.addEventListener('click', () => { this.tab = b.dataset.tab; this.render(); this.$('.cw-body').scrollTop = 0; });
     el.addEventListener('click', (e) => {
       const t = e.target.closest('[data-title]');
-      if (t) { this.g.collection.setTitle(t.dataset.title || null); this.g.hud.log(t.dataset.title ? `ใส่ฉายา "${this.g.collection.titleOf(t.dataset.title)}" แล้ว` : 'ถอดฉายาแล้ว', 'sys'); this.render(); }
+      if (t) {
+        const col = this.g.collection, id = t.dataset.title || null, name = col.titleOf(id);
+        if (t.dataset.first) { col.firstTitle(id); this.render(); return; }
+        const r = col.setTitle(id);
+        this.g.hud.log(r === 'full' ? `ใส่ฉายาได้สูงสุด ${MAX_TITLES} อัน — ถอดอันใดอันหนึ่งก่อน` : r === 'on' ? `ใส่ฉายา "${name}" แล้ว` : id ? `ถอดฉายา "${name}" แล้ว` : 'ถอดฉายาทั้งหมดแล้ว', 'sys');
+        this.render();
+      }
       const m = e.target.closest('[data-mail]');
       if (m) { this.toggle(false); this.g.mailWin.toggle(true); }
     });
@@ -114,23 +121,37 @@ export class CollectionWindow {
     setTimeout(next, 0);
   }
 
+  // ปุ่มใส่/ถอดฉายา (แสดงลำดับที่ใส่ · ปุ่มเลื่อนเป็นอันแรก)
+  titleBtn(id, worn) {
+    const i = worn.indexOf(id);
+    if (i < 0) return `<button type="button" class="ghost" data-title="${id}"${worn.length >= MAX_TITLES ? ' disabled title="ใส่ครบ 3 อันแล้ว"' : ''}>ใส่ฉายา</button>`;
+    return `<span class="cw-on">ใส่อยู่ #${i + 1}</span><div class="cw-tb">${i > 0 ? `<button type="button" class="ghost" data-title="${id}" data-first="1" title="ย้ายมาชิดหัว">⇩ ชิดหัว</button>` : ''}<button type="button" class="ghost" data-title="${id}">ถอด</button></div>`;
+  }
+
   /* ---------- ความสำเร็จ + ฉายา ---------- */
   tab_ach(col, c) {
     const S = col.state();
-    const cur = c.title;
+    const worn = titlesOf(c);
     const groups = ACH_CATS.map(([cat, name]) => {
       const list = ACHIEVEMENTS.filter((a) => a.cat === cat).map((a) => {
-        const p = col.progress(a, S), on = cur === a.id;
+        const p = col.progress(a, S), on = worn.includes(a.id);
         return `<div class="cw-ach${p.done ? ' done' : ''}${on ? ' worn' : ''}">
           <div class="cw-at"><b class="cw-honor t-${a.tier}${a.fx ? ' hf-' + a.fx : ''}">${esc(a.title)}</b><span class="cw-tier t-${a.tier}">${TIER_LABEL[a.tier]}</span><small>${esc(a.desc)}</small>
             <small class="cw-bonus">${esc(describeBonus(a.bonus))}</small>${p.done ? '' : bar(p.cur, p.goal)}</div>
-          ${p.done ? (on ? '<span class="cw-on">ใส่อยู่</span>' : `<button type="button" class="ghost" data-title="${a.id}">ใส่ฉายา</button>`) : `<span class="cw-cnt">${num(p.cur)}/${num(p.goal)}</span>`}</div>`;
+          ${p.done ? this.titleBtn(a.id, worn) : `<span class="cw-cnt">${num(p.cur)}/${num(p.goal)}</span>`}</div>`;
       }).join('');
       return `<section class="cw-sec"><h3>${name}</h3>${list}</section>`;
     }).join('');
     injectTitleCss();
-    const pl = this.g.player, live = pl.honor ? `<div class="cw-live"><span class="th-inline h-${pl.honorTier}${pl.honorFx ? ' hf-' + pl.honorFx : ''}">${honorInner(pl.honor, pl.honorTier, pl.honorFx)}</span></div>` : '';
-    return `${live}<p class="cw-hint">ทำครบแล้วได้โบนัสทันที (ทุกอันรวมกัน) · ยิ่งหายาก เอฟเฟ็กยิ่งอลังการ · เลือกใส่ฉายาได้ 1 อัน แสดงเหนือหัวให้ผู้เล่นอื่นเห็น${cur ? ` · <button type="button" class="ghost cw-off" data-title="">ถอดฉายา</button>` : ''}</p>${groups}`;
+    const pl = this.g.player, hs = pl.honors;
+    const live = hs.length ? `<div class="cw-live cw-stack">${hs.slice().reverse().map((h) => `<span class="th-inline h-${h.tier}${h.fx ? ' hf-' + h.fx : ''}">${honorInner(h.title, h.tier, h.fx)}</span>`).join('')}</div>` : '';
+    // ฉายาฤดูกาลที่ถืออยู่ (จากหอเกียรติยศ)
+    const mine = holderTitles(pl.name);
+    const season = `<section class="cw-sec"><h3>🏆 ฉายาประจำฤดูกาล${seasonInfo.season ? ` <small>จากฤดูกาล ${esc(seasonInfo.season)} · ถือไว้จนจบฤดูกาลถัดไป</small>` : ''}</h3>${mine.length ? mine.map((id) => {
+      const s = SEASON_TITLES[id], on = worn.includes(id);
+      return `<div class="cw-ach done${on ? ' worn' : ''}"><div class="cw-at"><b class="cw-honor t-${s.tier} hf-${s.fx}">${esc(s.title)}</b><span class="cw-tier t-${s.tier}">${TIER_LABEL[s.tier] || 'ฤดูกาล'}</span><small>รางวัลติดอันดับประจำฤดูกาล</small></div>${this.titleBtn(id, worn)}</div>`;
+    }).join('') : '<p class="cw-hint">ติดอันดับ 1–10 ในหน้า "อันดับ" ตอนจบฤดูกาล (สิ้นเดือน) จะได้ฉายาสุดอลังการไว้ใส่ทั้งเดือนถัดไป</p>'}</section>`;
+    return `${live}<p class="cw-hint">ทำครบแล้วได้โบนัสทันที (ทุกอันรวมกัน) · ยิ่งหายาก เอฟเฟ็กยิ่งอลังการ · <b>ใส่ฉายาได้สูงสุด ${MAX_TITLES} อัน</b> เรียงซ้อนเหนือหัว (อันดับ 1 ชิดหัว) ผู้เล่นอื่นเห็นทุกอัน${worn.length ? ` · <button type="button" class="ghost cw-off" data-title="">ถอดทั้งหมด</button>` : ''}</p>${season}${groups}`;
   }
 
   /* ---------- อัลบั้มการ์ด ---------- */
