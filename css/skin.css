@@ -308,3 +308,4 @@ button .px-ic + span, button .px-ic { margin-right: 2px; }
 .slot:not(.empty):not(.r-eternal)::before { content: ''; position: absolute; inset: 9%; border-radius: 4px; pointer-events: none; z-index: 0; }
 .slot > img, .slot > .qty, .slot > .ref, .slot > .cslots, .slot > .junk-tag { position: relative; z-index: 1; }
 .slot > .qty, .slot > .ref, .slot > .cslots, .slot > .junk-tag { position: absolute; }
+.pf-row.stale { opacity: 0.55; filter: grayscale(0.6); }

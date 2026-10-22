@@ -2,11 +2,14 @@
 // · ปุ่ม "อัปเดต" บนแถบด้านบน → หน้าต่างข่าวอัปเดต (เวอร์ชัน + เวลาอัปเดต + รายการที่เปลี่ยน) · มีป้าย NEW เมื่อยังไม่ได้อ่าน
 // · เปิดเกมครั้งแรกหลังอัปเดต → เปิดหน้าต่างข่าวให้อัตโนมัติ 1 ครั้ง
 // · เปิดเกมค้างไว้แล้วเว็บมีเวอร์ชันใหม่ (เช็ก version.json ทุก 3 นาที) → แถบแจ้ง "มีอัปเดตใหม่" + ปุ่ม "อัปเดตเลย" (เซฟก่อนแล้วโหลดหน้าใหม่)
-import { VERSION } from '../config.js?v=0.93.0';
-import { BUILT } from '../build.js?v=0.93.0';
-import { PATCH_NOTES } from '../data/patchNotes.js?v=0.93.0';
+import { VERSION, PATCH } from '../config.js?v=0.93.0-p1';
+import { BUILT } from '../build.js?v=0.93.0-p1';
+import { PATCH_NOTES } from '../data/patchNotes.js?v=0.93.0-p1';
 
 const SEEN = 'everlevel.notes.seen';
+const CUR = `${VERSION}#${PATCH || 0}`;   // เวอร์ชัน + ครั้งที่แก้ไข
+// ใหม่กว่า = เลขเวอร์ชันสูงกว่า หรือเวอร์ชันเดียวกันแต่แก้ไขครั้งใหม่กว่า
+const newerThan = (j) => j && (cmp(j.version, VERSION) > 0 || (cmp(j.version, VERSION) === 0 && (+j.patch || 0) > (PATCH || 0)));
 const POLL_MS = 3 * 60 * 1000;
 const cmp = (a, b) => { const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number); for (let i = 0; i < 3; i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; };
 const fmtDate = (iso) => {
@@ -49,13 +52,14 @@ export class UpdateNotice {
 
   get open() { return !this.el.hidden; }
   notes() { return PATCH_NOTES.map((n, i) => (i === 0 && n.v === VERSION && !n.date ? { ...n, date: BUILT } : n)); }
+  isCur(n) { return n.v === VERSION && (n.fix || 0) === (PATCH || 0); }
 
   start() {
     const seen = store.get(SEEN);
-    const unseen = !seen || cmp(seen, VERSION) < 0;
+    const unseen = !seen || seen !== CUR;
     if (this.btn) this.btn.querySelector('.tb-new').hidden = !unseen;
     if (unseen && seen) setTimeout(() => { if (!this.g.player || this.g.player.dead) return; this.toggle(true); }, 2500);   // อัปเดตแล้ว → เปิดข่าวให้ 1 ครั้ง
-    else if (!seen) store.set(SEEN, VERSION);   // ผู้เล่นใหม่ ไม่ต้องเด้งหน้าต่าง (ยังเห็นป้าย NEW จนกว่าจะเปิดดู)
+    else if (!seen) store.set(SEEN, CUR);   // ผู้เล่นใหม่ ไม่ต้องเด้งหน้าต่าง (ยังเห็นป้าย NEW จนกว่าจะเปิดดู)
     this.check();
     this.timer = setInterval(() => this.check(), POLL_MS);
     document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - (this.lastCheck || 0) > 60000) this.check(); });
@@ -70,13 +74,14 @@ export class UpdateNotice {
       const j = await r.json();
       if (!j || typeof j.version !== 'string') return;
       this.remote = j;
-      if (cmp(j.version, VERSION) > 0 && this.dismissed !== j.version) this.showBanner(j);
+      if (newerThan(j) && this.dismissed !== j.version + '#' + (j.patch || 0)) this.showBanner(j);
     } catch (e) { /* ออฟไลน์/ไม่มีไฟล์ ไม่เป็นไร */ }
   }
 
   showBanner(j) {
     const t = this.banner.querySelector('.ub-t');
-    t.textContent = `มีอัปเดตใหม่ v${j.version}${j.built ? ` · อัปเดตเมื่อ ${fmtDate(j.built)}` : ''} (ตอนนี้ v${VERSION})`;
+    const fix = j.version === VERSION;
+    t.textContent = fix ? `มีการแก้ไขใหม่${j.note ? `: ${j.note}` : ''}${j.built ? ` · ${fmtDate(j.built)}` : ''}` : `มีอัปเดตใหม่ v${j.version}${j.built ? ` · อัปเดตเมื่อ ${fmtDate(j.built)}` : ''} (ตอนนี้ v${VERSION})`;
     if (this.banner.hidden) { this.banner.hidden = false; this.g.hud && this.g.hud.log(`📢 มีอัปเดตใหม่ v${j.version} — กดปุ่ม "อัปเดตเลย" ด้านบนเพื่อโหลดเวอร์ชันใหม่ (เซฟให้อัตโนมัติ)`, 'sys'); this.g.sfx && this.g.sfx('chat'); }
   }
 
@@ -90,17 +95,17 @@ export class UpdateNotice {
     const on = typeof force === 'boolean' ? force : this.el.hidden;
     this.el.hidden = !on;
     if (!on) return;
-    store.set(SEEN, VERSION);
+    store.set(SEEN, CUR);
     if (this.btn) this.btn.querySelector('.tb-new').hidden = true;
     this.render();
   }
 
   render() {
-    const newer = this.remote && cmp(this.remote.version, VERSION) > 0 ? this.remote : null;
-    this.el.querySelector('.nw-sub').textContent = `เวอร์ชันที่เล่นอยู่ v${VERSION}${newer ? ` · มีเวอร์ชันใหม่ v${newer.version} แล้ว` : ' · ล่าสุดแล้ว'}`;
+    const newer = newerThan(this.remote) ? this.remote : null, nfix = newer && newer.version === VERSION;
+    this.el.querySelector('.nw-sub').textContent = `เวอร์ชันที่เล่นอยู่ v${VERSION}${PATCH ? ` (แก้ไขครั้งที่ ${PATCH})` : ''}${newer ? (nfix ? ' · มีการแก้ไขใหม่แล้ว' : ` · มีเวอร์ชันใหม่ v${newer.version} แล้ว`) : ' · ล่าสุดแล้ว'}`;
     const body = this.el.querySelector('.nw-body');
-    body.innerHTML = (newer ? `<div class="nw-new"><b>มีอัปเดตใหม่ v${newer.version}</b><span>อัปเดตเมื่อ ${fmtDate(newer.built)}</span><button type="button" class="primary nw-go">อัปเดตเลย</button></div>` : '')
-      + this.notes().map((n) => `<article class="nw-item${n.v === VERSION ? ' cur' : ''}"><header><span class="nw-v">v${n.v}</span><b>${n.title || ''}</b>${n.v === VERSION ? '<em>เวอร์ชันนี้</em>' : ''}<time>${fmtDate(n.date)}</time></header><ul>${n.items.map((x) => `<li>${x}</li>`).join('')}</ul></article>`).join('');
+    body.innerHTML = (newer ? `<div class="nw-new"><b>${nfix ? 'มีการแก้ไขใหม่' : `มีอัปเดตใหม่ v${newer.version}`}</b><span>อัปเดตเมื่อ ${fmtDate(newer.built)}</span><button type="button" class="primary nw-go">อัปเดตเลย</button></div>` : '')
+      + this.notes().map((n) => `<article class="nw-item${this.isCur(n) ? ' cur' : ''}${n.fix ? ' fix' : ''}"><header><span class="nw-v">${n.fix ? `แก้ไข · v${n.v}` : `v${n.v}`}</span><b>${n.title || ''}</b>${this.isCur(n) ? '<em>ล่าสุด</em>' : ''}<time>${fmtDate(n.date)}</time></header><ul>${n.items.map((x) => `<li>${x}</li>`).join('')}</ul></article>`).join('');
     const go = body.querySelector('.nw-go'); if (go) go.addEventListener('click', () => this.reload());
   }
 }

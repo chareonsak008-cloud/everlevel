@@ -4,11 +4,11 @@
 // · ยาเลือดหมดหรือกระเป๋าเต็ม → ใช้ใบกลับเมืองแล้วหยุด
 // · v0.17.1: เอาการเดินเก็บของอัตโนมัติออกแล้ว (เก็บเองด้วยการแตะของ หรือใช้สัตว์เลี้ยงช่วยเก็บ)
 // · เดินเองระหว่างออโต้ = ย้ายจุดตีไปที่ที่หยุดเดิน · แตะมอนเอง = ตีตัวนั้นก่อน
-import { TILE } from '../config.js?v=0.93.0';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0';
-import { ITEMS } from '../data/items.js?v=0.93.0';
-import { SKILLS, skillSp } from '../data/skills.js?v=0.93.0';
-import { SHOPS, buyPrice } from '../data/shops.js?v=0.93.0';
+import { TILE } from '../config.js?v=0.93.0-p1';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1';
+import { ITEMS } from '../data/items.js?v=0.93.0-p1';
+import { SKILLS, skillSp } from '../data/skills.js?v=0.93.0-p1';
+import { SHOPS, buyPrice } from '../data/shops.js?v=0.93.0-p1';
 
 export const AUTO_RANGE = [3, 25];          // ช่อง
 export const AUTO_DEFAULT = {

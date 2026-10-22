@@ -1,7 +1,7 @@
 // v0.91 ตัวเลือกสีชุด + ภาพตัวอย่างตัวละคร (ใช้ตอนสร้างตัวละคร และในตู้แฟชั่น)
-import { OUTFIT_COLORS, OUTFIT_BY_ID, recolorPixels } from '../data/outfits.js?v=0.93.0';
-import { SHEETS, sheetOf } from '../render/SheetChars.js?v=0.93.0';
-import { VERSION } from '../config.js?v=0.93.0';
+import { OUTFIT_COLORS, OUTFIT_BY_ID, recolorPixels } from '../data/outfits.js?v=0.93.0-p1';
+import { SHEETS, sheetOf } from '../render/SheetChars.js?v=0.93.0-p1';
+import { VERSION } from '../config.js?v=0.93.0-p1';
 
 const imgs = new Map();
 const sheetImg = (src) => { let im = imgs.get(src); if (!im) { im = new Image(); im.src = `${src}?v=${VERSION}`; imgs.set(src, im); } return im; };

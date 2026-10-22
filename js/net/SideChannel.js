@@ -1,6 +1,6 @@
 // v0.37 ช่อง Realtime เสริม (ปาร์ตี้ / กิลด์) — presence = รายชื่อสมาชิกที่ออนไลน์ · broadcast = แชต / แชร์ EXP / เตะ
 // เฝ้าสถานะเอง: หลุด/ค้างเกิน 7 วินาทีสร้างใหม่ (หน่วงเพิ่มทีละเท่าถึง 15 วินาที) · ปิดแล้วไม่เชื่อมใหม่
-const WATCHDOG_MS = 7000;
+const WATCHDOG_MS = 12000;   // v0.94 ให้ระบบเชื่อมใหม่ของ Realtime เองทำงานก่อน (เดิม 7 วิ สร้างช่องซ้อนจนสมาชิกหลุดเข้าออก)
 const withTimeout = (p, ms) => Promise.race([Promise.resolve(p), new Promise((r) => setTimeout(() => r(null), ms))]);
 
 export class SideChannel {

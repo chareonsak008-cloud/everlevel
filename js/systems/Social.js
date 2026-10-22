@@ -4,9 +4,10 @@
 //   · เชิญผ่านห้องรวม (pi → pr) · หัวหน้า = คนที่เข้าปาร์ตี้ก่อนสุด · สูงสุด 6 คน
 //   · แชร์ EXP: คนที่อยู่แมพเดียวกันแบ่ง EXP เท่ากัน + โบนัส 20% ต่อสมาชิกเพิ่ม 1 คน (มอนยังจำลองแยกเครื่อง — แชร์แค่ EXP)
 // กิลด์ — ข้อมูลถาวรในฐานข้อมูล (supabase/guild.sql) · ห้อง everlevel-guild-<id> ไว้แชตกิลด์ + ดูว่าใครออนไลน์
-import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.93.0';
+import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.93.0-p1';
 
 export const PARTY_MAX = 6;
+export const PARTY_GRACE = 25000;   // v0.94 หายจาก presence นานเท่านี้ (มิลลิวินาที) ถึงจะถือว่าออกจากปาร์ตี้
 export const PARTY_BONUS = 0.2;
 export const GUILD_COST = 50000, GUILD_LV = 20;
 const clean = (s, n = 16) => String(s || '').replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g, '').slice(0, n);
@@ -148,9 +149,20 @@ export class Social {
     return out.sort((a, b) => a.jt - b.jt);
   }
 
+  // v0.94 ส่งสถานะเข้าช่องปาร์ตี้ไม่ถี่เกิน: เปลี่ยนแผนที่/ตาย/เลเวล ส่งทันที · เลือดเปลี่ยนส่งทุก 3 วิ · ไม่เปลี่ยนเลย ส่งซ้ำทุก 45 วิ
+  trackParty(force = false) {
+    const st = this.myState(), L = this.lastTrack, now = Date.now();
+    const big = !L || L.m !== st.m || L.d !== st.d || L.lv !== st.lv || L.j !== st.j || L.n !== st.n || L.jt !== st.jt;
+    const hp = L && L.h !== st.h && now - (this.trackAt || 0) >= 3000, stale = now - (this.trackAt || 0) >= 45000;
+    if (!force && !big && !hp && !stale) return;
+    this.lastTrack = st; this.trackAt = now;
+    if (stale && !big && !hp) this.party.sig = '';   // ส่งซ้ำแม้ค่าเดิม (กัน presence หล่นบนเซิร์ฟเวอร์)
+    this.party.track(st);
+  }
+
   myState() {
     const g = this.game, pl = g.player;
-    return { n: pl.name, j: pl.jobId, lv: pl.baseLevel, m: g.map ? g.map.id : '', h: Math.round((pl.hp / pl.maxHp) * 20) / 20, d: !!pl.dead, jt: this.jt, u: (this.net.uid || '').slice(0, 8) };
+    return { n: pl.name, j: pl.jobId, lv: pl.baseLevel, m: g.map ? g.map.id : '', h: Math.round((pl.hp / pl.maxHp) * 10) / 10, d: !!pl.dead, jt: this.jt, u: (this.net.uid || '').slice(0, 8) };
   }
 
   createParty() {
@@ -164,13 +176,13 @@ export class Social {
   joinParty(pid, rejoin = false) {
     if (this.party) this.party.close();
     this.pid = pid; this.jt = rejoin ? (this.jt || Date.now()) : Date.now();
-    this.members = new Map();
+    this.members = new Map(); this.knownKeys = new Set(); this.byeKeys = new Set();
     this.party = this.net.sideChannel('party-' + pid, {
       events: ['pc', 'xp', 'kick', 'bye', 'hl', 'bf', 'pd', 'arq'],   // v0.78 arq = ชวนลงคิวอารีน่า 3v3   // v0.65.2 hl = ฮีล · bf = บัฟ/โล่ จากสกิลนักบวช · v0.75 pd = คำเชิญดันเจี้ยนปาร์ตี้
       onEvent: (ev, p) => this.onPartyEvent(ev, p),
       onSync: (m) => this.onPartySync(m),
     });
-    this.party.track(this.myState());
+    this.lastTrack = null; this.trackParty(true);
     this.savePid();
     this.changed();
   }
@@ -191,25 +203,45 @@ export class Social {
     this.log(`เชิญ ${m.n} ออกจากปาร์ตี้แล้ว`);
   }
 
+  // v0.94 กันสมาชิก "หลุดเข้าหลุดออก": presence ของ Realtime หายชั่วครู่ได้บ่อย (เน็ตสะดุด · สลับแท็บ · ช่องเชื่อมใหม่ · sync ว่างช่วงแรก)
+  // → คนที่หายจาก presence ยังอยู่ในปาร์ตี้ต่อ (สถานะ "กำลังเชื่อมต่อ") จนครบ PARTY_GRACE ค่อยถือว่าออกจริง · กด "ออกจากปาร์ตี้" (bye) = ออกทันที
+  // · คนเดิมที่รีเฟรชหน้า (คีย์ใหม่ บัญชีเดิม) แทนที่คีย์เก่าทันทีโดยไม่ขึ้นข้อความเข้า/ออก
   onPartySync(raw) {
-    const before = new Set(this.members.keys());
-    const next = new Map();
+    const now = Date.now(), prev = this.members, next = new Map();
     for (const [k, s] of raw) {
       if (!s || typeof s !== 'object') continue;
-      next.set(k, { n: clean(s.n) || 'นักผจญภัย', j: clean(s.j, 16), lv: num(Math.floor(s.lv), 1, 99, 1), m: clean(s.m, 40), h: num(s.h, 0, 1, 1), d: !!s.d, jt: num(s.jt, 0, 9e15, Date.now()), u: clean(s.u, 8) });
+      next.set(k, { n: clean(s.n) || 'นักผจญภัย', j: clean(s.j, 16), lv: num(Math.floor(s.lv), 1, 999, 1), m: clean(s.m, 40), h: num(s.h, 0, 1, 1), d: !!s.d, jt: num(s.jt, 0, 9e15, Date.now()), u: clean(s.u, 8), seen: now });
     }
-    // เกิน 6 คน: คนที่เข้ามาทีหลังสุดออกเอง
-    if (next.size > PARTY_MAX && next.has(this.myKey)) {
-      const order = [...next.entries()].sort((a, b) => a[1].jt - b[1].jt);
+    const liveU = new Map([...next].filter(([, m]) => m.u).map(([k, m]) => [m.u, k]));
+    const silent = new Set();   // คีย์ใหม่ที่เป็นคนเดิม (รีเฟรช) → ไม่ประกาศว่าเข้าร่วม
+    for (const [k, m] of prev) {
+      if (next.has(k) || k === this.myKey) continue;
+      if (this.byeKeys && this.byeKeys.has(k)) continue;                          // ออกเอง → ลบทันที
+      const nk = m.u && liveU.get(m.u);
+      if (nk && nk !== k) { silent.add(nk); if (!prev.has(nk)) next.get(nk).jt = Math.min(next.get(nk).jt, m.jt); continue; }   // รีเฟรช: คงลำดับหัวหน้า
+      if (now - (m.seen || now) < PARTY_GRACE) next.set(k, { ...m, stale: true });   // หายชั่วคราว → เก็บไว้ก่อน
+    }
+    // เกิน 6 คน: คนที่เข้ามาทีหลังสุดออกเอง (นับเฉพาะคนที่ยังเชื่อมต่ออยู่)
+    const live = [...next.entries()].filter(([, m]) => !m.stale);
+    if (live.length > PARTY_MAX && next.has(this.myKey)) {
+      const order = live.sort((a, b) => a[1].jt - b[1].jt);
       if (order.findIndex(([k]) => k === this.myKey) >= PARTY_MAX) { this.log('ปาร์ตี้เต็มแล้ว (6 คน)', 'sys'); this.leaveParty(true); return; }
     }
     this.members = next;
     if (this.game.started) {
-      for (const [k, m] of next) if (!before.has(k) && k !== this.myKey && before.size) this.log(`${m.n} เข้าร่วมปาร์ตี้`);
-      for (const k of before) if (!next.has(k) && k !== this.myKey && this.lastNames && this.lastNames.get(k)) this.log(`${this.lastNames.get(k)} ออกจากปาร์ตี้`);
+      const known = this.knownKeys || new Set();
+      for (const [k, m] of next) if (!m.stale && !known.has(k) && !silent.has(k) && k !== this.myKey && prev.size) this.log(`${m.n} เข้าร่วมปาร์ตี้`);
+      for (const [k, m] of prev) if (!next.has(k) && k !== this.myKey && !(m.u && liveU.has(m.u))) this.log(`${m.n} ออกจากปาร์ตี้`);
     }
-    this.lastNames = new Map([...next].map(([k, m]) => [k, m.n]));
+    this.knownKeys = new Set(next.keys());
+    if (this.byeKeys) this.byeKeys.clear();
     this.syncTags(); this.changed();
+  }
+  // เรียกทุก 1 วิ: สมาชิกที่หายเกินเวลาผ่อนผัน → ถือว่าออกแล้ว
+  expireMembers() {
+    const now = Date.now(); let gone = false;
+    for (const [k, m] of this.members) if (m.stale && now - (m.seen || 0) >= PARTY_GRACE) { this.members.delete(k); gone = true; if (this.game.started) this.log(`${m.n} ออกจากปาร์ตี้ (ขาดการเชื่อมต่อ)`); }
+    if (gone) { this.knownKeys = new Set(this.members.keys()); this.syncTags(); this.changed(); }
   }
 
   onPartyEvent(ev, p) {
@@ -225,7 +257,7 @@ export class Social {
     else if (ev === 'arq') { if (p.k !== this.myKey && this.members.has(p.k) && g.arena) g.arena.onPartyQueue(p, clean(p.n) || (this.members.get(p.k) || {}).n || 'เพื่อนในปาร์ตี้'); }
     else if (ev === 'pd') { if (p.k !== this.myKey && this.members.has(p.k) && g.pd) g.pd.onInvite(p, clean(p.n) || (this.members.get(p.k) || {}).n || 'หัวหน้าปาร์ตี้'); }
     else if (ev === 'kick') { if (p.to === this.myKey && p.k === this.leaderKey) { this.leaveParty(true); this.log('คุณถูกเชิญออกจากปาร์ตี้', 'sys'); } }
-    else if (ev === 'bye') { /* presence sync จะลบให้เอง */ }
+    else if (ev === 'bye') { (this.byeKeys = this.byeKeys || new Set()).add(p.k); const m = this.members.get(p.k); if (m && m.stale) { this.members.delete(p.k); this.log(`${m.n} ออกจากปาร์ตี้`); this.changed(); } }   // v0.94 ออกเอง = ลบทันที (ไม่รอเวลาผ่อนผัน)
   }
 
   dupMsg(id) { if (this.seenXp.has(id)) return true; this.seenXp.add(id); if (this.seenXp.size > 300) this.seenXp.delete(this.seenXp.values().next().value); return false; }
@@ -275,7 +307,7 @@ export class Social {
     if (!this.pid) return 1;
     const map = this.game.map && this.game.map.id;
     let n = 1;
-    for (const [k, m] of this.members) if (k !== this.myKey && m.m === map) n++;
+    for (const [k, m] of this.members) if (k !== this.myKey && !m.stale && m.m === map) n++;
     return n;
   }
 
@@ -480,7 +512,7 @@ export class Social {
     this.t -= dt;
     if (this.t > 0) return;
     this.t = 1;
-    if (this.party) { this.party.track(this.myState()); this.party.tick(); this.savePid(); }
+    if (this.party) { this.trackParty(); this.party.tick(); this.expireMembers(); this.savePid(); }
     if (this.guildCh) { this.guildCh.track(this.guildState()); this.guildCh.tick(); }
     const now = Date.now(), before = this.prompts.length;
     this.prompts = this.prompts.filter((p) => { if (p.until > now) return true; p.no(); return false; });
