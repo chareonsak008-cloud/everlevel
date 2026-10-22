@@ -1,5 +1,5 @@
 // หน้าต่างสถานะตัวละคร: เลเวล, EXP, อัปสเตตัส 6 ค่า, ค่าต่อสู้ที่คำนวณได้
-import { STAT_KEYS, STAT_INFO, statCost, MAX_STAT, statResetCost, STAT_RESET_FREE_LEVEL } from '../data/progression.js?v=0.88.0';
+import { STAT_KEYS, STAT_INFO, statCost, MAX_STAT, statResetCost, STAT_RESET_FREE_LEVEL } from '../data/progression.js?v=0.89.0';
 
 const fmt = (n) => n.toLocaleString('en-US');
 // v0.27: ไอคอนสเตตัส (สีประจำค่า)
@@ -106,10 +106,10 @@ export class StatusWindow {
       ['Max SP', fmt(d.maxSp), ''],
     ];
     // ปุ่มรีเซ็ตสเตตัส
-    const cost = statResetCost(p.baseLevel), refund = p.statRefund(), rb = this.$('stReset');
+    const cost = p.vip ? 0 : statResetCost(p.baseLevel), refund = p.statRefund(), rb = this.$('stReset');   // v0.89 VIP รีเซ็ตฟรี
     rb.disabled = !refund || (cost > 0 && p.zeny < cost);
     rb.classList.toggle('danger', this.confirmReset);
-    rb.textContent = this.confirmReset ? `ยืนยันรีเซ็ต? คืน ${refund} แต้ม` : `รีเซ็ตสเตตัส · ${cost ? cost.toLocaleString('en-US') + ' z' : 'ฟรี'}`;
+    rb.textContent = this.confirmReset ? `ยืนยันรีเซ็ต? คืน ${refund} แต้ม` : `รีเซ็ตสเตตัส · ${cost ? cost.toLocaleString('en-US') + ' z' : p.vip && statResetCost(p.baseLevel) ? 'ฟรี (VIP)' : 'ฟรี'}`;
     rb.title = cost ? `Base Lv. เกิน ${STAT_RESET_FREE_LEVEL} เสียค่ารีเซ็ต ${cost.toLocaleString('en-US')} Zeny` : `รีเซ็ตฟรีจนถึง Base Lv.${STAT_RESET_FREE_LEVEL}`;
     this.$('stDerived').innerHTML = items.map(([k, v, t]) => `<div title="${t}"><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   }

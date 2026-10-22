@@ -1,6 +1,6 @@
 // v0.38 เมนูเมื่อคลิก/แตะผู้เล่นคนอื่น: เชิญเข้าปาร์ตี้ · กระซิบ · เพิ่มเพื่อน · ชวนเข้ากิลด์ · ดูข้อมูล
-import { JOBS } from '../data/progression.js?v=0.88.0';
-import { emblemSvg } from '../data/guildEmblems.js?v=0.88.0';
+import { JOBS } from '../data/progression.js?v=0.89.0';
+import { emblemSvg } from '../data/guildEmblems.js?v=0.89.0';
 
 export class PlayerMenu {
   constructor(root, game) {
@@ -46,7 +46,7 @@ export class PlayerMenu {
     } else {
       if (inParty) add('🤝', 'อยู่ในปาร์ตี้เดียวกัน', () => {}, true);
       else add('🤝', 'เชิญเข้าปาร์ตี้', () => S.invite(key, name), S.inParty && S.members.size >= 6, S.inParty && S.members.size >= 6 ? 'ปาร์ตี้เต็มแล้ว' : 'แบ่ง EXP เมื่ออยู่แมพเดียวกัน');
-      add('🔁', 'ขอแลกเปลี่ยน', () => g.trade.invite(name), false, 'วางของ/Zeny แล้วยืนยันทั้งสองฝ่าย');
+      add('🔁', 'ขอแลกเปลี่ยน', () => g.trade.invite(name), false, g.vipActive ? (r.vip ? 'วางของ/Zeny แล้วยืนยันทั้งสองฝ่าย' : 'อีกฝ่ายต้องมี VIP ด้วย') : '👑 เฉพาะ VIP ทั้งสองฝ่าย');   // v0.89
       add('💬', 'กระซิบ', () => { g.chat.setChannel('t'); g.chat.setWhisperTo(name, true); g.chat.focus(); });
       if (S.isFriend(name)) add('💛', 'ลบเพื่อน', () => S.removeFriend(name));
       else add('💛', 'เพิ่มเพื่อน', () => S.addFriend(name));

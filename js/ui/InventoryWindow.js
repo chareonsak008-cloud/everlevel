@@ -1,15 +1,16 @@
 // หน้าต่างกระเป๋า + อุปกรณ์ที่สวมใส่ (เปิดด้วย I หรือ Alt+E)
-import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.88.0';
-import { weaponLines, rollLine } from './WeaponInfo.js?v=0.88.0';
-import { refineBonus, canRefine } from '../data/refine.js?v=0.88.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.88.0';
-import { socketTargets } from '../systems/Forge.js?v=0.88.0';
-import { JOBS } from '../data/progression.js?v=0.88.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.88.0';
-import { sellPrice, fmtZ } from '../data/shops.js?v=0.88.0';
-import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.88.0';
-import { fmtDur } from '../data/consumables.js?v=0.88.0';
-import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.88.0';
+import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.89.0';
+import { duraOf, DURA_MAX, DURA_LOW } from '../data/durability.js?v=0.89.0';   // v0.89
+import { weaponLines, rollLine } from './WeaponInfo.js?v=0.89.0';
+import { refineBonus, canRefine } from '../data/refine.js?v=0.89.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.89.0';
+import { socketTargets } from '../systems/Forge.js?v=0.89.0';
+import { JOBS } from '../data/progression.js?v=0.89.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.89.0';
+import { sellPrice, fmtZ } from '../data/shops.js?v=0.89.0';
+import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.89.0';
+import { fmtDur } from '../data/consumables.js?v=0.89.0';
+import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.89.0';
 
 const TABS = [
   { id: 'all', name: 'ทั้งหมด', test: () => true },
@@ -70,6 +71,7 @@ export class InventoryWindow {
       b.setAttribute('aria-label', `ช่อง${slotName}ว่าง`);
     }
     if (equipped) b.classList.add('eq');
+    if (it && it.type === 'equip') { const d = duraOf(this.player, id); if (d <= 0) { b.classList.add('broken'); b.title += ' (พัง)'; } else if (d <= DURA_LOW) b.classList.add('dura-low'); }   // v0.89
     return b;
   }
 
@@ -155,6 +157,7 @@ export class InventoryWindow {
     const odds = it.type === 'box' && BOX_ODDS[id]
       ? `<div class="d-odds">${FASHION_TIERS.filter((t) => BOX_ODDS[id][t] > 0).map((t) => `<span data-rarity="${t}" style="--rc:${FASHION_RARITY[t].color}"><b>${FASHION_RARITY[t].name}</b>${fmtPct(BOX_ODDS[id][t])}</span>`).join('')}</div>`
       : eggOdds ? `<div class="d-odds">${PET_TIERS.filter((t) => eggOdds[t] > 0).map((t) => `<span data-rarity="${t}" style="--rc:${PET_RARITY[t].color}"><b>${PET_RARITY[t].name}</b>${fmtPct(eggOdds[t])}</span>`).join('')}</div>` : '';
+    if (it.type === 'equip') { const d = duraOf(p, id); lines.push(`<span class="${d <= 0 ? 'bad' : d <= DURA_LOW ? 'warn' : ''}">ความทนทาน ${Math.ceil(d)}/${DURA_MAX}${d <= 0 ? ' · พังแล้ว ไม่ให้ค่าสถานะ — ซ่อมที่ช่างตีเหล็ก' : ''}</span>`); }   // v0.89
     if (it.reqLevel) lines.push(`<span class="${p.baseLevel < it.reqLevel ? 'bad' : ''}">ต้องการ Base Lv.${it.reqLevel}</span>`);
     if (it.jobs) lines.push(`<span class="${canJobUse(it, p.jobId) ? '' : 'bad'}">อาชีพ: ${it.jobs.map((j) => JOBS[j].name).join(', ')}</span>`);
     const slotName = it.slot ? ' · ' + EQUIP_SLOTS.find((s) => s.id === it.slot).name : '';
@@ -183,7 +186,7 @@ export class InventoryWindow {
           for (const t of targets) {
             const tit = ITEMS[t.key], m = itemMods(t.key), sure = this.sockPick === t.where + t.key + (t.slot || '');
             const b = document.createElement('button'); b.type = 'button'; b.className = 'sock-row' + (sure ? ' sure' : '');
-            b.innerHTML = `<img alt="" src="${iconURL(t.key)}"><span><b></b><small>${t.where === 'equip' ? 'สวมอยู่' : 'ในกระเป๋า'} · ช่องว่าง ${m.slots - m.cards.length}/${m.slots}</small></span><em>${sure ? 'ยืนยัน? ถอดคืนไม่ได้' : 'ใส่'}</em>`;
+            b.innerHTML = `<img alt="" src="${iconURL(t.key)}"><span><b></b><small>${t.where === 'equip' ? 'สวมอยู่' : 'ในกระเป๋า'} · ช่องว่าง ${m.slots - m.cards.length}/${m.slots}</small></span><em>${sure ? 'ยืนยัน? (ถอดคืนได้ที่ช่างตีเหล็ก ค่าบริการแพง)' : 'ใส่'}</em>`;
             b.querySelector('b').textContent = tit.name;
             b.addEventListener('click', () => {
               const k = t.where + t.key + (t.slot || '');

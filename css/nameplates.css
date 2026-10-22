@@ -42,3 +42,7 @@
 .np-vip .np-name { color: #ffd65a !important; text-shadow: 0 1px 0 #3a2200, 0 0 6px rgba(255, 190, 60, 0.75); }
 .np-vipb { position: absolute; right: calc(100% + 3px); translate: 0 -50%; padding: 0 5px; border-radius: 4px; font: 700 9px/12px Kanit, sans-serif; letter-spacing: 0.06em;
   color: #3a2200; background: linear-gradient(#fff1b0, #f2b63a); box-shadow: 0 0 0 1px #6a4210, 0 0 6px rgba(255, 200, 80, 0.7); pointer-events: none; z-index: 2; }
+
+/* v0.88 ป้ายชื่อ/ฉายาย่อตามระยะกล้อง (scale ใน transform) — ยึดจุดเกาะไว้ที่เดิม */
+.labels .tag-player, .labels .tag-remote, .labels .tag-mob, .labels .hpbar { transform-origin: 50% 0; }
+.labels .tag-honor, .labels .tag-npc, .labels .castbar { transform-origin: 50% 100%; }

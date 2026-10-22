@@ -1,13 +1,16 @@
 // v0.27: หน้าต่างแผนที่ (N) — แท็บ "แผนที่นี้" (ผังเมือง/ทุ่ง + ป้ายชื่อ NPC/ทางออก) และ "แผนที่โลก" (ภูมิภาค · เลเวล · มอนสเตอร์)
-import { TILE } from '../config.js?v=0.88.0';
-import { TILE_INFO } from '../data/tileTypes.js?v=0.88.0';
-import { MAPS } from '../data/maps/index.js?v=0.88.0';
-import { MONSTERS } from '../data/monsters.js?v=0.88.0';
-import { GameMap } from '../world/GameMap.js?v=0.88.0';
+import { TILE } from '../config.js?v=0.89.0';
+import { TILE_INFO } from '../data/tileTypes.js?v=0.89.0';
+import { MAPS } from '../data/maps/index.js?v=0.89.0';
+import { MONSTERS } from '../data/monsters.js?v=0.89.0';
+import { GameMap } from '../world/GameMap.js?v=0.89.0';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const SVC = { shop: ['#ff9a3a', 'ร้านค้า'], storage: ['#5ae0a8', 'คลัง'], warp: ['#7fe0ff', 'วาร์ป'], job: ['#d49bff', 'เปลี่ยนอาชีพ'] };
-const svcColor = (n) => (SVC[n.service?.type] || ['#ffd34d'])[0];
+SVC.market = ['#ffd34d', 'ตลาดฝากขาย'];
+const SMITH = ['#c9d4e6', 'ตีบวก · ซ่อม · ถอดการ์ด'];   // v0.89 ช่างตีเหล็ก
+const svcOf = (n) => (n.service && n.service.refine ? SMITH : SVC[n.service?.type]);
+const svcColor = (n) => (svcOf(n) || ['#ffd34d'])[0];
 
 // ตำแหน่งภูมิภาคบนแผนที่โลก (พิกัดผืนผ้าใบ 680×500) — เรียงตามเส้นทางประตูมิติจริง
 const WORLD = {
@@ -174,7 +177,7 @@ export class MapWindow {
     for (const n of npcs) {
       const x = n.x / TILE * S, y = n.y / TILE * S, col = svcColor(n);
       g.beginPath(); g.arc(x, y, S * 0.5, 0, Math.PI * 2); g.fillStyle = col; g.fill(); g.lineWidth = 2; g.strokeStyle = '#070d22'; g.stroke();
-      const sv = SVC[n.service?.type];
+      const sv = svcOf(n);
       label(n.name + (sv ? ` · ${sv[1]}` : n.title ? ` · ${n.title}` : ''), x, y - S * 1.15, col === '#ffd34d' ? '#fff3c4' : col, 'rgba(7,13,34,.8)', 11);
     }
     // MVP
@@ -295,7 +298,7 @@ export class MapWindow {
       <div class="wm-head"><span class="wm-badge">${d.safe ? '⌂' : info.min}</span><div><h3>${esc(d.name)}</h3><small>${esc(d.subtitle || '')}</small></div>
         <div class="wm-tags"><span>เลเวล</span><b>${d.safe ? '—' : `${info.min}–${info.max}`}</b><span>มอนสเตอร์</span><b>${info.mobs.length}</b></div></div>
       <div class="wm-split"><div class="wm-mobs"><h4>${d.safe ? 'บริการในเมือง' : 'มอนสเตอร์ที่พบ'}${cur ? '<em>คุณอยู่ที่นี่</em>' : ''}</h4>
-        ${d.safe ? npcs.map((n) => `<div class="wm-mob"><i style="background:${(SVC[n.service.type] || ['#ffd34d'])[0]}"></i><b>${esc(n.name)}</b><small>${esc((SVC[n.service.type] || ['', n.title])[1])}</small></div>`).join('') : [...info.normal, ...info.boss].map(mobRow).join('')}
+        ${d.safe ? npcs.map((n) => `<div class="wm-mob"><i style="background:${(svcOf(n) || ['#ffd34d'])[0]}"></i><b>${esc(n.name)}</b><small>${esc((svcOf(n) || ['', n.title])[1])}</small></div>`).join('') : [...info.normal, ...info.boss].map(mobRow).join('')}
       </div><div class="wm-minibox"></div></div>
       <p class="wm-links">เชื่อมต่อกับ: ${info.links.map((t) => `<button type="button" data-region="${t}">${esc(MAPS[t].name)}</button>`).join(' ') || '—'}</p>
       <p class="wm-note">เดินทางผ่านประตูมิติที่ขอบแผนที่ หรือใช้บริการ NPC วาร์ป · แตะชื่อมอนสเตอร์เพื่อดูจุดเกิดบนแผนที่</p>`;

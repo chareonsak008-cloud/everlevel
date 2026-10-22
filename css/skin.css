@@ -124,3 +124,22 @@
 .topbar.tb-collapsed > .tb-btn { display: none; }
 .topbar.tb-collapsed { gap: 0; }
 @media (max-width: 720px) { .tb-toggle { width: 28px; height: 28px; } }
+
+/* v0.88 มือถือแนวตั้ง: หน้าต่างกว้างเต็มจอ (เดิมถูกบีบเหลือครึ่งจอเพราะ left:50% + width:auto) · ไอคอนขนาดเท่า ๆ กัน */
+@media (max-width: 600px) {
+  #game :is(.inv, .shop, .stor, .skw, .status, .quest, .petw, .ward, .refine, .mailw, .colw, .autow, .online-win, .settings),
+  .hud :is(.inv, .shop, .stor, .skw, .status, .quest, .petw, .ward, .refine, .mailw, .colw, .autow, .online-win, .settings) {
+    width: min(calc(100% - 16px), 460px) !important;
+  }
+  body.touch .skw .sk-ico { width: 36px; height: 36px; }
+  body.touch .status .st-ico { width: 24px; height: 24px; }
+  body.touch .status .st-row { min-height: 32px; }
+  body.touch .petw img { width: 30px; height: 30px; }
+}
+/* v0.88 มือถือแนวนอน: ปุ่มเดินใหญ่ขึ้นและขยับเข้ามาจากขอบ/รอยบากจอ */
+@media (orientation: landscape) and (max-height: 520px) {
+  body.touch .hud > .joystick {
+    zoom: 0.84 !important; width: 128px; height: 128px;
+    left: calc(64px + env(safe-area-inset-left, 0px)); bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+  }
+}

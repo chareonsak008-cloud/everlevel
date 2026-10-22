@@ -1,9 +1,9 @@
 // v0.42 แลกของตัวต่อตัว + ตลาดฝากขาย
 // ทุกอย่างผ่านฟังก์ชันบนเซิร์ฟเวอร์ (supabase/trade.sql) — เครื่องผู้เล่นแค่ส่งคำขอ แล้วดึงผล (ledger) มาปรับกระเป๋า
-import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.88.0';
-import { rollScore, rollGrade } from '../data/affixes.js?v=0.88.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.88.0';
-import { buyPrice, sellPrice } from '../data/shops.js?v=0.88.0';
+import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.89.0';
+import { rollScore, rollGrade } from '../data/affixes.js?v=0.89.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.89.0';
+import { buyPrice, sellPrice } from '../data/shops.js?v=0.89.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -69,9 +69,26 @@ export class TradeWindow {
   ping(extra = {}) { const k = this.g.online.keyByName(this.peerName); if (k) this.g.online.lobbySend('tr', { to: k, id: this.t.id, n: this.g.player.name, ...extra }); }
   log(m) { this.g.hud.log(m, 'sys'); }
 
+  // v0.89 แลกเปลี่ยนได้เฉพาะ VIP กับ VIP — ไม่มี VIP กดแลกแล้วขึ้นหน้าต่างเตือน
+  vipWarn(text) {
+    const g = this.g, root = g.root.querySelector('.hud') || g.root;
+    let m = root.querySelector('.vip-warn');
+    if (!m) {
+      m = document.createElement('div'); m.className = 'vip-warn'; m.setAttribute('role', 'alertdialog'); m.setAttribute('aria-modal', 'true');
+      m.innerHTML = '<div class="panel vw-box"><div class="vw-ic" aria-hidden="true">👑</div><h3>แลกเปลี่ยนไอเทมสำหรับ VIP</h3><p class="vw-t"></p><div class="vw-act"><button type="button" class="primary" data-a="vip">ดูสิทธิ์ VIP</button><button type="button" data-a="x">ปิด</button></div></div>';
+      for (const ev of ['pointerdown', 'wheel', 'contextmenu', 'touchstart']) m.addEventListener(ev, (e) => e.stopPropagation(), { passive: true });
+      m.addEventListener('click', (e) => { const a = e.target.closest('[data-a]'); if (e.target === m || a) m.hidden = true; if (a && a.dataset.a === 'vip') g.cash.show('vip'); });
+      root.append(m);
+    }
+    m.querySelector('.vw-t').textContent = text;
+    m.hidden = false;
+    g.sfx('chat');
+  }
+
   async invite(name) {
     const g = this.g;
     if (this.open) return this.log('ปิดหน้าต่างแลกเปลี่ยนเดิมก่อน');
+    if (!g.vipActive) return this.vipWarn('การแลกเปลี่ยนไอเทมกับผู้เล่นเปิดให้เฉพาะผู้มี VIP ทั้งสองฝ่าย — ซื้อบัตร VIP ได้ที่ร้านเพชร แท็บ VIP · ถ้าต้องการขายของให้ผู้เล่นอื่น ใช้ตลาดฝากขายได้ตามปกติ');
     const key = g.online && g.online.keyByName ? g.online.keyByName(name) : null;
     if (!key) return this.log(`${name} ไม่ได้ออนไลน์อยู่`);
     const err = await ready(g);
@@ -90,6 +107,7 @@ export class TradeWindow {
     if (!(id > 0)) return;
     if (p.inv) {
       if (this.open) return;
+      if (!g.vipActive) { g.online.tradeRPC('trade_respond', { p_id: id, p_accept: false }); this.log(`${from} ขอแลกเปลี่ยนกับคุณ แต่การแลกเปลี่ยนเปิดให้เฉพาะ VIP — ระบบปฏิเสธให้อัตโนมัติ`); return; }   // v0.89
       g.social.prompt({
         id: 'tr' + id, kind: 'trade', text: `${from} ขอแลกเปลี่ยนไอเทมกับคุณ`,
         yes: async () => {

@@ -1,8 +1,9 @@
 // โรงตีเหล็ก (v0.10): ตีบวกอุปกรณ์ + ใส่การ์ด — ตรรกะล้วน ไม่ยุ่งกับ UI
 // ref = ตำแหน่งของชิ้นอุปกรณ์ { where: 'equip', slot, key } หรือ { where: 'bag', key }
-import { ITEMS, itemKey, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.88.0';
-import { canRefine, refineMaterial, refineFee, refineRate, rollRefine, failResult, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS, boostedRate } from '../data/refine.js?v=0.88.0';
-import { CARDS } from '../data/cards.js?v=0.88.0';
+import { ITEMS, itemKey, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.89.0';
+import { canRefine, refineMaterial, refineFee, refineRate, rollRefine, failResult, REFINE_MAX, BREAK_FROM, SAFE_LIMIT, LUCK_BONUS, boostedRate } from '../data/refine.js?v=0.89.0';
+import { CARDS } from '../data/cards.js?v=0.89.0';
+import { unsocketCost, keyWithout } from '../data/durability.js?v=0.89.0';   // v0.89
 
 // อุปกรณ์ทั้งหมดของผู้เล่น (สวมอยู่ก่อน แล้วตามด้วยในกระเป๋า)
 export function gearList(player, test = () => true) {
@@ -64,12 +65,34 @@ export const gearOwned = (player, ref) => !!ref && !!ref.key && (ref.where === '
 
 // แทนที่ชิ้นอุปกรณ์ (newKey = null คืออุปกรณ์แตกหาย) แล้วอัปเดตปุ่มลัดที่ชี้ชิ้นเดิม
 export function replaceGear(player, ref, newKey) {
+  const oldDura = player.dura && player.dura[ref.key];   // v0.89 ความทนทานตามคีย์ใหม่
   if (ref.where === 'equip') player.equip[ref.slot] = newKey;
   else { player.inventory.remove(ref.key, 1); if (newKey) player.inventory.add(newKey, 1, true); }   // v0.16: ชิ้นเดิมกลับเข้ากระเป๋าเสมอ
   const left = player.inventory.count(ref.key) + (Object.values(player.equip).includes(ref.key) ? 1 : 0);
   if (!left) player.hotbar = player.hotbar.map((k) => (k === ref.key ? newKey : k));
+  if (oldDura != null && newKey) player.dura[newKey] = oldDura;
+  if (!left && player.dura) delete player.dura[ref.key];
   player.afterEquipChange();
   if (ref.where === 'equip') ref.key = newKey;
+}
+
+// v0.89 ถอดการ์ด (จ่าย Zeny แพงมาก) — idx = ลำดับการ์ดในชิ้น · การ์ดกลับเข้ากระเป๋า อุปกรณ์ไม่เสีย
+export function doUnsocket(player, ref, idx) {
+  const it = ITEMS[ref.key];
+  if (!it) return { error: 'ไม่พบอุปกรณ์' };
+  if (!gearOwned(player, ref)) return { error: 'ไม่พบอุปกรณ์ชิ้นนี้แล้ว เลือกใหม่อีกครั้ง' };
+  const { cards } = itemMods(ref.key), cardId = cards[idx];
+  if (!cardId || !CARDS[cardId]) return { error: 'ไม่พบการ์ดในช่องนี้' };
+  const cost = unsocketCost(cardId);
+  if (player.zeny < cost) return { error: `Zeny ไม่พอ (ค่าถอด ${cost.toLocaleString('en-US')} z)` };
+  const bagLeft = player.inventory.capacity - player.inventory.stacks.length;
+  const needSlot = (player.inventory.count(cardId) ? 0 : 1) + (ref.where === 'bag' && player.inventory.count(ref.key) > 1 ? 1 : 0);
+  if (bagLeft < needSlot) return { error: 'กระเป๋าเต็ม ต้องมีช่องว่างสำหรับการ์ดที่ถอดออก' };
+  if (!player.spendZeny(cost)) return { error: 'Zeny ไม่พอ' };
+  const newKey = keyWithout(ref.key, idx), oldKey = ref.key;
+  replaceGear(player, ref, newKey);
+  player.inventory.add(cardId, 1, true);
+  return { oldKey, newKey, cardId, cost };
 }
 
 /* ---------- การ์ด ---------- */

@@ -1,33 +1,33 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.88.0';
-import { MONSTERS } from '../data/monsters.js?v=0.88.0';
-import { MAPS } from '../data/maps/index.js?v=0.88.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.88.0';
-import { CARD_SETS } from '../data/collection.js?v=0.88.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, jobTier, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.88.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.88.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, LUCK_CAP, boostedRate, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.88.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.88.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.88.0';
-import { SHOPS, SELL_RATE, SELL_RATE_EQUIP, STORAGE_CAPACITY, sellPrice } from '../data/shops.js?v=0.88.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.88.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.88.0';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.88.0';
-import { rollFits } from '../data/affixes.js?v=0.88.0';
-import { statsToBonus } from '../data/affixes.js?v=0.88.0';
-import { VIP_PERKS } from './CashShop.js?v=0.88.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.88.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.88.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.88.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.89.0';
+import { MONSTERS } from '../data/monsters.js?v=0.89.0';
+import { MAPS } from '../data/maps/index.js?v=0.89.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.89.0';
+import { CARD_SETS } from '../data/collection.js?v=0.89.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, jobTier, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.89.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.89.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, LUCK_CAP, boostedRate, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.89.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.89.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.89.0';
+import { SHOPS, SELL_RATE, SELL_RATE_EQUIP, STORAGE_CAPACITY, sellPrice } from '../data/shops.js?v=0.89.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.89.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.89.0';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.89.0';
+import { rollFits } from '../data/affixes.js?v=0.89.0';
+import { statsToBonus } from '../data/affixes.js?v=0.89.0';
+import { VIP_PERKS } from './CashShop.js?v=0.89.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.89.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.89.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.89.0';
 // v0.77 คู่มือระบบใหม่ (ภารกิจรายวัน · ดันเจี้ยนปาร์ตี้ · อันดับฤดูกาล · ฉายา · หลอมนิรันดร์กาล)
-import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.88.0';
-import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.88.0';
-import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.88.0';
-import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.88.0';
-import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.88.0';   // v0.78
-import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.88.0';   // v0.79
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.88.0';
+import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.89.0';
+import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.89.0';
+import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.89.0';
+import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.89.0';
+import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.89.0';   // v0.78
+import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.89.0';   // v0.79
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.89.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -277,7 +277,7 @@ function mapPage(id) {
   if (d.level) h += stats([['เลเวลแนะนำ', `Lv.${d.level[0]}–${d.level[1]}`], ['มอนสเตอร์', `${(d.spawns || []).length} ชนิด`]]);
   const mobs = [...new Set((d.spawns || []).map((s) => s.mob))].filter((x) => MONSTERS[x]).sort((a, b) => MONSTERS[a].level - MONSTERS[b].level);
   if (mobs.length) h += `<h4>มอนสเตอร์ในแผนที่</h4><div class="wk-mobs">${mobs.map((x) => `<a class="wk-mob" data-go="mob:${esc(x)}"><img alt="" data-mob="${esc(x)}"><b${MONSTERS[x].mvp ? ' class="mvp"' : ''}>${esc(MONSTERS[x].name)}</b><small>Lv.${MONSTERS[x].level}${MONSTERS[x].mvp ? ' · MVP' : ''}</small></a>`).join('')}</div>`;
-  else h += '<p class="wk-muted">เขตปลอดภัย ไม่มีมอนสเตอร์ · มี NPC ร้านค้า คลังเก็บของ ช่างตีเหล็ก ตลาด และจุดวาร์ป</p>';
+  else h += '<p class="wk-muted">เขตปลอดภัย ไม่มีมอนสเตอร์ · มี NPC ร้านค้า คลังเก็บของ ช่างตีเหล็ก (ตีบวก · ซ่อม · ถอดการ์ด) ตลาด และจุดวาร์ป</p>';
   const wbs = Object.values(WORLD_BOSSES).filter((b) => b.map === id);
   for (const b of wbs) h += `<p>🌍 บอสโลก <b>${esc(b.name)}</b> เกิดทุกวัน ${b.hour}:00 น.</p>`;
   return h;
@@ -343,7 +343,7 @@ const GUIDES = [
   { id: 'controls', title: '🎮 การควบคุม', sub: 'ปุ่มลัดทั้งหมด', html: () =>
     table(['ปุ่ม', 'ทำอะไร'], [
       ['คลิกพื้น / ' + K('W') + K('A') + K('S') + K('D'), 'เดิน'], ['คลิกมอนสเตอร์ / ' + K('Space'), 'โจมตี / ตีตัวใกล้สุด'], [K('F1') + '–' + K('F9'), 'ปุ่มลัดสกิล/ไอเทม (ลากจากหน้าต่างสกิลหรือกระเป๋ามาวาง)'],
-      [K('C'), 'สถานะ / อัปสเตตัส'], [K('I'), 'กระเป๋า'], [K('K'), 'สกิล'], [K('O'), 'ตู้แฟชั่น'], [K('J'), 'เควสต์'], [K('P'), 'สัตว์เลี้ยง'],
+      [K('C'), 'สถานะ / อัปสเตตัส'], [K('I'), 'กระเป๋า'], [K('G') + ' / แตะเหรียญอาชีพ', 'ดูตัวละคร + อุปกรณ์ที่สวมใส่'], [K('K'), 'สกิล'], [K('O'), 'ตู้แฟชั่น'], [K('J'), 'เควสต์'], [K('P'), 'สัตว์เลี้ยง'],
       [K('Z') + ' / ' + K('H'), 'เริ่ม-หยุดล่าอัตโนมัติ / ตั้งค่าออโต้'], [K('M'), 'จดหมาย'], [K('B'), 'สมุดสะสม'], [K('N'), 'แผนที่โลก'], [K('Enter'), 'แชต'],
       [K('Q') + ' ' + K('E'), 'หมุนกล้อง'], ['คลิกขวาลาก / ' + K('PgUp') + K('PgDn'), 'ปรับมุมก้มกล้อง'], ['คลิก NPC', 'ซื้อขาย · ฝากของ · วาร์ป · ตีบวก · รับเควสต์'], ['คลิกผู้เล่น', 'แลกเปลี่ยน · ชวนปาร์ตี้ · กระซิบ'],
     ]) + P('บนมือถือ: แตะพื้นเพื่อเดิน แตะมอนหรือปุ่ม ⚔ เพื่อโจมตี ใช้สองนิ้วหมุนกล้อง') },
@@ -376,8 +376,9 @@ const GUIDES = [
     ]) +
     `<h4>โบนัสจากการตีบวก</h4>` + UL(['อาวุธ: ATK เพิ่มทุกขั้น (ยิ่งหายากยิ่งเพิ่มมาก) และตั้งแต่ +8 ได้เพิ่มเป็นสองเท่าต่อขั้น · ไม้เท้าได้ MATK ด้วย', 'ชุดเกราะ: DEF +1 ต่อขั้น · ชุดตั้งแต่ +5 ได้ MDEF · ตั้งแต่ +8 ได้ Max HP เพิ่ม', 'ดูตารางโบนัส +1~+10 ของอุปกรณ์แต่ละชิ้นได้ในแท็บ "อุปกรณ์"']) +
     P('💡 เคล็ดลับ: ตี +1~+4 ได้ฟรีไม่มีความเสี่ยง · +5~+7 เตรียมผลึกสำรอง · +8 ขึ้นไปควรใช้คริสตัลพิทักษ์ทุกครั้ง') },
-  { id: 'cards', title: '🃏 การ์ด', sub: 'ดรอป · ใส่การ์ด · ชุดสะสม', html: () =>
+  { id: 'cards', title: '🃏 การ์ด', sub: 'ดรอป · ใส่การ์ด · ถอดการ์ด · ชุดสะสม', html: () =>
     P(`มอนสเตอร์ทุกชนิดมีการ์ดของตัวเอง (${Object.keys(CARDS).length} ใบ) · ดรอปยากมาก — มอนปกติประมาณ 0.2% · ตัวเก่ง 0.075% · MVP 1%`) +
+    P('<b>ถอดการ์ด</b> (ช่างตีเหล็กในเมือง → ถอดการ์ด): การ์ดกลับเข้ากระเป๋า อุปกรณ์ไม่เสีย · ค่าบริการ การ์ดธรรมดา 500,000 · อีลิต 1,000,000 · MVP 1,500,000 Zeny') +
     UL(['การ์ดใส่ได้เฉพาะอุปกรณ์ที่มี <b>ช่องการ์ด</b> และต้องตรงประเภท (เช่น การ์ดอาวุธใส่อาวุธ การ์ดรองเท้าใส่รองเท้า)', 'บางการ์ดใส่ซ้ำได้หลายใบ (ดู "ใส่ซ้ำได้สูงสุด")', 'ใส่แล้วถอดไม่ได้ — เลือกอุปกรณ์ให้ดีก่อน', 'ใช้ <b>ใบโคลเวอร์</b> เพิ่มโอกาสดรอปการ์ด · สัตว์เลี้ยงเทียนหยุนเพิ่มโอกาสการ์ด ×1.5', 'ได้การ์ดครั้งแรกจะถูกบันทึกในสมุดสะสม (B) · สะสมครบชุดได้โบนัสถาวร']) +
     `<h4>ชุดสะสมการ์ด</h4>` + table(['ชุด', 'การ์ด', 'โบนัสถาวร'], Object.values(CARD_SETS || {}).map((s) => [esc(s.name), s.cards.map((c) => (CARDS[c] ? link('card', c, CARDS[c].name.replace('การ์ด', ''), rcol(CARDS[c].rarity)) : '')).join(', '), esc(describeBonus(s.bonus))])) },
   { id: 'route', title: '🗺 เส้นทางเก็บเลเวล', sub: 'ควรไปแผนที่ไหนเลเวลเท่าไหร่', html: () =>
@@ -399,6 +400,8 @@ const GUIDES = [
     P(`อุปกรณ์มี 7 ช่อง: ${EQUIP_SLOTS.map((s) => s.name).join(' · ')} · แต่ละชิ้นมีเลเวลที่ต้องการและอาชีพที่ใช้ได้`) +
     table(['เกรด', 'สี'], Object.entries(RARITY).map(([k, r]) => [`<b style="color:${r.color}">${esc(r.name || k)}</b>`, `<span class="wk-sw" style="background:${r.color}"></span>`])) +
     UL(['อาวุธและอุปกรณ์สวมใส่ทุกชิ้นมี <b>ค่าสุ่ม</b> เพิ่ม 1–3 ค่า (เช่น STR +2, DEF +3) — ชิ้นเดียวกันอาจเก่งไม่เท่ากัน', 'บางชิ้นเป็นชุดเซ็ต สวมครบตามจำนวนได้โบนัสเพิ่ม', 'ยิ่งเกรดสูง โบนัสตีบวกยิ่งมาก', 'ดูรายชื่ออุปกรณ์ทั้งหมด ค่าสถานะ ดรอปจากไหน และโบนัส +1~+10 ได้ในแท็บ "อุปกรณ์"']) },
+  { id: 'durability', title: '🔧 ความทนทาน & ซ่อมอุปกรณ์', sub: 'ของสึก · ของพัง · ช่างตีเหล็ก', html: () =>
+    UL(['อุปกรณ์ทุกชิ้นมีความทนทาน 100 — <b>อาวุธ</b>สึกเมื่อโจมตี/ใช้สกิลโจมตี · <b>ชิ้นอื่น</b>สึกเมื่อถูกตี · หมดสติ ลดทุกชิ้นเพิ่ม 10', 'เหลือต่ำกว่า 20 ระบบเตือน · ถึง 0 = <b>พัง</b> ไม่ให้ค่าสถานะเลยเหมือนไม่ได้สวม (อาวุธพัง = ตีด้วยมือเปล่า ใช้สกิลที่ต้องใช้อาวุธไม่ได้)', 'ซ่อมที่ <b>การ์ธ ช่างตีเหล็ก</b> (เมือง Asteria ฝั่งบนซ้าย ใกล้ร้านของใช้ · บนแผนที่เป็นจุดสีเงิน) → ซ่อมอุปกรณ์ จ่าย Zeny ตามราคาของ × ส่วนที่เสีย (ของที่พังแล้วค่าซ่อม ×2) · ซ่อมทีละชิ้นหรือทั้งหมดได้', '👑 VIP ซ่อมได้ทุกที่จากหน้า VIP', 'ดูความทนทานได้ที่หน้าดูตัวละคร ' + K('G') + ' และรายละเอียดไอเทมในกระเป๋า · สนามประลอง (อารีน่า) ไม่ทำให้ของสึก']) },
   { id: 'pets', title: '🐾 สัตว์เลี้ยง', sub: 'ช่วยเก็บของอัตโนมัติ', html: () =>
     P(`สัตว์เลี้ยง ${PET_ORDER.length} ตัว ซื้อได้ที่ <b>ร้านเพชร → สัตว์เลี้ยง</b> (เลือกตัวเองได้ ไม่ต้องสุ่ม) · เรียกออกมาแล้วจะวิ่งเก็บของที่ดรอปให้อัตโนมัติ · ไม่ต่อสู้ ไม่ตาย`) +
     table(['ระดับ', 'รัศมี', 'ความเร็ว', 'ขนต่อรอบ', 'ตัว'], Object.entries(TIER_STATS).map(([t, s]) => [`<b style="color:${PET_RARITY[t].color}">${PET_RARITY[t].name}</b>`, `${s.radius} ช่อง`, `${s.speed}%`, s.carry || 'ไม่จำกัด', PET_ORDER.filter((p) => PETS[p].tier === t).map((p) => link('pet', p, PETS[p].name)).join(', ')])) +
@@ -406,7 +409,7 @@ const GUIDES = [
   { id: 'auto', title: '🤖 ล่าอัตโนมัติ', sub: 'บอทในตัวเกม', html: () =>
     UL(['กด ' + K('Z') + ' เริ่ม/หยุด · ' + K('H') + ' ตั้งค่า', 'เลือกมอนที่จะล่า ระยะการล่า สกิลที่ใช้ และใช้ยาเมื่อ HP/SP ต่ำกว่ากี่ %', 'บอทจะหยุดเองเมื่อยาหมดหรือกระเป๋าเต็ม (VIP: ซื้อยาเติมให้อัตโนมัติ)', 'ใช้คู่กับสัตว์เลี้ยงเก็บของ จะเก็บเลเวลได้สบายมาก']) },
   { id: 'economy', title: '💰 Zeny · ร้านค้า · ตลาด · เทรด', sub: 'หาเงิน ซื้อขาย แลกของ', html: () =>
-    UL([`ขายของให้ร้านค้า NPC ได้ ${Math.round(SELL_RATE * 100)}% ของราคา (อุปกรณ์/อาวุธ ${Math.round(SELL_RATE_EQUIP * 100)}%)`, `คลังเก็บของ (NPC) เก็บได้ ${STORAGE_CAPACITY} ช่อง ใช้ร่วมได้`, '<b>ตลาด</b> (นายตลาดในเมือง): ฝากขายได้แม้ออฟไลน์ อยู่ 7 วัน มีคนซื้อเงินเข้าทันที · คนทั่วไปลงได้ 2 รายการ ค่าธรรมเนียม 7% · VIP 5 รายการ 3%', '<b>แลกเปลี่ยน</b>: คลิกผู้เล่น → แลกเปลี่ยน วางของ/Zeny แล้วทั้งคู่กดยืนยัน · ให้ของฝ่ายเดียวได้', 'ของจากร้านเพชรบางชิ้นซื้อขายในตลาดได้ — หาเพชรได้โดยไม่ต้องเติมเงิน', '<b>ตลาดแลกเพชร</b> (ปุ่ม "แลกเพชร" ด้านบน): ซื้อ/ขายเพชรกับผู้เล่นด้วย Zeny ได้ทุกที่ · ซื้อขายทันทีหรือตั้งราคารอ · มีกราฟราคาและความลึกตลาด · ค่าธรรมเนียมฝั่งละ 7% (VIP 3%)', 'Zeny หายาก: ขายของให้ NPC ได้น้อย — ของดีควรขายผ่านตลาดให้ผู้เล่น']) },
+    UL([`ขายของให้ร้านค้า NPC ได้ ${Math.round(SELL_RATE * 100)}% ของราคา (อุปกรณ์/อาวุธ ${Math.round(SELL_RATE_EQUIP * 100)}%)`, `คลังเก็บของ (NPC) เก็บได้ ${STORAGE_CAPACITY} ช่อง ใช้ร่วมได้`, '<b>ตลาด</b> (นายตลาดในเมือง): ฝากขายได้แม้ออฟไลน์ อยู่ 7 วัน มีคนซื้อเงินเข้าทันที · คนทั่วไปลงได้ 2 รายการ ค่าธรรมเนียม 7% · VIP 5 รายการ 3%', '<b>แลกเปลี่ยน</b> (เฉพาะ VIP กับ VIP): คลิกผู้เล่น → แลกเปลี่ยน วางของ/Zeny แล้วทั้งคู่กดยืนยัน · ให้ของฝ่ายเดียวได้ · ไม่มี VIP ใช้ตลาดฝากขายแทนได้', 'ของจากร้านเพชรบางชิ้นซื้อขายในตลาดได้ — หาเพชรได้โดยไม่ต้องเติมเงิน', '<b>ตลาดแลกเพชร</b> (ปุ่ม "แลกเพชร" ด้านบน): ซื้อ/ขายเพชรกับผู้เล่นด้วย Zeny ได้ทุกที่ · ซื้อขายทันทีหรือตั้งราคารอ · มีกราฟราคาและความลึกตลาด · ค่าธรรมเนียมฝั่งละ 7% (VIP 3%)', 'Zeny หายาก: ขายของให้ NPC ได้น้อย — ของดีควรขายผ่านตลาดให้ผู้เล่น']) },
   { id: 'boss', title: '👹 บอสโลก & MVP', sub: 'เวลาเกิด · รางวัล', html: () =>
     `<h4>บอสโลก</h4>` + table(['บอส', 'เวลาเกิด (ไทย)', 'แผนที่', 'HP'], Object.values(WORLD_BOSSES).map((b) => [esc(b.name), `${b.hour}:00 น. (อยู่ 30 นาที)`, mapLink(b.map), fmt(b.hp)])) +
     UL([`ทุกคนที่ตีโดนได้รางวัลทางจดหมาย · ดาเมจอันดับ 1–3 ได้โบนัสเพิ่ม (หินนำโชคเฉพาะอันดับ 1) · เลือดเยอะและตีแรงมาก ต้องรวมกลุ่มตี · มีโอกาส ${Math.round(((Object.values(WORLD_BOSSES)[0] || {}).reward?.chance?.p || 0) * 100)}% ได้อาวุธพิเศษ · เซิร์ฟเวอร์รับดาเมจไม่เกิน 15,000 ต่อครั้ง ต้องช่วยกันหลายคน`, 'กดปุ่ม "บอส" ด้านบนเพื่อดูเวลาที่เหลือและรางวัล']) +

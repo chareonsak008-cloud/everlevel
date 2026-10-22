@@ -1,13 +1,13 @@
 // v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → v0.80 ตรวจสลิปอัตโนมัติ / แอดมินอนุมัติเมื่อไม่ชัวร์)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.88.0';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.88.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.88.0';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.88.0';
-import { ready } from './TradeMarket.js?v=0.88.0';
-import { WARP_ROUTES } from '../data/shops.js?v=0.88.0';
-import { PETS, PET_RARITY } from '../data/pets.js?v=0.88.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.88.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.89.0';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.89.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.89.0';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.89.0';
+import { ready } from './TradeMarket.js?v=0.89.0';
+import { WARP_ROUTES } from '../data/shops.js?v=0.89.0';
+import { PETS, PET_RARITY } from '../data/pets.js?v=0.89.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.89.0';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const QR_SRC = 'assets/ui/topup_qr.png';
@@ -16,6 +16,9 @@ export const VIP_PERKS = [
   ['🧪', 'ซื้อยาอัตโนมัติระหว่างบอท', 'ยาใกล้หมดกระเป๋า ระบบซื้อเติมให้เองด้วย Zeny (ตั้งค่าที่หน้าต่างออโต้)'],
   ['🏪', 'ตลาด 5 รายการ · ค่าธรรมเนียม 3%', 'คนทั่วไปลงขายได้ 2 รายการ ค่าธรรมเนียม 7%'],
   ['🌀', 'วาร์ป · คลัง · ร้านค้า ได้ทุกที่', 'กดจากแท็บนี้ ไม่ต้องเดินไปหา NPC · วาร์ปฟรี'],
+  ['🔨', 'ตีบวก · ตลาดกลาง · ซ่อมอุปกรณ์ ได้ทุกที่', 'กดจากแท็บนี้ ไม่ต้องเดินไปหาช่างตีเหล็กหรือ NPC ตลาด'],   // v0.89
+  ['🔁', 'แลกเปลี่ยนไอเทมกับผู้เล่น', 'เฉพาะ VIP กับ VIP ด้วยกัน · ผู้ไม่มี VIP แลกเปลี่ยนไม่ได้'],
+  ['♻️', 'รีเซ็ตสเตตัสฟรี', 'ไม่เสีย Zeny ทุกเลเวล'],
   ['🎁', 'รางวัลรายวัน', 'ขนนกคืนชีพ ×5 ทุกวัน · รางวัลเช็กอินคูณ 2'],
   ['⚡', 'EXP / ดรอป +20%', 'ซ้อนกับใบคูณและอีเวนต์ได้'],
   ['👑', 'ป้าย VIP + ชื่อสีทอง', 'ทั้งบนป้ายชื่อและในแชต'],
@@ -230,7 +233,7 @@ export class CashShopWindow {
     const g = this.g, st = this.st, on = g.vipActive, list = (st.products || []).filter((p) => p.kind === 'vip');
     pane.innerHTML = `<div class="vip-card${on ? ' on' : ''}"><div class="vip-crown" aria-hidden="true">👑</div><div class="vip-st"><b>${on ? 'คุณเป็น VIP' : 'ยังไม่ได้เป็น VIP'}</b><small></small></div></div>
       <div class="vip-buy"></div>
-      ${on ? `<div class="vip-acts"><h3>ใช้สิทธิ์ VIP</h3><div class="vip-row"><button type="button" class="primary" data-v="daily"></button><button type="button" data-v="stor">📦 เปิดคลัง</button><button type="button" data-v="shop">🧪 ร้านของใช้</button><button type="button" data-v="sell">💰 ขายของ</button></div>
+      ${on ? `<div class="vip-acts"><h3>ใช้สิทธิ์ VIP</h3><div class="vip-row"><button type="button" class="primary" data-v="daily"></button><button type="button" data-v="stor">📦 เปิดคลัง</button><button type="button" data-v="shop">🧪 ร้านของใช้</button><button type="button" data-v="sell">💰 ขายของ</button><button type="button" data-v="refine">🔨 ตีบวก</button><button type="button" data-v="market">🏪 ตลาดกลาง</button><button type="button" data-v="repair">🔧 ซ่อมอุปกรณ์</button><button type="button" data-v="reset">♻️ รีเซ็ตสเตตัส</button></div>
         <h3>วาร์ปฟรี</h3><div class="vip-warps"></div></div>` : ''}
       <h3>สิทธิ์ VIP</h3><ul class="vip-perks"></ul>`;
     pane.querySelector('.vip-st small').textContent = on ? `หมดอายุ ${dateTH(g.vip.until)} · ซื้อเพิ่มต่ออายุสะสมได้` : 'ซื้อบัตร VIP ด้วยเพชร · ซื้อซ้ำต่ออายุสะสม';
@@ -254,6 +257,7 @@ export class CashShopWindow {
     pane.querySelector('[data-v="stor"]').addEventListener('click', () => { this.close(); g.vipService('storage'); });
     pane.querySelector('[data-v="shop"]').addEventListener('click', () => { this.close(); g.vipService('shop'); });
     pane.querySelector('[data-v="sell"]').addEventListener('click', () => { this.close(); g.vipService('sell'); });
+    for (const k of ['refine', 'market', 'repair', 'reset']) pane.querySelector(`[data-v="${k}"]`).addEventListener('click', () => { this.close(); g.vipService(k); });   // v0.89
     const wr = pane.querySelector('.vip-warps');
     for (const r of VIP_WARPS) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'vip-warp';
