@@ -1,6 +1,6 @@
 // v0.46 Crystal Valley · หุบเขาคริสตัล Lv.118–134 · MVP คริสธาร์ มังกรผลึก
 // หุบเขาผลึกเจ็ดสี ทะเลสาบน้ำแข็งใส · ทางขึ้นปราสาทลอยฟ้าทางตะวันออก
-import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0-p1';
 const W=80,H=64,lanes=[[0,30,80,4],[18,8,4,46],[40,6,4,48],[60,8,4,44],[18,8,46,4],[18,50,46,4]],camp=[2,25,11,15],arena=[62,40,14,16],lakes=[[24,14,12,8],[46,40,10,8]];
 const look={hair:'#e0c8ff',skin:'#f0d4c4',eye:'#6a4ab8',tunic:'#8a6ac8',pants:'#3a2a5a',boot:'#2a2238',hairStyle:'long',accessory:'wizard',hatColor:'#6a4ab8',orbColor:'#e0c8ff',weapon:'staff'};
 const CRY=['#c8a8ff','#7fe0ff','#ff9ae8','#9affe0'];

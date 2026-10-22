@@ -1,34 +1,34 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.93.0';
-import { PixelWingSprite } from './PixelWings.js?v=0.93.0';
-import { paintPlate } from '../ui/Nameplates.js?v=0.93.0';
-import { PixelVfx } from './PixelVfx.js?v=0.93.0';
-import { THREE } from './three.js?v=0.93.0';
-import { TILE } from '../config.js?v=0.93.0';
-import { T } from '../data/tileTypes.js?v=0.93.0';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.93.0';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.93.0';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.93.0';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.93.0-p1';
+import { PixelWingSprite } from './PixelWings.js?v=0.93.0-p1';
+import { paintPlate } from '../ui/Nameplates.js?v=0.93.0-p1';
+import { PixelVfx } from './PixelVfx.js?v=0.93.0-p1';
+import { THREE } from './three.js?v=0.93.0-p1';
+import { TILE } from '../config.js?v=0.93.0-p1';
+import { T } from '../data/tileTypes.js?v=0.93.0-p1';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.93.0-p1';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.93.0-p1';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.93.0-p1';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.93.0';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.93.0';
-import { iconCanvas } from './ItemIcons.js?v=0.93.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.93.0';
-import { MonsterView } from './Monsters.js?v=0.93.0';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.93.0';
-import { SkillFX } from './SkillFX.js?v=0.93.0';
-import { PostFX } from './PostFX.js?v=0.93.0';
-import { Weather } from './Weather.js?v=0.93.1';   // v0.91 สภาพอากาศ
-import { costumeLook, wearCostume } from './Costumes.js?v=0.93.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0';
-import { PetView } from './Pets.js?v=0.93.0';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.93.0';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.93.0';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.93.0';
-import { gradientMap } from './Toon.js?v=0.93.0';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.93.0';
+} from './Models.js?v=0.93.0-p1';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.93.0-p1';
+import { iconCanvas } from './ItemIcons.js?v=0.93.0-p1';
+import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p1';
+import { MonsterView } from './Monsters.js?v=0.93.0-p1';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.93.0-p1';
+import { SkillFX } from './SkillFX.js?v=0.93.0-p1';
+import { PostFX } from './PostFX.js?v=0.93.0-p1';
+import { Weather } from './Weather.js?v=0.93.0-p1';   // v0.91 สภาพอากาศ
+import { costumeLook, wearCostume } from './Costumes.js?v=0.93.0-p1';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0-p1';
+import { PetView } from './Pets.js?v=0.93.0-p1';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.93.0-p1';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.93.0-p1';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.93.0-p1';
+import { gradientMap } from './Toon.js?v=0.93.0-p1';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.93.0-p1';
 // v0.86 กลางวัน · ตอนเย็น · กลางคืน · รุ่งสาง — ตัวคูณแสง (h=ฟ้า s=แดด e=exposure) + สีที่ผสมเข้าไป (mix)
 const DAY_PRESETS = {
   day: { name: 'กลางวัน', icon: '☀', h: 1, s: 1, e: 1, mix: 0, glow: 1, tint: [0, 0, 0, 0] },
