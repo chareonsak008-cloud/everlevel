@@ -4,17 +4,13 @@ import { THREE } from './three.js?v=0.93.0';
 import { glowTexture } from './Textures.js?v=0.93.0';
 
 // rain: ความแรงสูงสุด · rainCycle: คาบ (นาที) และสัดส่วนเวลาที่ฝนตก · leaves: จำนวน · fire: หิ่งห้อยกลางคืน · snow · ash
+// v0.93.1 เหลือเฉพาะหิ่งห้อยตอนกลางคืน (เอาใบไม้ ฝน หิมะ เถ้าออกตามที่ขอ)
 const CFG = {
-  asteria_town: { fire: 34, leaves: 10, leafCols: ['#e8a03a', '#d8743a', '#c8b04a'] },
-  beginner_field: { fire: 46, leaves: 22, leafCols: ['#7cc04a', '#a8d05a', '#e8b04a'], rain: 0.6, rainCycle: [17, 0.22] },
-  whisper_forest: { fire: 60, leaves: 46, leafCols: ['#8ac850', '#c8d860', '#e0a040', '#6aa840'], rain: 0.7, rainCycle: [13, 0.3] },
-  haunted_forest: { fire: 40, fireCol: '#c2a4ff', leaves: 26, leafCols: ['#7a5a40', '#5a4a3a', '#8a6a48'], rain: 1, rainCycle: [9, 0.6] },
-  sunken_coast: { rain: 1, rainCycle: [11, 0.45] },
-  ancient_ruins: { leaves: 16, leafCols: ['#b8a060', '#8a9a50'] },
+  asteria_town: { fire: 34 },
+  beginner_field: { fire: 46 },
+  whisper_forest: { fire: 60 },
+  haunted_forest: { fire: 40, fireCol: '#c2a4ff' },
   crystal_valley: { fire: 30, fireCol: '#bfa8ff' },
-  frostveil: { snow: 150 },
-  ember_caldera: { ash: 120 },
-  sky_citadel: { leaves: 14, leafCols: ['#ffd8ec', '#ffffff', '#ffc8e0'] },   // กลีบดอกไม้ลอยลม
 };
 const BOX = { w: 30, d: 24, h: 9 };
 const wrap = (v, c, size) => ((((v - c) % size) + size * 1.5) % size) - size / 2 + c;
