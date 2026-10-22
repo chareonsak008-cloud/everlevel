@@ -143,3 +143,168 @@
     left: calc(64px + env(safe-area-inset-left, 0px)); bottom: calc(58px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* v0.91 ไอคอนพิกเซล (SVG) แทนอีโมจิ */
+.px-ic { display: inline-block; vertical-align: -0.2em; flex: none; image-rendering: pixelated; }
+.mp-ico .px-ic { vertical-align: middle; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.55)); }
+.pm-ic .px-ic { vertical-align: middle; }
+.eqw-ic i .px-ic { opacity: 1; }
+.vip-perks i .px-ic { vertical-align: middle; }
+button .px-ic + span, button .px-ic { margin-right: 2px; }
+/* v0.91 ปุ่มข่าวอัปเดตบนแถบด้านบน */
+.tb-btn .tb-px { width: 52px; height: 52px; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.6)); transition: transform 0.12s; margin: 0; }
+.tb-btn:hover .tb-px { transform: translateY(-2px) scale(1.06); }
+.tb-badge.tb-new { font-size: 10px; letter-spacing: 0.04em; background: #2e9b5c; right: 2px; }
+.topbar.tb-collapsed > .tb-news { display: none; }
+@media (max-width: 720px) { .tb-btn .tb-px { width: 36px; height: 36px; } }
+/* หน้าต่างข่าวอัปเดต */
+.newsw { width: 520px; display: flex; flex-direction: column; gap: 10px; }
+.nw-body { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; max-height: min(62vh, 560px); }
+.nw-new { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 10px 12px; border-radius: 10px;
+  background: linear-gradient(180deg, rgba(70, 200, 120, 0.22), rgba(70, 200, 120, 0.08)); border: 1px solid rgba(110, 230, 150, 0.55); }
+.nw-new b { color: #a8f5c2; } .nw-new span { font-size: 12px; color: var(--muted); flex: 1; }
+.nw-item { padding: 10px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 214, 140, 0.16); }
+.nw-item.cur { border-color: rgba(255, 214, 140, 0.55); background: linear-gradient(180deg, rgba(255, 214, 140, 0.1), rgba(255, 255, 255, 0.03)); }
+.nw-item header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin-bottom: 4px; }
+.nw-v { font-family: 'Pixelify Sans', var(--display); font-weight: 700; color: var(--gold); }
+.nw-item header em { font-style: normal; font-size: 11px; padding: 0 6px; border-radius: 6px; background: #2e9b5c; color: #fff; }
+.nw-item time { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+.nw-item ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.55; }
+.nw-item li b { color: #ffe08a; font-weight: 600; }
+/* แถบแจ้งมีเวอร์ชันใหม่ */
+.upd-banner { position: absolute; left: 50%; transform: translateX(-50%); top: calc(96px + env(safe-area-inset-top, 0px)); z-index: 30; pointer-events: auto;
+  display: flex; align-items: center; gap: 8px; width: max-content; max-width: calc(100vw - 16px); box-sizing: border-box; padding: 8px 10px 8px 12px; border-radius: 12px;
+  background: rgba(12, 22, 18, 0.94); border: 1px solid rgba(110, 230, 150, 0.7); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 18px rgba(80, 220, 130, 0.25);
+  font-size: 13px; color: #e8fff0; animation: updIn 0.35s ease-out; }
+.upd-banner[hidden], .hud:has(.newsw:not([hidden])) .upd-banner { display: none; }
+.upd-banner .ub-t { flex: 1; min-width: 0; }
+.upd-banner button { white-space: nowrap; padding: 5px 10px; font-size: 12.5px; }
+.upd-banner .ub-x { padding: 4px 7px; background: none; border: 0; color: var(--muted); }
+@keyframes updIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (max-width: 720px) {
+  .upd-banner { top: calc(66px + env(safe-area-inset-top, 0px)); flex-wrap: wrap; font-size: 12px; }
+  .upd-banner .ub-t { flex-basis: calc(100% - 40px); }
+  .newsw { width: min(calc(100% - 16px), 520px); }
+}
+/* v0.91 สีชุด */
+.oc-sw { display: flex; flex-wrap: wrap; gap: 6px; }
+.oc-sw .oc-b { width: 28px; height: 28px; padding: 0; border-radius: 8px; cursor: pointer; background: var(--oc) !important; border: 2px solid rgba(0, 0, 0, 0.55); min-width: 0; min-height: 0; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25); }
+.oc-sw .oc-b.oc-def { background: conic-gradient(#d23c3c, #d9b23a, #3fa24f, #3d9be0, #8a4fd0, #d23c3c) !important; }
+.oc-sw .oc-b[aria-checked="true"] { outline: 2px solid var(--gold); outline-offset: 2px; transform: translateY(-1px); }
+.oc-b:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.oc-big { gap: 8px; padding: 6px; grid-column: 1 / -1; }
+.oc-sw.oc-big .oc-b { width: 40px; height: 40px; border-radius: 10px; }
+.oc-row { display: flex; align-items: center; gap: 12px; }
+.oc-pv { image-rendering: pixelated; flex: none; border-radius: 10px; background: radial-gradient(ellipse at 50% 85%, rgba(255, 214, 140, 0.18), rgba(0, 0, 0, 0.25) 70%); border: 1px solid rgba(255, 214, 140, 0.25); }
+.oc-field .oc-name { color: var(--gold); margin-left: 4px; }
+.oc-tip { color: var(--muted); font-size: 11.5px; }
+.oc-detail { display: flex; gap: 12px; align-items: center; }
+.oc-detail b { color: var(--gold); }
+.ward-colormode .ward-grid { display: block; min-height: 0; }
+.ward-colormode .ward-bar label { display: none; }
+.px-solo { vertical-align: middle; margin: 0 !important; }
+/* v0.92 แจ้งปัญหาถึง GM */
+.tools #btnReport { position: relative; padding: 5px 10px; }
+.rp-badge { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: #e8384f; color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; box-shadow: 0 0 0 2px #fff; }
+.rp-badge[hidden] { display: none; }
+.fbw { width: 560px; display: flex; flex-direction: column; gap: 8px; }
+.fb-body { overflow-y: auto; max-height: min(64vh, 560px); display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
+.fb-kinds, .fb-filter { display: flex; flex-wrap: wrap; gap: 6px; }
+.fb-kinds button, .fb-filter button { padding: 5px 10px; font-size: 12.5px; border-radius: 999px; }
+.fbw .fb-kinds button.primary, .fbw .fb-filter button.primary { font-weight: 600; }
+.fb-field { display: flex; flex-direction: column; gap: 4px; position: relative; }
+.fb-field span { font-size: 12.5px; color: var(--muted); }
+.fb-field textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 110px; font: inherit; font-size: 13.5px; padding: 8px 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.35); color: var(--text); border: 1px solid rgba(255, 214, 140, 0.3); }
+.fb-field textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.fb-cnt { align-self: flex-end; font-size: 11px; color: var(--muted); }
+.fb-attach { font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
+.fb-info { margin: 0; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.fb-msg { margin: 0; min-height: 1.2em; font-size: 12.5px; color: #a8f5c2; } .fb-msg.bad { color: #ff9a9a; }
+.fb-act { display: flex; justify-content: flex-end; }
+.fb-off { margin: 8px 0; color: var(--muted); font-size: 13px; text-align: center; }
+.fb-list { display: flex; flex-direction: column; gap: 8px; }
+.fb-item { padding: 9px 11px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 214, 140, 0.16); display: flex; flex-direction: column; gap: 4px; }
+.fb-item header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fb-item time { margin-left: auto; font-size: 11.5px; color: var(--muted); }
+.fb-kind { font-size: 11.5px; padding: 1px 7px; border-radius: 6px; background: rgba(255, 255, 255, 0.1); }
+.fb-kind.k-bug { background: rgba(232, 56, 79, 0.3); } .fb-kind.k-balance { background: rgba(90, 168, 255, 0.3); } .fb-kind.k-idea { background: rgba(95, 208, 122, 0.3); } .fb-kind.k-cheat { background: rgba(176, 122, 255, 0.35); }
+.fb-st { font-size: 11.5px; padding: 1px 7px; border-radius: 6px; font-weight: 600; }
+.fb-st.st-new { background: #e8384f; color: #fff; } .fb-st.st-doing { background: #e0a82e; color: #2a1d2c; } .fb-st.st-done { background: #2e9b5c; color: #fff; } .fb-st.st-wont { background: #5a5468; color: #fff; }
+.fb-text { margin: 0; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+.fb-meta { color: var(--muted); font-size: 11.5px; }
+.fb-err summary { cursor: pointer; font-size: 11.5px; color: #ffb0a0; }
+.fb-err pre { margin: 4px 0 0; padding: 6px 8px; font-size: 11px; white-space: pre-wrap; word-break: break-all; background: rgba(0, 0, 0, 0.4); border-radius: 6px; max-height: 140px; overflow: auto; }
+.fb-reply { margin: 2px 0 0; padding: 6px 9px; border-radius: 8px; background: rgba(255, 214, 140, 0.1); font-size: 13px; } .fb-reply b { color: var(--gold); }
+.fb-gm { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+.fb-gm select, .fb-gm input { font: inherit; font-size: 12.5px; padding: 5px 8px; border-radius: 8px; background: rgba(0, 0, 0, 0.35); color: var(--text); border: 1px solid rgba(255, 214, 140, 0.3); }
+.fb-gm input { flex: 1; min-width: 140px; }
+.fb-gm button { padding: 5px 10px; font-size: 12.5px; }
+.fb-del.warn { background: #e8384f; color: #fff; }
+@media (max-width: 720px) { .fbw { width: min(calc(100% - 16px), 560px); } }
+/* v0.93 ปุ่มอัปเดตบนแถบด้านบนใช้อีโมจิ (กลับไปแบบเดิม) */
+.tb-btn .tb-emo { font-style: normal; font-size: 40px; line-height: 52px; height: 52px; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.6)); transition: transform 0.12s; }
+.tb-btn:hover .tb-emo { transform: translateY(-2px) scale(1.06); }
+.upd-banner > i { font-style: normal; font-size: 18px; }
+@media (max-width: 720px) { .tb-btn .tb-emo { font-size: 28px; line-height: 36px; height: 36px; } }
+/* v0.93 แยกช่องแชต */
+#chatWrap[data-ch="w"] .chat > :not(.world):not(.shout),
+#chatWrap[data-ch="p"] .chat > :not(.party),
+#chatWrap[data-ch="g"] .chat > :not(.guild),
+#chatWrap[data-ch="t"] .chat > :not(.whisper) { display: none; }
+.chat-tabs button.unread { position: relative; color: var(--text); }
+.chat-tabs button.unread::after { content: ''; position: absolute; top: -2px; right: -2px; width: 7px; height: 7px; border-radius: 50%; background: #e8384f; box-shadow: 0 0 0 1.5px #fff; }
+
+/* v0.93 สีพื้นหลังตามระดับไอเทม — ช่องกระเป๋า/คลัง/ร้าน · ของบนพื้น · ข้อความเก็บของ */
+.slot.r-common:not(.empty)::before { background: linear-gradient(180deg, rgba(160, 154, 172, 0.22), rgba(90, 84, 104, 0.3)); }
+.dmg.loot.r-common { background: rgba(120, 114, 132, 0.45); border: 1px solid rgba(200,194,210,0.6); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="common"] { background: rgba(60,54,72,0.85); border: 1px solid rgba(242, 236, 224, 0.9); }
+.chat > .r-common { border-left: 3px solid #f2ece0; padding-left: 5px; background: linear-gradient(90deg, rgba(242, 236, 224, 0.22), transparent 70%); }
+.slot.r-uncommon:not(.empty)::before { background: linear-gradient(180deg, rgba(143, 224, 138, 0.62), rgba(143, 224, 138, 0.28)); box-shadow: inset 0 0 0 1px rgba(143, 224, 138, 0.9); }
+.dmg.loot.r-uncommon { background: rgba(143, 224, 138, 0.28); border: 1px solid rgba(143, 224, 138, 0.85); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="uncommon"] { background: rgba(143, 224, 138, 0.3); border: 1px solid rgba(143, 224, 138, 0.9); }
+.chat > .r-uncommon { border-left: 3px solid #8fe08a; padding-left: 5px; background: linear-gradient(90deg, rgba(143, 224, 138, 0.22), transparent 70%); }
+.slot.r-rare:not(.empty)::before { background: linear-gradient(180deg, rgba(127, 196, 255, 0.62), rgba(127, 196, 255, 0.28)); box-shadow: inset 0 0 0 1px rgba(127, 196, 255, 0.9); }
+.dmg.loot.r-rare { background: rgba(127, 196, 255, 0.28); border: 1px solid rgba(127, 196, 255, 0.85); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="rare"] { background: rgba(127, 196, 255, 0.3); border: 1px solid rgba(127, 196, 255, 0.9); }
+.chat > .r-rare { border-left: 3px solid #7fc4ff; padding-left: 5px; background: linear-gradient(90deg, rgba(127, 196, 255, 0.22), transparent 70%); }
+.slot.r-epic:not(.empty)::before { background: linear-gradient(180deg, rgba(212, 155, 255, 0.62), rgba(212, 155, 255, 0.28)); box-shadow: inset 0 0 0 1px rgba(212, 155, 255, 0.9); }
+.dmg.loot.r-epic { background: rgba(212, 155, 255, 0.28); border: 1px solid rgba(212, 155, 255, 0.85); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="epic"] { background: rgba(212, 155, 255, 0.3); border: 1px solid rgba(212, 155, 255, 0.9); }
+.chat > .r-epic { border-left: 3px solid #d49bff; padding-left: 5px; background: linear-gradient(90deg, rgba(212, 155, 255, 0.22), transparent 70%); }
+.slot.r-legend:not(.empty)::before { background: linear-gradient(180deg, rgba(255, 179, 71, 0.62), rgba(255, 179, 71, 0.28)); box-shadow: inset 0 0 0 1px rgba(255, 179, 71, 0.9); }
+.dmg.loot.r-legend { background: rgba(255, 179, 71, 0.28); border: 1px solid rgba(255, 179, 71, 0.85); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="legend"] { background: rgba(255, 179, 71, 0.3); border: 1px solid rgba(255, 179, 71, 0.9); }
+.chat > .r-legend { border-left: 3px solid #ffb347; padding-left: 5px; background: linear-gradient(90deg, rgba(255, 179, 71, 0.22), transparent 70%); }
+.slot.r-mythic:not(.empty)::before { background: linear-gradient(180deg, rgba(255, 216, 94, 0.62), rgba(255, 216, 94, 0.28)); box-shadow: inset 0 0 0 1px rgba(255, 216, 94, 0.9); }
+.dmg.loot.r-mythic { background: rgba(255, 216, 94, 0.28); border: 1px solid rgba(255, 216, 94, 0.85); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="mythic"] { background: rgba(255, 216, 94, 0.3); border: 1px solid rgba(255, 216, 94, 0.9); }
+.chat > .r-mythic { border-left: 3px solid #ffd85e; padding-left: 5px; background: linear-gradient(90deg, rgba(255, 216, 94, 0.22), transparent 70%); }
+.slot.r-celestial:not(.empty)::before { background: linear-gradient(180deg, rgba(255, 82, 102, 0.62), rgba(255, 82, 102, 0.28)); box-shadow: inset 0 0 0 1px rgba(255, 82, 102, 0.9); }
+.dmg.loot.r-celestial { background: rgba(255, 82, 102, 0.28); border: 1px solid rgba(255, 82, 102, 0.85); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="celestial"] { background: rgba(255, 82, 102, 0.3); border: 1px solid rgba(255, 82, 102, 0.9); }
+.chat > .r-celestial { border-left: 3px solid #ff5266; padding-left: 5px; background: linear-gradient(90deg, rgba(255, 82, 102, 0.22), transparent 70%); }
+.slot.r-abyssal:not(.empty)::before { background: linear-gradient(180deg, rgba(63, 230, 208, 0.62), rgba(63, 230, 208, 0.28)); box-shadow: inset 0 0 0 1px rgba(63, 230, 208, 0.9); }
+.dmg.loot.r-abyssal { background: rgba(63, 230, 208, 0.28); border: 1px solid rgba(63, 230, 208, 0.85); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="abyssal"] { background: rgba(63, 230, 208, 0.3); border: 1px solid rgba(63, 230, 208, 0.9); }
+.chat > .r-abyssal { border-left: 3px solid #3fe6d0; padding-left: 5px; background: linear-gradient(90deg, rgba(63, 230, 208, 0.22), transparent 70%); }
+.slot.r-divine:not(.empty)::before { background: linear-gradient(180deg, rgba(255, 241, 176, 0.62), rgba(255, 241, 176, 0.28)); box-shadow: inset 0 0 0 1px rgba(255, 241, 176, 0.9); }
+.dmg.loot.r-divine { background: rgba(255, 241, 176, 0.28); border: 1px solid rgba(255, 241, 176, 0.85); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="divine"] { background: rgba(255, 241, 176, 0.3); border: 1px solid rgba(255, 241, 176, 0.9); }
+.chat > .r-divine { border-left: 3px solid #fff1b0; padding-left: 5px; background: linear-gradient(90deg, rgba(255, 241, 176, 0.22), transparent 70%); }
+.dmg.loot.r-eternal { background: rgba(255, 216, 255, 0.28); border: 1px solid rgba(255, 216, 255, 0.85); border-radius: 7px; padding: 1px 8px; }
+.tag-item[data-r="eternal"] { background: rgba(255, 216, 255, 0.3); border: 1px solid rgba(255, 216, 255, 0.9); }
+.chat > .r-eternal { border-left: 3px solid #ffd8ff; padding-left: 5px; background: linear-gradient(90deg, rgba(255, 216, 255, 0.22), transparent 70%); }
+.slot.is-junk:not(.empty)::before { background: repeating-linear-gradient(135deg, rgba(110, 104, 120, 0.4) 0 5px, rgba(60, 56, 70, 0.4) 5px 10px) !important; }
+.slot .junk-tag { position: absolute; left: 2px; bottom: 2px; font-size: 10px; font-weight: 600; line-height: 1; padding: 1px 3px; border-radius: 4px; background: rgba(20, 16, 28, 0.85); color: #b8b0c8; pointer-events: none; }
+.slot.is-junk img { filter: saturate(0.6) brightness(0.9); }
+.inv-sort { margin-right: auto; font: inherit; font-size: 12.5px; padding: 4px 11px; border-radius: 8px; border: 1px solid rgba(255, 214, 140, 0.4); background: rgba(40, 28, 54, 0.8); color: var(--text); cursor: pointer; white-space: nowrap; }
+.inv-sort:hover { border-color: var(--gold); color: var(--gold); }
+.shop-filter { display: flex; flex-wrap: wrap; gap: 4px; margin: -2px 0 6px; }
+.shop-filter[hidden] { display: none; }
+.shop-filter button { font: inherit; font-size: 12px; padding: 4px 9px; border-radius: 999px; border: 1px solid rgba(255, 214, 140, 0.25); background: rgba(20, 14, 28, 0.6); color: var(--muted); cursor: pointer; }
+.shop-filter button[aria-selected="true"] { background: linear-gradient(180deg, #ffe08a, #e0a82e); color: #2a1d2c; border-color: #ffe08a; font-weight: 600; }
+.shop-filter small { opacity: 0.75; }
+/* ชั้นสีพื้นหลังอยู่ใต้ไอคอน ภายในกรอบช่อง */
+.slot:not(.empty):not(.r-eternal)::before { content: ''; position: absolute; inset: 9%; border-radius: 4px; pointer-events: none; z-index: 0; }
+.slot > img, .slot > .qty, .slot > .ref, .slot > .cslots, .slot > .junk-tag { position: relative; z-index: 1; }
+.slot > .qty, .slot > .ref, .slot > .cslots, .slot > .junk-tag { position: absolute; }

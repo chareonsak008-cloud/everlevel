@@ -1,10 +1,14 @@
 // หน้าต่างร้านค้า NPC: แท็บซื้อ / ขาย พร้อมตะกร้าเลือกจำนวน
-import { ITEMS, RARITY, EQUIP_SLOTS, describeBonus, canJobUse } from '../data/items.js?v=0.90.0';
-import { JOBS } from '../data/progression.js?v=0.90.0';
-import { SHOPS, buyPrice, sellPrice, fmtZ } from '../data/shops.js?v=0.90.0';
-import { STACK_MAX } from '../systems/Inventory.js?v=0.90.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.90.0';
+import { ITEMS, RARITY, EQUIP_SLOTS, describeBonus, canJobUse, itemMods } from '../data/items.js?v=0.93.0';
+import { JOBS } from '../data/progression.js?v=0.93.0';
+import { SHOPS, buyPrice, sellPrice, fmtZ } from '../data/shops.js?v=0.93.0';
+import { STACK_MAX } from '../systems/Inventory.js?v=0.93.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0';
 
+// v0.93 แท็บขายแยกหมวด: ขยะ/ของสะสม · อุปกรณ์ · ของใช้ · การ์ด/อื่น ๆ
+const SELL_CATS = [['etc', 'ขยะ'], ['equip', 'อุปกรณ์'], ['usable', 'ของใช้'], ['other', 'วัสดุ / การ์ด'], ['all', 'ทั้งหมด']];
+const catOf = (it) => (it.type === 'etc' ? (it.keep ? 'other' : 'etc') : it.type === 'equip' || it.type === 'usable' ? it.type : 'other');
+const plainEquip = (id) => { const it = ITEMS[id]; if (!it || it.type !== 'equip' || !['common', 'uncommon'].includes(it.rarity || 'common')) return false; const m = itemMods(id); return !m.refine && !(m.cards && m.cards.length); };
 const slotName = (id) => (EQUIP_SLOTS.find((s) => s.id === id) || {}).name || '';
 
 export class ShopWindow {
@@ -18,6 +22,9 @@ export class ShopWindow {
     this.cart = new Map();
     this.rows = [];
     this.confirmRare = false;
+    this.sellCat = 'etc';
+    this.filt = document.createElement('div'); this.filt.className = 'shop-filter'; this.filt.setAttribute('role', 'tablist');
+    this.$('shopTabs').after(this.filt);
 
     this.$('shopTabs').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => this.setTab(b.dataset.tab)));
     this.$('shopClose').addEventListener('click', () => this.close());
@@ -58,7 +65,8 @@ export class ShopWindow {
   list() {
     const inv = this.player.inventory;
     if (this.tab === 'buy') return SHOPS[this.shopId].items.map((id) => ({ id, have: inv.count(id) }));
-    return inv.stacks.filter((s) => sellPrice(s.id) > 0).map((s) => ({ id: s.id, have: s.qty }));
+    const all = inv.stacks.filter((s) => sellPrice(s.id) > 0);
+    return all.filter((s) => this.sellCat === 'all' || catOf(ITEMS[s.id]) === this.sellCat).map((s) => ({ id: s.id, have: s.qty }));
   }
 
   detail(id) {
@@ -78,10 +86,17 @@ export class ShopWindow {
   build() {
     const box = this.$('shopList');
     box.innerHTML = '';
+    this.filt.hidden = this.tab !== 'sell';
+    if (this.tab === 'sell') {
+      const st = this.player.inventory.stacks.filter((x) => sellPrice(x.id) > 0), n = (c) => (c === 'all' ? st.length : st.filter((x) => catOf(ITEMS[x.id]) === c).length);
+      this.filt.innerHTML = SELL_CATS.map(([c, name]) => `<button type="button" role="tab" data-c="${c}" aria-selected="${this.sellCat === c}">${name} <small>${n(c)}</small></button>`).join('');
+      this.filt.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { this.sellCat = b.dataset.c; this.cart.clear(); this.confirmRare = false; this.build(); }));
+      this.$('shopQuick').textContent = this.sellCat === 'equip' ? 'เลือกอุปกรณ์ธรรมดาทั้งหมด' : 'เลือกขยะทั้งหมด';
+    }
     this.rows = [];
     const items = this.list();
     if (!items.length) {
-      box.innerHTML = `<p class="inv-empty">${this.tab === 'sell' ? 'ไม่มีของที่ขายได้ในกระเป๋า' : 'ร้านนี้ยังไม่มีสินค้า'}</p>`;
+      box.innerHTML = `<p class="inv-empty">${this.tab === 'sell' ? 'ไม่มีของที่ขายได้ในหมวดนี้' : 'ร้านนี้ยังไม่มีสินค้า'}</p>`;
     }
     for (const { id, have } of items) {
       const it = ITEMS[id], rar = it.rarity || 'common';
@@ -101,7 +116,7 @@ export class ShopWindow {
       box.append(row);
       this.rows.push(r);
     }
-    this.$('shopQuick').hidden = this.tab !== 'sell';
+    this.$('shopQuick').hidden = this.tab !== 'sell' || !['etc', 'equip', 'all'].includes(this.sellCat);
     this.refresh();
   }
 
@@ -133,7 +148,8 @@ export class ShopWindow {
   total() { let t = 0; for (const [id, q] of this.cart) t += this.price(id) * q; return t; }
 
   selectAllEtc() {
-    for (const r of this.rows) if (ITEMS[r.id].type === 'etc' && !ITEMS[r.id].keep) this.cart.set(r.id, this.player.inventory.count(r.id));
+    const eq = this.sellCat === 'equip';
+    for (const r of this.rows) if (eq ? plainEquip(r.id) : ITEMS[r.id].type === 'etc' && !ITEMS[r.id].keep) this.cart.set(r.id, this.player.inventory.count(r.id));
     this.confirmRare = false;
     this.refresh();
   }

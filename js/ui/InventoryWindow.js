@@ -1,23 +1,31 @@
 // หน้าต่างกระเป๋า + อุปกรณ์ที่สวมใส่ (เปิดด้วย I หรือ Alt+E)
-import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.90.0';
-import { duraOf, DURA_MAX, DURA_LOW } from '../data/durability.js?v=0.90.0';   // v0.89
-import { weaponLines, rollLine } from './WeaponInfo.js?v=0.90.0';
-import { refineBonus, canRefine } from '../data/refine.js?v=0.90.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.90.0';
-import { socketTargets } from '../systems/Forge.js?v=0.90.0';
-import { JOBS } from '../data/progression.js?v=0.90.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.90.0';
-import { sellPrice, fmtZ } from '../data/shops.js?v=0.90.0';
-import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.90.0';
-import { fmtDur } from '../data/consumables.js?v=0.90.0';
-import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.90.0';
+import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.93.0';
+import { duraOf, DURA_MAX, DURA_LOW } from '../data/durability.js?v=0.93.0';   // v0.89
+import { weaponLines, rollLine } from './WeaponInfo.js?v=0.93.0';
+import { refineBonus, canRefine } from '../data/refine.js?v=0.93.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0';
+import { socketTargets } from '../systems/Forge.js?v=0.93.0';
+import { JOBS } from '../data/progression.js?v=0.93.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0';
+import { sellPrice, fmtZ } from '../data/shops.js?v=0.93.0';
+import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.93.0';
+import { fmtDur } from '../data/consumables.js?v=0.93.0';
+import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.93.0';
 
 const TABS = [
   { id: 'all', name: 'ทั้งหมด', test: () => true },
   { id: 'usable', name: 'ใช้งาน', test: (it) => it.type === 'usable' || it.type === 'box' },
   { id: 'equip', name: 'อุปกรณ์', test: (it) => it.type === 'equip' },
-  { id: 'etc', name: 'อื่น ๆ', test: (it) => it.type === 'etc' || it.type === 'card' },
+  { id: 'mat', name: 'วัสดุ/การ์ด', test: (it) => (it.type === 'etc' && it.keep) || it.type === 'card' },   // v0.93 แยกวัสดุที่ใช้ได้ออกจากขยะ
+  { id: 'junk', name: 'ขยะ', test: (it) => it.type === 'etc' && !it.keep },
 ];
+const isJunk = (it) => it && it.type === 'etc' && !it.keep;
+// v0.93 จัดเรียง: ของใช้ → กล่อง → อุปกรณ์ (หายากก่อน) → การ์ด → วัสดุ → ขยะ
+const ORDER = (it) => (it.type === 'usable' ? 0 : it.type === 'box' ? 1 : it.type === 'equip' ? 2 : it.type === 'card' ? 3 : it.keep ? 4 : 5);
+const RANK = (it) => { const k = Object.keys(RARITY).indexOf(it.rarity || 'common'); return k < 0 ? 0 : k; };
+export function sortStacks(stacks) {
+  stacks.sort((a, b) => { const A = ITEMS[a.id], B = ITEMS[b.id]; if (!A || !B) return !A - !B; return ORDER(A) - ORDER(B) || (A.type === 'equip' ? (A.slot || '').localeCompare(B.slot || '') : 0) || RANK(B) - RANK(A) || (B.reqLevel || 0) - (A.reqLevel || 0) || String(A.name).localeCompare(String(B.name), 'th') || String(a.id).localeCompare(String(b.id)); });
+}
 const TYPE_NAME = { usable: 'ไอเทมใช้งาน', etc: 'ของสะสม', equip: 'อุปกรณ์', box: 'กล่องสุ่มแฟชั่น', card: 'การ์ดมอนสเตอร์' };
 const slotThai = (id) => (EQUIP_SLOTS.find((s) => s.id === id) || {}).name || id;
 
@@ -40,6 +48,9 @@ export class InventoryWindow {
       b.addEventListener('click', () => { this.tab = t.id; this.render(); });
       tabs.append(b);
     }
+    const so = document.createElement('button'); so.type = 'button'; so.className = 'inv-sort'; so.textContent = '⇅ จัดเรียง'; so.title = 'จัดระเบียบกระเป๋า: ของใช้ → อุปกรณ์ → การ์ด → วัสดุ → ขยะ';
+    so.addEventListener('click', () => { sortStacks(this.player.inventory.stacks); if (this.act.sorted) this.act.sorted(); this.render(); });
+    const foot = this.el.querySelector('.inv-foot'); if (foot) foot.prepend(so); else tabs.append(so);
     this.$('invClose').addEventListener('click', () => this.toggle(false));
     for (const ev of ['pointerdown', 'wheel', 'contextmenu']) this.el.addEventListener(ev, (e) => e.stopPropagation());
   }
@@ -64,6 +75,7 @@ export class InventoryWindow {
         + (m && m.refine ? `<span class="ref">+${m.refine}</span>` : '')
         + (m && m.slots ? `<span class="cslots">${Array.from({ length: m.slots }, (_, i) => `<i class="${m.cards[i] ? 'on' : ''}"></i>`).join('')}</span>` : '');
       if (it.type === 'card') b.classList.add('is-card');
+      if (isJunk(it)) { b.classList.add('is-junk'); b.insertAdjacentHTML('beforeend', '<span class="junk-tag">ขยะ</span>'); }
       b.title = it.name + (qty > 1 ? ` x${qty}` : '');
       b.setAttribute('aria-label', b.title);
     } else {
@@ -80,7 +92,7 @@ export class InventoryWindow {
     const p = this.player, inv = p.inventory;
     this.$('invCount').textContent = `${inv.stacks.length} / ${inv.capacity}`;
     this.$('invZeny').textContent = fmtZ(p.zeny);
-    this.$('invTabs').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === this.tab)));
+    this.$('invTabs').querySelectorAll('button[data-tab]').forEach((b) => { b.setAttribute('aria-selected', String(b.dataset.tab === this.tab)); const t = TABS.find((x) => x.id === b.dataset.tab), n = t.id !== 'junk' ? 0 : inv.stacks.filter((x) => ITEMS[x.id] && t.test(ITEMS[x.id])).length; b.textContent = n ? `${t.name} ${n}` : t.name; });
 
     // ช่องสวมใส่
     const eq = this.$('invEquip'); eq.innerHTML = '';

@@ -1,10 +1,12 @@
 // หน้าจอเข้าเกม (v0.11): เข้าสู่ระบบ → เลือก/สร้างตัวละคร (สูงสุด 3 ตัว)
 // v0.17.1: เอาโหมดออฟไลน์ออก — ต่อเซิร์ฟเวอร์ไม่ได้ = แจ้งเตือน + ปุ่มลองใหม่ (ไม่มีทางเลือกเล่นออฟไลน์)
-import { MAX_CHARS, validName } from '../net/Online.js?v=0.90.0';
-import { BETA } from '../data/beta.js?v=0.90.0';
-import { MAPS } from '../data/maps/index.js?v=0.90.0';
-import { JOBS } from '../data/progression.js?v=0.90.0';
-import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.90.0';
+import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0';   // v0.91 สีชุด
+import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0';
+import { MAX_CHARS, validName } from '../net/Online.js?v=0.93.0';
+import { BETA } from '../data/beta.js?v=0.93.0';
+import { MAPS } from '../data/maps/index.js?v=0.93.0';
+import { JOBS } from '../data/progression.js?v=0.93.0';
+import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.93.0';
 
 const HAIR = ['#e8a838', '#5e3f27', '#2a2430', '#c4467c', '#b8c8ff', '#e8e2d0', '#d8433a', '#4a8a5a'];
 const STYLES = [['spiky', 'ผมชี้'], ['short', 'ผมสั้น'], ['ponytail', 'หางม้า']];
@@ -325,16 +327,23 @@ export class TitleScreen {
 
   // สร้างตัวละคร: ตั้งชื่ออย่างเดียว (online = จองชื่อกับเซิร์ฟเวอร์) · v0.86 เอาตัวเลือกสีผม/ทรงผมออก (ใช้ค่ามาตรฐาน — ตัวละครเป็นภาพพิกเซลตามอาชีพ)
   create(slot, msg = '', fromSave = null) {
-    let hair = HAIR[0], style = 'spiky';
+    let hair = HAIR[0], style = 'spiky', outfit = 'def';
     const on = this.online.online && !this.forceOffline;   // เลือกเล่นออฟไลน์ทั้งที่เชื่อมต่อได้ → ไม่จองชื่อ
     this.panel.innerHTML = `
       <h2 class="tt-h">${fromSave ? 'ตั้งชื่อให้ตัวละครในเครื่อง' : 'สร้างตัวละครใหม่'}</h2>
       ${msg ? `<p class="tt-warn">${esc(msg)}</p>` : ''}
       <label class="tt-field"><span>ชื่อตัวละคร</span><input type="text" maxlength="16" autocomplete="off" placeholder="2–16 ตัวอักษร"></label>
+      ${fromSave ? '' : `<div class="tt-field oc-field"><span>สีชุด <small class="oc-name">สีเดิม</small></span><div class="oc-row"><canvas class="oc-pv" width="112" height="128" aria-hidden="true"></canvas><div class="oc-slot"></div></div><small class="oc-tip">เปลี่ยนได้ฟรีภายหลังที่ตู้แฟชั่น</small></div>`}
       <p class="tt-err"></p>
       <div class="tt-actions"><button type="button" class="ghost" data-a="back">ย้อนกลับ</button><button type="button" class="primary" data-a="ok">${fromSave ? 'ย้ายเซฟขึ้นคลาวด์' : 'เริ่มการผจญภัย'}</button></div>`;
     const inp = this.panel.querySelector('input'), err = this.panel.querySelector('.tt-err');
     setTimeout(() => inp.focus(), 50);
+    const ocSlot = this.panel.querySelector('.oc-slot');
+    if (ocSlot) {
+      const cv = this.panel.querySelector('.oc-pv'), nm = this.panel.querySelector('.oc-name');
+      ocSlot.append(outfitSwatches(outfit, (id) => { outfit = id; nm.textContent = OUTFIT_BY_ID[id].name; drawOutfitPreview(cv, 'novice', id); }));
+      drawOutfitPreview(cv, 'novice', outfit);
+    }
     this.panel.querySelectorAll('[data-c]').forEach((b) => b.addEventListener('click', () => { hair = b.dataset.c; this.panel.querySelectorAll('[data-c]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }));
     this.panel.querySelectorAll('[data-s]').forEach((b) => b.addEventListener('click', () => { style = b.dataset.s; this.panel.querySelectorAll('[data-s]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }));
     this.panel.querySelector('[data-a=back]').addEventListener('click', () => (on ? this.select() : this.offline('', this.netLocal)));
@@ -351,7 +360,7 @@ export class TitleScreen {
       const mode = on || this.netLocal ? 'online' : 'offline', localOnly = !on && !!this.netLocal;
       if (fromSave) { fromSave.player = { ...fromSave.player, name }; this.resolve({ mode, localOnly, slot, save: fromSave, migrated: true }); return; }
       const storage = on && this.acc && Array.isArray(this.acc.storage) ? this.acc.storage : null;
-      this.resolve({ mode, localOnly, slot, save: null, create: { name, appearance: { hair, hairStyle: style } }, storage });
+      this.resolve({ mode, localOnly, slot, save: null, create: { name, appearance: { hair, hairStyle: style, outfit } }, storage });
     };
     ok.addEventListener('click', submit);
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); e.stopPropagation(); });

@@ -1,33 +1,33 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.90.0';
-import { MONSTERS } from '../data/monsters.js?v=0.90.0';
-import { MAPS } from '../data/maps/index.js?v=0.90.0';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.90.0';
-import { CARD_SETS } from '../data/collection.js?v=0.90.0';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, jobTier, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.90.0';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.90.0';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, LUCK_CAP, boostedRate, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.90.0';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.90.0';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.90.0';
-import { SHOPS, SELL_RATE, SELL_RATE_EQUIP, STORAGE_CAPACITY, sellPrice } from '../data/shops.js?v=0.90.0';
-import { WORLD_BOSSES } from '../data/events.js?v=0.90.0';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.90.0';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.90.0';
-import { rollFits } from '../data/affixes.js?v=0.90.0';
-import { statsToBonus } from '../data/affixes.js?v=0.90.0';
-import { VIP_PERKS } from './CashShop.js?v=0.90.0';
-import { iconURL } from '../render/ItemIcons.js?v=0.90.0';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.90.0';
-import { petThumb } from '../render/PetThumbs.js?v=0.90.0';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.93.0';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0';
+import { MAPS } from '../data/maps/index.js?v=0.93.0';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0';
+import { CARD_SETS } from '../data/collection.js?v=0.93.0';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, jobTier, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.93.0';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.93.0';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, LUCK_CAP, boostedRate, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.93.0';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.93.0';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.93.0';
+import { SHOPS, SELL_RATE, SELL_RATE_EQUIP, STORAGE_CAPACITY, sellPrice } from '../data/shops.js?v=0.93.0';
+import { WORLD_BOSSES } from '../data/events.js?v=0.93.0';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.93.0';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.93.0';
+import { rollFits } from '../data/affixes.js?v=0.93.0';
+import { statsToBonus } from '../data/affixes.js?v=0.93.0';
+import { VIP_PERKS } from './CashShop.js?v=0.93.0';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.93.0';
+import { petThumb } from '../render/PetThumbs.js?v=0.93.0';
 // v0.77 คู่มือระบบใหม่ (ภารกิจรายวัน · ดันเจี้ยนปาร์ตี้ · อันดับฤดูกาล · ฉายา · หลอมนิรันดร์กาล)
-import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.90.0';
-import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.90.0';
-import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.90.0';
-import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.90.0';
-import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.90.0';   // v0.78
-import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.90.0';   // v0.79
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.90.0';
+import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.93.0';
+import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.93.0';
+import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.93.0';
+import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.93.0';
+import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.93.0';   // v0.78
+import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.93.0';   // v0.79
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -400,6 +400,15 @@ const GUIDES = [
     P(`อุปกรณ์มี 7 ช่อง: ${EQUIP_SLOTS.map((s) => s.name).join(' · ')} · แต่ละชิ้นมีเลเวลที่ต้องการและอาชีพที่ใช้ได้`) +
     table(['เกรด', 'สี'], Object.entries(RARITY).map(([k, r]) => [`<b style="color:${r.color}">${esc(r.name || k)}</b>`, `<span class="wk-sw" style="background:${r.color}"></span>`])) +
     UL(['อาวุธและอุปกรณ์สวมใส่ทุกชิ้นมี <b>ค่าสุ่ม</b> เพิ่ม 1–3 ค่า (เช่น STR +2, DEF +3) — ชิ้นเดียวกันอาจเก่งไม่เท่ากัน', 'บางชิ้นเป็นชุดเซ็ต สวมครบตามจำนวนได้โบนัสเพิ่ม', 'ยิ่งเกรดสูง โบนัสตีบวกยิ่งมาก', 'ดูรายชื่ออุปกรณ์ทั้งหมด ค่าสถานะ ดรอปจากไหน และโบนัส +1~+10 ได้ในแท็บ "อุปกรณ์"']) },
+  { id: 'outfitcolor', title: '🎨 สีชุด', sub: 'เลือกสีชุดให้ไม่ซ้ำใคร', html: () =>
+    UL(['เลือกสีชุดได้ตอน <b>สร้างตัวละคร</b> และเปลี่ยนได้ <b>ฟรีไม่จำกัด</b> ที่ตู้แฟชั่น ' + K('O') + ' → แท็บ "สีชุด"', 'มี 12 แบบ: สีเดิม แดง ส้ม เหลืองทอง เขียว เขียวมรกต ฟ้า น้ำเงิน ม่วง ชมพู ดำ ขาว', 'ย้อมเฉพาะสีหลักของชุดตามอาชีพ — ผิว ผม และอาวุธคงเดิม · ผู้เล่นคนอื่นเห็นสีนี้ด้วย', 'ชุดเกราะมังกร (ร้านเพชร) ใช้สีของชุดเองเสมอ']) },
+  { id: 'weather', title: '🌧 สภาพอากาศ', sub: 'ฝน · หิมะ · ใบไม้ · หิ่งห้อย', html: () =>
+    table(['แผนที่', 'บรรยากาศ'], [['Beginner Field', 'ใบไม้ปลิว · ฝนตกเป็นบางช่วง · หิ่งห้อยตอนกลางคืน'], ['Whisper Forest', 'ใบไม้ร่วงมาก · ฝนเป็นช่วง ๆ · หิ่งห้อย'], ['Haunted Forest', 'ฝนตกบ่อย · หิ่งห้อยสีม่วง'], ['Sunken Coast', 'ฝนเป็นช่วง ๆ'], ['Frostveil', 'หิมะตก'], ['Ember Caldera', 'ประกายไฟและเถ้าถ่าน'], ['เมือง Asteria', 'ใบไม้ปลิวเบา ๆ · หิ่งห้อยตอนกลางคืน'], ['Sky Citadel', 'กลีบดอกไม้ลอยลม']]) +
+    P('ฝนตกเป็นช่วงตามเวลาจริง ทุกคนในแผนที่เดียวกันเห็นฝนพร้อมกันโดยประมาณ · ปิดได้ที่ตั้งค่า → กราฟิก → สภาพอากาศ (ช่วยให้ลื่นขึ้นบนมือถือรุ่นเก่า)') },
+  { id: 'report', title: '🐞 แจ้งปัญหาถึง GM', sub: 'บั๊ก · ข้อเสนอแนะ · ผู้เล่นโกง', html: () =>
+    UL(['กดปุ่มรูปแมลงมุมล่างขวา หรือเมนู → <b>แจ้งปัญหา</b>', 'เลือกหมวด (บั๊ก · ความสมดุล · ข้อเสนอแนะ · แจ้งผู้เล่นโกง · อื่น ๆ) แล้วเขียนรายละเอียด — ยิ่งบอกว่า "ทำอะไรแล้วเกิดอะไร" ยิ่งแก้ได้เร็ว', 'เกมแนบเวอร์ชัน แผนที่ ตำแหน่ง อุปกรณ์ และ error ล่าสุดให้เอง (เอาติ๊กออกได้) · ห้ามใส่รหัสผ่านหรือข้อมูลส่วนตัว', 'ส่งได้ 3 เรื่องต่อ 10 นาที · ดูสถานะและคำตอบจาก GM ได้ที่แท็บ "เรื่องของฉัน"']) },
+  { id: 'updates', title: '📢 ข่าวอัปเดต', sub: 'ดูว่ามีอะไรใหม่', html: () =>
+    UL(['กดปุ่ม <b>อัปเดต</b> (รูปกระดิ่ง) บนแถบด้านบน หรือเมนู → ข่าวอัปเดต เพื่อดูรายการเปลี่ยนแปลงทุกเวอร์ชันพร้อมเวลาอัปเดต', 'ถ้าเปิดเกมค้างไว้แล้วมีเวอร์ชันใหม่ จะมีแถบแจ้งเตือนขึ้นด้านบน — กด <b>อัปเดตเลย</b> เกมจะเซฟให้ก่อนแล้วโหลดเวอร์ชันใหม่', 'บอส MVP และบอสโลกตัวใหญ่ขึ้น มีวงพลังใต้เท้า (วงหมุนเร็วและเต้นแรงเมื่อเลือดต่ำกว่า 30%) และวงเวทหมุนใต้ตัวตอนง้างท่าทุบ — เห็นแล้วรีบถอยออกจากวงแดง']) },
   { id: 'durability', title: '🔧 ความทนทาน & ซ่อมอุปกรณ์', sub: 'ของสึก · ของพัง · ช่างตีเหล็ก', html: () =>
     UL(['อุปกรณ์ทุกชิ้นมีความทนทาน 100 — <b>อาวุธ</b>สึกเมื่อโจมตี/ใช้สกิลโจมตี · <b>ชิ้นอื่น</b>สึกเมื่อถูกตี · หมดสติ ลดทุกชิ้นเพิ่ม 10', 'เหลือต่ำกว่า 20 ระบบเตือน · ถึง 0 = <b>พัง</b> ไม่ให้ค่าสถานะเลยเหมือนไม่ได้สวม (อาวุธพัง = ตีด้วยมือเปล่า ใช้สกิลที่ต้องใช้อาวุธไม่ได้)', 'ซ่อมที่ <b>การ์ธ ช่างตีเหล็ก</b> (เมือง Asteria ฝั่งบนซ้าย ใกล้ร้านของใช้ · บนแผนที่เป็นจุดสีเงิน) → ซ่อมอุปกรณ์ จ่าย Zeny ตามราคาของ × ส่วนที่เสีย (ของที่พังแล้วค่าซ่อม ×2) · ซ่อมทีละชิ้นหรือทั้งหมดได้', '👑 VIP ซ่อมได้ทุกที่จากหน้า VIP', 'ดูความทนทานได้ที่หน้าดูตัวละคร ' + K('G') + ' และรายละเอียดไอเทมในกระเป๋า · สนามประลอง (อารีน่า) ไม่ทำให้ของสึก']) },
   { id: 'pets', title: '🐾 สัตว์เลี้ยง', sub: 'ช่วยเก็บของอัตโนมัติ', html: () =>

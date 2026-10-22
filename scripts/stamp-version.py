@@ -13,3 +13,10 @@ for p in list((root / 'js').rglob('*.js')) + [root / 'index.html']:
     t = re.sub(r'(src="js/main\.js)(\?v=[^"]*)?"', lambda m: f'{m.group(1)}?v={ver}"', t)
     if t != s: p.write_text(t, encoding='utf8'); n += 1
 print('stamped', ver, 'files', n)
+
+# v0.91 ไฟล์บอกเวอร์ชันล่าสุดบนเว็บ (เกมที่เปิดค้างไว้เช็กไฟล์นี้ทุกไม่กี่นาที → ขึ้นปุ่ม "อัปเดตเลย")
+import json, datetime
+built = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7))).strftime('%Y-%m-%dT%H:%M:%S+07:00')
+(root / 'version.json').write_text(json.dumps({'version': ver, 'built': built}, ensure_ascii=False) + '\n', encoding='utf8')
+(root / 'js' / 'build.js').write_text(f"// สร้างอัตโนมัติโดย scripts/stamp-version.py — เวลาที่แพ็กเวอร์ชันนี้ (เวลาไทย)\nexport const BUILT = '{built}';\n", encoding='utf8')
+print('version.json', ver, built)

@@ -1,13 +1,15 @@
 // ตู้แฟชั่น (v0.9): ดูชิ้นที่สะสมได้ สวม/ถอดแฟชั่น ดูชุดเซ็ต · เปิดด้วย O
 // ชิ้นที่ยังไม่มีจะแสดงเป็นภาพสีเทาพร้อมแม่กุญแจ (ได้จากการเปิดกล่องแฟชั่นเท่านั้น)
-import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.90.0';
-import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.90.0';
-import { SLOT_INFO } from '../render/Costumes.js?v=0.90.0';
-import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.90.0';
-import { FASHION_SLOTS } from '../entities/Player.js?v=0.90.0';
+import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.93.0';
+import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.93.0';
+import { SLOT_INFO } from '../render/Costumes.js?v=0.93.0';
+import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.93.0';
+import { FASHION_SLOTS } from '../entities/Player.js?v=0.93.0';
+import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0';
+import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0';   // v0.91 สีชุด
 
 // v0.35: แสดงเฉพาะช่องที่มีชิ้นแฟชั่นในเกม (ชิ้น 3 มิติถูกถอดออก รอออกแบบใหม่) · แท็บชุดเซ็ตซ่อนเมื่อไม่มีเซ็ต
-const TABS = [...FASHION_SLOTS.filter((s) => COSTUMES.some((c) => c.slot === s)).map((s) => [s, SLOT_INFO[s].name]), ...(SETS.length ? [['set', 'ชุดเซ็ต']] : [])];
+const TABS = [['color', 'สีชุด'], ...FASHION_SLOTS.filter((s) => COSTUMES.some((c) => c.slot === s)).map((s) => [s, SLOT_INFO[s].name]), ...(SETS.length ? [['set', 'ชุดเซ็ต']] : [])];
 const WTYPE = { sword: 'ดาบ/มีด', dual: 'มีดคู่ (มีด/ดาบ)', staff: 'ไม้เท้า', mace: 'คทา/กระบอง', bow: 'ธนู' };
 const byTier = (a, b) => (TIER_RANK[b.rarity] || 0) - (TIER_RANK[a.rarity] || 0);
 const setTier = (s) => s.rarity || s.items.map((id) => COSTUME_BY_ID[id]).reduce((t, c) => (c && TIER_RANK[c.rarity] > TIER_RANK[t] ? c.rarity : t), 'common');
@@ -63,6 +65,8 @@ export class WardrobeWindow {
     this.$('wardHide').setAttribute('aria-pressed', String(F.hidden));
     this.$('wardTabs').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === this.tab)));
     this.renderWorn();
+    this.el.classList.toggle('ward-colormode', this.tab === 'color');
+    if (this.tab === 'color') { this.renderColor(); return; }
     if (this.tab === 'set') this.renderSets(); else this.renderGrid();
     this.renderDetail();
   }
@@ -132,6 +136,17 @@ export class WardrobeWindow {
       b.addEventListener('click', () => { this.sel = s.id; this.render(); });
       grid.append(b);
     }
+  }
+
+  // v0.91 สีชุด — เปลี่ยนได้ฟรีไม่จำกัด · คนอื่นเห็นด้วย
+  renderColor() {
+    const p = this.player, cur = (p.appearance && p.appearance.outfit) || 'def', grid = this.$('wardGrid'), box = this.$('wardDetail');
+    this.$('wardCount').textContent = 'สีชุด · เปลี่ยนได้ฟรี';
+    grid.innerHTML = '';
+    const sw = outfitSwatches(cur, (id) => { if (this.act.setOutfit) this.act.setOutfit(id); this.renderColor(); });
+    sw.classList.add('oc-big'); grid.append(sw);
+    box.innerHTML = `<div class="oc-detail"><canvas class="oc-pv" width="120" height="140" aria-hidden="true"></canvas><div><b>${OUTFIT_BY_ID[cur].name}</b><p class="hint">ย้อมสีชุดของตัวละครให้ไม่ซ้ำใคร (ผิว ผม และอาวุธคงเดิม) · ผู้เล่นคนอื่นเห็นสีนี้ด้วย · ชุดเกราะมังกรใช้สีของชุดเอง</p></div></div>`;
+    drawOutfitPreview(box.querySelector('canvas'), p.jobId, cur);
   }
 
   renderDetail() {

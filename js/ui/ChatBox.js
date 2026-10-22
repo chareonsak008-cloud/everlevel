@@ -2,6 +2,8 @@
 const CHANNELS = [['s', 'ทั่วไป'], ['w', 'โลก'], ['p', 'ปาร์ตี้'], ['g', 'กิลด์'], ['t', 'กระซิบ']];
 const HINT = { s: 'คุยกับคนในแผนที่นี้… (Enter)', w: 'แชตโลก — ทุกแผนที่เห็น…', p: 'คุยในปาร์ตี้…', g: 'คุยในกิลด์…', t: 'ข้อความกระซิบ…' };
 
+// v0.93 แยกช่องแชต: แท็บ "ทั่วไป" เห็นทุกอย่าง · แท็บอื่นเห็นเฉพาะข้อความของช่องนั้น (กรองด้วย CSS จาก data-ch)
+const chOf = (el) => (el.classList.contains('world') || el.classList.contains('shout') ? 'w' : el.classList.contains('party') ? 'p' : el.classList.contains('guild') ? 'g' : el.classList.contains('whisper') ? 't' : null);
 const SIZES = [['s', 'เล็ก'], ['m', 'กลาง'], ['l', 'ใหญ่']];   // v0.86 ขนาดกล่องแชต
 
 export class ChatBox {
@@ -64,7 +66,9 @@ export class ChatBox {
     this.box.addEventListener('click', () => { if (document.body.classList.contains('touch') && !this.expanded) this.toggle(true); });
     // v0.13: มือถือ — ข้อความใหม่แสดงชัด แล้วจางลงหลัง 6 วินาที (ไม่บังจอ)
     this.fadeTimer = 0;
-    new MutationObserver(() => {
+    new MutationObserver((list) => {
+      // v0.93 ข้อความใหม่ของช่องอื่น → จุดแดงบนแท็บนั้น (ดูได้แยกช่อง)
+      for (const r of list) for (const n of r.addedNodes) { const c = n.nodeType === 1 && chOf(n); if (c && c !== this.ch && this.tabs) { const b = this.tabs.querySelector(`[data-ch="${c}"]`); if (b) b.classList.add('unread'); } }
       // v0.17.1: กล่องที่ขยายอยู่ + อ่านอยู่ล่างสุด → เลื่อนตามข้อความใหม่ (ถ้าเลื่อนขึ้นไปอ่านย้อนหลังอยู่จะไม่กระโดด)
       if (this.expanded && this.box.scrollHeight - this.box.scrollTop - this.box.clientHeight < 60) this.box.scrollTop = this.box.scrollHeight;
       this.wrap.classList.add('fresh');
@@ -117,6 +121,8 @@ export class ChatBox {
     if (this.tabs) for (const b of this.tabs.children) b.setAttribute('aria-selected', String(b.dataset.ch === c));
     if (this.toInput) this.toInput.hidden = c !== 't';
     this.wrap.dataset.ch = c;
+    if (this.tabs) { const b = this.tabs.querySelector(`[data-ch="${c}"]`); if (b) b.classList.remove('unread'); }
+    if (this.box) this.box.scrollTop = this.box.scrollHeight;
     this.input.placeholder = HINT[c] || HINT.s;
     this.onChannel(c);
   }

@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.90.0';
-import { SideChannel } from './SideChannel.js?v=0.90.0';
+import { Online, MAX_CHARS } from './Online.js?v=0.93.0';
+import { SideChannel } from './SideChannel.js?v=0.93.0';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -328,6 +328,46 @@ export class SupabaseOnline extends Online {
   async deleteMail(id) {
     const { error } = await this.sb.from('mails').delete().eq('id', id);
     return error ? error.message || error.code : null;
+  }
+
+  /* ---------- v0.92 แจ้งปัญหา / ข้อเสนอแนะถึง GM (supabase/update_v0.92.sql) ---------- */
+  fbErr(error) {
+    const m = String((error && (error.message || error.code)) || '');
+    if (/feedback_rate/.test(m)) return 'ส่งถี่เกินไป — ส่งได้ 3 เรื่องต่อ 10 นาที รอสักครู่แล้วลองใหม่';
+    if (/feedback_full/.test(m)) return 'มีเรื่องที่ยังรอ GM ตรวจครบ 20 เรื่องแล้ว รอให้ GM ปิดเรื่องเก่าก่อน';
+    if (error && (error.code === '42P01' || /feedback/.test(m) && /exist|schema cache/.test(m))) return 'เซิร์ฟเวอร์ยังไม่เปิดระบบแจ้งปัญหา (แอดมินต้องรัน update_v0.92.sql)';
+    if (error && error.code === '42501') return 'ไม่มีสิทธิ์ทำรายการนี้';
+    return m || 'ผิดพลาด';
+  }
+  async sendFeedback(f) {
+    const { error } = await this.sb.from('feedback').insert({ char_name: String(f.char || '').slice(0, 24) || null, kind: f.kind, body: String(f.body || '').slice(0, 1000), info: f.info || {} });
+    return error ? this.fbErr(error) : null;
+  }
+  // GM เห็นทุกเรื่อง (RLS) · ผู้เล่นเห็นเฉพาะของตัวเอง — mine = กรองเฉพาะของตัวเองแม้เป็น GM
+  async listFeedback({ mine = false, status = null, limit = 80 } = {}) {
+    let q = this.sb.from('feedback').select('id,user_id,char_name,kind,body,info,status,gm_note,created_at,updated_at').order('created_at', { ascending: false }).limit(limit);
+    if (mine && this.uid) q = q.eq('user_id', this.uid);
+    if (status) q = q.eq('status', status);
+    const { data, error } = await q;
+    if (error) throw new Error(this.fbErr(error));
+    return data || [];
+  }
+  async countNewFeedback() {
+    const { count, error } = await this.sb.from('feedback').select('id', { count: 'exact', head: true }).eq('status', 'new');
+    return error ? 0 : count || 0;
+  }
+  async updateFeedback(id, patch) {
+    const row = { updated_at: new Date().toISOString() };
+    if (patch.status) row.status = patch.status;
+    if (patch.gm_note !== undefined) row.gm_note = String(patch.gm_note || '').slice(0, 500) || null;
+    const { data, error } = await this.sb.from('feedback').update(row).eq('id', id).select('id');
+    if (error) return this.fbErr(error);
+    return data && data.length ? null : 'บัญชีนี้ไม่ใช่ GM';
+  }
+  async deleteFeedback(id) {
+    const { data, error } = await this.sb.from('feedback').delete().eq('id', id).select('id');
+    if (error) return this.fbErr(error);
+    return data && data.length ? null : 'บัญชีนี้ไม่ใช่ GM';
   }
 
   // v0.82 หยุดเซฟทั้งหมดแล้วให้เกมโหลดข้อมูลจากเซิร์ฟเวอร์ใหม่
