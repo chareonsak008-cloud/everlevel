@@ -1,5 +1,5 @@
 // v0.78 สนามประลอง (อารีน่า PvP) — ข้อมูล · ผลแพ้ชนะ/แต้ม/ราคาร้าน ตัดสินที่เซิร์ฟเวอร์ (supabase/arena_v0.78.sql)
-import { statPointsForLevel, statCost, START_STAT_POINTS, MAX_STAT, STAT_KEYS } from './progression.js?v=0.88.0';
+import { statPointsForLevel, statCost, START_STAT_POINTS, MAX_STAT, STAT_KEYS } from './progression.js?v=0.89.0';
 
 export const AR = {
   name: 'สนามประลอง',

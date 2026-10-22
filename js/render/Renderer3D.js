@@ -1,39 +1,39 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.88.0';
-import { PixelWingSprite } from './PixelWings.js?v=0.88.0';
-import { paintPlate } from '../ui/Nameplates.js?v=0.88.0';
-import { PixelVfx } from './PixelVfx.js?v=0.88.0';
-import { THREE } from './three.js?v=0.88.0';
-import { TILE } from '../config.js?v=0.88.0';
-import { T } from '../data/tileTypes.js?v=0.88.0';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.88.0';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.88.0';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.88.0';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.89.0';
+import { PixelWingSprite } from './PixelWings.js?v=0.89.0';
+import { paintPlate } from '../ui/Nameplates.js?v=0.89.0';
+import { PixelVfx } from './PixelVfx.js?v=0.89.0';
+import { THREE } from './three.js?v=0.89.0';
+import { TILE } from '../config.js?v=0.89.0';
+import { T } from '../data/tileTypes.js?v=0.89.0';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.89.0';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.89.0';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.89.0';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.88.0';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.88.0';
-import { iconCanvas } from './ItemIcons.js?v=0.88.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.88.0';
-import { MonsterView } from './Monsters.js?v=0.88.0';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.88.0';
-import { SkillFX } from './SkillFX.js?v=0.88.0';
-import { PostFX } from './PostFX.js?v=0.88.0';
-import { costumeLook, wearCostume } from './Costumes.js?v=0.88.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.88.0';
-import { PetView } from './Pets.js?v=0.88.0';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.88.0';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.88.0';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.88.0';
-import { gradientMap } from './Toon.js?v=0.88.0';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.88.0';
+} from './Models.js?v=0.89.0';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.89.0';
+import { iconCanvas } from './ItemIcons.js?v=0.89.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.89.0';
+import { MonsterView } from './Monsters.js?v=0.89.0';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.89.0';
+import { SkillFX } from './SkillFX.js?v=0.89.0';
+import { PostFX } from './PostFX.js?v=0.89.0';
+import { costumeLook, wearCostume } from './Costumes.js?v=0.89.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.89.0';
+import { PetView } from './Pets.js?v=0.89.0';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.89.0';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.89.0';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.89.0';
+import { gradientMap } from './Toon.js?v=0.89.0';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.89.0';
 // v0.86 กลางวัน · ตอนเย็น · กลางคืน · รุ่งสาง — ตัวคูณแสง (h=ฟ้า s=แดด e=exposure) + สีที่ผสมเข้าไป (mix)
 const DAY_PRESETS = {
   day: { name: 'กลางวัน', icon: '☀', h: 1, s: 1, e: 1, mix: 0, glow: 1, tint: [0, 0, 0, 0] },
-  evening: { name: 'ตอนเย็น', icon: '🌇', h: 0.86, s: 0.78, e: 0.97, mix: 0.5, sky: '#ffc08a', ground: '#7a5038', sun: '#ff9a52', fog: '#e8a878', glow: 1.1, tint: [255, 120, 40, 0.16] },
-  night: { name: 'กลางคืน', icon: '🌙', h: 0.5, s: 0.28, e: 0.8, mix: 0.66, sky: '#6a7ec8', ground: '#283050', sun: '#9ab0ff', fog: '#1e2a4c', glow: 1.3, tint: [14, 24, 72, 0.42] },
-  dawn: { name: 'รุ่งสาง', icon: '🌅', h: 0.84, s: 0.72, e: 0.96, mix: 0.42, sky: '#ffc8d8', ground: '#6a5060', sun: '#ffd0a8', fog: '#dcb8c8', glow: 1.1, tint: [255, 150, 170, 0.12] },
+  evening: { name: 'ตอนเย็น', icon: '🌇', h: 0.86, s: 0.78, e: 0.99, mix: 0.5, sky: '#ffc08a', ground: '#7a5038', sun: '#ff9a52', fog: '#e8a878', glow: 1.1, tint: [255, 120, 40, 0.16] },
+  night: { name: 'กลางคืน', icon: '🌙', h: 0.5, s: 0.28, e: 0.93, mix: 0.66, sky: '#6a7ec8', ground: '#283050', sun: '#9ab0ff', fog: '#1e2a4c', glow: 1.3, tint: [14, 24, 72, 0.48] },
+  dawn: { name: 'รุ่งสาง', icon: '🌅', h: 0.84, s: 0.72, e: 0.98, mix: 0.42, sky: '#ffc8d8', ground: '#6a5060', sun: '#ffd0a8', fog: '#dcb8c8', glow: 1.1, tint: [255, 150, 170, 0.12] },
 };
 // รอบวันละ 0–1: กลางวัน 0–0.55 → เย็น 0.63–0.70 → กลางคืน 0.77–0.93 → รุ่งสาง 0.97 → กลางวัน
 const DAY_KEYS = [[0, 'day'], [0.55, 'day'], [0.63, 'evening'], [0.7, 'evening'], [0.77, 'night'], [0.93, 'night'], [0.97, 'dawn'], [1, 'day']];
@@ -566,19 +566,47 @@ export class Renderer3D {
     if (!(this.sky && this.sky.dur > 0)) { this.hemi.intensity = this.baseLight.hemi; this.sun.intensity = this.baseLight.sun; }
     this.renderer.toneMappingExposure = T.exposure * P.e;
     if (this.post && this.baseGlow != null) this.post.strength = this.baseGlow * (P.glow || 1);
-    // ชั้นสีทับฉาก (ใต้ป้ายชื่อ/HUD) — ทำให้กลางคืนมืดจริงแม้พื้นสว่าง (สไปรต์พิกเซลไม่รับแสง 3 มิติเต็มที่)
+    this.dayK = P;
+    // v0.88 กลางคืนมืดเฉพาะฉาก (พื้น ต้นไม้ อาคาร) — ตัวละคร มอน ออร่า และเอฟเฟกต์สกิลวาดทีหลังจึงยังสว่างชัด
+    // (เดิมใช้ชั้นสี DOM ทับทั้งจอ ทำให้ทุกอย่างมืดหมด)
     const el = this.dayTintEl || (this.dayTintEl = document.getElementById('dayTint'));
-    if (el) { const t = P.tint || [0, 0, 0, 0]; el.style.background = `rgba(${t[0] | 0}, ${t[1] | 0}, ${t[2] | 0}, ${t[3].toFixed(3)})`; }
+    if (el) el.style.background = 'transparent';
+    const t = P.tint || [0, 0, 0, 0], q = this.nightQuadMesh();
+    const lin = !!(this.post && this.post.linear);
+    const mul = [0, 1, 2].map((i) => { const v = 1 + (t[i] / 255 - 1) * t[3]; return lin ? Math.pow(v, 2.2) : v; });
+    q.material.uniforms.uMul.value.set(mul[0], mul[1], mul[2]);
+    q.visible = t[3] > 0.002;
+  }
+  // แผ่นคูณสีเต็มจอ วาดหลังวัตถุทึบของฉาก (renderOrder 0) แต่ก่อนสไปรต์ตัวละคร (renderOrder 1) และวัตถุโปร่ง/เอฟเฟกต์
+  nightQuadMesh() {
+    let q = this.nightQuad;
+    if (!q) {
+      q = this.nightQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+        uniforms: { uMul: { value: new THREE.Vector3(1, 1, 1) } },
+        vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
+        fragmentShader: 'uniform vec3 uMul; void main() { gl_FragColor = vec4(uMul, 1.0); }',
+        blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.ZeroFactor, blendDst: THREE.SrcColorFactor,
+        blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
+        depthTest: false, depthWrite: false, transparent: false, toneMapped: false, fog: false,
+      }));
+      q.frustumCulled = false; q.renderOrder = 0.5; q.visible = false; q.userData.nightQuad = true;
+    }
+    if (q.parent !== this.scene) this.scene.add(q);
+    return q;
   }
 
   // v0.17: สีแสงของแผนที่ปัจจุบันเทียบกับเมือง (ป่ามืด/ภูเขาไฟแดง/ท้องฟ้ามืดตอนสกิลใหญ่) → คูณสีสไปรต์
   pxTint() {
     const h = this.hemi, s = this.sun, t = this.px.tint;
-    const ex = this.renderer.toneMappingExposure / 0.92;
+    // v0.88 ตัดผลของช่วงเวลากลางวัน/กลางคืนออก (ตัวละครไม่มืดตามฉาก) · กลางคืนเหลือโทนเย็นลงเล็กน้อย
+    const D = this.dayK || { h: 1, s: 1, e: 1, mix: 0 }, T = this.themeLight;
+    const hc = T && D.mix ? T.sky : h.color, sc = T && D.mix ? T.sunColor : s.color;
+    const ex = this.renderer.toneMappingExposure / (D.e || 1) / 0.92;
+    const night = Math.max(0, Math.min(1, (1 - (D.h || 1)) / 0.5));
     for (const k of ['r', 'g', 'b']) {
-      const cur = h.color[k] * h.intensity + s.color[k] * s.intensity * 0.5;
+      const cur = hc[k] * h.intensity / (D.h || 1) + sc[k] * s.intensity / (D.s || 1) * 0.5;
       const base = PX_BASE[k];
-      t[k] = Math.min(1.06, Math.max(0.5, 1 + (cur * ex / base - 1) * 0.65));
+      t[k] = Math.min(1.06, Math.max(0.5, 1 + (cur * ex / base - 1) * 0.65)) * (1 - night * (k === 'b' ? 0.04 : 0.12));
     }
   }
 
@@ -614,7 +642,8 @@ export class Renderer3D {
       // ไม่ผูกกับความละเอียดเรนเดอร์ (มือถือที่ลดคุณภาพอัตโนมัติจะไม่ถูกดึงกล้องเข้าใกล้) · จอเล็ก/มือถือคิดเหมือนจอความละเอียด 2 เท่า
       const t = Math.tan((this.camera.fov * Math.PI) / 360), ds = this.distScale || 1, small = Math.min(this.cw || 0, this.ch || 0) < 600;
       const ref = ((this.ch || 0) * (small ? 2 : 1) * PX) / (2 * t) / ds;
-      this.rig.targetDist = Math.min(95, Math.max(steps[0], ref) * (this.cw < this.ch ? CAM_FAR_P : CAM_FAR));
+      this.tagRef = Math.max(steps[0], ref);   // v0.88 ระยะอ้างอิงของขนาดป้ายชื่อ/ฉายา (ถอยกล้องออก → ป้ายเล็กลงตามตัวละคร)
+      this.rig.targetDist = Math.min(95, this.tagRef * (this.cw < this.ch ? CAM_FAR_P : CAM_FAR));
       return;
     }
     this.rig.targetDist = steps.reduce((a, b) => (Math.abs(Math.log(b / want)) < Math.abs(Math.log(a / want)) ? b : a));
@@ -1146,7 +1175,7 @@ export class Renderer3D {
   zoomCamera(factor) {
     const C = this.camCfg();
     this.wantDist = C.max;   // v0.48: ล็อกกล้องไว้ที่ระยะไกลสุด (ซูมไม่ได้)
-    if (this.px && this.px.enabled) this.pxSnapZoom(); else this.rig.targetDist = this.wantDist;
+    if (this.px && this.px.enabled) this.pxSnapZoom(); else { this.tagRef = 24; this.rig.targetDist = this.wantDist; }
   }
 
   updateCamera(dt, focus) {
@@ -1436,6 +1465,14 @@ export class Renderer3D {
     return [Math.round((v.x * 0.5 + 0.5) * this.cw), Math.round((-v.y * 0.5 + 0.5) * this.ch)];
   }
 
+  // v0.88 ขนาดป้ายชื่อ/ฉายาตามระยะกล้อง (กล้องไกลขึ้น → ตัวละครเล็กลง → ป้ายเล็กลงในสัดส่วนเดียวกัน · ไม่เล็กกว่า 62%)
+  tagScale() {
+    const d = this.rig && this.rig.dist, r = this.tagRef;
+    if (!d || !r) return 1;
+    const k = Math.round(Math.max(0.62, Math.min(1, r / d)) * 50) / 50;   // ปัดเป็นขั้น 0.02 ไม่ให้ข้อความสั่นตอนกล้องเลื่อน
+    return k;
+  }
+
   placeLabel(entity, c) {
     const x = entity.x * S, z = entity.y * S;
     if (c.kind === 'mob') {
@@ -1444,9 +1481,10 @@ export class Renderer3D {
       const labelOn = p && (this.hover === entity || this.target === entity);
       const barOn = p && (entity.hp < entity.maxHp || this.target === entity);
       setH(c.label, !labelOn); setH(c.hpbar, !barOn);
-      if (labelOn) setT(c.label, `translate3d(${p[0]}px, ${p[1] + 14}px, 0) translate(-50%, 0)`);
+      const mk = this.tagScale(), msc = mk === 1 ? '' : ` scale(${mk})`;   // v0.88 ย่อตามระยะกล้อง
+      if (labelOn) setT(c.label, `translate3d(${p[0]}px, ${p[1] + 14 * mk}px, 0) translate(-50%, 0)${msc}`);
       if (barOn) {
-        setT(c.hpbar, `translate3d(${p[0]}px, ${p[1] + 6}px, 0) translate(-50%, 0)`);
+        setT(c.hpbar, `translate3d(${p[0]}px, ${p[1] + 6 * mk}px, 0) translate(-50%, 0)${msc}`);
         if (c.lastHp !== entity.hp) { c.hpbar.firstChild.style.width = `${Math.max(0, entity.hp / entity.maxHp) * 100}%`; c.lastHp = entity.hp; }
       }
       return;
@@ -1461,6 +1499,7 @@ export class Renderer3D {
       el.hidden = !c.qm;
     }
     const p = this.project(x, c.npc ? (c.head + 0.2) * this.vs : -0.05, z);
+    const k = this.tagScale(), sc = k === 1 ? '' : ` scale(${k})`;
     setV(c.label, !!p);
     if (c.hpbar) setV(c.hpbar, !!p);
     if (!p) { if (c.bubble) setH(c.bubble, true); for (const el of c.honorEls || []) setH(el, true); return; }
@@ -1479,19 +1518,19 @@ export class Renderer3D {
         if (!h || !hp2) { setH(el, true); continue; }
         paintHonor(el, h.title, h.tier || 'common', h.fx || '');   // v0.30: เอฟเฟ็กตามความหายาก
         setH(el, false);
-        setT(el, `translate3d(${hp2[0]}px, ${hp2[1] - off}px, 0) translate(-50%, -100%)`);
+        setT(el, `translate3d(${hp2[0]}px, ${hp2[1] - off}px, 0) translate(-50%, -100%)${sc}`);
         el.style.zIndex = String(1 + i);
-        off += HONOR_H[h.tier] || 20;
-        if (hp2) c.honorTop = hp2[1] - off - (HONOR_FX_PAD[h.tier] || 0);   // v0.83 ขอบบนสุดของกองฉายา (รวมลายประดับที่ยื่นเกิน)
+        off += (HONOR_H[h.tier] || 20) * k;
+        if (hp2) c.honorTop = hp2[1] - off - (HONOR_FX_PAD[h.tier] || 0) * k;   // v0.83 ขอบบนสุดของกองฉายา (รวมลายประดับที่ยื่นเกิน)
       }
       c.honorH = off;
     }
-    if (c.npc) setT(c.label, `translate3d(${sx}px, ${sy}px, 0) translate(-50%, -100%)`);
+    if (c.npc) setT(c.label, `translate3d(${sx}px, ${sy}px, 0) translate(-50%, -100%)${sc}`);
     else {
       // v0.36: กรอบป้ายชื่อตามเลเวล — ช่องข้อความของกรอบอยู่ใต้เท้า · แถบ HP ใต้กรอบ (ปีก/มงกุฎของกรอบยื่นรอบ ๆ ได้)
       const g = paintPlate(c.label, entity.name, entity.baseLevel || 1, entity.guildTag, entity.inParty, !!entity.vip);
-      setT(c.label, `translate3d(${sx}px, ${sy + 6 - g.top}px, 0) translate(-50%, 0)`);
-      setT(c.hpbar, `translate3d(${sx}px, ${sy + 6 + g.h + 4}px, 0) translate(-50%, 0)`);
+      setT(c.label, `translate3d(${sx}px, ${sy + (6 - g.top) * k}px, 0) translate(-50%, 0)${sc}`);
+      setT(c.hpbar, `translate3d(${sx}px, ${sy + (6 + g.h + 4) * k}px, 0) translate(-50%, 0)${sc}`);
       // แถบร่ายสกิลเหนือหัว
       const cs = entity.cast;
       if (!c.castbar) { /* ผู้เล่นคนอื่น: ไม่มีแถบร่าย */ }
@@ -1501,7 +1540,7 @@ export class Renderer3D {
           if (c.castbar.hidden) { c.castbar.hidden = false; }
           if (c.castName !== cs.name) { c.castbar.firstChild.textContent = cs.name; c.castName = cs.name; }
           c.castbar.querySelector('i').style.width = `${Math.min(1, cs.t / cs.total) * 100}%`;
-          setT(c.castbar, `translate3d(${hp[0]}px, ${hp[1]}px, 0) translate(-50%, -100%)`);
+          setT(c.castbar, `translate3d(${hp[0]}px, ${hp[1]}px, 0) translate(-50%, -100%)${sc}`);
         }
       } else if (!c.castbar.hidden) { c.castbar.hidden = true; c.castName = ''; }
       if (c.lastHp !== entity.hp) {

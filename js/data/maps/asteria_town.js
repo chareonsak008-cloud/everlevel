@@ -1,5 +1,5 @@
 // ข้อมูลแผนที่ Asteria Town (เมืองเริ่มต้น) — v0.27 รีมาสเตอร์: ลานวงกลมกลางเมือง · คลองตะวันตก · 4 ย่าน
-import { borderTrees as _borderTrees, scaleMap } from './helpers.js?v=0.88.0';
+import { borderTrees as _borderTrees, scaleMap } from './helpers.js?v=0.89.0';
 // พิกัดทั้งหมดเป็นหน่วย "ช่อง" (tile) — วัตถุใช้มุมซ้ายบนของ footprint
 
 const LOOK = {
@@ -147,8 +147,8 @@ const RAW = {
       lines: ['เก็บเงินไว้ดี ๆ ล่ะ ของดีราคาไม่ถูกนะ'] },
     { id: 'garth', name: 'การ์ธ', title: 'ช่างตีเหล็ก', x: 18, y: 11, dir: 'down', look: LOOK.garth,
       service: { type: 'shop', shop: 'arms', refine: true },
-      greet: 'อาวุธกับชุดเกราะฝีมือข้า รับรองว่าทนทาน! จะซื้อของ หรือให้ข้าตีบวกอุปกรณ์ให้ก็ได้',
-      lines: ['ดาบดีต้องตีด้วยใจ'] },
+      greet: 'อาวุธกับชุดเกราะฝีมือข้า รับรองว่าทนทาน! จะซื้อของ ตีบวก ซ่อมของที่สึก หรือถอดการ์ดออกก็ได้',
+      lines: ['ดาบดีต้องตีด้วยใจ', 'ของที่ใช้นาน ๆ จะสึก ถ้าพังแล้วไม่ช่วยอะไรเลยนะ เอามาให้ข้าซ่อมซะ'] },
     { id: 'elsa', name: 'เอลซ่า', title: 'ผู้ดูแลคลัง', x: 20, y: 37, dir: 'down', look: LOOK.elsa,
       service: { type: 'storage' },
       greet: 'สวัสดีค่ะ คลังเก็บของ Asteria ยินดีให้บริการ ฝากของไว้ที่นี่ได้ฟรีเลยนะคะ',
