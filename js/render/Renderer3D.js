@@ -1,33 +1,33 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.89.0';
-import { PixelWingSprite } from './PixelWings.js?v=0.89.0';
-import { paintPlate } from '../ui/Nameplates.js?v=0.89.0';
-import { PixelVfx } from './PixelVfx.js?v=0.89.0';
-import { THREE } from './three.js?v=0.89.0';
-import { TILE } from '../config.js?v=0.89.0';
-import { T } from '../data/tileTypes.js?v=0.89.0';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.89.0';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.89.0';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.89.0';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.90.0';
+import { PixelWingSprite } from './PixelWings.js?v=0.90.0';
+import { paintPlate } from '../ui/Nameplates.js?v=0.90.0';
+import { PixelVfx } from './PixelVfx.js?v=0.90.0';
+import { THREE } from './three.js?v=0.90.0';
+import { TILE } from '../config.js?v=0.90.0';
+import { T } from '../data/tileTypes.js?v=0.90.0';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.90.0';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.90.0';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.90.0';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.89.0';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.89.0';
-import { iconCanvas } from './ItemIcons.js?v=0.89.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.89.0';
-import { MonsterView } from './Monsters.js?v=0.89.0';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.89.0';
-import { SkillFX } from './SkillFX.js?v=0.89.0';
-import { PostFX } from './PostFX.js?v=0.89.0';
-import { costumeLook, wearCostume } from './Costumes.js?v=0.89.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.89.0';
-import { PetView } from './Pets.js?v=0.89.0';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.89.0';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.89.0';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.89.0';
-import { gradientMap } from './Toon.js?v=0.89.0';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.89.0';
+} from './Models.js?v=0.90.0';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.90.0';
+import { iconCanvas } from './ItemIcons.js?v=0.90.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.90.0';
+import { MonsterView } from './Monsters.js?v=0.90.0';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.90.0';
+import { SkillFX } from './SkillFX.js?v=0.90.0';
+import { PostFX } from './PostFX.js?v=0.90.0';
+import { costumeLook, wearCostume } from './Costumes.js?v=0.90.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.90.0';
+import { PetView } from './Pets.js?v=0.90.0';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.90.0';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.90.0';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.90.0';
+import { gradientMap } from './Toon.js?v=0.90.0';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.90.0';
 // v0.86 กลางวัน · ตอนเย็น · กลางคืน · รุ่งสาง — ตัวคูณแสง (h=ฟ้า s=แดด e=exposure) + สีที่ผสมเข้าไป (mix)
 const DAY_PRESETS = {
   day: { name: 'กลางวัน', icon: '☀', h: 1, s: 1, e: 1, mix: 0, glow: 1, tint: [0, 0, 0, 0] },
@@ -68,6 +68,7 @@ const setH = (el, h) => { if (el.hidden !== h) el.hidden = h; };
 const setV = (el, on) => { const v = on ? 'visible' : 'hidden'; if (el._v !== v) { el.style.visibility = v; el._v = v; } };
 // ความละเอียดตามระดับคุณภาพ (มือถือเริ่ม 1.5 เท่า แทน 1.75)
 const RATIOS = { mobile: [1.5, 1.25, 1, 0.85], desktop: [2, 1.25, 1, 0.8] };
+const RATIOS_HD = { mobile: [2, 1.6, 1.25, 0.85], desktop: [2, 1.75, 1.25, 1] };   // v0.89 ภาพ HD ใช้ความละเอียดสูงกว่า
 // v0.17.1: กล้องมองจากด้านบนแบบเกม RO (โหมดพิกเซล) — ก้ม 60° · มุมมองแคบ 15° (ภาพแทบไม่ลึก ตึกไม่เอียง) · ซูมออกได้ไกลขึ้น
 // ระยะกล้อง (dist) เก็บเป็น "ระยะเทียบกล้องเดิม" (fov 32°) แล้วคูณ distScale ตอนวางกล้องจริง → กรอบภาพเท่าเดิมทุก fov
 // ปรับมุมก้มเองได้ (คลิกขวาลากขึ้นลง / สองนิ้วลากขึ้นลง / PageUp PageDown)
@@ -237,6 +238,7 @@ export class Renderer3D {
 
     this.water = this.px.enabled ? new PixelWater(theme.water || 'water') : new Water(theme.water || 'water');
     this.glows = []; this.flags = []; this.sprays = []; this.portals = []; this.fires = []; this.crystals = [];
+    this.pools = [];   // v0.89 วงแสงบนพื้นตอนกลางคืน (ตะเกียง กองไฟ คริสตัล)
     const trees = { round: [], pine: [] };
 
     for (const o of map.objects) {
@@ -251,7 +253,10 @@ export class Renderer3D {
       statics.add(m);
       if (o.kind === 'lamp') {
         for (const sx of [-1, 1]) { const gl = glowSprite('#ffc970', 0.8 * vs, 0.3); gl.position.set(o.cx + sx * 0.32 * vs, 1.85 * vs, o.cy); world.add(gl); this.glows.push(gl); }
+        this.addPool(world, o.cx, o.cy, 3.0 * vs, '#ffc070', 1);
       }
+      if (o.kind === 'campfire' || o.kind === 'vent') this.addPool(world, o.cx, o.cy, 3.8 * vs, '#ff9a48', 1.1);
+      if (o.kind === 'warpstone') this.addPool(world, o.cx, o.cy, 2.8 * vs, o.def.color || '#8fd8ff', 0.8);
       if (o.kind === 'campfire' || o.kind === 'vent') this.fires.push(new Campfire(world, o.cx, o.cy, vs));
       if (o.kind === 'warpstone') this.crystals.push(new WarpCrystal(world, o.cx, o.cy, o.def.color, vs));
       if (m.userData.glow) { const gl = glowSprite(m.userData.glow.color, 1.7 * vs, 0.32); gl.position.set(o.cx, m.userData.glow.y * vs, o.cy); world.add(gl); this.glows.push(gl); }
@@ -1277,8 +1282,16 @@ export class Renderer3D {
   setAutoZone(x, y, r) { if (this.autoZone) this.autoZone.show(x * S, y * S, r); }
   hideAutoZone() { if (this.autoZone) this.autoZone.hide(); }
 
+  // v0.90 กันจอกระพริบดำ: ขนาดจอเปลี่ยนระหว่างเล่น (มือถือ: แถบที่อยู่เว็บหด/ขยาย · คีย์บอร์ด · ResizeObserver ทำงานหลังวาดภาพ)
+  // → จดไว้ก่อน แล้วค่อยเปลี่ยนขนาดบัฟเฟอร์ตอนต้นเฟรมถัดไปแล้ววาดทันที (การตั้งขนาดผืนภาพจะล้างภาพเป็นสีดำ)
   resize(w, h) {
     if (!(w > 0 && h > 0)) return;   // v0.16: แอปถูกย่อ/กำลังหมุนจอ (ขนาด 0) → ข้าม ไม่ให้กล้องเป็น NaN
+    if (this.started3d && !this.noDraw) { this.sizePending = [w, h]; return; }
+    this.doResize(w, h);
+  }
+  doResize(w, h) {
+    this.sizePending = null;
+    this.ratioPending = null;
     this.renderer.setPixelRatio(this.ratioFor(this.quality || 0));   // DPR อาจเปลี่ยน (ซูมเบราว์เซอร์/ย้ายจอ)
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
@@ -1302,15 +1315,72 @@ export class Renderer3D {
   }
 
   /* ---------- ปรับคุณภาพอัตโนมัติ ให้ลื่นบนเครื่องสเปกต่ำ ---------- */
+  // v0.89 วงแสงนุ่มบนพื้น (บวกแสง วาดหลังแผ่นมืดกลางคืน) — ความแรงตามความมืด · โหมด HD สว่างกว่า
+  addPool(world, x, z, r, color, k = 1) {
+    if (!this.poolTex) {   // ไล่สีนุ่มแบบวงกลม (ไม่ใช้ลายพิกเซล)
+      const c = document.createElement('canvas'); c.width = c.height = 128; const x2 = c.getContext('2d');
+      const gr = x2.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.55)'); gr.addColorStop(0.7, 'rgba(255,255,255,0.15)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      x2.fillStyle = gr; x2.fillRect(0, 0, 128, 128);
+      this.poolTex = new THREE.CanvasTexture(c); this.poolTex.encoding = THREE.sRGBEncoding;
+    }
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(r * 2, r * 2).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ map: this.poolTex, color, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false }));
+    this.poolMat = true;
+    m.position.set(x, 0.04, z); m.renderOrder = 2; m.visible = false; m.userData.k = k;
+    world.add(m); this.pools.push(m);
+  }
+  updatePools(t) {
+    if (!this.pools || !this.pools.length) return;
+    const D = this.dayK, night = D ? Math.max(0, Math.min(1, (1 - (D.h || 1)) / 0.5)) : 0;
+    const base = night * (this.hd ? 0.55 : 0.32);
+    this.pools.forEach((m, i) => {
+      const a = base * m.userData.k * (0.92 + Math.sin(t * 3.1 + i * 1.7) * 0.05 + Math.sin(t * 7.3 + i) * 0.03);
+      m.visible = a > 0.01; if (m.visible) m.material.opacity = a;
+    });
+  }
+
+  // v0.89 โหมด HD: วาดเต็มความละเอียด (k = 1) · ไม่เลื่อนกล้องตามตารางพิกเซล → กล้องนุ่ม · ยังมีเส้นขอบจากความลึก
+  hdFrame() {
+    const cam = this.camera, D = cam.position.distanceTo(this.rig.target);
+    if (this.pxK !== 1) { this.pxK = 1; this.syncFxSize(); }
+    cam.updateMatrixWorld();
+    this.pxPoints(1);
+    return { k: 1, wpp: 0, ox: 0, oy: 0, zo: D - 13 * (this.distScale0 || 1), hd: true };
+  }
+  // v0.89 ภาพ HD-2D: ตัวละครยังเป็นพิกเซลอาร์ต · ฉากวาดเต็มความละเอียด ขอบเรียบ (MSAA) กล้องเลื่อนนุ่ม
+  // + แสงเรืองจากจุดสว่าง · ฉากไกลเบลอ · ปรับโทนสี (ใน PostFX) · ปิด = ภาพพิกเซลแบบเดิม
+  setHD(on) {
+    on = !!on;
+    if (this.hd === on && this.hdInit) return;
+    this.hd = on; this.hdInit = true;
+    this.post.hd = on;
+    this.post.tilt = on ? (this.mobile ? 0.7 : 1) : 0;
+    this.pxK = 0;
+    document.body.classList.toggle('gfx-hd', on);   // 
+    if (this.quality != null) this.setQuality(this.quality); else this.syncFxSize();
+  }
+
+  applyRatio() {
+    if (this.ratioPending == null) return;
+    this.renderer.setPixelRatio(this.ratioPending); this.ratioPending = null;
+    if (this.cw) this.renderer.setSize(this.cw, this.ch, false);
+    this.syncFxSize();
+    if (this.px && this.px.enabled) { this.pxK = 0; if (!this.hd) this.pxSnapZoom(); }
+  }
+
   ratioFor(level) {
     const dpr = window.devicePixelRatio || 1;
-    return Math.min(dpr, (this.mobile ? RATIOS.mobile : RATIOS.desktop)[level] ?? 1);
+    const R = this.hd ? RATIOS_HD : RATIOS;
+    return Math.min(dpr, (this.mobile ? R.mobile : R.desktop)[level] ?? 1);
   }
 
   setQuality(level) {
     this.quality = level;
-    this.renderer.setPixelRatio(this.ratioFor(level));
-    if (this.cw) this.renderer.setSize(this.cw, this.ch, false);
+    // v0.90 กันจอกระพริบดำ (มือถือ): เปลี่ยนขนาดบัฟเฟอร์ภาพเฉพาะเมื่ออัตราความละเอียดเปลี่ยนจริง
+    // และเลื่อนไปทำตอนต้นเฟรมถัดไปก่อนวาด — เดิมปรับคุณภาพอัตโนมัติหลังวาดเสร็จ ผืนภาพถูกล้างเป็นสีดำ 1 เฟรม
+    const ratio = this.ratioFor(level);
+    if (ratio !== this.renderer.getPixelRatio()) { this.ratioPending = ratio; if (!this.started3d) this.applyRatio(); }
     // โหมดประหยัด: ปิดแสงเรือง (ระดับ 2) และปิดโพสต์โปรเซสทั้งหมด (ระดับ 3)
     this.post.bloom = level < 2 && this.bloomPref !== false;   // v0.11: ปิดแสงเรืองได้จากเมนูตั้งค่า
     this.post.enabled = level < 3;
@@ -1365,10 +1435,13 @@ export class Renderer3D {
   /* ---------- วาดทุกเฟรม ---------- */
   // simDt = เวลาของโลก (เป็น 0 ระหว่างหยุดภาพชั่วขณะตอนโจมตีแรง) · dt = เวลาจริงของกล้อง/ตัวหนังสือ
   render(dt, focus, simDt = dt) {
+    this.started3d = true;
+    if (this.sizePending && !this.noDraw) this.doResize(this.sizePending[0], this.sizePending[1]);
+    if (this.ratioPending != null && !this.noDraw) this.applyRatio();   // v0.90 เปลี่ยนความละเอียดตอนต้นเฟรม แล้ววาดทันที (ไม่ค้างจอดำ)
     this.time += dt; const t = this.time;
     this.windTime.value = t;
     this.updateCamera(dt, focus);
-    const pxi = this.px.enabled ? this.pxFrame() : null;   // v0.17: ฉากพิกเซล (เลื่อนกล้องตรงตาราง ก่อนวางสไปรต์)
+    const pxi = !this.px.enabled ? null : this.hd ? this.hdFrame() : this.pxFrame();   // v0.17: ฉากพิกเซล (เลื่อนกล้องตรงตาราง ก่อนวางสไปรต์) · v0.89 โหมด HD เต็มความละเอียด ไม่ล็อกตาราง
     this.px.snap = pxi;
     if (this.seeCam) {
       this.seeCam.value.copy(this.camera.position);
@@ -1395,7 +1468,15 @@ export class Renderer3D {
     this.motes.update(t, this.rig.target.x, this.rig.target.z);
     this.marker.update(dt);
     this.autoZone.update(dt);
-    this.glows.forEach((g, i) => { const k = 0.3 + Math.sin(t * 7 + i * 3) * 0.03 + Math.sin(t * 13 + i) * 0.02; g.material.opacity = k; });
+    // v0.89 โหมด HD: กลางคืนแสงตะเกียง/คริสตัลสว่างและกว้างขึ้น
+    const nightK = this.hd && this.dayK ? Math.max(0, Math.min(1, (1 - (this.dayK.h || 1)) / 0.5)) : 0;
+    this.updatePools(t);
+    this.glows.forEach((g, i) => {
+      const k = 0.3 + Math.sin(t * 7 + i * 3) * 0.03 + Math.sin(t * 13 + i) * 0.02;
+      g.material.opacity = Math.min(0.85, k * (1 + nightK * 1.4));
+      if (g.userData.s0 == null) g.userData.s0 = g.scale.x;
+      const sc = g.userData.s0 * (1 + nightK * 0.9); if (g.scale.x !== sc) g.scale.set(sc, sc * (g.scale.y / g.scale.x), 1);
+    });
     this.flags.forEach((f, i) => { f.rotation.y = Math.sin(t * 2.4 + i) * 0.35; f.scale.x = 1 + Math.sin(t * 5 + i) * 0.06; });
     for (const f of this.fires) { if (Math.abs(f.x - this.rig.target.x) < 26 && Math.abs(f.z - this.rig.target.z) < 26) f.update(t); else f.light.intensity = 1.3; }   // ไกลกล้อง: ไม่ต้องขยับอนุภาค
     for (const c of this.crystals) c.update(t);

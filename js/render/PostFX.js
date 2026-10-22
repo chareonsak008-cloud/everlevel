@@ -2,7 +2,7 @@
 // - บลูมเฉพาะเอฟเฟกต์ (เรนเดอร์ราก SkillFX แยกอีกรอบที่ครึ่งความละเอียด แล้วเบลอแบบ dual-kawase)
 // - คลื่นกระแทกบนจอ (บิดภาพเป็นวง), แสงวาบทั้งจอ, สีเหลื่อมตอนกระแทก, เส้นความเร็วตอนชาร์จพลัง
 // ใช้: post.setSize(w,h) → ทุกเฟรม post.update(dt) แล้ว post.render(scene, camera, fx.root, (k) => fx.setPixelScale(k))
-import { THREE } from './three.js?v=0.89.0';
+import { THREE } from './three.js?v=0.90.0';
 
 const VERT = 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
 const MAX_SHOCKS = 4;
@@ -22,8 +22,10 @@ export class PostFX {
       minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, stencilBuffer: false,
       encoding: this.linear ? THREE.LinearEncoding : THREE.sRGBEncoding, type: this.linear ? THREE.HalfFloatType : THREE.UnsignedByteType,
     };
+    this.P = P; this.gl2 = gl2; this.msaa = msaa;
     this.sceneRT = gl2 && msaa ? new THREE.WebGLMultisampleRenderTarget(4, 4, P) : new THREE.WebGLRenderTarget(4, 4, P);
     if (this.sceneRT.isWebGLMultisampleRenderTarget) this.sceneRT.samples = msaa;
+    this.hd = false; this.tilt = 0;   // v0.89 ภาพ HD-2D: ฉากความละเอียดเต็ม · ขอบเรียบ · เรืองจากจุดสว่างในฉาก · ฉากไกลเบลอ · ปรับโทนสี
     this.glowRT = new THREE.WebGLRenderTarget(4, 4, P);
     const Q = { ...P, encoding: THREE.LinearEncoding, depthBuffer: false };
     this.levels = 5; // ครึ่งจอ → 1/4 → 1/8 → 1/16 → 1/32
@@ -76,10 +78,12 @@ export class PostFX {
         flashC: { value: new THREE.Color() }, flashA: { value: 0 },
         lines: { value: 0 }, time: { value: 0 }, shocks: { value: this.shockU },
         pxMap: { value: new THREE.Vector4(1, 1, 0, 0) },   // v0.17: ภาพพิกเซล (ย่อ/เลื่อนพิกัดก่อนอ่านภาพฉาก)
+        hd: { value: 0 }, tilt: { value: 0 }, sTexel: { value: new THREE.Vector2(1, 1) },   // v0.89
       },
       fragmentShader: `uniform sampler2D tScene; uniform sampler2D tBloom; uniform sampler2D tGlow;
         uniform float strength; uniform float aspect; uniform float ca; uniform vec3 flashC; uniform float flashA;
         uniform float lines; uniform float time; uniform vec4 shocks[${MAX_SHOCKS}]; uniform vec4 pxMap;
+        uniform float hd; uniform float tilt; uniform vec2 sTexel;
         varying vec2 vUv;
         float hash(float n) { return fract(sin(n) * 43758.5453); }
         void main() {
@@ -101,6 +105,18 @@ export class PostFX {
             vec2 off = c * ca * 0.014 * pxMap.xy;
             col = vec3(texture2D(tScene, su + off).r, texture2D(tScene, su).g, texture2D(tScene, su - off).b);
           } else col = texture2D(tScene, su).rgb;
+          // v0.89 HD: เบลอบน/ล่างจอแบบ tilt-shift (ฉากดูเป็นโลกจิ๋ว ตัวละครกลางจอคมชัด)
+          if (hd > 0.5 && tilt > 0.0) {
+            float b = smoothstep(0.24, 0.52, abs(vUv.y - 0.52)) * tilt;
+            if (b > 0.02) {
+              vec2 r = sTexel * b * 2.6; vec3 acc = col * 2.0;
+              acc += texture2D(tScene, su + vec2(r.x, 0.0)).rgb + texture2D(tScene, su - vec2(r.x, 0.0)).rgb;
+              acc += texture2D(tScene, su + vec2(0.0, r.y)).rgb + texture2D(tScene, su - vec2(0.0, r.y)).rgb;
+              acc += texture2D(tScene, su + r * 1.6).rgb + texture2D(tScene, su - r * 1.6).rgb;
+              acc += texture2D(tScene, su + vec2(r.x, -r.y) * 1.6).rgb + texture2D(tScene, su + vec2(-r.x, r.y) * 1.6).rgb;
+              col = acc / 10.0;
+            }
+          }
           // เรืองแสง: เพิ่มความอิ่มสีให้ฮาโลเป็นสีของเอฟเฟกต์ ไม่ขาวโพลน
           vec3 glow = texture2D(tBloom, uv).rgb * 0.15 + texture2D(tGlow, uv).rgb * 0.03;
           glow = max(mix(vec3(dot(glow, vec3(0.299, 0.587, 0.114))), glow, 1.45), 0.0);
@@ -113,6 +129,18 @@ export class PostFX {
           col = max(col, 0.0);
           col = mix(1.055 * pow(col, vec3(1.0 / 2.4)) - 0.055, col * 12.92, step(col, vec3(0.0031308)));
 #endif
+          // v0.89 HD: ปรับโทนสี (อิ่มขึ้นเล็กน้อย คอนทราสต์ โทนอุ่น) + ขอบจอมืดนุ่ม ๆ
+          if (hd > 0.5) {
+            float l = dot(col, vec3(0.299, 0.587, 0.114));
+            col = mix(vec3(l), col, 1.14);
+            col = pow(max(col, 0.0), vec3(1.08)) * 0.97;
+            col = (col - 0.45) * 1.06 + 0.45;
+            col -= max(col - 0.82, 0.0) * 0.45;   // ไหล่นุ่ม: พื้นสีขาว/หิน ไม่ขาวจ้า
+            col *= vec3(1.025, 1.0, 0.965);
+            float vg = smoothstep(1.05, 0.4, length(c * vec2(aspect * 0.8, 1.0)));
+            col *= mix(0.8, 1.0, vg);
+            col = max(col, 0.0);
+          }
           col += vec3(1.0, 0.96, 0.9) * ringLight * 0.03;
           if (lines > 0.002) {
             vec2 d = c * vec2(aspect, 1.0);
@@ -133,6 +161,15 @@ export class PostFX {
 #endif
           gl_FragColor = vec4(col, 1.0);
         }`,
+    });
+
+    // v0.89 HD: แสงเรืองจากจุดสว่างในฉาก (ตะเกียง ไฟ คริสตัล น้ำแสง) — บวกเข้ารอบเรืองแสงก่อนเบลอ
+    this.matBright = new THREE.ShaderMaterial({
+      ...common, transparent: true, blending: THREE.AdditiveBlending,
+      uniforms: { src: { value: null }, th: { value: new THREE.Vector2(0.92, 1.6) }, gain: { value: 0.4 } },
+      fragmentShader: `uniform sampler2D src; uniform vec2 th; uniform float gain; varying vec2 vUv;
+        void main() { vec3 c = texture2D(src, vUv).rgb; float l = max(c.r, max(c.g, c.b));
+          gl_FragColor = vec4(c * smoothstep(th.x, th.y, l) * gain, 1.0); }`,
     });
 
     // v0.17: ฉากแบบพิกเซล — เรนเดอร์ความละเอียดต่ำ แล้ววาดเส้นขอบจากความลึก + ลดสีแบบดิทเธอร์ ก่อนขยายแบบ nearest
@@ -190,9 +227,20 @@ export class PostFX {
     this._cc = new THREE.Color();
   }
 
+  // v0.89 เปลี่ยนจำนวน MSAA (โหมด HD บนมือถือใช้ 2 · โหมดพิกเซลไม่ต้องใช้)
+  setMsaa(n) {
+    n = this.gl2 ? n : 0;
+    if ((this.sceneRT.samples || 0) === n && !!this.sceneRT.isWebGLMultisampleRenderTarget === n > 0) return;
+    const w = this.size.x, h = this.size.y;
+    this.sceneRT.dispose();
+    this.sceneRT = n ? new THREE.WebGLMultisampleRenderTarget(w, h, this.P) : new THREE.WebGLRenderTarget(w, h, this.P);
+    if (n) this.sceneRT.samples = n;
+  }
+
   setSize(w, h) {
     w = Math.max(1, Math.floor(w)); h = Math.max(1, Math.floor(h));
     this.size.set(w, h);
+    this.matComp.uniforms.sTexel.value.set(1 / w, 1 / h);
     this.sceneRT.setSize(w, h);
     let lw = Math.max(1, w >> 1), lh = Math.max(1, h >> 1);
     for (let i = 0; i < this.levels; i++) {
@@ -256,14 +304,16 @@ export class PostFX {
       C.tScene.value = this.pxOut.texture;
     } else {
       C.pxMap.value.set(1, 1, 0, 0);
-      if (!this.enabled || this.idleT > 30) { r.setRenderTarget(null); r.render(scene, camera); return; }
+      if (!this.enabled || (!this.hd && this.idleT > 30)) { r.setRenderTarget(null); r.render(scene, camera); return; }
       r.setRenderTarget(this.sceneRT);
       r.render(scene, camera);
       C.tScene.value = this.sceneRT.texture;
     }
-    const glowOn = this.bloom && this.enabled && (!px || this.idleT <= 30);
+    const hdOn = this.hd && this.enabled; C.hd.value = hdOn ? 1 : 0; C.tilt.value = hdOn ? this.tilt : 0;
+    this.brightSrc = hdOn ? C.tScene.value : null;
+    const glowOn = this.bloom && this.enabled && (!px || this.hd || this.idleT <= 30);
     if (glowOn) this.renderGlow(camera, glowRoot, setPixelScale);
-    C.strength.value = glowOn ? this.strength : 0;
+    C.strength.value = glowOn ? this.strength * (hdOn ? 1.25 : 1) : 0;   // v0.89 HD เรืองแรงขึ้นเล็กน้อย
 
     // รวมภาพ + เอฟเฟกต์บนจอ
     C.tBloom.value = this.up[0].texture; C.tGlow.value = this.glowRT.texture;
@@ -298,6 +348,13 @@ export class PostFX {
       roots.forEach((o, i) => parents[i].add(o));
     }
     r.setClearColor(this._cc, ca);
+    if (this.brightSrc) {   // v0.89 HD: จุดสว่างในฉากเรืองด้วย
+      const B = this.matBright.uniforms; B.src.value = this.brightSrc;
+      if (this.linear) B.th.value.set(0.92, 1.6); else B.th.value.set(0.94, 1.0);
+      const ac = r.autoClear; r.autoClear = false;
+      this.pass(this.matBright, this.glowRT);
+      r.autoClear = ac;
+    }
 
     // เบลอแบบ dual-kawase: ย่อลงทีละครึ่ง แล้วขยายกลับพร้อมรวมทุกระดับ
     const D = this.matDown.uniforms, U = this.matUp.uniforms;
