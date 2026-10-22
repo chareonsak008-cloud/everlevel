@@ -1,33 +1,34 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.90.0';
-import { PixelWingSprite } from './PixelWings.js?v=0.90.0';
-import { paintPlate } from '../ui/Nameplates.js?v=0.90.0';
-import { PixelVfx } from './PixelVfx.js?v=0.90.0';
-import { THREE } from './three.js?v=0.90.0';
-import { TILE } from '../config.js?v=0.90.0';
-import { T } from '../data/tileTypes.js?v=0.90.0';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.90.0';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.90.0';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.90.0';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.93.0';
+import { PixelWingSprite } from './PixelWings.js?v=0.93.0';
+import { paintPlate } from '../ui/Nameplates.js?v=0.93.0';
+import { PixelVfx } from './PixelVfx.js?v=0.93.0';
+import { THREE } from './three.js?v=0.93.0';
+import { TILE } from '../config.js?v=0.93.0';
+import { T } from '../data/tileTypes.js?v=0.93.0';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.93.0';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.93.0';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.93.0';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.90.0';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.90.0';
-import { iconCanvas } from './ItemIcons.js?v=0.90.0';
-import { ITEMS, RARITY } from '../data/items.js?v=0.90.0';
-import { MonsterView } from './Monsters.js?v=0.90.0';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.90.0';
-import { SkillFX } from './SkillFX.js?v=0.90.0';
-import { PostFX } from './PostFX.js?v=0.90.0';
-import { costumeLook, wearCostume } from './Costumes.js?v=0.90.0';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.90.0';
-import { PetView } from './Pets.js?v=0.90.0';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.90.0';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.90.0';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.90.0';
-import { gradientMap } from './Toon.js?v=0.90.0';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.90.0';
+} from './Models.js?v=0.93.0';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.93.0';
+import { iconCanvas } from './ItemIcons.js?v=0.93.0';
+import { ITEMS, RARITY } from '../data/items.js?v=0.93.0';
+import { MonsterView } from './Monsters.js?v=0.93.0';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.93.0';
+import { SkillFX } from './SkillFX.js?v=0.93.0';
+import { PostFX } from './PostFX.js?v=0.93.0';
+import { Weather } from './Weather.js?v=0.93.0';   // v0.91 สภาพอากาศ
+import { costumeLook, wearCostume } from './Costumes.js?v=0.93.0';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0';
+import { PetView } from './Pets.js?v=0.93.0';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.93.0';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.93.0';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.93.0';
+import { gradientMap } from './Toon.js?v=0.93.0';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.93.0';
 // v0.86 กลางวัน · ตอนเย็น · กลางคืน · รุ่งสาง — ตัวคูณแสง (h=ฟ้า s=แดด e=exposure) + สีที่ผสมเข้าไป (mix)
 const DAY_PRESETS = {
   day: { name: 'กลางวัน', icon: '☀', h: 1, s: 1, e: 1, mix: 0, glow: 1, tint: [0, 0, 0, 0] },
@@ -88,6 +89,19 @@ function disposeOwned(root) {
 }
 
 const NPC_SCALE = 1.4;   // v0.41.1 NPC (โมเดล 3 มิติ) ขยายให้สูงพอ ๆ กับตัวละครผู้เล่นแบบพิกเซล
+
+// v0.93 แผ่นพื้นหลังไอเทมบนพื้น (สี่เหลี่ยมมุมมน ขอบเข้ม) — ย้อมสีตามระดับ
+let _plateTex = null;
+function dropPlateTexture() {
+  if (_plateTex) return _plateTex;
+  const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d');
+  const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+  g.fillStyle = 'rgba(20,14,28,0.9)'; rr(1, 1, 30, 30, 7); g.fill();
+  g.fillStyle = '#ffffff'; rr(3, 3, 26, 26, 6); g.fill();
+  const gr = g.createLinearGradient(0, 3, 0, 29); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.28)'); g.fillStyle = gr; rr(3, 3, 26, 26, 6); g.fill();
+  _plateTex = new THREE.CanvasTexture(c); _plateTex.magFilter = THREE.NearestFilter; _plateTex.minFilter = THREE.LinearFilter; _plateTex.generateMipmaps = false;
+  return _plateTex;
+}
 
 export class Renderer3D {
   constructor(canvas, labelLayer) {
@@ -355,6 +369,8 @@ export class Renderer3D {
 
     for (const p of map.portals) this.portals.push(new Portal(world, p.cx * S, p.cy * S, !!p.locked));
     this.motes = new Motes(world, theme.motes || '#fff3c4', theme.moteCount || 90, theme.moteSize || 0.1, theme.motesMode || 'float');
+    this.weather = new Weather(world, map.id, { mobile: this.mobile });   // v0.91 ฝน หิมะ ใบไม้ หิ่งห้อย เถ้าถ่าน
+    this.weather.group.visible = (this.qualityLevel || 0) < 3 && this.weatherOn !== false;
     // ลำแสงแดดส่องลอดยอดไม้ (ธีมป่า)
     if (theme.sunbeams) {
       const br = rng(321), mat = new THREE.MeshBasicMaterial({ map: beamTexture(), color: theme.beamColor || '#fff2c0', transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
@@ -695,6 +711,8 @@ export class Renderer3D {
     const view = new MonsterView(mob);
     view.root.rotation.y = mob.angle;
     if (mob.data.viewScale) view.root.scale.setScalar(mob.data.viewScale);   // v0.32.1: บอสหอคอยย่อขนาด
+    const bossK = !mob.data.viewScale && mob.data.mvp ? (mob.data.worldBoss ? 1.5 : 1.35) : 1;   // v0.91 บอส MVP/บอสโลกตัวใหญ่ขึ้น
+    if (bossK > 1) view.root.scale.setScalar(bossK);
     this.scene.add(view.root);
     if (this.px.enabled) this.px.attach(mob, view, 'mob');
     const h = mob.data.height;
@@ -704,7 +722,7 @@ export class Renderer3D {
     const label = document.createElement('div'); label.className = 'tag tag-mob' + (mob.data.mvp || mob.data.dgBoss ? ' tag-mvp' : ''); label.textContent = `${mob.data.mvp ? 'MVP · ' : mob.data.dgBoss ? 'BOSS · ' : ''}${mob.name} Lv.${mob.level}`; label.hidden = true;
     const hpbar = document.createElement('div'); hpbar.className = 'hpbar' + (mob.data.mvp || mob.data.dgBoss ? ' hpbar-mvp' : ''); hpbar.innerHTML = '<i></i>'; hpbar.hidden = true;
     this.labelLayer.append(label, hpbar);
-    this.characters.set(mob, { view, label, hpbar, kind: 'mob', head: h, lastHp: -1 });
+    this.characters.set(mob, { view, label, hpbar, kind: 'mob', head: h * bossK, lastHp: -1, aura: bossK > 1 ? this.bossAura(mob, bossK) : null });
     this.actorQuality(this.characters.get(mob));
     view.update(0, mob);
   }
@@ -803,6 +821,7 @@ export class Renderer3D {
     if (c.view.dispose) c.view.dispose();
     disposeOwned(c.view.root);
     if (c.costume) { c.costume.dispose(); c.costume = null; }
+    if (c.aura) { this.scene.remove(c.aura); c.aura.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); c.aura = null; }
     for (const el of [c.label, c.bubble, c.hpbar, c.castbar, ...(c.honorEls || [])]) if (el) el.remove();
     this.characters.delete(entity);
   }
@@ -822,8 +841,61 @@ export class Renderer3D {
     this.strikes.spikes(x * S, y * S, radiusTiles);
     this.bursts.spawn(x * S, 0.2, y * S, '#8a6a3e', 18, 2.4, 2.2);
   }
+  // v0.91 วงพลังใต้เท้าบอส MVP/บอสโลก (หมุนช้า · เลือดน้อยเต้นแรงขึ้น) + ประกายลอยขึ้น
+  bossAura(mob, k) {
+    const wb = !!mob.data.worldBoss, col = wb ? '#ff4a5a' : '#ffb347', size = (mob.data.radius || 1.2) * k * 4.2;
+    const g = new THREE.Group(); g.userData.col = col;
+    const mk = (tex, sz, op, y) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(sz, sz), new THREE.MeshBasicMaterial({ map: tex, color: col, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })); m.rotation.x = -Math.PI / 2; m.position.y = y; m.renderOrder = 2; m.userData.op = op; g.add(m); return m; };
+    g.userData.glow = mk(glowTexture(), size * 1.25, 0.32, 0.04);
+    g.userData.circ = mk(magicCircleTexture(), size, 0.55, 0.05);
+    g.userData.circ2 = mk(magicCircleTexture(), size * 0.62, 0.35, 0.055);
+    g.userData.t = Math.random() * 10; g.userData.ember = 0;
+    g.position.set(mob.x * S, 0, mob.y * S);
+    this.scene.add(g); return g;
+  }
+  updateBossAura(c, mob, dt) {
+    const g = c.aura, U = g.userData, on = !mob.dead && c.view.root.visible && !mob.hidden;
+    g.visible = on; if (!on) return;
+    U.t += dt;
+    g.position.set(mob.x * S, 0, mob.y * S);
+    const low = mob.maxHp ? mob.hp / mob.maxHp < 0.3 : false, sp = low ? 2.4 : 1;
+    U.circ.rotation.z += dt * 0.35 * sp; U.circ2.rotation.z -= dt * 0.7 * sp;
+    const pulse = 0.8 + Math.sin(U.t * (low ? 7 : 2.2)) * 0.2;
+    U.circ.material.opacity = U.circ.userData.op * pulse; U.circ2.material.opacity = U.circ2.userData.op * pulse; U.glow.material.opacity = U.glow.userData.op * (low ? 1.5 : 1) * pulse;
+    if ((U.ember -= dt) <= 0) { U.ember = low ? 0.25 : 0.55; this.bursts.spawn(g.position.x + (Math.random() - 0.5) * 2, 0.15, g.position.z + (Math.random() - 0.5) * 2, U.col, 3, 0.5, 1.6); }
+  }
+  // v0.91 บอสง้างท่า: วงเวทหมุนเร็วใต้ตัว + แสงรวมพลัง (อ่านท่าออกชัด)
+  bossWindup(mob, radiusTiles, dur, color = '#ff3a3a') {
+    const pos = new THREE.Vector3(mob.x * S, 0, mob.y * S);
+    this.fx.disc(pos, magicCircleTexture(), color, radiusTiles * 2.3, dur + 0.15, { spin: 3.2, y: 0.07, opacity: 0.9, fadeIn: 0.15, fadeOut: 0.2 });
+    this.fx.light(pos.clone().setY(1.5), color, 3, dur, 10);
+    for (let i = 0; i < 3; i++) this.fx.after(i * dur / 3, () => this.fx.ring(pos, color, radiusTiles * 1.3, 0.4, Math.max(0.25, dur / 3), { opacity: 0.8 }));
+  }
+  // v0.91 แรงกระแทกเพิ่ม (ทุกท่าทุบ/ท่าไกลของบอส)
+  bossImpact(x, z, radiusTiles, color) {
+    const pos = new THREE.Vector3(x, 0, z);
+    this.fx.ring(pos, '#ffffff', 0.3, radiusTiles * 1.35, 0.35, { opacity: 0.9 });
+    this.fx.ring(pos, color, 0.2, radiusTiles * 1.1, 0.6);
+    this.fx.flash(pos.clone().setY(0.5), color, radiusTiles * 2.4, 0.3);
+    this.fx.cracks(pos, color, radiusTiles * 1.6, 2.2);
+    this.fx.debris(pos, { count: 14, color: '#6a5a48', speed: [4, 7] });
+    this.shockAt(pos, Math.min(1.4, 0.5 + radiusTiles * 0.2)); this.punch(0.5);
+  }
+  // v0.91 บอส MVP/บอสโลกถูกล้ม: ลำแสงจากฟ้า + วงคลื่นซ้อน + ระเบิดประกาย
+  bossDeath(mob) {
+    const x = mob.x * S, z = mob.y * S, pos = new THREE.Vector3(x, 0, z), wb = !!mob.data.worldBoss, col = wb ? '#ff6a5a' : '#ffd36b', r = (mob.data.radius || 1.2) * 2;
+    this.fx.flash(pos.clone().setY(1.6), '#ffffff', r * 4, 0.5);
+    this.fx.pillar(pos, col, r * 0.55, 14, 1.6, { fromSky: true, opacity: 0.85 });
+    for (let i = 0; i < 4; i++) this.fx.after(i * 0.18, () => this.fx.ring(pos, i % 2 ? '#ffffff' : col, 0.4, r * (2 + i * 0.8), 0.7));
+    this.fx.light(pos.clone().setY(2), col, 6, 1.2, 16);
+    this.bursts.spawn(x, 1.2, z, col, 90, 4.5, 3);
+    this.fx.after(0.25, () => this.bursts.spawn(x, 0.6, z, '#ffffff', 50, 3.2, 3.5));
+    this.fx.sparks(pos.clone().setY(1.5), col, 60, 9);
+    this.shockAt(pos.clone().setY(1), 1.5); this.shake(0.7); this.punch(0.8);
+  }
   bossSlam(mob, radiusTiles, fx) {
     const x = mob.x * S, z = mob.y * S;
+    this.bossImpact(x, z, radiusTiles, fx === 'ice' ? '#9ae8ff' : fx === 'fire' ? '#ff8a2a' : '#ffb86a');
     if (fx === 'ice') {
       // v0.11 ราชินีหิมะ: คลื่นน้ำแข็ง + หนามผลึกพุ่งรอบตัว
       this.strikes.shockwave(x, z, '#9ae8ff', radiusTiles);
@@ -845,6 +917,7 @@ export class Renderer3D {
   // v0.11: ท่าโจมตีระยะไกลของบอส — หนามน้ำแข็งถล่ม / อุกกาบาตเพลิง (x, y = พิกัดโลก)
   bossStrike(x, y, radiusTiles, fx) {
     const px = x * S, pz = y * S;
+    this.bossImpact(px, pz, radiusTiles, fx === 'icefall' ? '#9ae8ff' : fx === 'meteor' ? '#ff7a1a' : '#c89a5a');
     if (fx === 'icefall') {
       this.strikes.spikes(px, pz, radiusTiles, '#cdefff', 1.6);
       this.fx.ring(new THREE.Vector3(px, 0, pz), '#9ae8ff', 0.2, radiusTiles * 1.1, 0.5);
@@ -927,6 +1000,7 @@ export class Renderer3D {
   playDeath(mob) {
     const c = this.characters.get(mob); if (!c) return;
     c.view.die();
+    if (c.aura) this.bossDeath(mob);
     this.bursts.spawn(mob.x * S, 0.4, mob.y * S, '#e8f6ff', 22, 1.6, 2.2);
   }
   playRespawn(mob) {
@@ -976,8 +1050,11 @@ export class Renderer3D {
   addDrop(drop, fromX, fromY) {
     const it = ITEMS[drop.id], rar = RARITY[it.rarity || 'common'];
     const g = new THREE.Group(); this.world.add(g);
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.itemTexture(drop.id), alphaTest: 0.4, toneMapped: false }));
-    sp.scale.set(0.62, 0.62, 1); sp.userData.drop = drop; g.add(sp);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.itemTexture(drop.id), alphaTest: 0.4, transparent: true, toneMapped: false }));
+    sp.scale.set(0.62, 0.62, 1); sp.userData.drop = drop; sp.renderOrder = 4; g.add(sp);
+    // v0.93 ป้ายสีพื้นหลังตามระดับไอเทม (ธรรมดา = เทา · ดี = เขียว · หายาก = ฟ้า · ล้ำค่า = ม่วง · ตำนานขึ้นไป = ส้ม/ทอง/แดง…) มองแวบเดียวรู้ว่าของระดับไหน
+    const plate = new THREE.Sprite(new THREE.SpriteMaterial({ map: dropPlateTexture(), color: it.rarity && it.rarity !== 'common' ? rar.color : '#9a96a4', transparent: true, opacity: it.rarity && it.rarity !== 'common' ? 0.92 : 0.7, depthWrite: false, toneMapped: false }));
+    plate.scale.set(0.84, 0.84, 1); plate.renderOrder = 3; g.add(plate); sp.userData.plate = plate;
     let glow = null;
     if (it.rarity && it.rarity !== 'common') {
       glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: rar.color, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending }));
@@ -1036,13 +1113,14 @@ export class Renderer3D {
       f.v.g.position.set(f.from.x + (to.x - f.from.x) * e, 0, f.from.z + (to.z - f.from.z) * e);
       f.v.sp.position.y = f.from.y + (to.y - f.from.y) * e + Math.sin(k * Math.PI) * 0.6;
       if (f.v.glow) f.v.glow.position.y = f.v.sp.position.y;
+      if (f.v.sp.userData.plate) f.v.sp.userData.plate.position.y = f.v.sp.position.y;
       const sc = Math.max(0.05, 1 - Math.max(0, k - 0.55) * 2.2);
       f.v.sp.scale.set(0.62 * sc, 0.62 * sc, 1);
       f.v.sh.visible = k < 0.3;
       if (k >= 1) {
         f.done = true;
         if (f.v.g.parent) f.v.g.parent.remove(f.v.g);
-        f.v.sp.material.dispose(); f.v.sh.geometry.dispose(); f.v.sh.material.dispose(); if (f.v.glow) f.v.glow.material.dispose();
+        f.v.sp.material.dispose(); if (f.v.sp.userData.plate) f.v.sp.userData.plate.material.dispose(); f.v.sh.geometry.dispose(); f.v.sh.material.dispose(); if (f.v.glow) f.v.glow.material.dispose();
         if (f.v.beam) { f.v.beam.geometry.dispose(); f.v.beam.material.dispose(); }
         if (f.onDone) f.onDone();
       }
@@ -1088,7 +1166,7 @@ export class Renderer3D {
   removeDrop(drop) {
     const v = this.dropViews.get(drop); if (!v) return;
     this.world.remove(v.g);
-    v.sp.material.dispose(); v.sh.geometry.dispose(); v.sh.material.dispose(); if (v.glow) v.glow.material.dispose();
+    v.sp.material.dispose(); if (v.sp.userData.plate) v.sp.userData.plate.material.dispose(); v.sh.geometry.dispose(); v.sh.material.dispose(); if (v.glow) v.glow.material.dispose();
     if (v.beam) { v.beam.geometry.dispose(); v.beam.material.dispose(); }
     this.dropViews.delete(drop);
     this.dropHits = [...this.dropViews.values()].map((d) => d.sp);
@@ -1107,7 +1185,7 @@ export class Renderer3D {
     if (!drop) { this.dropLabel.hidden = true; return; }
     const it = ITEMS[drop.id];
     this.dropLabel.textContent = it.name;
-    this.dropLabel.style.color = RARITY[it.rarity || 'common'].color;
+    this.dropLabel.style.color = RARITY[it.rarity || 'common'].color; this.dropLabel.dataset.r = it.rarity || 'common';   // v0.93 พื้นหลังสีตามระดับ (CSS)
     this.dropLabel.hidden = false;
   }
 
@@ -1119,7 +1197,7 @@ export class Renderer3D {
       const arc = k < 1 ? Math.sin(k * Math.PI) * 0.9 : 0;
       const bob = 0.34 + Math.sin(t * 3 + v.seed) * 0.05;
       v.g.position.set(x, 0, z);
-      v.sp.position.y = bob + arc;
+      v.sp.position.y = bob + arc; if (v.sp.userData.plate) v.sp.userData.plate.position.y = v.sp.position.y;
       if (v.glow) { v.glow.position.y = v.sp.position.y; v.glow.material.opacity = 0.5 + Math.sin(t * 4 + v.seed) * 0.2; }
       if (v.beam) { v.beam.material.opacity = (0.38 + Math.sin(t * 3 + v.seed) * 0.12) * Math.min(1, k * 2); v.beam.rotation.y = t * 0.8; }
       v.g.visible = !drop.blink || Math.sin(t * 20) > -0.3;
@@ -1398,6 +1476,7 @@ export class Renderer3D {
     if (this.flowers) for (const g of this.flowers) g.visible = level < 3;
     if (this.px) { this.px.budget = Math.max(2, (this.mobile ? 5 : 10) - level * (this.mobile ? 1 : 2)); this.px.slow = level; }   // v0.27.1: งบวาดสไปรต์ตามระดับคุณภาพ
     if (this.motes) this.motes.points.visible = level < 2;
+    this.qualityLevel = level; if (this.weather) this.weather.group.visible = level < 3 && this.weatherOn !== false;
     for (const c of this.characters.values()) this.actorQuality(c);
     for (const v of this.pets.values()) this.actorQuality({ view: v, kind: 'pet' });
   }
@@ -1466,6 +1545,7 @@ export class Renderer3D {
       }
     }
     this.motes.update(t, this.rig.target.x, this.rig.target.z);
+    if (this.weather) { const D = this.dayK; this.weather.update(dt, this.rig.target.x, this.rig.target.z, D ? Math.max(0, Math.min(1, (1 - (D.h || 1)) / 0.5)) : 0, Date.now(), this.camera.quaternion); }
     this.marker.update(dt);
     this.autoZone.update(dt);
     // v0.89 โหมด HD: กลางคืนแสงตะเกียง/คริสตัลสว่างและกว้างขึ้น
@@ -1514,6 +1594,7 @@ export class Renderer3D {
     let glowC = null;
     for (const [entity, c] of this.characters) {
       c.view.update(simDt, entity);
+      if (c.aura) this.updateBossAura(c, entity, simDt);
       if (c.kind === 'player' || c.kind === 'remote') { this.sheetChar(c, entity, simDt); this.pixelWear(c, entity, simDt); }
       if (c.costume) { c.costume.update(simDt, c.view); if (c.glow && c.kind === 'player' && !c.sheet) glowC = c; }
       this.placeLabel(entity, c);

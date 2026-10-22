@@ -2,8 +2,9 @@
 // แผ่นละอาชีพ = 8 คอลัมน์ × 8 แถว (ช่องละ 128px)
 //   แถว: N · NE · E · SE · S · SW · W · NW  (ทิศตัวละครหันเทียบจอ)
 //   คอลัมน์ 0–3 = เดิน 4 เฟรม · 4–7 = โจมตี 4 เฟรม (นักบวช = ท่าร่าย/ฮีล)
-import { THREE } from './three.js?v=0.90.0';
-import { VERSION } from '../config.js?v=0.90.0';
+import { THREE } from './three.js?v=0.93.0';
+import { VERSION } from '../config.js?v=0.93.0';
+import { outfitParams } from '../data/outfits.js?v=0.93.0';   // v0.91 สีชุด
 
 // แผ่นวาดมือ 8×8 (ช่อง 128px): คอลัมน์ 0–3 เดิน · 4–7 โจมตี
 const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1, 2, 3], attack: [4, 5, 6, 7] } };
@@ -52,6 +53,27 @@ export function screenDir(angle, camera) {
   return ((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8;
 }
 
+// v0.91 สีชุด: ย้อมเฉพาะช่วงเฉดของชุดในเชดเดอร์ (ไม่ต้องมีภาพใหม่) — สูตรเดียวกับ recolorPixels ใน data/outfits.js
+const OC_GLSL = `
+uniform vec4 uOc; uniform vec3 uOcBand;
+vec3 ocHsv(vec3 c){ vec4 K=vec4(0.,-1./3.,2./3.,-1.); vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g)); vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r)); float d=q.x-min(q.w,q.y); float e=1.0e-10; return vec3(abs(q.z+(q.w-q.y)/(6.*d+e)),d/(q.x+e),q.x); }
+vec3 ocRgb(vec3 c){ vec3 p=abs(fract(c.xxx+vec3(1.,2./3.,1./3.))*6.-3.); return c.z*mix(vec3(1.),clamp(p-1.,0.,1.),c.y); }
+vec3 ocApply(vec3 lin){
+  vec3 c=pow(max(lin,vec3(0.)),vec3(1./2.2)); vec3 h=ocHsv(c); float hd=h.x*360.;
+  float dh=abs(mod(hd-uOcBand.x+540.,360.)-180.);
+  float w=(1.-smoothstep(uOcBand.y-10.,uOcBand.y,dh))*smoothstep(.1,.22,h.y)*(uOcBand.z>0.?smoothstep(uOcBand.z-.06,uOcBand.z+.02,h.z):1.);
+  vec3 n = uOc.x<1.5 ? ocRgb(vec3(fract((uOc.y+hd-uOcBand.x)/360.+1.),h.y,h.z)) : uOc.x<2.5 ? ocRgb(vec3(h.x,h.y*.3,h.z*.42)) : ocRgb(vec3(h.x,h.y*.1,.62+h.z*.38));
+  return pow(mix(c,n,w),vec3(2.2));
+}`;
+function addOutfitShader(mat, U) {
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.uOc = U.uOc; sh.uniforms.uOcBand = U.uOcBand;
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + OC_GLSL)
+      .replace('#include <map_fragment>', 'vec4 texelColor = texture2D( map, vUv ); texelColor = mapTexelToLinear( texelColor ); if ( uOc.x > 0.5 ) texelColor.rgb = ocApply( texelColor.rgb ); diffuseColor *= texelColor;');
+  };
+  mat.customProgramCacheKey = () => 'outfit1';
+}
+
 const FPS = { idle: { fps: 1, loop: true }, walk: { fps: 8, loop: true }, attack: { fps: 11, loop: false }, skill: { fps: 9, loop: false } };
 const framesOf = (S, name) => S.anim[name] || S.anim.attack;
 const fpsOf = (S, name) => (S.fps && S.fps[name]) || FPS[name];
@@ -70,6 +92,8 @@ export class SheetSprite {
     const geo = new THREE.PlaneGeometry(1, 1);
     // วาดหลังชิ้นแฟชั่นโปร่ง (ปีกไฟ/ออร่า) เสมอ → ตัวละครอยู่หน้าปีก ไม่โดนปีกบังจนจาง
     this.mat = new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.5, depthWrite: true, toneMapped: false, side: THREE.DoubleSide });
+    this.oc = { uOc: { value: new THREE.Vector4(0, 0, 0, 0) }, uOcBand: { value: new THREE.Vector3(0, 30, 0) } }; this.ocKey = '';
+    addOutfitShader(this.mat, this.oc);   // v0.91 สีชุด
     this.mesh = new THREE.Mesh(geo, this.mat); this.mesh.renderOrder = 40; this.mesh.frustumCulled = false;
     // ส่วนที่ถูกต้นไม้/บ้านบัง → เงาโปร่งทะลุ (แบบเดียวกับสไปรต์ตัวละครเดิม)
     this.xmat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.5, alphaTest: 0.5, depthWrite: false, depthFunc: THREE.GreaterDepth, toneMapped: false, color: new THREE.Color(0.75, 0.82, 1.0), side: THREE.DoubleSide });
@@ -158,6 +182,13 @@ export class SheetSprite {
     this.xray.scale.copy(this.mesh.scale); this.xray.position.copy(this.mesh.position); this.xray.rotation.z = this.mesh.rotation.z;
     this.xray.visible = !!ent.isPlayer || ent === (globalThis.asteria && globalThis.asteria.player);
     this.mat.color.copy(tint || new THREE.Color(1, 1, 1));
+    // v0.91 สีชุด (ตามหน้าตาของผู้เล่น/ผู้เล่นคนอื่น) · แผ่นชุดมังกรไม่ย้อม
+    const oid = (ent.look && ent.look.oc) || 'def', ok = oid + '|' + this.job;
+    if (ok !== this.ocKey) {
+      this.ocKey = ok;
+      const P = this.job.endsWith('_dragon') ? null : outfitParams(oid, S.base || this.job);
+      if (P) { this.oc.uOc.value.set(P.mode, P.hue, 0, 0); this.oc.uOcBand.value.set(P.band[0], P.band[1], P.band[2]); } else this.oc.uOc.value.set(0, 0, 0, 0);
+    }
     if (view && view.hurtT > 0) this.mat.color.setRGB(1, 0.45, 0.45);
     this.info = { dir: d, anim: this.anim, col };
   }
