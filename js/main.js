@@ -71,7 +71,7 @@ async function createOnline({ Online }) {
 if (!window.THREE) {
   fatal('โหลดกราฟิก 3 มิติ (Three.js) ไม่สำเร็จ — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้า');
 } else {
-  Promise.all([import('./core/Game.js?v=0.93.0'), import('./net/Online.js?v=0.93.0'), import('./audio/AudioEngine.js?v=0.93.0'), import('./ui/TitleScreen.js?v=0.93.0'), import('./core/Save.js?v=0.93.0'), import('./render/CardPortraits.js?v=0.93.0')])
+  Promise.all([import('./core/Game.js?v=0.93.1'), import('./net/Online.js?v=0.93.0'), import('./audio/AudioEngine.js?v=0.93.0'), import('./ui/TitleScreen.js?v=0.93.0'), import('./core/Save.js?v=0.93.0'), import('./render/CardPortraits.js?v=0.93.0')])
     .then(async ([{ Game }, OnlineMod, { AudioEngine }, { TitleScreen }, { SaveManager }, Portraits]) => {
       const step = (v, t) => { try { if (window.__loadStep) window.__loadStep(v, t); } catch (e) { /* หน้าโหลดไม่มีก็ได้ */ } };
       step(30, 'กำลังวาดตัวละครและมอนสเตอร์…');
