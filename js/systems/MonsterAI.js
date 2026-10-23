@@ -1,9 +1,9 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.93.0-p3.28';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.28';
-import { Monster } from '../entities/Monster.js?v=0.93.0-p3.28';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p3.28';
-import { rollChampion, goldenAI } from './Elites.js?v=0.93.0-p3.28';   // v0.93 fix17 แชมเปี้ยน · มอนทองคำ
+import { TILE } from '../config.js?v=0.93.0-p3.31';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.31';
+import { Monster } from '../entities/Monster.js?v=0.93.0-p3.31';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p3.31';
+import { rollChampion, goldenAI } from './Elites.js?v=0.93.0-p3.31';   // v0.93 fix17 แชมเปี้ยน · มอนทองคำ
 
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)

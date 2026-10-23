@@ -1,11 +1,11 @@
 // หน้าต่างสัตว์เลี้ยง (v0.13 · ปุ่ม P) — สัตว์ที่ฟักได้ · เรียกออกมา/เก็บกลับ · ตัวกรองการเก็บของ · ไข่ในกระเป๋า
-import { PETS, PET_ORDER, PET_RARITY, PET_EGGS, petStats, STAR_MAX, fmtPct, petsOfTier } from '../data/pets.js?v=0.93.0-p3.28';
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.28';
-import { PET_TICKETS } from '../data/consumables.js?v=0.93.0-p3.28';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.28';
-import { petThumb } from '../render/PetThumbs.js?v=0.93.0-p3.28';
-import { PICK_CATS, PICK_GRADES } from '../systems/PetPick.js?v=0.93.0-p3.28';
-import { RARITY } from '../data/items.js?v=0.93.0-p3.28';
+import { PETS, PET_ORDER, PET_RARITY, PET_EGGS, petStats, STAR_MAX, fmtPct, petsOfTier } from '../data/pets.js?v=0.93.0-p3.31';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.31';
+import { PET_TICKETS } from '../data/consumables.js?v=0.93.0-p3.31';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.31';
+import { petThumb } from '../render/PetThumbs.js?v=0.93.0-p3.31';
+import { PICK_CATS, PICK_GRADES } from '../systems/PetPick.js?v=0.93.0-p3.31';
+import { RARITY } from '../data/items.js?v=0.93.0-p3.31';
 
 const EGGS = ['egg_spot', 'egg_moon', 'egg_galaxy', ...PET_TICKETS];   // v0.48: ไข่เก่า + ตั๋วสัตว์เลี้ยงจากร้านเพชร
 

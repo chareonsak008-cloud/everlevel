@@ -1,10 +1,10 @@
 // v0.89 ช่างตีเหล็ก — ซ่อมอุปกรณ์ (ความทนทาน) · ถอดการ์ดคืน (ค่าบริการแพงมาก)
 // เปิดจาก NPC ช่างตีเหล็กในเมือง หรือหน้า VIP (ซ่อมได้ทุกที่ · ถอดการ์ดต้องมาที่ร้าน)
-import { ITEMS, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.93.0-p3.28';
-import { CARDS } from '../data/cards.js?v=0.93.0-p3.28';
-import { duraOf, DURA_MAX, DURA_LOW, unsocketCost } from '../data/durability.js?v=0.93.0-p3.28';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.28';
-import { fmtZ } from '../data/shops.js?v=0.93.0-p3.28';
+import { ITEMS, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.93.0-p3.31';
+import { CARDS } from '../data/cards.js?v=0.93.0-p3.31';
+import { duraOf, DURA_MAX, DURA_LOW, unsocketCost } from '../data/durability.js?v=0.93.0-p3.31';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.31';
+import { fmtZ } from '../data/shops.js?v=0.93.0-p3.31';
 
 const slotName = (id) => (EQUIP_SLOTS.find((s) => s.id === id) || {}).name || id;
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

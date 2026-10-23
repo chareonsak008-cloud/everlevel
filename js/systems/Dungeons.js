@@ -1,15 +1,15 @@
 // v0.32: ระบบดันเจี้ยนถ้ำ (เป็นชั้น · บอสท้ายชั้น · จำกัดรอบต่อวัน) + หอคอยไต่ชั้นไม่รู้จบ (อันดับชั้นสูงสุด)
 // แต่ละรอบเป็นแผนที่ส่วนตัว (instance) สร้างใหม่ทุกชั้น · มอนปรับเลเวลตามผู้เล่น/ชั้น · ไม่เกิดใหม่
-import { TILE } from '../config.js?v=0.93.0-p3.28';
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.28';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.28';
-import { JOBS } from '../data/progression.js?v=0.93.0-p3.28';
-import { START_MAP } from '../data/maps/index.js?v=0.93.0-p3.28';
+import { TILE } from '../config.js?v=0.93.0-p3.31';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.31';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.31';
+import { JOBS } from '../data/progression.js?v=0.93.0-p3.31';
+import { START_MAP } from '../data/maps/index.js?v=0.93.0-p3.31';
 import {
   CAVE, TOWER, todayKey, rngOf, pickRoster, scaledData, refHp, refExp, BOSS_MOBS,
   caveFloorDef, towerFloorDef, towerFloorPlan, towerFloorReward, towerLevel,
   CAVE_MOB_DROPS, CAVE_BOSS_DROPS, CAVE_FINAL_DROPS, TOWER_MOB_DROPS, caveChest, normDungeon,
-} from '../data/dungeons.js?v=0.93.0-p3.28';
+} from '../data/dungeons.js?v=0.93.0-p3.31';
 export { normDungeon };
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

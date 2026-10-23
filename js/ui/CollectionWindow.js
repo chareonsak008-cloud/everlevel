@@ -1,14 +1,14 @@
 // สมุดสะสม (v0.18 · ปุ่ม B / 📖) — เป้าหมาย · สมุดมอนสเตอร์ · ความสำเร็จและฉายา · อัลบั้มการ์ด · เช็กอินรายวัน
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.28';
-import { ITEMS, describeBonus } from '../data/items.js?v=0.93.0-p3.28';
-import { CARDS } from '../data/cards.js?v=0.93.0-p3.28';
-import { CARD_COMBOS, effectText } from '../data/cardCatalog.js?v=0.93.0-p3.28';
-import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, CARD_TOTAL, ACHIEVEMENTS, ACH_CATS, TIER_LABEL, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.93.0-p3.28';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.28';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.93.0-p3.28';
-import { localDay } from '../systems/Collection.js?v=0.93.0-p3.28';
-import { honorInner, injectTitleCss } from './TitleFx.js?v=0.93.0-p3.28';
-import { titlesOf, holderTitles, SEASON_TITLES, MAX_TITLES, seasonInfo } from '../data/seasonTitles.js?v=0.93.0-p3.28';   // v0.76
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.31';
+import { ITEMS, describeBonus } from '../data/items.js?v=0.93.0-p3.31';
+import { CARDS } from '../data/cards.js?v=0.93.0-p3.31';
+import { CARD_COMBOS, effectText } from '../data/cardCatalog.js?v=0.93.0-p3.31';
+import { BOOK, BOOK_ORDER, bookTier, bookTiers, CARD_SETS, CARD_TOTAL, ACHIEVEMENTS, ACH_CATS, TIER_LABEL, loginReward, LOGIN_DAYS } from '../data/collection.js?v=0.93.0-p3.31';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.31';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.93.0-p3.31';
+import { localDay } from '../systems/Collection.js?v=0.93.0-p3.31';
+import { honorInner, injectTitleCss } from './TitleFx.js?v=0.93.0-p3.31';
+import { titlesOf, holderTitles, SEASON_TITLES, MAX_TITLES, seasonInfo } from '../data/seasonTitles.js?v=0.93.0-p3.31';   // v0.76
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (n) => Math.floor(n).toLocaleString('en-US');
