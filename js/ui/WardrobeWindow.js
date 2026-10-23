@@ -1,12 +1,12 @@
 // ตู้แฟชั่น (v0.9): ดูชิ้นที่สะสมได้ สวม/ถอดแฟชั่น ดูชุดเซ็ต · เปิดด้วย O
 // ชิ้นที่ยังไม่มีจะแสดงเป็นภาพสีเทาพร้อมแม่กุญแจ (ได้จากการเปิดกล่องแฟชั่นเท่านั้น)
-import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.93.0-p2.11';
-import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.93.0-p2.11';
-import { SLOT_INFO } from '../render/Costumes.js?v=0.93.0-p2.11';
-import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.93.0-p2.11';
-import { FASHION_SLOTS } from '../entities/Player.js?v=0.93.0-p2.11';
-import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0-p2.11';
-import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0-p2.11';   // v0.91 สีชุด
+import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.93.0-p2.13';
+import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.93.0-p2.13';
+import { SLOT_INFO } from '../render/Costumes.js?v=0.93.0-p2.13';
+import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.93.0-p2.13';
+import { FASHION_SLOTS } from '../entities/Player.js?v=0.93.0-p2.13';
+import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0-p2.13';
+import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0-p2.13';   // v0.91 สีชุด
 
 // v0.35: แสดงเฉพาะช่องที่มีชิ้นแฟชั่นในเกม (ชิ้น 3 มิติถูกถอดออก รอออกแบบใหม่) · แท็บชุดเซ็ตซ่อนเมื่อไม่มีเซ็ต
 const TABS = [['color', 'สีชุด'], ...FASHION_SLOTS.filter((s) => COSTUMES.some((c) => c.slot === s)).map((s) => [s, SLOT_INFO[s].name]), ...(SETS.length ? [['set', 'ชุดเซ็ต']] : [])];
@@ -170,7 +170,7 @@ export class WardrobeWindow {
       <p class="d-desc"></p>
       ${owned
         ? `<p class="wd-own">${worn ? (fit ? '✔ กำลังสวมใส่' : '⚠ สวมอยู่แต่ซ่อนไว้ — ต้องถืออาวุธประเภท' + WTYPE[it.wtype]) : '✔ อยู่ในตู้แฟชั่นแล้ว'}</p>`
-        : `<p class="wd-lock">🔒 ยังไม่มี · ซื้อได้ที่ร้านเพชร 💎 (หมวดแฟชั่น)</p>`}
+        : it.event ? `<p class="wd-lock">🎃 แฟชั่นเทศกาล${it.event} — ไม่มีขาย · GM แจกในช่วงเทศกาลเท่านั้น</p>` : `<p class="wd-lock">🔒 ยังไม่มี · ซื้อได้ที่ร้านเพชร 💎 (หมวดแฟชั่น)</p>`}   // v0.93 fix11
       ${it.slot === 'weapon' && owned && !worn ? `<p class="wd-note">แสดงเมื่อถืออาวุธประเภท${WTYPE[it.wtype]}</p>` : ''}
       <div class="d-actions"></div>`;
     box.querySelector('.wd-name').textContent = it.name;

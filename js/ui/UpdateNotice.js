@@ -2,9 +2,9 @@
 // · ปุ่ม "อัปเดต" บนแถบด้านบน → หน้าต่างข่าวอัปเดต (เวอร์ชัน + เวลาอัปเดต + รายการที่เปลี่ยน) · มีป้าย NEW เมื่อยังไม่ได้อ่าน
 // · เปิดเกมครั้งแรกหลังอัปเดต → เปิดหน้าต่างข่าวให้อัตโนมัติ 1 ครั้ง
 // · เปิดเกมค้างไว้แล้วเว็บมีเวอร์ชันใหม่ (เช็ก version.json ทุก 3 นาที) → แถบแจ้ง "มีอัปเดตใหม่" + ปุ่ม "อัปเดตเลย" (เซฟก่อนแล้วโหลดหน้าใหม่)
-import { VERSION, PATCH } from '../config.js?v=0.93.0-p2.11';
-import { BUILT } from '../build.js?v=0.93.0-p2.11';
-import { PATCH_NOTES } from '../data/patchNotes.js?v=0.93.0-p2.11';
+import { VERSION, PATCH } from '../config.js?v=0.93.0-p2.13';
+import { BUILT } from '../build.js?v=0.93.0-p2.13';
+import { PATCH_NOTES } from '../data/patchNotes.js?v=0.93.0-p2.13';
 
 const SEEN = 'everlevel.notes.seen';
 const CUR = `${VERSION}#${PATCH || 0}`;   // เวอร์ชัน + ครั้งที่แก้ไข
