@@ -1,7 +1,7 @@
 // v0.85 สกิลจอมเวทพันปี (นักเวทคลาส 3): วงเวทเรขาคณิตขาวทอง · ลำแสงเวท · ม่านหกเหลี่ยม · ทุ่งดอกไม้
 // fx_m3_* · ดาเมจ/จังหวะจาก sk.nf ผ่าน fx_nf · ใช้ตัวช่วยจาก SwordFX/HealFX/MageFX
-import { THREE } from './three.js?v=0.93.0-p1.8';
-import * as TX from './FxTextures.js?v=0.93.0-p1.8';
+import { THREE } from './three.js?v=0.93.0-p1.9';
+import * as TX from './FxTextures.js?v=0.93.0-p1.9';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);

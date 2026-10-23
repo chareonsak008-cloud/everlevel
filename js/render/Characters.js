@@ -2,11 +2,11 @@
 // โมเดลนี้ใช้ถ่ายเป็นสไปรต์พิกเซล (render/PixelSprites.js) และใช้แสดงแบบ 3 มิติได้ด้วยเมื่อปิดโหมดพิกเซล
 // โครงกระดูกเข้ากันได้กับชุดแฟชั่นเดิม: root › body › torso (สะโพก) › head / arms[0..1] · body › legs[0..1]
 //   arms/legs = จุดหมุนไหล่/สะโพก (ยืดแกน y ให้ชิ้นแฟชั่นเดิมไปอยู่ตำแหน่งข้อมือ/แข้งใหม่พอดี) · hands = จุดถืออาวุธ (ไม่ยืด)
-import { mountEquipment } from './EquipmentModels.js?v=0.93.0-p1.8';
-import { THREE } from './three.js?v=0.93.0-p1.8';
-import { blobShadowTexture, shadeHex } from './Textures.js?v=0.93.0-p1.8';
-import { toon, bake, addOutline, faceMaterial } from './Toon.js?v=0.93.0-p1.8';
-import { lerpAngle, damp } from '../core/util.js?v=0.93.0-p1.8';
+import { mountEquipment } from './EquipmentModels.js?v=0.93.0-p1.9';
+import { THREE } from './three.js?v=0.93.0-p1.9';
+import { blobShadowTexture, shadeHex } from './Textures.js?v=0.93.0-p1.9';
+import { toon, bake, addOutline, faceMaterial } from './Toon.js?v=0.93.0-p1.9';
+import { lerpAngle, damp } from '../core/util.js?v=0.93.0-p1.9';
 
 const LEG = 0.6, LS = LEG / 0.34;       // ความยาวขาใหม่ · อัตรายืดเทียบโครงเดิม
 const AS = 1.35;                        // แขนยาวขึ้น
