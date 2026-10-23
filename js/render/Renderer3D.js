@@ -1,38 +1,38 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.93.0-p2.18';
-import { PixelWingSprite } from './PixelWings.js?v=0.93.0-p2.18';
-import { SeraphWings } from './SeraphWings.js?v=0.93.0-p2.18';   // v0.95 ปีกเทวทูต 6 ปีก (โมเดล 3 มิติ หมุนตามตัวแบบลื่น)
-import { paintPlate } from '../ui/Nameplates.js?v=0.93.0-p2.18';
-import { PixelVfx } from './PixelVfx.js?v=0.93.0-p2.18';
-import { THREE } from './three.js?v=0.93.0-p2.18';
-import { TILE } from '../config.js?v=0.93.0-p2.18';
-import { T } from '../data/tileTypes.js?v=0.93.0-p2.18';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.93.0-p2.18';
-import { pumpkinHat, townDecor } from './Halloween.js?v=0.93.0-p2.18';   // fix15
-import { PXAA } from './PixelGround.js?v=0.93.0-p2.18';
-import { GrandPortal, GrandFx, setGrandViewport, screenFlash } from './GrandFx.js?v=0.93.0-p2.18';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.93.0-p2.18';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.93.0-p2.18';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.93.0-p3.23';
+import { PixelWingSprite } from './PixelWings.js?v=0.93.0-p3.23';
+import { SeraphWings } from './SeraphWings.js?v=0.93.0-p3.23';   // v0.95 ปีกเทวทูต 6 ปีก (โมเดล 3 มิติ หมุนตามตัวแบบลื่น)
+import { paintPlate } from '../ui/Nameplates.js?v=0.93.0-p3.23';
+import { PixelVfx } from './PixelVfx.js?v=0.93.0-p3.23';
+import { THREE } from './three.js?v=0.93.0-p3.23';
+import { TILE } from '../config.js?v=0.93.0-p3.23';
+import { T } from '../data/tileTypes.js?v=0.93.0-p3.23';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.93.0-p3.23';
+import { pumpkinHat, townDecor } from './Halloween.js?v=0.93.0-p3.23';   // fix15
+import { PXAA } from './PixelGround.js?v=0.93.0-p3.23';
+import { GrandPortal, GrandFx, setGrandViewport, screenFlash } from './GrandFx.js?v=0.93.0-p3.23';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.93.0-p3.23';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.93.0-p3.23';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.93.0-p2.18';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.93.0-p2.18';
-import { iconCanvas } from './ItemIcons.js?v=0.93.0-p2.18';
-import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p2.18';
-import { MonsterView } from './Monsters.js?v=0.93.0-p2.18';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.93.0-p2.18';
-import { SkillFX } from './SkillFX.js?v=0.93.0-p2.18';
-import { PostFX } from './PostFX.js?v=0.93.0-p2.18';
-import { Weather } from './Weather.js?v=0.93.0-p2.18';   // v0.91 สภาพอากาศ
-import { costumeLook, wearCostume } from './Costumes.js?v=0.93.0-p2.18';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0-p2.18';
-import { PetView } from './Pets.js?v=0.93.0-p2.18';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.93.0-p2.18';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.93.0-p2.18';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.93.0-p2.18';
-import { gradientMap } from './Toon.js?v=0.93.0-p2.18';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.93.0-p2.18';
+} from './Models.js?v=0.93.0-p3.23';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.93.0-p3.23';
+import { iconCanvas } from './ItemIcons.js?v=0.93.0-p3.23';
+import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p3.23';
+import { MonsterView } from './Monsters.js?v=0.93.0-p3.23';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.93.0-p3.23';
+import { SkillFX } from './SkillFX.js?v=0.93.0-p3.23';
+import { PostFX } from './PostFX.js?v=0.93.0-p3.23';
+import { Weather } from './Weather.js?v=0.93.0-p3.23';   // v0.91 สภาพอากาศ
+import { costumeLook, wearCostume } from './Costumes.js?v=0.93.0-p3.23';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0-p3.23';
+import { PetView } from './Pets.js?v=0.93.0-p3.23';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.93.0-p3.23';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.93.0-p3.23';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.93.0-p3.23';
+import { gradientMap } from './Toon.js?v=0.93.0-p3.23';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.93.0-p3.23';
 // v0.86 กลางวัน · ตอนเย็น · กลางคืน · รุ่งสาง — ตัวคูณแสง (h=ฟ้า s=แดด e=exposure) + สีที่ผสมเข้าไป (mix)
 const DAY_PRESETS = {
   day: { name: 'กลางวัน', icon: '☀', h: 1, s: 1, e: 1, mix: 0, glow: 1, tint: [0, 0, 0, 0] },
@@ -247,6 +247,7 @@ export class Renderer3D {
     this.post.strength = this.baseGlow = FXL.glow ?? 0.7;
     this.post.flashScale = FXL.flash ?? 0.6;
     const world = this.world = new THREE.Group(); scene.add(world);
+    this.chestObjs = new Map(); this.elites = [];   // fix17
     this.hwDecor = null;   // fix15 ของตกแต่งฮาโลวีน (อยู่ใน world → ลบไปพร้อมแผนที่)
 
     // พื้น
@@ -730,6 +731,64 @@ export class Renderer3D {
   // v0.32: ประตูมิติที่เกิดกลางเกม (บันไดลงชั้นถัดไปในดันเจี้ยน) — คืนตัวที่สร้างไว้ลบภายหลัง
   addPortalFx(x, z, locked = false) { const p = this.safe ? new Portal(this.world, x, z, locked) : new GrandPortal(this.world, x, z, locked); this.portals.push(p); return p; }
 
+  /* ---------- v0.93 fix17 แชมเปี้ยน / มอนทองคำ / หีบสมบัติ ---------- */
+  // ย้อมสีทั้งตัวมอน (คัดลอกวัสดุเฉพาะตัวนี้ · เก็บของเดิมไว้คืนตอนเกิดใหม่เป็นตัวธรรมดา)
+  tintMob(c, col, k) {
+    c.view.root.traverse((o) => {
+      if (!o.isMesh || !o.material || Array.isArray(o.material) || o.userData.eliteSkip || o.material.blending === THREE.AdditiveBlending || o.material.transparent && !o.material.map && o.material.opacity < 0.5) return;
+      if (!o.userData.matOrig) { o.userData.matOrig = o.material; o.material = o.material.clone(); }
+      const src = o.userData.matOrig;
+      if (o.material.color && src.color) o.material.color.copy(src.color).lerp(new THREE.Color(col), k);
+      if (o.material.emissive) { o.material.emissive.set(col); o.material.emissiveIntensity = k * 0.55; }
+    });
+  }
+  untintMob(c) { c.view.root.traverse((o) => { if (o.userData.matOrig) { o.material.dispose(); o.material = o.userData.matOrig; delete o.userData.matOrig; } }); }
+  eliteFx(m) {
+    const c = this.characters.get(m); if (!c) return;
+    if (c.elite) { c.elite.g.parent && c.elite.g.parent.remove(c.elite.g); c.elite.g.traverse((o) => { if (o.material) o.material.dispose(); if (o.geometry) o.geometry.dispose(); }); c.elite = null; this.elites = (this.elites || []).filter((x) => x.m !== m); }
+    const base = `${m.data.mvp ? 'MVP · ' : m.data.dgBoss ? 'BOSS · ' : ''}${m.name} Lv.${m.level}`;
+    if (!m.champ && !m.golden) { if (c.tinted) { this.untintMob(c); c.tinted = false; if (this.px.enabled) { this.px.detach(m); this.px.attach(m, c.view, 'mob'); } } c.label.textContent = base; c.label.classList.remove('tag-champ', 'tag-gold'); return; }
+    const col = m.golden ? '#ffd23a' : m.champ.color, h = (m.data.height || 1);
+    this.tintMob(c, col, m.golden ? 0.85 : 0.5); c.tinted = true;
+    if (this.px.enabled) { this.px.detach(m); this.px.attach(m, c.view, 'mob'); }   // วาดสไปรต์พิกเซลใหม่ด้วยสีที่ย้อม
+    const g = new THREE.Group();
+    const dark = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTexture(), color: '#140818', transparent: true, opacity: 0.55, depthWrite: false }));
+    dark.rotation.x = -Math.PI / 2; dark.position.y = 0.03; g.add(dark);
+    const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: magicCircleTexture(), color: col, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; const rs = Math.max(1.6, (m.data.radius || 0.55) * 3.2); ring.scale.set(rs, rs, 1); dark.scale.set(rs * 1.2, rs * 1.2, 1); g.add(ring);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: col, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.scale.set(h * 2.4 + 1.0, h * 2.4 + 1.0, 1); glow.position.y = h * 0.55; g.add(glow);
+    g.traverse((o) => { o.userData.eliteSkip = true; });
+    this.world.add(g); g.position.set(m.x * S, 0, m.y * S);   // อยู่ในโลก (ไม่ใช่ในโมเดล) → ไม่ถูกแปลงเป็นสไปรต์พิกเซล · ตามตำแหน่งมอนทุกเฟรม
+    c.elite = { g, ring, glow }; (this.elites = this.elites || []).push({ m, c, col });
+    c.label.textContent = m.golden ? `✨ ${m.name} Lv.${m.level}` : `⭐ ${m.champ.name} · ${base}`;
+    c.label.classList.toggle('tag-gold', !!m.golden); c.label.classList.toggle('tag-champ', !!m.champ && !m.golden);
+  }
+  updateElites(t, dt) {
+    if (!this.elites || !this.elites.length) return;
+    this.elites = this.elites.filter((e) => this.characters.get(e.m) === e.c && e.c.elite);
+    for (const e of this.elites) {
+      const E = e.c.elite, m = e.m; if (m.dead) { E.g.visible = false; continue; } E.g.visible = true; E.g.position.set(m.x * S, 0, m.y * S);
+      E.ring.rotation.z = t * (m.golden ? 2.2 : 1.1); E.glow.material.opacity = 0.55 + 0.25 * Math.sin(t * 4 + m.id);
+      if (m.golden && (e.sp = (e.sp || 0) - dt) <= 0) { e.sp = 0.25; this.bursts.spawn(m.x * S, 0.4 + Math.random() * 0.8, m.y * S, '#ffe27a', 3, 0.8, 1.2); }
+    }
+  }
+  addChest(c) {
+    this.chestObjs = this.chestObjs || new Map();
+    const g = new THREE.Group(); g.position.set(c.x * S, 0, c.y * S); g.rotation.y = (c.tx * 7 + c.ty * 3) % 6.28;
+    const build = (this.px.enabled && this.pxBuilders()['chest']) || BUILDERS.chest; const model = build({ kind: 'chest', seed: c.tx * 31 + c.ty }); model.scale.setScalar(0.85); g.add(model);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: '#ffd86a', transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.scale.set(1.6, 1.6, 1); glow.position.y = 0.4; g.add(glow);
+    this.world.add(g); this.chestObjs.set(c.key, { g, glow, x: c.x, y: c.y, ph: c.tx });
+  }
+  removeChest(key, burst = true) {
+    const o = this.chestObjs && this.chestObjs.get(key); if (!o) return;
+    if (burst) { this.bursts.spawn(o.x * S, 0.5, o.y * S, '#ffd86a', 30, 1.6, 2.4); this.circles.spawn(o.x * S, o.y * S, { color: '#ffd86a', size: 1.8, life: 1.2, pillar: true }); }
+    else this.bursts.spawn(o.x * S, 0.5, o.y * S, '#ff4a3a', 24, 1.4, 2);
+    this.world.remove(o.g); this.chestObjs.delete(key);
+  }
+  updateChests(t) { if (!this.chestObjs) return; for (const o of this.chestObjs.values()) { o.glow.material.opacity = 0.35 + 0.2 * Math.sin(t * 3 + o.ph); o.glow.position.y = 0.4 + Math.sin(t * 2 + o.ph) * 0.06; } }
+
   // fix15 ฮาโลวีน: ฟักทองจุดเทียนรอบ NPC ในเมือง
   halloweenTown(npcs) {
     if (!this.world || !npcs || !npcs.length) return;
@@ -754,6 +813,7 @@ export class Renderer3D {
     const hpbar = document.createElement('div'); hpbar.className = 'hpbar' + (mob.data.mvp || mob.data.dgBoss ? ' hpbar-mvp' : ''); hpbar.innerHTML = '<i></i>'; hpbar.hidden = true;
     this.labelLayer.append(label, hpbar);
     this.characters.set(mob, { view, label, hpbar, kind: 'mob', head: h * bossK, lastHp: -1, aura: bossK > 1 ? this.bossAura(mob, bossK) : null });
+    if (mob.champ || mob.golden) this.eliteFx(mob);   // fix17
     this.actorQuality(this.characters.get(mob));
     view.update(0, mob);
   }
@@ -840,6 +900,7 @@ export class Renderer3D {
   }
 
   removeActor(entity) {
+    { const c0 = this.characters.get(entity); if (c0 && c0.elite) { c0.elite.g.parent && c0.elite.g.parent.remove(c0.elite.g); c0.elite = null; } }   // fix17
     const c = this.characters.get(entity); if (!c) return;
     if (c.sheet) { c.sheet.dispose(); c.sheet = null; }
     this.pixelWear(c, entity, 0, true);
@@ -1569,6 +1630,7 @@ export class Renderer3D {
     for (const s of this.sprays) s.update(dt, t);
     for (const p of this.portals) p.update(t, this.lowFx);
     if (this.hwDecor) this.hwDecor.update(t);
+    this.updateElites(t, simDt); this.updateChests(t);   // fix17
     this.updatePropLights(dt);
     const sm = this.renderer.shadowMap;
     if (sm.enabled) {
