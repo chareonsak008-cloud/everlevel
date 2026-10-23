@@ -2,9 +2,9 @@
 // · ปุ่ม "อัปเดต" บนแถบด้านบน → หน้าต่างข่าวอัปเดต (เวอร์ชัน + เวลาอัปเดต + รายการที่เปลี่ยน) · มีป้าย NEW เมื่อยังไม่ได้อ่าน
 // · เปิดเกมครั้งแรกหลังอัปเดต → เปิดหน้าต่างข่าวให้อัตโนมัติ 1 ครั้ง
 // · เปิดเกมค้างไว้แล้วเว็บมีเวอร์ชันใหม่ (เช็ก version.json ทุก 3 นาที) → แถบแจ้ง "มีอัปเดตใหม่" + ปุ่ม "อัปเดตเลย" (เซฟก่อนแล้วโหลดหน้าใหม่)
-import { VERSION, PATCH } from '../config.js?v=0.93.0-p2.13';
-import { BUILT } from '../build.js?v=0.93.0-p2.13';
-import { PATCH_NOTES } from '../data/patchNotes.js?v=0.93.0-p2.13';
+import { VERSION, PATCH } from '../config.js?v=0.93.0-p2.14';
+import { BUILT } from '../build.js?v=0.93.0-p2.14';
+import { PATCH_NOTES } from '../data/patchNotes.js?v=0.93.0-p2.14';
 
 const SEEN = 'everlevel.notes.seen';
 const CUR = `${VERSION}#${PATCH || 0}`;   // เวอร์ชัน + ครั้งที่แก้ไข
@@ -88,7 +88,9 @@ export class UpdateNotice {
   async reload() {
     const b = this.banner.querySelector('.ub-go'); b.disabled = true; b.textContent = 'กำลังเซฟ…';
     try { await Promise.race([this.g.saveNow(false, true), new Promise((r) => setTimeout(r, 2500))]); } catch (e) { /* เซฟไม่ได้ก็โหลดต่อ */ }
-    location.reload();
+    // v0.93 fix13 โหลดหน้าใหม่แบบข้ามแคช (เดิม location.reload() ได้หน้าเว็บเก่าจากแคช → แถบแจ้งอัปเดตขึ้นซ้ำ)
+    try { sessionStorage.setItem('everlevel.fresh', String(Date.now())); await fetch('index.html', { cache: 'reload' }); } catch (e) { /* ออฟไลน์ */ }
+    const u = new URL(location.href); u.searchParams.set('u', Date.now().toString(36)); location.replace(u.toString());
   }
 
   toggle(force) {

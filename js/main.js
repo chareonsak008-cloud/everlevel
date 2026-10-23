@@ -4,7 +4,7 @@
 // v0.13: โหลดไฟล์ตั้งค่าแบบไม่บังคับ — ถ้าไม่มีไฟล์นี้ เกมยังเปิดได้ (โหมดออฟไลน์/บัญชี Claude)
 async function serverConfig() {
   if(window.__contentPreview)return {};
-  try { return await import('./net/server-config.js?v=0.93.0-p2.13'); } catch (e) { return {}; }
+  try { return await import('./net/server-config.js?v=0.93.0-p2.14'); } catch (e) { return {}; }
 }
 
 const root = document.getElementById('game');
@@ -16,6 +16,27 @@ function fatal(msg) {
   el.textContent = msg;
   root.append(el);
   root.classList.add('ready');
+}
+
+// v0.93 fix13 หน้าเว็บ (index.html) ถูกแคชไว้ → กด "อัปเดตเลย" แล้วยังได้ไฟล์เก่า แถบแจ้งอัปเดตขึ้นซ้ำ
+// เทียบเวอร์ชันของไฟล์ที่โหลดอยู่ (จาก ?v= ของ main.js) กับ version.json บนเซิร์ฟเวอร์ → เก่ากว่า = โหลดหน้าใหม่แบบข้ามแคช (สูงสุด 1 ครั้ง/10 นาที)
+export async function freshReload() {
+  try { await fetch('index.html', { cache: 'reload' }); } catch (e) { /* ออฟไลน์ */ }
+  const u = new URL(location.href); u.searchParams.set('u', Date.now().toString(36));
+  location.replace(u.toString());
+}
+async function staleGuard() {
+  try {
+    const mine = new URL(import.meta.url).searchParams.get('v') || '', m = /^([\d.]+)-p(\d+)/.exec(mine); if (!m) return false;
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 2500);
+    const j = await (await fetch(`version.json?t=${Date.now()}`, { cache: 'no-store', signal: ctl.signal })).json(); clearTimeout(tm);
+    const cmp = (a, b) => { const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); } return 0; };
+    const c = cmp(j.version, m[1]), stale = c > 0 || (c === 0 && (+j.patch || 0) > +m[2]);
+    if (!stale) return false;
+    const last = +sessionStorage.getItem('everlevel.fresh') || 0; if (Date.now() - last < 600000) return false;
+    sessionStorage.setItem('everlevel.fresh', String(Date.now()));
+    await freshReload(); return true;
+  } catch (e) { return false; }
 }
 
 // v0.31.1: อัปเดตเกมแล้วเบราว์เซอร์ยังจำไฟล์เก่าบางไฟล์ (แคช ~10 นาทีของ GitHub Pages) → ไฟล์เก่า/ใหม่ปนกันจนเริ่มเกมไม่ได้
@@ -54,7 +75,7 @@ async function createOnline({ Online }) {
   if (configured && !window.__noServer) {
     if (window.supabase || await loadScript(SUPABASE_JS)) {
       try {
-        const { SupabaseOnline } = await import('./net/SupabaseOnline.js?v=0.93.0-p2.13');
+        const { SupabaseOnline } = await import('./net/SupabaseOnline.js?v=0.93.0-p2.14');
         const client = window.supabase.createClient(url, key, {
           auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
         });
@@ -71,7 +92,7 @@ async function createOnline({ Online }) {
 if (!window.THREE) {
   fatal('โหลดกราฟิก 3 มิติ (Three.js) ไม่สำเร็จ — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้า');
 } else {
-  Promise.all([import('./core/Game.js?v=0.93.0-p2.13'), import('./net/Online.js?v=0.93.0-p2.13'), import('./audio/AudioEngine.js?v=0.93.0-p2.13'), import('./ui/TitleScreen.js?v=0.93.0-p2.13'), import('./core/Save.js?v=0.93.0-p2.13'), import('./render/CardPortraits.js?v=0.93.0-p2.13')])
+  staleGuard().then((went) => { if (went) return new Promise(() => {}); }).then(() => Promise.all([import('./core/Game.js?v=0.93.0-p2.14'), import('./net/Online.js?v=0.93.0-p2.14'), import('./audio/AudioEngine.js?v=0.93.0-p2.14'), import('./ui/TitleScreen.js?v=0.93.0-p2.14'), import('./core/Save.js?v=0.93.0-p2.14'), import('./render/CardPortraits.js?v=0.93.0-p2.14')])
     .then(async ([{ Game }, OnlineMod, { AudioEngine }, { TitleScreen }, { SaveManager }, Portraits]) => {
       const step = (v, t) => { try { if (window.__loadStep) window.__loadStep(v, t); } catch (e) { /* หน้าโหลดไม่มีก็ได้ */ } };
       step(30, 'กำลังวาดตัวละครและมอนสเตอร์…');
@@ -96,5 +117,5 @@ if (!window.THREE) {
       console.error(err);
       if (await healCache()) return;   // กำลังโหลดไฟล์ใหม่แล้วรีเฟรช
       fatal('เริ่มเกมไม่สำเร็จ: ' + (err && err.message ? err.message : err) + ' — ลองกด Ctrl+Shift+R (มือถือ: ล้างแคชเบราว์เซอร์) แล้วเปิดใหม่');
-    });
+    }));
 }
