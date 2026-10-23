@@ -336,3 +336,27 @@ button .px-ic + span, button .px-ic { margin-right: 2px; }
 .tut-jobs em { font-style: normal; color: #9ad8ff; font-size: 11px; }
 .tut-ok { display: block; margin: 0 0 7px auto; font: inherit; font-size: 12.5px; font-weight: 600; color: #2a1d2c; background: linear-gradient(180deg, #ffe08a, #e0a82e); border: 0; border-radius: 8px; padding: 5px 14px; cursor: pointer; }
 .tut-ok[hidden] { display: none; }
+/* v0.94 การ์ดคำแนะนำไม่บังการกด: แตะทะลุได้ (ยกเว้นปุ่มบนการ์ด) · มีหน้าต่างเปิดอยู่ → ซ่อนชั่วคราว */
+.tut-card { pointer-events: none; transition: opacity 0.2s; }
+.tut-card button { pointer-events: auto; }
+.tut-card.tut-away { opacity: 0; visibility: hidden; }
+#menuPanel .tut-glow { border-radius: 12px; }
+/* v0.94 การ์ดคำแนะนำไม่บังการกด: แตะทะลุได้ (ยกเว้นปุ่มบนการ์ด) · มีหน้าต่างเปิดอยู่ → ซ่อนชั่วคราว */
+.tut-card { pointer-events: none; transition: opacity 0.2s; }
+.tut-card button { pointer-events: auto; }
+.tut-card.tut-away { opacity: 0; visibility: hidden; }
+#menuPanel .tut-glow { border-radius: 12px; }
+/* v0.94 ไอคอนแถบด้านบนเล็กลง (คอม) */
+@media (min-width: 721px) {
+  .topbar { gap: 2px; }
+  .tb-btn { width: 60px; }
+  .tb-btn img, .tb-btn .tb-px { width: 38px; height: 38px; }
+  .tb-btn .tb-emo { font-size: 28px; line-height: 38px; height: 38px; }
+  .tb-btn span { font-size: 11px; padding: 0 6px 1px; margin-top: -3px; }
+  .tb-badge { min-width: 17px; height: 17px; font-size: 10.5px; right: 8px; }
+  .tb-toggle { width: 28px; height: 28px; }
+}
+/* v0.94 ลากหน้าต่างที่หัวหน้าต่าง */
+.hud .panel .st-head, .hud .panel .dlg-head, .hud .menu-panel > header { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.hud .panel.dragging { transition: none !important; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6) !important; }
+.hud .panel.dragging .st-head, .hud .panel.dragging .dlg-head { cursor: grabbing; }

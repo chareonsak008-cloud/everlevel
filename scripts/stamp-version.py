@@ -9,7 +9,8 @@ pm = re.search(r"PATCH\s*=\s*(\d+)", cfg); patch = int(pm.group(1)) if pm else 0
 note = ''
 nm = re.search(r"\{ v: '" + re.escape(ver) + r"', fix: " + str(patch) + r",[^}]*?title: '([^']*)'", (root / 'js/data/patchNotes.js').read_text(encoding='utf8')) if patch else None
 if nm: note = nm.group(1)
-qv = ver + (f'-p{patch}' if patch else '')   # ?v= ใหม่ทุกครั้งที่แก้ไข (เบราว์เซอร์โหลดไฟล์ใหม่) แต่เลขเวอร์ชันในเกมเท่าเดิม
+cm = re.search(r"CACHE\s*=\s*(\d+)", cfg); cache = int(cm.group(1)) if cm else 0
+qv = ver + (f'-p{patch}' if patch else '') + (f'.{cache}' if cache else '')   # ?v= ใหม่ทุกครั้งที่แก้ไข (เบราว์เซอร์โหลดไฟล์ใหม่) แต่เลขเวอร์ชันในเกมเท่าเดิม
 pat = re.compile(r"""((?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)['"])(\.{1,2}/[^'"?]+\.js)(?:\?v=[^'"]*)?(['"])""")
 n = 0
 for p in list((root / 'js').rglob('*.js')) + [root / 'index.html']:

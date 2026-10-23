@@ -2,8 +2,8 @@
 // เดิน → คุยกับมีร่า (รับเควสแรก) → ไป Beginner Field → ตีมอน → เก็บของ → เปิดกระเป๋า → อัปสเตตัส → จบ (รับรางวัลเล็กน้อย 1 ครั้งต่อตัวละคร)
 // ช่วงที่ 2 (v0.94): สกิลพื้นฐาน → สวมอุปกรณ์ → ตีออโต้ → เก็บ Job Lv.10 + ทักษะพื้นฐาน Lv.9 → รู้จัก 4 อาชีพ → เปลี่ยนอาชีพกับออเรล → รางวัล
 // ตัวละครที่เลเวลเกิน 10 หรือเคยทำ/ข้ามแล้ว ไม่แสดง · บันทึกใน player.tut / player.tut2 ('done' หรือเลขขั้น)
-import { START_EQUIP } from '../data/items.js?v=0.93.0-p1.3';
-import { ITEMS } from '../data/items.js?v=0.93.0-p1.3';
+import { START_EQUIP } from '../data/items.js?v=0.93.0-p1.6';
+import { ITEMS } from '../data/items.js?v=0.93.0-p1.6';
 
 const touch = () => document.body.classList.contains('touch');
 const STEPS = [
@@ -12,8 +12,8 @@ const STEPS = [
   { id: 'field', title: 'ออกไปที่ทุ่ง', hint: () => 'เดินตาม<b>ลูกศรสีทอง</b>ไปที่ประตูตะวันออก เข้าสู่ <b>Beginner Field</b>', done: (g) => g.map && g.map.id !== 'asteria_town' },
   { id: 'kill', title: 'ตีมอนสเตอร์', hint: () => (touch() ? 'แตะมอนสเตอร์ หรือกดปุ่ม ⚔ เพื่อโจมตีตัวที่ใกล้ที่สุด' : 'คลิกมอนสเตอร์ หรือกด <kbd>Space</kbd> เพื่อโจมตีตัวที่ใกล้ที่สุด'), done: (g, s) => s.kills > 0 },
   { id: 'loot', title: 'เก็บของที่ดรอป', hint: () => `${touch() ? 'แตะ' : 'คลิก'}ไอเทมที่ตกบนพื้น${touch() ? '' : ' หรือกด <kbd>Z</kbd>'} — สีพื้นหลังบอกระดับของ (เทา · เขียว · ฟ้า · ม่วง)`, done: (g, s) => s.loot > 0 },
-  { id: 'bag', title: 'เปิดกระเป๋า', hint: () => `กดปุ่ม <b>กระเป๋า</b>${touch() ? '' : ' หรือ <kbd>I</kbd>'} — ${touch() ? 'แตะ' : 'ดับเบิลคลิก'}อุปกรณ์เพื่อสวม ใช้ปุ่ม ⇅ จัดเรียงได้`, target: '#btnInv', done: (g, s) => s.bag > 0 || (g.inv && g.inv.open) },
-  { id: 'stat', title: 'อัปค่าสถานะ', hint: () => `กดปุ่ม <b>สถานะ</b>${touch() ? '' : ' หรือ <kbd>C</kbd>'} แล้วกด + เพิ่มค่าที่เหมาะกับสายที่อยากเป็น (STR ตีแรง · AGI ตีเร็ว · INT เวท · DEX แม่น)`, target: '#btnStatus', done: (g, s) => attrSum(g.player) > s.attr },
+  { id: 'bag', title: 'เปิดกระเป๋า', hint: () => `กดปุ่ม <b>กระเป๋า</b>${touch() ? '' : ' หรือ <kbd>I</kbd>'} — ${touch() ? 'แตะ' : 'ดับเบิลคลิก'}อุปกรณ์เพื่อสวม ใช้ปุ่ม ⇅ จัดเรียงได้`, target: '#btnInv', menu: 'inv', done: (g, s) => s.bag > 0 || (g.inv && g.inv.open) },
+  { id: 'stat', title: 'อัปค่าสถานะ', hint: () => `กดปุ่ม <b>สถานะ</b>${touch() ? '' : ' หรือ <kbd>C</kbd>'} แล้วกด + เพิ่มค่าที่เหมาะกับสายที่อยากเป็น (STR ตีแรง · AGI ตีเร็ว · INT เวท · DEX แม่น)`, target: '#btnStatus', menu: 'status', done: (g, s) => attrSum(g.player) > s.attr },
 ];
 const attrSum = (p) => Object.values(p.attr || {}).reduce((a, v) => a + (+v || 0), 0);
 const gearChanged = (p) => Object.entries(p.equip || {}).some(([sl, k]) => k && k !== START_EQUIP[sl]);
@@ -24,9 +24,9 @@ const JOBS4 = [
   ['✚', 'นักบวช', 'acolyte', 'ฮีล บัฟเพื่อน เล่นปาร์ตี้ดี', 'INT · VIT · DEX'],
 ];
 const STEPS2 = [
-  { id: 'skill', title: 'เรียนสกิลพื้นฐาน', hint: () => `กดปุ่ม <b>สกิล</b>${touch() ? '' : ' หรือ <kbd>K</kbd>'} แล้วใช้แต้มสกิลอัป <b>ทักษะพื้นฐาน</b> — ต้องถึง Lv.9 ถึงจะเปลี่ยนอาชีพได้`, target: '#btnSkill', done: (g) => g.player.skillLv('basic') >= 1 },
-  { id: 'gear', title: 'สวมอุปกรณ์ใหม่', hint: () => `เก็บอุปกรณ์จากมอน หรือซื้อที่<b>ร้านอาวุธ/ชุดเกราะ</b>ในเมือง แล้วเปิดกระเป๋า${touch() ? 'แตะ' : 'ดับเบิลคลิก'}เพื่อสวม · ดูทั้งตัวได้ที่<b>เหรียญอาชีพ</b>${touch() ? '' : ' หรือ <kbd>G</kbd>'}`, target: '#btnInv', done: (g) => gearChanged(g.player) || g.player.baseLevel >= 8 },
-  { id: 'auto', title: 'ลองตีออโต้', hint: () => `กดปุ่ม <b>AUTO</b> มุมล่าง${touch() ? '' : ' หรือ <kbd>Z</kbd>'} ตัวละครจะตีมอนในวงให้เอง (ใช้ได้นอกเมือง) · ตั้งค่าเก็บของ/ใช้ยาได้ที่ปุ่มฟันเฟือง`, target: '.ad-go', done: (g, s) => s.auto > 0 || !!(g.auto && g.auto.on) },
+  { id: 'skill', title: 'เรียนสกิลพื้นฐาน', hint: () => `กดปุ่ม <b>สกิล</b>${touch() ? '' : ' หรือ <kbd>K</kbd>'} แล้วใช้แต้มสกิลอัป <b>ทักษะพื้นฐาน</b> — ต้องถึง Lv.9 ถึงจะเปลี่ยนอาชีพได้`, target: '#btnSkill', menu: 'skill', done: (g) => g.player.skillLv('basic') >= 1 },
+  { id: 'gear', title: 'สวมอุปกรณ์ใหม่', hint: () => `เก็บอุปกรณ์จากมอน หรือซื้อที่<b>ร้านอาวุธ/ชุดเกราะ</b>ในเมือง แล้วเปิดกระเป๋า${touch() ? 'แตะ' : 'ดับเบิลคลิก'}เพื่อสวม · ดูทั้งตัวได้ที่<b>เหรียญอาชีพ</b>${touch() ? '' : ' หรือ <kbd>G</kbd>'}`, target: '#btnInv', menu: 'inv', done: (g) => gearChanged(g.player) || g.player.baseLevel >= 8 },
+  { id: 'auto', title: 'ลองตีออโต้', hint: () => `กดปุ่ม <b>AUTO</b> มุมล่าง${touch() ? '' : ' หรือ <kbd>Z</kbd>'} ตัวละครจะตีมอนในวงให้เอง (ใช้ได้นอกเมือง) · ตั้งค่าเก็บของ/ใช้ยาได้ที่ปุ่มฟันเฟือง`, target: '.ad-go', menu: 'auto', done: (g, s) => s.auto > 0 || !!(g.auto && g.auto.on) },
   { id: 'grind', title: 'ฝึกให้พร้อมเปลี่ยนอาชีพ', hint: (g) => { const s = g.player.jobChangeStatus(); return `ล่ามอนเก็บ <b>Job Lv.${Math.min(s.jobLv, s.needJob)}/${s.needJob}</b> · <b>ทักษะพื้นฐาน Lv.${s.basic}/${s.needBasic}</b> (ได้แต้มสกิลทุกครั้งที่ Job Lv. ขึ้น)<br>ทำเควสของลีน่าไปด้วย ได้ EXP เยอะ`; }, live: true, prog: (g) => { const s = g.player.jobChangeStatus(); return (Math.min(1, s.jobLv / s.needJob) + Math.min(1, s.basic / s.needBasic)) / 2; }, done: (g) => g.player.jobChangeStatus().ok || g.player.jobId !== 'novice' },
   { id: 'jobs', title: 'เลือกอาชีพที่ใช่', hint: () => `<span class="tut-jobs">${JOBS4.map(([i, n, , d, st]) => `<span><b>${i} ${n}</b><small>${d}</small><em>${st}</em></span>`).join('')}</span>`, ok: 'เลือกได้แล้ว', done: (g, s) => s.ok > 0 || g.player.jobId !== 'novice' },
   { id: 'change', title: 'เปลี่ยนอาชีพ', hint: () => `ไปหา <b>ออเรล</b> ประมุขสมาคมนักผจญภัย (เมือง Asteria ฝั่งบน · ตามลูกศรสีทอง) คุยแล้วเลือก <b>เปลี่ยนอาชีพ</b>${touch() ? '' : ' · ใช้ <kbd>M</kbd> ดูแผนที่'}`, done: (g) => g.player.jobId !== 'novice' },
@@ -82,23 +82,34 @@ export class Tutorial {
     this.el.querySelector('.tut-hint').innerHTML = S.hint(this.g);
     const ok = this.el.querySelector('.tut-ok'); ok.hidden = !S.ok; ok.textContent = S.ok || '';
     this.bar(i / P.steps.length);
-    this.mark(S.target);
+    this.mark(S);
   }
   bar(k) { this.el.querySelector('.tut-bar i').style.width = `${Math.round(k * 100)}%`; }
 
-  mark(sel) {
-    for (const e of document.querySelectorAll('.tut-glow')) e.classList.remove('tut-glow');
-    if (sel) { const e = document.querySelector(sel); if (e) e.classList.add('tut-glow'); }
+  // ไฮไลต์ปุ่มที่ต้องกด · มือถือที่ปุ่มซ่อนอยู่ในเมนู ☰ → ไฮไลต์ปุ่มเมนู แล้วไฮไลต์ช่องในเมนูเมื่อเปิด
+  mark(S) {
+    const want = [];
+    if (S && S.target) {
+      const e = document.querySelector(S.target), menu = document.querySelector('#menuPanel');
+      const menuOpen = menu && !menu.hidden;
+      if (e && e.offsetParent && !menuOpen) want.push(e);
+      else if (S.menu) { const it = menuOpen && menu.querySelector(`[data-act="${S.menu}"]`); want.push(it || document.querySelector('#btnMenu')); }
+    }
+    for (const e of document.querySelectorAll('.tut-glow')) if (!want.includes(e)) e.classList.remove('tut-glow');
+    for (const e of want) if (e) e.classList.add('tut-glow');
   }
+  // มีหน้าต่าง/เมนูเปิดอยู่ → ซ่อนการ์ดชั่วคราว (ไม่บังหน้าต่าง) · ปิดหน้าต่างแล้วการ์ดกลับมา
+  busy() { return !!document.querySelector('.hud section.panel:not([hidden]), #menuPanel:not([hidden])'); }
 
   // เหตุการณ์จากเกม
   on(kind) { if (this.i < 0) return; if (kind === 'kill') this.s.kills++; if (kind === 'loot') this.s.loot++; if (kind === 'bag') this.s.bag++; }
 
   update(dt) {
     if (this.i < 0) return;
-    this.t -= dt; if (this.t > 0) return; this.t = 0.4;
+    this.t -= dt; if (this.t > 0) return; this.t = 0.25;
     const g = this.g; if (!g.player || g.player.dead) return;
     const P = this.P, S = P.steps[this.i];
+    this.el.classList.toggle('tut-away', this.busy()); this.mark(S);
     if (S.live) {   // ขั้นที่ใช้เวลานาน: อัปเดตตัวเลขความคืบหน้า
       const h = S.hint(g); if (h !== this.lastHint) { this.lastHint = h; this.el.querySelector('.tut-hint').innerHTML = h; }
       if (S.prog) this.bar((this.i + S.prog(g)) / P.steps.length);
@@ -112,7 +123,7 @@ export class Tutorial {
 
   finish(reward) {
     const g = this.g, p = g.player, P = this.P, ph = this.ph;
-    this.i = -1; p[P.key] = 'done'; g.dirty = true; this.mark(null);
+    this.i = -1; p[P.key] = 'done'; g.dirty = true; this.mark(null); this.el.classList.remove('tut-away');
     this.el.querySelector('.tut-ok').hidden = true; this.el.classList.remove('tut-wide');
     if (!reward) {
       this.el.hidden = true;
