@@ -1,7 +1,7 @@
 // v0.85 สกิลนักธนูถักศาสตรา (นักธนูคลาส 3): ศาสตราก่อตัวจากเส้นโครงแสงสีฟ้า · ดาบคู่ขาวดำ · ม่านกลีบแสง · สมรภูมิพันศาสตรา
 // fx_e3_* · ดาเมจ/จังหวะจาก sk.nf ผ่าน fx_nf · ใช้ตัวช่วยจาก SwordFX/MageFX/MageC3FX
-import { THREE } from './three.js?v=0.93.0-p3.25';
-import * as TX from './FxTextures.js?v=0.93.0-p3.25';
+import { THREE } from './three.js?v=0.93.0-p3.28';
+import * as TX from './FxTextures.js?v=0.93.0-p3.28';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);

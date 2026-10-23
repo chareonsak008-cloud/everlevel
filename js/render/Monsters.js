@@ -1,10 +1,10 @@
 // v0.17: มอนสเตอร์ออกแบบใหม่ทั้งหมด (ใช้ถ่ายเป็นสไปรต์พิกเซลแบบเกม RPG — render/PixelSprites.js)
 // แต่ละชนิด = build (สร้างโมเดลจากชิ้นรูปทรง) + anim (ท่าทางต่อเฟรม) · ส่วนกลาง: กระพริบตอนโดนตี ตาย เกิดใหม่ แช่แข็ง มึน ทุบพื้น
-import { THREE } from './three.js?v=0.93.0-p3.25';
-import { lin, mergeGeometries } from './Geo.js?v=0.93.0-p3.25';
-import { toon, toonOwn, addOutline } from './Toon.js?v=0.93.0-p3.25';
-import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.93.0-p3.25';
-import { lerpAngle, damp } from '../core/util.js?v=0.93.0-p3.25';
+import { THREE } from './three.js?v=0.93.0-p3.28';
+import { lin, mergeGeometries } from './Geo.js?v=0.93.0-p3.28';
+import { toon, toonOwn, addOutline } from './Toon.js?v=0.93.0-p3.28';
+import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.93.0-p3.28';
+import { lerpAngle, damp } from '../core/util.js?v=0.93.0-p3.28';
 
 const PI = Math.PI;
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -957,7 +957,10 @@ function relicGuardian(v,d){
 DEFS.sentinel={build:relicGuardian,anim(v,P,a){animBrute(v,P,a,{stride:.45,armSwing:.4});}};
 function shadowBeast(v,d){
  const wolf=d.model==='hollowwolf',skin=v.own(d.color),belly=v.own(shadeHex(d.color,.2)),claw=v.own('#e1d4b8');
- const torso=grp(v.body,0,.68),head=grp(torso,0,.12,.62);add(torso,sph(.53,14,10).scale(.68,.63,1.25),skin);
+ const stag=!!d.stag,torso=grp(v.body,0,.68);add(torso,sph(.53,14,10).scale(.68,.63,1.25),skin);
+ // v0.93 fix20 หัวยื่นออกมาพ้นลำตัว + คอ (เดิมหัวจมอยู่ในลำตัว → มองจากด้านข้างเหมือนหัวขาด)
+ const hp=stag?[0,.5,.86]:wolf?[0,.24,.9]:[0,.17,.92],head=grp(torso,...hp);
+ add(torso,tube([[0,.04,.36],[0,(hp[1]+.04)*.55,(hp[2]+.36)*.5+.04],[0,hp[1]-.02,hp[2]-.08]],[stag?.2:.24,stag?.15:.19,stag?.13:.16],8,10),skin);
  add(head,sph(.28,12,10).scale(.88,.80,1.1),skin);add(head,sph(.20,10,8).scale(.72,.55,1.25),belly,0,-.08,.26);
  eyes(head,.10,.26,.045,.12,{color:wolf?'#e596c2':'#ffcf7b',glow:true});
  const jaw=grp(head,0,-.17,.20);add(jaw,new THREE.BoxGeometry(.24,.08,.26),belly);
@@ -982,7 +985,7 @@ function spectralShade(v,d){
 }
 DEFS.shade={build:spectralShade,anim(v,P,{t,moving,atk,slam}){P.core.position.y=.32+Math.sin(t*2.6)*.10;P.core.position.z=atk*.3;P.core.rotation.z=Math.sin(t*1.7)*.04;P.arms.forEach((a,i)=>a.rotation.x=-atk*1.4+(slam>=0?-Math.sin(slam*PI)*1.8:Math.sin(t*1.3+i)*.08));}};
 DEFS.reaper=DEFS.shade;
-DEFS.stag={build(v,d){const P=shadowBeast(v,{...d,model:'basilisk'}),antler=v.own('#d3b996');for(const side of [-1,1]){const h=grp(P.head,side*.19,.18,0);add(h,tube([[0,0,0],[side*.18,.35,0],[side*.30,.60,-.05]],[.045,.032,.009],6,12),antler);for(const [y,z] of [[.22,.18],[.38,-.16]])add(h,tube([[side*.1,y,0],[side*.22,y+.15,z]],[.025,.008],6,6),antler);}return P;},anim(v,P,a){animQuad(v,P,a,{stride:.8,rate:1.1});}};
+DEFS.stag={build(v,d){const P=shadowBeast(v,{...d,model:'basilisk',stag:true}),antler=v.own('#d3b996');for(const side of [-1,1]){const h=grp(P.head,side*.19,.18,0);add(h,tube([[0,0,0],[side*.18,.35,0],[side*.30,.60,-.05]],[.045,.032,.009],6,12),antler);for(const [y,z] of [[.22,.18],[.38,-.16]])add(h,tube([[side*.1,y,0],[side*.22,y+.15,z]],[.025,.008],6,6),antler);}return P;},anim(v,P,a){animQuad(v,P,a,{stride:.8,rate:1.1});}};
 
 /* ---------- v0.46: มอนดินแดน Lv.100–150 (ออกแบบใหม่) ---------- */
 // แครบปะการัง: กระดองกว้างแบน ก้ามใหญ่สองข้าง ตาบนก้าน ปะการังงอกบนหลัง
