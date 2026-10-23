@@ -1,9 +1,9 @@
 // v0.17: ต้นไม้ พุ่มไม้ หญ้า ดอกไม้ หิน แบบภาพพิกเซล
 // ทรงพุ่มเป็นก้อนใบนูนไม่เรียบ (ขอบภาพหยักแบบวาดมือ) · แสงเป็นขั้นแบบ toon · จุดใบไม้ระดับพิกเซลจากเชดเดอร์
-import { THREE } from './three.js?v=0.93.0-p1.10';
-import { mergeGeometries, paint } from './Geo.js?v=0.93.0-p1.10';
-import { gradientMap } from './Toon.js?v=0.93.0-p1.10';
-import { rng } from '../core/util.js?v=0.93.0-p1.10';
+import { THREE } from './three.js?v=0.93.0-p2.11';
+import { mergeGeometries, paint } from './Geo.js?v=0.93.0-p2.11';
+import { gradientMap } from './Toon.js?v=0.93.0-p2.11';
+import { rng } from '../core/util.js?v=0.93.0-p2.11';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const C = (h) => new THREE.Color(h);

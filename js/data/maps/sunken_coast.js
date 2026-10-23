@@ -1,6 +1,6 @@
 // v0.46 Sunken Coast · หาดปะการังจม Lv.100–117 · MVP ไทดาลอส ราชันย์คลื่น
 // หาดทรายขาวริมทะเลทางใต้-ตะวันออก · ทะเลสาบน้ำเค็มกลางแผนที่ · ซากเรือ · ซากวิหารจมทางเหนือ
-import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0-p1.10';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0-p2.11';
 const W=80,H=64,lanes=[[0,30,70,4],[38,0,4,30],[22,30,4,20],[22,44,40,4],[56,30,4,18]],camp=[2,25,11,15],arena=[56,40,12,12],sea=[[0,54,80,10],[70,0,10,64]];
 const look={hair:'#3fe6d0',skin:'#e8c4a8',eye:'#1f6a78',tunic:'#2a8a9a',pants:'#244a5a',boot:'#2a2a3a',hairStyle:'ponytail',accessory:'wizard',hatColor:'#1f6a78',orbColor:'#9afff0',weapon:'staff'};
 const RAW = {
