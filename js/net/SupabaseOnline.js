@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.93.0-p1';
-import { SideChannel } from './SideChannel.js?v=0.93.0-p1';
+import { Online, MAX_CHARS } from './Online.js?v=0.93.0-p1.3';
+import { SideChannel } from './SideChannel.js?v=0.93.0-p1.3';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -528,8 +528,9 @@ export class SupabaseOnline extends Online {
   get key() { return `${(this.uid || 'x').slice(0, 8)}-${this.tabKey}`; }
   uid8() { return (this.uid || '').slice(0, 8); }
   sNow() { return Math.round(performance.now() - this.t0); }
-  fastMs() { return Math.min(1200, 120 + 100 * Math.max(0, this.mapPeers.size - 2)); }   // ช่วงห่างขั้นต่ำระหว่างแพ็กเก็ตตำแหน่ง: คนเยอะ = ห่างขึ้น
-  hbMs() { const n = this.mapPeers.size; return (n === 0 ? 10000 : n <= 4 ? 4000 : 6000) * this.hbJit; }   // คนละจังหวะกัน (ไม่ให้ทุกคนเต้นหัวใจพร้อมกัน)
+  // v0.94 ประหยัดโควตาข้อความ (Free plan 2 ล้าน/เดือน · นับทุกคนที่ได้รับ): ห่างขั้นต่ำ 250 ms (≤4 ครั้ง/วิ) · คนเยอะห่างขึ้น · แท็บพื้นหลังห่าง 2 วิ
+  fastMs() { return document.hidden ? 2000 : Math.min(1500, 250 + 120 * Math.max(0, this.mapPeers.size - 2)); }   // ช่วงห่างขั้นต่ำระหว่างแพ็กเก็ตตำแหน่ง: คนเยอะ = ห่างขึ้น
+  hbMs() { const n = this.mapPeers.size; return (n === 0 ? 15000 : n <= 4 ? 6000 : 9000) * this.hbJit * (document.hidden ? 2 : 1); }   // v0.94 เต้นหัวใจห่างขึ้น   // คนละจังหวะกัน (ไม่ให้ทุกคนเต้นหัวใจพร้อมกัน)
   keepMs() { return 1500 + 250 * this.mapPeers.size; }                    // เดินอยู่: ส่งซ้ำอย่างน้อยทุกกี่ ms
 
   connectRoom(onPeers, handlers = {}) {
@@ -729,8 +730,8 @@ export class SupabaseOnline extends Online {
     if (!k) return true;
     const dt = Math.min((now - k.t) / 1000, 8);
     const px = k.x + k.vx * dt, py = k.y + k.vy * dt;
-    if (m.mv !== k.mv || m.dead !== k.dead || m.at !== k.at || Math.abs((m.h || 0) - (k.h || 0)) > 0.01 || this.tp !== k.tp) return true;
-    if (Math.hypot(m.x - px, m.y - py) > 10) return true;
+    if (m.mv !== k.mv || m.dead !== k.dead || m.at !== k.at || Math.abs((m.h || 0) - (k.h || 0)) > 0.04 || this.tp !== k.tp) return true;   // v0.94 เลือดเปลี่ยน ≥4% ค่อยส่ง
+    if (Math.hypot(m.x - px, m.y - py) > 16) return true;   // v0.94 คลาดจากที่คนอื่นคาดเกิน 1 ช่อง ค่อยส่ง
     const da = Math.abs((m.a || 0) - (k.a || 0)), turn = Math.min(da, Math.PI * 2 - da);
     if (turn > (m.mv ? 0.35 : 0.6)) return true;
     return !!m.mv && now - k.t >= this.keepMs();   // เดินอยู่: ส่งซ้ำเป็นระยะกันพลาด

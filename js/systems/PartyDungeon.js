@@ -2,12 +2,12 @@
 // · หัวหน้าเปิดรอบ (เซิร์ฟเวอร์สร้างรอบ + เลือดบอสกลาง) → ส่งคำเชิญทางช่องปาร์ตี้ → ทุกคนเข้าแผนที่เดียวกัน (pd_<id>) เห็นกันผ่านห้องแผนที่
 // · ดาเมจทุกคนส่งไปหักเลือดกลางที่เซิร์ฟเวอร์ (pd_hit) · บอสตายจริงตามเซิร์ฟเวอร์ · รางวัล/โควตาสัปดาห์ส่งทางจดหมาย
 // · กลไกบอส (วงอัญเชิญ · ตราแยก · ตราแบ่งรับ) คำนวณจากเวลาเซิร์ฟเวอร์ + seed ของรอบ → ทุกเครื่องเห็นตรงกันโดยไม่ต้องส่งข้อมูลเพิ่ม
-import { TILE } from '../config.js?v=0.93.0-p1';
-import { ITEMS } from '../data/items.js?v=0.93.0-p1';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1';
-import { START_MAP } from '../data/maps/index.js?v=0.93.0-p1';
-import { scaledData, refExp } from '../data/dungeons.js?v=0.93.0-p1';
-import { PD, PD_BOSS_NAME, PD_SHOP, PD_REWARD_TEXT, pdMapDef, pdRng, pdBossOk } from '../data/partyDungeon.js?v=0.93.0-p1';
+import { TILE } from '../config.js?v=0.93.0-p1.3';
+import { ITEMS } from '../data/items.js?v=0.93.0-p1.3';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.3';
+import { START_MAP } from '../data/maps/index.js?v=0.93.0-p1.3';
+import { scaledData, refExp } from '../data/dungeons.js?v=0.93.0-p1.3';
+import { PD, PD_BOSS_NAME, PD_SHOP, PD_REWARD_TEXT, pdMapDef, pdRng, pdBossOk } from '../data/partyDungeon.js?v=0.93.0-p1.3';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const fmtT = (s) => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };

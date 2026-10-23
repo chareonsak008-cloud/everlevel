@@ -1,31 +1,31 @@
 // ผู้เล่น: เดินด้วยคีย์บอร์ด / จอย / คลิกตามเส้นทาง + เลเวล EXP และค่าสถานะ
-import { cleanOutfit } from '../data/outfits.js?v=0.93.0-p1';   // v0.91 สีชุด
-import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.93.0-p1';
-import { Entity } from './Entity.js?v=0.93.0-p1';
-import { PLAYER_SPEED, TILE } from '../config.js?v=0.93.0-p1';
+import { cleanOutfit } from '../data/outfits.js?v=0.93.0-p1.3';   // v0.91 สีชุด
+import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.93.0-p1.3';
+import { Entity } from './Entity.js?v=0.93.0-p1.3';
+import { PLAYER_SPEED, TILE } from '../config.js?v=0.93.0-p1.3';
 import {
   derive, baseExpToNext, jobExpToNext, statPointsForLevel, statCost,
   START_STAT_POINTS, MAX_STAT, STAT_KEYS, JOBS, jobStatBonus, JOB_CHANGE_JOB_LEVEL, FIRST_JOBS, SECOND_OF, JOB2_JOB_LEVEL, jobTier,
   THIRD_OF, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, parentJob,
-} from '../data/progression.js?v=0.93.0-p1';
-import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.93.0-p1';
-import { setInfo } from '../data/affixes.js?v=0.93.0-p1';
-import { DURA_MAX, DURA_LOW, DURA_LOSS, duraOf } from '../data/durability.js?v=0.93.0-p1';   // v0.89 ความทนทาน
-import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.93.0-p1';
-import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.93.0-p1';
-import { Inventory } from '../systems/Inventory.js?v=0.93.0-p1';
-import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.93.0-p1';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p1';
-import { CONSUMABLES } from '../data/consumables.js?v=0.93.0-p1';
-import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.93.0-p1';
-import { normAuto } from '../systems/AutoHunt.js?v=0.93.0-p1';
-import { normPick } from '../systems/PetPick.js?v=0.93.0-p1';
-import { normDungeon } from '../data/dungeons.js?v=0.93.0-p1';
-import { normCol } from '../systems/Collection.js?v=0.93.0-p1';
-import { ACH_BY_ID } from '../data/collection.js?v=0.93.0-p1';
-import { titleInfo, titlesOf } from '../data/seasonTitles.js?v=0.93.0-p1';   // v0.76 ฉายา 3 อัน + ฉายาฤดูกาล
-import { normMail } from '../data/mail.js?v=0.93.0-p1';
-import { AR, syncAttr } from '../data/arena.js?v=0.93.0-p1';   // v0.78
+} from '../data/progression.js?v=0.93.0-p1.3';
+import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.93.0-p1.3';
+import { setInfo } from '../data/affixes.js?v=0.93.0-p1.3';
+import { DURA_MAX, DURA_LOW, DURA_LOSS, duraOf } from '../data/durability.js?v=0.93.0-p1.3';   // v0.89 ความทนทาน
+import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.93.0-p1.3';
+import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.93.0-p1.3';
+import { Inventory } from '../systems/Inventory.js?v=0.93.0-p1.3';
+import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.93.0-p1.3';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p1.3';
+import { CONSUMABLES } from '../data/consumables.js?v=0.93.0-p1.3';
+import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.93.0-p1.3';
+import { normAuto } from '../systems/AutoHunt.js?v=0.93.0-p1.3';
+import { normPick } from '../systems/PetPick.js?v=0.93.0-p1.3';
+import { normDungeon } from '../data/dungeons.js?v=0.93.0-p1.3';
+import { normCol } from '../systems/Collection.js?v=0.93.0-p1.3';
+import { ACH_BY_ID } from '../data/collection.js?v=0.93.0-p1.3';
+import { titleInfo, titlesOf } from '../data/seasonTitles.js?v=0.93.0-p1.3';   // v0.76 ฉายา 3 อัน + ฉายาฤดูกาล
+import { normMail } from '../data/mail.js?v=0.93.0-p1.3';
+import { AR, syncAttr } from '../data/arena.js?v=0.93.0-p1.3';   // v0.78
 
 // v0.15: รหัสสุ่มประจำตัวละคร (ตัวละครใหม่ = รหัสใหม่ · รับจดหมาย "ทุกตัวละคร" ได้ตัวละ 1 ครั้ง)
 export const newCid = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 16);
@@ -37,7 +37,7 @@ export const MAX_ITEM_BUFF = 3 * 3600;               // ต่อเวลาใ
 export const BAG_BASE = 60;
 
 // ช่องแฟชั่น (v0.9) — ชุดทับ ไม่เพิ่มค่าสถานะ
-export const FASHION_SLOTS = ['outfit', 'aura'];   // v0.51: เหลือเฉพาะชุด + ออร่า (ช่องอื่นเลิกใช้)
+export const FASHION_SLOTS = ['outfit', 'wings', 'aura'];   // v0.95 กลับมามีปีก (ปีกเทวทูต 6 ปีก)   // v0.51: เหลือเฉพาะชุด + ออร่า (ช่องอื่นเลิกใช้)
 // อาวุธแฟชั่นจะแสดงเมื่อถืออาวุธจริงประเภทที่เข้ากัน (ท่าโจมตีจะได้ตรงกับอาวุธ)
 export const FASHION_WEAPON_FIT = { sword: ['sword', 'knife'], dual: ['knife', 'sword'], staff: ['staff'], mace: ['mace'], bow: ['bow'] };
 
@@ -692,6 +692,7 @@ export class Player extends Entity {
       inventory: this.inventory.toSave(), equip: { ...this.equip }, hotbar: [...this.hotbar], zeny: this.zeny,
       skills: { ...this.skills },
       friends: [...this.friends],
+      tut: this.tut, tut2: this.tut2,   // v0.94 สอนผู้เล่นใหม่ (เลขขั้น หรือ 'done')
       hp: Math.round(this.hp), sp: Math.round(this.sp),
       fashion: { owned: [...this.fashion.owned], worn: { ...this.fashion.worn }, opened: this.fashion.opened, hidden: this.fashion.hidden },
       quests: JSON.parse(JSON.stringify(this.quests)),
@@ -736,6 +737,8 @@ export class Player extends Entity {
     this.visited = new Set(['asteria_town', ...(Array.isArray(p.visited) ? p.visited.filter((m) => typeof m === 'string' && m.length < 40).slice(0, 50) : [])]);
     this.auto = normAuto(p.auto);     // v0.14: ตั้งค่าออโต้
     this.cid = typeof p.cid === 'string' && /^[a-z0-9]{8,24}$/.test(p.cid) ? p.cid : newCid();   // v0.15
+    this.tut = p.tut === 'done' || (Number.isInteger(p.tut) && p.tut >= 0 && p.tut < 20) ? p.tut : null;   // v0.94
+    this.tut2 = p.tut2 === 'done' || (Number.isInteger(p.tut2) && p.tut2 >= 0 && p.tut2 < 20) ? p.tut2 : null;
     this.friends = Array.isArray(p.friends) ? [...new Set(p.friends.filter((n) => typeof n === 'string' && n.length >= 2 && n.length <= 16))].slice(0, 100) : [];
     this.mail = { welcome: !!(p.mail && p.mail.welcome), box: [], hidden: new Set(p.mail && Array.isArray(p.mail.hidden) ? p.mail.hidden.filter((k) => typeof k === 'string' && k.length < 80).slice(-300) : []) };
     // v0.18: จดหมายจากระบบเกม (ตรวจของ/จำนวนเหมือนจดหมายเซิร์ฟเวอร์)
