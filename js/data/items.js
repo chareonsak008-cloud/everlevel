@@ -6,17 +6,17 @@
 // v0.9: type box = กล่องแฟชั่นสุ่ม (ข้อมูลอยู่ใน data/fashionBoxes.js)
 // v0.10: slots = ช่องการ์ด · type card = การ์ดมอนสเตอร์ (data/cards.js) · วัสดุตีบวก (data/refine.js)
 //        อุปกรณ์ที่ตีบวก/ใส่การ์ดแล้วใช้ "คีย์" แทน id เช่น 'iron_blade*7*card_barkwolf' (ดู itemKey ด้านล่าง)
-import { ENDGAME_ITEMS } from './endgameItems.js?v=0.93.0-p2.11';
-import { ASCEND_ITEMS } from './ascendData.js?v=0.93.0-p2.11';   // v0.46 Lv.100–150
-import { ETERNAL_ITEMS, ETERNAL_MATS } from './eternal.js?v=0.93.0-p2.11';
-import { FEST_ITEMS } from './festivals.js?v=0.93.0-p2.11';   // v0.79 ของสะสมเทศกาล   // v0.77 อุปกรณ์นิรันดร์กาล (หลอม)
-import { parentJob, jobAncestry } from './progression.js?v=0.93.0-p2.11';
-import { BOX_ITEMS } from './fashionBoxes.js?v=0.93.0-p2.11';
-import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.93.0-p2.11';
-import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.93.0-p2.11';
-import { CONSUMABLES } from './consumables.js?v=0.93.0-p2.11';
-import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH, extraRollPool, gearRollPool, GEAR_ROLL_SLOTS } from './affixes.js?v=0.93.0-p2.11';
-import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.93.0-p2.11';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
+import { ENDGAME_ITEMS } from './endgameItems.js?v=0.93.0-p2.13';
+import { ASCEND_ITEMS } from './ascendData.js?v=0.93.0-p2.13';   // v0.46 Lv.100–150
+import { ETERNAL_ITEMS, ETERNAL_MATS } from './eternal.js?v=0.93.0-p2.13';
+import { FEST_ITEMS } from './festivals.js?v=0.93.0-p2.13';   // v0.79 ของสะสมเทศกาล   // v0.77 อุปกรณ์นิรันดร์กาล (หลอม)
+import { parentJob, jobAncestry } from './progression.js?v=0.93.0-p2.13';
+import { BOX_ITEMS } from './fashionBoxes.js?v=0.93.0-p2.13';
+import { CARD_ITEMS, CARDS, cardFits } from './cards.js?v=0.93.0-p2.13';
+import { REFINE_ITEMS, refineBonus, REFINE_MAX } from './refine.js?v=0.93.0-p2.13';
+import { CONSUMABLES } from './consumables.js?v=0.93.0-p2.13';
+import { WEAPON_ITEMS, decodeRoll, rollBonus, rollCode, FORM_TH, extraRollPool, gearRollPool, GEAR_ROLL_SLOTS } from './affixes.js?v=0.93.0-p2.13';
+import { OFFHAND_ITEMS, OFFHAND_FORM_TH } from './offhand.js?v=0.93.0-p2.13';   // v0.25.2: ของมือรองตามอาชีพ   // v0.25: อาวุธ 48 ชิ้น + ค่าสุ่ม   // v0.13: ใบวาร์ป ใบคูณ ยาบัฟ ไข่สัตว์เลี้ยง ฯลฯ
 
 export const EQUIP_SLOTS = [
   { id: 'head', name: 'หัว' },

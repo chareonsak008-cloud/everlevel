@@ -1,4 +1,4 @@
-import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.93.0-p2.11';
+import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.93.0-p2.13';
 // แคตตาล็อกชุดแฟชั่น (v0.9) — ได้จากการเปิดกล่องแฟชั่นสุ่ม (data/fashionBoxes.js) — ชิ้นแฟชั่นเป็น "ชุดทับ" ไม่เพิ่มค่าสถานะ ใส่ทับอุปกรณ์จริงได้
 // slot: wings | outfit | head | face | back | weapon | aura | pet · kind = ชื่อตัวสร้างใน render/Costumes.js · p = ค่าปรับแต่ง
 // rarity: common ธรรมดา | rare หายาก | epic ล้ำค่า | legend ตำนาน | mythic | celestial
@@ -379,6 +379,11 @@ COSTUMES.push(
 // v0.94 ออร่ายมทูต — ร้านเพชรเท่านั้น · ตัวสร้างอยู่ใน render/AuraReaper.js · ราคาใน supabase/fashion_reaper.sql
 COSTUMES.push(
   CS('a_rp_reaper', 'reaper', 'ยมทูตเคียวมรณะ', 'Grim Reaper', 'celestial', '#1aa878', 'ยมทูตคลุมผ้าขาดรุ่งริ่งลอยเหนือศีรษะ หน้ากะโหลกในฮู้ดดำ ตาเรืองวิญญาณ ถือเคียวยักษ์ใบคมเรืองแสง ดวงวิญญาณสามดวงโคจรรอบเอว วงอักขระมรณะบนพื้น ทุกจังหวะยมทูตง้างเคียวแล้วฟาดลงเป็นเสี้ยวจันทร์รอบตัว ดวงวิญญาณถูกดูดขึ้นไปหาเคียว'),
+);
+// v0.93 fix11 ออร่าฮาโลวีน — แฟชั่นเทศกาล ไม่มีขาย หาไม่ได้ · GM แจกทางจดหมายช่วงเทศกาลเท่านั้น (supabase/fashion_halloween.sql)
+// event = ป้าย "แฟชั่นเทศกาล" ในตู้แฟชั่น · cash = ไม่สุ่มจากกล่องแฟชั่น และระบบกันโกงตรวจว่าต้องได้จากจดหมาย GM
+COSTUMES.push(
+  { event: 'ฮาโลวีน', ...CS('a_hw_pumpking', 'hwPumpking', 'ราชันย์ฟักทองราตรี', 'Pumpkin King of Night', 'celestial', '#ff7a1a', 'ราชันย์ฟักทองสวมหมวกแม่มดลอยเหนือศีรษะ ใบหน้าแกะสลักเรืองแสงเทียน พระจันทร์เก็บเกี่ยวสีส้มดวงใหญ่หลังตัว ฝูงค้างคาวบินวน ฟักทองจิ๋วโคจรรอบเอว ผีน้อยลอยวนขึ้นฟ้า วงเวทแม่มดกับหลุมศพจุดเทียนบนพื้น ทุกจังหวะราชันย์อ้าปากคำราม ไฟผีระเบิดเป็นวงรอบตัว ค้างคาวแตกฮือ') },
 );
 // v0.95 ปีกเทวทูต 6 ปีก — ร้านเพชรเท่านั้น · โมเดลอยู่ใน render/SeraphWings.js (ไม่ใช้แผ่นภาพ) · ราคาใน supabase/fashion_seraph.sql
 // (ยังไม่เปิดขาย) ปีกเทวทูตหกปีก w_px_seraph6 — โมเดลพร้อมใน render/SeraphWings.js

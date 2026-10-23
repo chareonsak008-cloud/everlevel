@@ -1,7 +1,9 @@
 // v0.17: เท็กซ์เจอร์วัสดุแบบภาพพิกเซล (หิน ปูน กระเบื้องหลังคา ไม้ ลังไม้ ผ้าใบลายทาง)
 // 48×48 พิกเซลต่อ 1 หน่วยโลก = 1 พิกเซลภาพที่ระยะกล้องปกติ · กรองแบบ nearest (ขอบคม)
-import { THREE } from './three.js?v=0.93.0-p2.11';
-import { rng } from '../core/util.js?v=0.93.0-p2.11';
+// v0.93 fix12 เกลี่ยขอบลายพิกเซลเฉพาะคอม (มือถือบางรุ่นการ์ดจอรับเชดเดอร์เพิ่มไม่ไหว)
+export const PX_AA_ON = !(typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+import { THREE } from './three.js?v=0.93.0-p2.13';
+import { rng } from '../core/util.js?v=0.93.0-p2.13';
 
 const N = 48;
 const hex = (h) => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
@@ -20,7 +22,8 @@ function make(key, w, h, draw) {
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding;
   // v0.93 fix9 อ่านแบบ linear แล้วให้เชดเดอร์ (pxAAMaterial) เลือกเองว่าจะคมแบบพิกเซลหรือเกลี่ยขอบ → ลายบ้าน/กำแพงไม่ยุบยับตอนเดิน
-  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false;
+  if (PX_AA_ON) { t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; }
+  else { t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestMipmapNearestFilter; }   // fix12 มือถือ: แบบเดิม (เบาเครื่อง)
   cache.set(key, t); return t;
 }
 
@@ -117,7 +120,7 @@ export function boardPx(base = '#b98a58') {
 
 // v0.93 fix9 วัสดุที่ใช้ลายพิกเซล: ขอบพิกเซลลายผสมกันตามสัดส่วนที่ครอบพิกเซลจอ (กว้างไม่เกิน 1 พิกเซลจอ) · ภายในคมเหมือนเดิม
 // PXAA = 0 → อ่านกลางพิกเซลลายพอดี (เท่ากับ Nearest เดิม)
-import { PXAA } from './PixelGround.js?v=0.93.0-p2.11';
+import { PXAA } from './PixelGround.js?v=0.93.0-p2.13';
 export function pxAAMaterial(m) {
   const t = m.map; if (!t || !t.image || m.userData.pxAA) return m;
   m.userData.pxAA = true;

@@ -1,17 +1,18 @@
-import { FASHION_BUILDERS } from './FashionCollection.js?v=0.93.0-p2.11';
+import { FASHION_BUILDERS } from './FashionCollection.js?v=0.93.0-p2.13';
 // ชุดแฟชั่น (v0.9 preview): ปีก · ชุด · หมวก · หน้า · หลัง/หาง · อาวุธ · ออร่า · ผู้ติดตาม
 // ทุกชิ้นสร้างจากโค้ด (ไม่มีไฟล์โมเดล) แล้วติดเข้ากับโครงของ CharacterView
 // ใช้:  const look = costumeLook(baseLook, items);  const view = new CharacterView(look);
 //       const rt = wearCostume(view, items, { world: scene });  ทุกเฟรม rt.update(dt, view)
-import { THREE } from './three.js?v=0.93.0-p2.11';
-import { toon, toonOwn, bake, gradientMap } from './Toon.js?v=0.93.0-p2.11';
-import { shadeHex } from './Textures.js?v=0.93.0-p2.11';
-import * as TX from './FxTextures.js?v=0.93.0-p2.11';
-import { wuxiaAura } from './AuraBlades.js?v=0.93.0-p2.11';
-import { cosmicAuras } from './AuraCosmic.js?v=0.93.0-p2.11';
-import { reaperAuras } from './AuraReaper.js?v=0.93.0-p2.11';   // v0.94 ยมทูตเคียวมรณะ
-import { Particles } from './SkillFX.js?v=0.93.0-p2.11';
-import { COSTUME_PETS } from './CostumePets.js?v=0.93.0-p2.11';   // v0.17: ผู้ติดตามแฟชั่นแบบใหม่ (หน้าเป็นโมเดล เห็นชัดในสไปรต์พิกเซล)
+import { THREE } from './three.js?v=0.93.0-p2.13';
+import { toon, toonOwn, bake, gradientMap } from './Toon.js?v=0.93.0-p2.13';
+import { shadeHex } from './Textures.js?v=0.93.0-p2.13';
+import * as TX from './FxTextures.js?v=0.93.0-p2.13';
+import { wuxiaAura } from './AuraBlades.js?v=0.93.0-p2.13';
+import { cosmicAuras } from './AuraCosmic.js?v=0.93.0-p2.13';
+import { reaperAuras } from './AuraReaper.js?v=0.93.0-p2.13';   // v0.94 ยมทูตเคียวมรณะ
+import { halloweenAuras } from './AuraHalloween.js?v=0.93.0-p2.13';   // v0.93 fix11 ราชันย์ฟักทองราตรี
+import { Particles } from './SkillFX.js?v=0.93.0-p2.13';
+import { COSTUME_PETS } from './CostumePets.js?v=0.93.0-p2.13';   // v0.17: ผู้ติดตามแฟชั่นแบบใหม่ (หน้าเป็นโมเดล เห็นชัดในสไปรต์พิกเซล)
 
 /* ================= ตัวช่วยพื้นฐาน ================= */
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -3377,6 +3378,7 @@ AURA.wuxia = (rig, p, rt) => wuxiaAura(rig, p, rt, WX_H);
 // v0.84: ออร่าคอสมิก (ทางช้างเผือก · เนบิวลา · หลุมดำ · ระบบสุริยะ · เทพกลุ่มดาว) — สมมาตรกลางตัว ไม่หมุนตามทิศที่หัน
 Object.assign(AURA, cosmicAuras({ ...WX_H, ctex, implode, NB }));
 Object.assign(AURA, reaperAuras({ ...WX_H, ctex, implode, NB }));   // v0.94
+Object.assign(AURA, halloweenAuras({ ...WX_H, ctex, implode, NB }));   // v0.93 fix11 ฮาโลวีน
 // v0.35: ชิ้นภาพพิกเซล (PixelLab) — ไม่มีโมเดล 3 มิติ · Renderer3D วาดแยก (PixelWings / PixelVfx)
 WING_BUILDERS.pixel = () => {}; AURA.pixel = () => {}; WEAPON.pixel = () => {};
 const DICT = { wings: WING_BUILDERS, head: HEAD, face: FACE, back: BACK, weapon: WEAPON, aura: AURA, pet: PET };
