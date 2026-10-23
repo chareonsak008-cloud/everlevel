@@ -1,7 +1,7 @@
 // v0.89 ความทนทานของอุปกรณ์ — ใช้แล้วสึก · ถึง 0 = พัง (ไม่ให้ค่าสถานะ เหมือนไม่ได้สวม) · ซ่อมที่ช่างตีเหล็กในเมือง (VIP ซ่อมได้ทุกที่)
 // เก็บเป็น player.dura = { [คีย์ไอเทม]: 0–100 } (ไม่มีในรายการ = 100 เต็ม)
-import { ITEMS, BASE_ITEMS, itemMods, itemKey } from './items.js?v=0.93.0-p2.14';
-import { CARDS } from './cards.js?v=0.93.0-p2.14';
+import { ITEMS, BASE_ITEMS, itemMods, itemKey } from './items.js?v=0.93.0-p2.17';
+import { CARDS } from './cards.js?v=0.93.0-p2.17';
 
 export const DURA_MAX = 100;
 export const DURA_LOW = 20;   // ต่ำกว่านี้เตือน

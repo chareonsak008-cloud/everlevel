@@ -1,37 +1,38 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.93.0-p2.14';
-import { PixelWingSprite } from './PixelWings.js?v=0.93.0-p2.14';
-import { SeraphWings } from './SeraphWings.js?v=0.93.0-p2.14';   // v0.95 ปีกเทวทูต 6 ปีก (โมเดล 3 มิติ หมุนตามตัวแบบลื่น)
-import { paintPlate } from '../ui/Nameplates.js?v=0.93.0-p2.14';
-import { PixelVfx } from './PixelVfx.js?v=0.93.0-p2.14';
-import { THREE } from './three.js?v=0.93.0-p2.14';
-import { TILE } from '../config.js?v=0.93.0-p2.14';
-import { T } from '../data/tileTypes.js?v=0.93.0-p2.14';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.93.0-p2.14';
-import { PXAA } from './PixelGround.js?v=0.93.0-p2.14';
-import { GrandPortal, GrandFx, setGrandViewport, screenFlash } from './GrandFx.js?v=0.93.0-p2.14';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.93.0-p2.14';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.93.0-p2.14';
+import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.93.0-p2.17';
+import { PixelWingSprite } from './PixelWings.js?v=0.93.0-p2.17';
+import { SeraphWings } from './SeraphWings.js?v=0.93.0-p2.17';   // v0.95 ปีกเทวทูต 6 ปีก (โมเดล 3 มิติ หมุนตามตัวแบบลื่น)
+import { paintPlate } from '../ui/Nameplates.js?v=0.93.0-p2.17';
+import { PixelVfx } from './PixelVfx.js?v=0.93.0-p2.17';
+import { THREE } from './three.js?v=0.93.0-p2.17';
+import { TILE } from '../config.js?v=0.93.0-p2.17';
+import { T } from '../data/tileTypes.js?v=0.93.0-p2.17';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.93.0-p2.17';
+import { pumpkinHat, townDecor } from './Halloween.js?v=0.93.0-p2.17';   // fix15
+import { PXAA } from './PixelGround.js?v=0.93.0-p2.17';
+import { GrandPortal, GrandFx, setGrandViewport, screenFlash } from './GrandFx.js?v=0.93.0-p2.17';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.93.0-p2.17';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.93.0-p2.17';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.93.0-p2.14';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.93.0-p2.14';
-import { iconCanvas } from './ItemIcons.js?v=0.93.0-p2.14';
-import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p2.14';
-import { MonsterView } from './Monsters.js?v=0.93.0-p2.14';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.93.0-p2.14';
-import { SkillFX } from './SkillFX.js?v=0.93.0-p2.14';
-import { PostFX } from './PostFX.js?v=0.93.0-p2.14';
-import { Weather } from './Weather.js?v=0.93.0-p2.14';   // v0.91 สภาพอากาศ
-import { costumeLook, wearCostume } from './Costumes.js?v=0.93.0-p2.14';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0-p2.14';
-import { PetView } from './Pets.js?v=0.93.0-p2.14';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.93.0-p2.14';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.93.0-p2.14';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.93.0-p2.14';
-import { gradientMap } from './Toon.js?v=0.93.0-p2.14';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.93.0-p2.14';
+} from './Models.js?v=0.93.0-p2.17';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.93.0-p2.17';
+import { iconCanvas } from './ItemIcons.js?v=0.93.0-p2.17';
+import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p2.17';
+import { MonsterView } from './Monsters.js?v=0.93.0-p2.17';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.93.0-p2.17';
+import { SkillFX } from './SkillFX.js?v=0.93.0-p2.17';
+import { PostFX } from './PostFX.js?v=0.93.0-p2.17';
+import { Weather } from './Weather.js?v=0.93.0-p2.17';   // v0.91 สภาพอากาศ
+import { costumeLook, wearCostume } from './Costumes.js?v=0.93.0-p2.17';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0-p2.17';
+import { PetView } from './Pets.js?v=0.93.0-p2.17';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.93.0-p2.17';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.93.0-p2.17';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.93.0-p2.17';
+import { gradientMap } from './Toon.js?v=0.93.0-p2.17';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.93.0-p2.17';
 // v0.86 กลางวัน · ตอนเย็น · กลางคืน · รุ่งสาง — ตัวคูณแสง (h=ฟ้า s=แดด e=exposure) + สีที่ผสมเข้าไป (mix)
 const DAY_PRESETS = {
   day: { name: 'กลางวัน', icon: '☀', h: 1, s: 1, e: 1, mix: 0, glow: 1, tint: [0, 0, 0, 0] },
@@ -112,6 +113,7 @@ export class Renderer3D {
     this.labelLayer = labelLayer;
     injectTitleCss();   // v0.30: เอฟเฟ็กฉายา
     this.mobile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    try { this.safe = localStorage.getItem('everlevel.safe') === '1'; } catch (e) { this.safe = false; }   // v0.93 fix14 โหมดภาพประหยัด
 
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: !this.mobile, powerPreference: 'high-performance' });   // v0.27.1: มือถือไม่ใช้ MSAA (ภาพพิกเซลไม่ต้องใช้ · ประหยัดแบนด์วิดท์)
     r.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2));
@@ -245,6 +247,7 @@ export class Renderer3D {
     this.post.strength = this.baseGlow = FXL.glow ?? 0.7;
     this.post.flashScale = FXL.flash ?? 0.6;
     const world = this.world = new THREE.Group(); scene.add(world);
+    this.hwDecor = null;   // fix15 ของตกแต่งฮาโลวีน (อยู่ใน world → ลบไปพร้อมแผนที่)
 
     // พื้น
     this.makeGround(map);
@@ -370,7 +373,7 @@ export class Renderer3D {
     world.add(batchStatic(statics));
     world.add(statics); // ชิ้นที่ขยับได้ (ธง) ยังอยู่ในกลุ่มเดิม
 
-    for (const p of map.portals) this.portals.push(new GrandPortal(world, p.cx * S, p.cy * S, !!p.locked));
+    for (const p of map.portals) this.portals.push((this.safe ? new Portal(world, p.cx * S, p.cy * S, !!p.locked) : new GrandPortal(world, p.cx * S, p.cy * S, !!p.locked)));
     this.motes = new Motes(world, theme.motes || '#fff3c4', theme.moteCount || 90, theme.moteSize || 0.1, theme.motesMode || 'float');
     this.weather = new Weather(world, map.id, { mobile: this.mobile });   // v0.91 ฝน หิมะ ใบไม้ หิ่งห้อย เถ้าถ่าน
     this.weather.group.visible = (this.qualityLevel || 0) < 3 && this.weatherOn !== false;
@@ -414,7 +417,7 @@ export class Renderer3D {
     }
     const theme = map.def.theme || {}, gg = this.groundGroup = new THREE.Group();
     if (this.px.enabled) {
-      this.pground = pixelGround(map, { aa: !this.mobile });   // v0.93 fix12 มือถือ: ไม่ใช้เชดเดอร์เกลี่ยขอบลายพื้น (หนักเกินไปสำหรับการ์ดจอมือถือบางรุ่น → แท็บค้าง/แครช)
+      this.pground = pixelGround(map, { aa: !this.mobile && !this.safe });   // v0.93 fix12 มือถือ: ไม่ใช้เชดเดอร์เกลี่ยขอบลายพื้น (หนักเกินไปสำหรับการ์ดจอมือถือบางรุ่น → แท็บค้าง/แครช)
       const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), this.pground.material);
       ground.rotation.x = -Math.PI / 2; ground.position.set(map.w / 2, 0, map.h / 2); ground.receiveShadow = true;
       gg.add(ground);
@@ -523,7 +526,7 @@ export class Renderer3D {
   }
 
   /* ---------- v0.94 เอฟเฟกต์แฟชั่นของผู้เล่นคนอื่น: ปิดได้ในตั้งค่า · ปิดอัตโนมัติเมื่อคุณภาพภาพลดถึงระดับ 2 ขึ้นไป ---------- */
-  othersFxOn() { return this.othersFx !== false && (this.qualityLevel || 0) < 2; }
+  othersFxOn() { return this.othersFx !== false && (this.qualityLevel || 0) < 2 && !this.crowdLow; }   // fix15 crowdLow = มือถือ + คนในแมพเยอะ/เฟรมตก
   refreshOthersFx() {
     const on = this.othersFxOn(); if (on === this._ofx) return; this._ofx = on;
     for (const [e, c] of this.characters) if (c.kind === 'remote') this.refreshLook(e);
@@ -725,8 +728,15 @@ export class Renderer3D {
   }
 
   // v0.32: ประตูมิติที่เกิดกลางเกม (บันไดลงชั้นถัดไปในดันเจี้ยน) — คืนตัวที่สร้างไว้ลบภายหลัง
-  addPortalFx(x, z, locked = false) { const p = new GrandPortal(this.world, x, z, locked); this.portals.push(p); return p; }
+  addPortalFx(x, z, locked = false) { const p = this.safe ? new Portal(this.world, x, z, locked) : new GrandPortal(this.world, x, z, locked); this.portals.push(p); return p; }
 
+  // fix15 ฮาโลวีน: ฟักทองจุดเทียนรอบ NPC ในเมือง
+  halloweenTown(npcs) {
+    if (!this.world || !npcs || !npcs.length) return;
+    const spots = [];
+    npcs.forEach((n, i) => { const a = i * 2.39; spots.push({ x: n.x * S + Math.cos(a) * 1.1, z: n.y * S + Math.sin(a) * 1.1 }); });
+    this.hwDecor = townDecor(this.world, spots.slice(0, 16));
+  }
   addMonster(mob) {
     const view = new MonsterView(mob);
     view.root.rotation.y = mob.angle;
@@ -734,6 +744,7 @@ export class Renderer3D {
     const bossK = !mob.data.viewScale && mob.data.mvp ? (mob.data.worldBoss ? 1.5 : 1.35) : 1;   // v0.91 บอส MVP/บอสโลกตัวใหญ่ขึ้น
     if (bossK > 1) view.root.scale.setScalar(bossK);
     this.scene.add(view.root);
+    if (this.halloween && !mob.data.fest && !mob.data.worldBoss && !mob.worldRun) view.root.add(pumpkinHat(mob.data.height || 1));   // fix15 ฮาโลวีน: มอนสวมหมวกฟักทอง
     if (this.px.enabled) this.px.attach(mob, view, 'mob');
     const h = mob.data.height;
     const rad = mob.data.radius || 0.55;
@@ -1032,6 +1043,7 @@ export class Renderer3D {
   // วงเวทย์ + ลำแสงตอนวาร์ปมาถึง / ฟื้นคืนชีพ (v0.93 fix7: แบบอลังการ — วงเวท 3 ชั้น เสาแสงจากฟ้า คลื่นกระแทก อนุภาค)
   posOf(entity) { const o = { x: 0, z: 0 }; return () => { o.x = entity.x * S; o.z = entity.y * S; return o; }; }
   warpIn(entity, color = '#8fd8ff') {
+    if (this.safe) { this.circles.spawn(entity.x * S, entity.y * S, { color, size: 2.4, life: 1.8, pillar: true }); this.bursts.spawn(entity.x * S, 0.3, entity.y * S, color, 24, 1.4, 3); return; }   // fix14 โหมดประหยัด
     this.grand.warp(this.posOf(entity), color);
     this.bursts.spawn(entity.x * S, 0.3, entity.y * S, color, 24, 1.4, 3);
     screenFlash(color, 0.5);   // เรียกเฉพาะตัวเราเอง (วาร์ป/ฟื้น)
@@ -1054,7 +1066,8 @@ export class Renderer3D {
   // เลเวลอัป (v0.93 fix7): เสาแสงทอง วงเวท รังสีอาทิตย์ วงแหวนไต่ขึ้นรอบตัว เกลียวดาว น้ำพุประกาย
   levelUp(entity, job = false) {
     const color = job ? '#7fd8ff' : '#ffd36b';
-    this.grand.levelUp(this.posOf(entity), job);
+    if (this.safe) this.circles.spawn(entity.x * S, entity.y * S, { color, size: job ? 2.2 : 3.0, life: 2.2, pillar: true });   // fix14 โหมดประหยัด
+    else this.grand.levelUp(this.posOf(entity), job);
     this.bursts.spawn(entity.x * S, 0.4, entity.y * S, color, job ? 24 : 40, 1.8, 3.4);
     if (job) this.floatText(entity, 'JOB LEVEL UP!', 'lvup job', { life: 2.2, rise: 0.8, h: 2.1, drift: false });
     else screenFlash('#ffe39a', 0.45);
@@ -1457,7 +1470,7 @@ export class Renderer3D {
     if (this.hd === on && this.hdInit) return;
     this.hd = on; this.hdInit = true;
     this.post.hd = on;
-    PXAA.value = on && !this.mobile ? 1 : 0;   // v0.93 fix12 มือถือปิด · v0.93 fix9 HD = กล้องนุ่ม → เกลี่ยขอบพิกเซลลาย · พิกเซล = กล้องล็อกตาราง → คมแบบเดิม
+    PXAA.value = on && !this.mobile && !this.safe ? 1 : 0;   // v0.93 fix12 มือถือปิด · v0.93 fix9 HD = กล้องนุ่ม → เกลี่ยขอบพิกเซลลาย · พิกเซล = กล้องล็อกตาราง → คมแบบเดิม
     this.post.tilt = on ? (this.mobile ? 0.7 : 1) : 0;
     this.pxK = 0;
     document.body.classList.toggle('gfx-hd', on);   // 
@@ -1554,7 +1567,8 @@ export class Renderer3D {
 
     this.water.update(t);
     for (const s of this.sprays) s.update(dt, t);
-    for (const p of this.portals) p.update(t);
+    for (const p of this.portals) p.update(t, this.lowFx);
+    if (this.hwDecor) this.hwDecor.update(t);
     this.updatePropLights(dt);
     const sm = this.renderer.shadowMap;
     if (sm.enabled) {

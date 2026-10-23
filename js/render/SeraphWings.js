@@ -4,8 +4,8 @@
 // · 3 คู่: คู่บนชูสูงเหนือศีรษะ · คู่กลางกางกว้างที่สุด · คู่ล่างโค้งลงคลุมขา · กระพือคนละจังหวะ เดิน = กระพือเร็วขึ้นและหุบเล็กน้อย
 // · รัศมีทองหลังปีก ขนนกแสงร่วงโปรย ประกายทองที่ปลายปีก
 // อินเทอร์เฟซเดียวกับ PixelWingSprite: update(dt, ent, dirIdx, camera, visible) · ax/ay (จุดหลังขยับตามท่า) · liftK
-import { THREE } from './three.js?v=0.93.0-p2.14';
-import { lerpAngle, damp } from '../core/util.js?v=0.93.0-p2.14';
+import { THREE } from './three.js?v=0.93.0-p2.17';
+import { lerpAngle, damp } from '../core/util.js?v=0.93.0-p2.17';
 
 const TAU = Math.PI * 2;
 const UP = new THREE.Vector3(0, 1, 0);

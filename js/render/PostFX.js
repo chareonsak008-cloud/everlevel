@@ -2,7 +2,7 @@
 // - บลูมเฉพาะเอฟเฟกต์ (เรนเดอร์ราก SkillFX แยกอีกรอบที่ครึ่งความละเอียด แล้วเบลอแบบ dual-kawase)
 // - คลื่นกระแทกบนจอ (บิดภาพเป็นวง), แสงวาบทั้งจอ, สีเหลื่อมตอนกระแทก, เส้นความเร็วตอนชาร์จพลัง
 // ใช้: post.setSize(w,h) → ทุกเฟรม post.update(dt) แล้ว post.render(scene, camera, fx.root, (k) => fx.setPixelScale(k))
-import { THREE } from './three.js?v=0.93.0-p2.14';
+import { THREE } from './three.js?v=0.93.0-p2.17';
 
 const VERT = 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
 const MAX_SHOCKS = 4;

@@ -1,7 +1,7 @@
 // v0.93 fix7 เอฟเฟกต์อลังการ: วงเวทจุดวาร์ป (ถาวรบนแผนที่) · ตอนวาร์ปมาถึง · ตอนเลเวลอัป
 // ทุกชิ้นใช้ภาพที่วาดด้วยโค้ด (สีขาว แล้วย้อมสีด้วยวัสดุ) + อนุภาคเชดเดอร์ (ขนาด/สี/ความจางต่อเม็ด) วาดเป็นชุดเดียว
-import { THREE } from './three.js?v=0.93.0-p2.14';
-import { LightSpot } from './Effects.js?v=0.93.0-p2.14';
+import { THREE } from './three.js?v=0.93.0-p2.17';
+import { LightSpot } from './Effects.js?v=0.93.0-p2.17';
 
 const TAU = Math.PI * 2;
 const ADD = THREE.AdditiveBlending;
@@ -216,6 +216,8 @@ void main(){ vC=aColor; vA=aAlpha; vec4 mv=modelViewMatrix*vec4(position,1.0); g
 const FS = `uniform sampler2D map; varying vec3 vC; varying float vA;
 void main(){ vec4 t=texture2D(map,gl_PointCoord); float a=t.a*vA; if(a<0.004) discard; gl_FragColor=vec4(vC*t.rgb*a,a*0.6); }`;
 const SCALE = { value: 420 };
+// fix15 โหมดเบา (มือถือเฟรมตก/โหมดประหยัด) — เอฟเฟกต์วาร์ป/เลเวลอัปปล่อยอนุภาคเหลือ 35%
+export const FXQ = { low: false };
 export class PointCloud {
   constructor(parent, n, map) {
     this.n = n;
@@ -340,7 +342,10 @@ export class GrandPortal {
     this.lt = 0;
   }
 
-  update(t) {
+  update(t, low = false) {
+    // fix15 เครื่องช้า (มือถือเฟรมตก): อนุภาคเหลือ 1/3 · ซ่อนสายพลังงาน/สายฟ้า/วงลอย
+    const nAct = low ? Math.ceil(this.n / 3) : this.n;
+    if (this.lowNow !== low) { this.lowNow = low; this.cloud.points.geometry.setDrawRange(0, nAct); for (const h of this.halos) h.m.visible = !low; for (const c of this.crystals) c.tether.visible = !low; this.bolt.visible = !low; for (const o of this.orbit) o.sp.visible = !low; }
     const L = this.locked, sp = L ? 0.4 : 1, k = L ? 0.45 : 1, pulse = 0.82 + Math.sin(t * 2.4) * 0.18, dt = Math.min(0.1, Math.max(0, t - this.lt)); this.lt = t;
     // พื้น
     this.outer.rotation.z = t * 0.16 * sp; this.mid.rotation.z = -t * 0.4 * sp; this.core.rotation.z = t * 0.9 * sp; this.rays.rotation.z = -t * 0.08;
@@ -378,7 +383,7 @@ export class GrandPortal {
     this.light.intensity = (L ? 0.45 : 1.0) * pulse;
     // อนุภาค
     const P = this.cloud.pos, S = this.cloud.size, A = this.cloud.alpha;
-    for (let i = 0; i < this.n; i++) {
+    for (let i = 0; i < nAct; i++) {
       const s = this.seed[i], kind = i % 6;
       if (kind < 3) {   // ถูกดูดเข้าประตู (เกลียวเข้าหาศูนย์กลาง)
         const q = (t * (0.22 + s * 0.1) * sp + s) % 1, a = s * 40 + q * 6, r = (1 - q) * (2.6 + s * 0.8);
@@ -476,6 +481,7 @@ class Burst {
   }
   emit(count, kind, f) {
     const p = this.p;
+    if (FXQ.low) count = Math.ceil(count * 0.35);
     for (let k = 0; k < count && p.used < p.n; k++) {
       const i = p.used++; const o = f(k / Math.max(1, count - 1), Math.random);
       p.kind[i] = kind; p.life[i] = o.life; p.age[i] = -(o.delay || 0); p.base[i] = o.size * 3.6;
