@@ -1,7 +1,7 @@
 // มินิแมพมุมขวาบน (ทิศเหนืออยู่ด้านบนเสมอ, กรวยแสดงทิศที่กล้องมอง)
-import { TILE } from '../config.js?v=0.93.0-p1.9';
-import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p1.9';
-import { drawBossIcon, bossKind } from './BossIcons.js?v=0.93.0-p1.9';
+import { TILE } from '../config.js?v=0.93.0-p1.10';
+import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p1.10';
+import { drawBossIcon, bossKind } from './BossIcons.js?v=0.93.0-p1.10';
 
 const S = 2; // พิกเซลต่อช่อง
 const OBJ_COLORS = { tent: '#c8643a', icecrystal: '#7fe0ff', obsidian: '#1c1420', house: '#9a5f3e', tree: '#2f6b35', pine: '#2a5e3a', fountain: '#7fb3e6', stall: '#d0904a', well: '#9a958a', tower: '#7a7482' };

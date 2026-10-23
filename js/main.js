@@ -4,7 +4,7 @@
 // v0.13: โหลดไฟล์ตั้งค่าแบบไม่บังคับ — ถ้าไม่มีไฟล์นี้ เกมยังเปิดได้ (โหมดออฟไลน์/บัญชี Claude)
 async function serverConfig() {
   if(window.__contentPreview)return {};
-  try { return await import('./net/server-config.js?v=0.93.0-p1.9'); } catch (e) { return {}; }
+  try { return await import('./net/server-config.js?v=0.93.0-p1.10'); } catch (e) { return {}; }
 }
 
 const root = document.getElementById('game');
@@ -54,7 +54,7 @@ async function createOnline({ Online }) {
   if (configured && !window.__noServer) {
     if (window.supabase || await loadScript(SUPABASE_JS)) {
       try {
-        const { SupabaseOnline } = await import('./net/SupabaseOnline.js?v=0.93.0-p1.9');
+        const { SupabaseOnline } = await import('./net/SupabaseOnline.js?v=0.93.0-p1.10');
         const client = window.supabase.createClient(url, key, {
           auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
         });
@@ -71,7 +71,7 @@ async function createOnline({ Online }) {
 if (!window.THREE) {
   fatal('โหลดกราฟิก 3 มิติ (Three.js) ไม่สำเร็จ — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้า');
 } else {
-  Promise.all([import('./core/Game.js?v=0.93.0-p1.9'), import('./net/Online.js?v=0.93.0-p1.9'), import('./audio/AudioEngine.js?v=0.93.0-p1.9'), import('./ui/TitleScreen.js?v=0.93.0-p1.9'), import('./core/Save.js?v=0.93.0-p1.9'), import('./render/CardPortraits.js?v=0.93.0-p1.9')])
+  Promise.all([import('./core/Game.js?v=0.93.0-p1.10'), import('./net/Online.js?v=0.93.0-p1.10'), import('./audio/AudioEngine.js?v=0.93.0-p1.10'), import('./ui/TitleScreen.js?v=0.93.0-p1.10'), import('./core/Save.js?v=0.93.0-p1.10'), import('./render/CardPortraits.js?v=0.93.0-p1.10')])
     .then(async ([{ Game }, OnlineMod, { AudioEngine }, { TitleScreen }, { SaveManager }, Portraits]) => {
       const step = (v, t) => { try { if (window.__loadStep) window.__loadStep(v, t); } catch (e) { /* หน้าโหลดไม่มีก็ได้ */ } };
       step(30, 'กำลังวาดตัวละครและมอนสเตอร์…');

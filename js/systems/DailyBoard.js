@@ -1,6 +1,6 @@
 // v0.74 กระดานภารกิจรายวัน — สุ่มภารกิจวันละ 4 อย่างตามเลเวล · ทำครบรับกล่อง · ต่อเนื่องทุก 7 วันได้กล่องใหญ่
 // สถานะเก็บใน player.daily (เซฟพร้อมตัวละคร) · วันที่ใช้เวลาเซิร์ฟเวอร์ (เวลาไทย) ถ้าเชื่อมต่ออยู่ กันการเลื่อนนาฬิกาเครื่อง
-import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG, DAILY_REWARD, huntMapFor, killMobFor } from '../data/daily.js?v=0.93.0-p1.9';
+import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG, DAILY_REWARD, huntMapFor, killMobFor } from '../data/daily.js?v=0.93.0-p1.10';
 
 export const bkkDay = (ms) => new Date(ms + 7 * 3600000).toISOString().slice(0, 10);
 const prevDay = (day) => bkkDay(Date.parse(`${day}T12:00:00+07:00`) - 86400000);

@@ -1,10 +1,10 @@
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p1.9';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.9';
-import { ENDGAME_ITEMS } from '../data/endgameItems.js?v=0.93.0-p1.9';
-import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.93.0-p1.9';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p1.9';
-import { GameMap } from '../world/GameMap.js?v=0.93.0-p1.9';
-import { T } from '../data/tileTypes.js?v=0.93.0-p1.9';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p1.10';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.10';
+import { ENDGAME_ITEMS } from '../data/endgameItems.js?v=0.93.0-p1.10';
+import { ITEMS, RARITY, describeBonus } from '../data/items.js?v=0.93.0-p1.10';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p1.10';
+import { GameMap } from '../world/GameMap.js?v=0.93.0-p1.10';
+import { T } from '../data/tileTypes.js?v=0.93.0-p1.10';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const colors={common:'ขาว',uncommon:'เขียว',rare:'ฟ้า',epic:'ม่วง',legend:'ส้ม',mythic:'ทอง',celestial:'แดง'};
 const pct=n=>(n*100).toLocaleString('th-TH',{maximumFractionDigits:3})+'%';

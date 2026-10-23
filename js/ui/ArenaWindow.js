@@ -1,9 +1,9 @@
 // v0.78 หน้าต่างสนามประลอง — จับคู่ · อันดับ · ร้านแต้ม · กติกา
-import { ITEMS } from '../data/items.js?v=0.93.0-p1.9';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.9';
-import { JOBS } from '../data/progression.js?v=0.93.0-p1.9';
-import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD, tierOf } from '../data/arena.js?v=0.93.0-p1.9';
-import { arenaErr } from '../systems/Arena.js?v=0.93.0-p1.9';
+import { ITEMS } from '../data/items.js?v=0.93.0-p1.10';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.10';
+import { JOBS } from '../data/progression.js?v=0.93.0-p1.10';
+import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD, tierOf } from '../data/arena.js?v=0.93.0-p1.10';
+import { arenaErr } from '../systems/Arena.js?v=0.93.0-p1.10';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
