@@ -1,9 +1,9 @@
 // หน้าต่างร้านค้า NPC: แท็บซื้อ / ขาย พร้อมตะกร้าเลือกจำนวน
-import { ITEMS, RARITY, EQUIP_SLOTS, describeBonus, canJobUse, itemMods } from '../data/items.js?v=0.93.0-p3.25';
-import { JOBS } from '../data/progression.js?v=0.93.0-p3.25';
-import { SHOPS, buyPrice, sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p3.25';
-import { STACK_MAX } from '../systems/Inventory.js?v=0.93.0-p3.25';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.25';
+import { ITEMS, RARITY, EQUIP_SLOTS, describeBonus, canJobUse, itemMods } from '../data/items.js?v=0.93.0-p3.28';
+import { JOBS } from '../data/progression.js?v=0.93.0-p3.28';
+import { SHOPS, buyPrice, sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p3.28';
+import { STACK_MAX } from '../systems/Inventory.js?v=0.93.0-p3.28';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.28';
 
 // v0.93 แท็บขายแยกหมวด: ขยะ/ของสะสม · อุปกรณ์ · ของใช้ · การ์ด/อื่น ๆ
 const SELL_CATS = [['etc', 'ขยะ'], ['equip', 'อุปกรณ์'], ['usable', 'ของใช้'], ['other', 'วัสดุ / การ์ด'], ['all', 'ทั้งหมด']];

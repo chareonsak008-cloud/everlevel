@@ -1,12 +1,12 @@
 // หน้าต่างตีมอนออโต้ (v0.14 · ปุ่ม H) + ปุ่ม AUTO ลอยบนจอ (กดเริ่ม/หยุดได้ทันที)
 // ตั้งค่า: ยาเพิ่ม HP/SP อัตโนมัติ · ระยะการตี · ติ๊กมอนที่จะตี (มีรูปมอน) · ตีตัวที่โจมตีเราก่อน · สกิลที่ใช้ (v0.17.1: เอาเก็บของอัตโนมัติออก)
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.25';
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.25';
-import { SKILLS, skillSp } from '../data/skills.js?v=0.93.0-p3.25';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.25';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p3.25';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.93.0-p3.25';
-import { AUTO_RANGE, HP_POTS, SP_POTS, potHeal, mapMonsters, autoSkillRole, buyPotFor } from '../systems/AutoHunt.js?v=0.93.0-p3.25';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.28';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.28';
+import { SKILLS, skillSp } from '../data/skills.js?v=0.93.0-p3.28';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.28';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p3.28';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.93.0-p3.28';
+import { AUTO_RANGE, HP_POTS, SP_POTS, potHeal, mapMonsters, autoSkillRole, buyPotFor } from '../systems/AutoHunt.js?v=0.93.0-p3.28';
 
 const ROLE_LABEL = { attack: 'โจมตีเป้าหมาย', aoe: 'โจมตีรอบตัว', buff: 'บัฟ · ใช้ใหม่เมื่อหมดเวลา', heal: 'รักษา · ใช้เมื่อ HP ต่ำกว่าที่ตั้ง' };
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -55,6 +55,7 @@ export class AutoWindow {
       </section>
       <section class="aw-sec"><h3>การต่อสู้</h3>
         <label class="aw-chk"><input type="checkbox" data-k="retaliate"><span>ตีมอนสเตอร์ที่โจมตีเราก่อน<small>สู้กลับทันที แม้ไม่ได้ติ๊กมอนตัวนั้นไว้ · ไม่ติ๊ก = สนใจเฉพาะมอนที่เลือก</small></span></label>
+        <label class="aw-chk"><input type="checkbox" data-k="brokeHome"><span>อาวุธพัง → วาร์ปกลับเมืองแล้วเปิดหน้าซ่อม<small>ใช้ใบกลับเมือง · ถ้าไม่มีใบ วาร์ปกลับให้ฟรี (ยืนนิ่ง 3 วินาที)</small></span></label>
         <label class="aw-chk"><input type="checkbox" data-k="goHome"><span>ยาเลือดหมด / กระเป๋าเต็ม → ใช้ใบกลับเมืองแล้วหยุด<small class="aw-scroll"></small></span></label>
       </section>
       <section class="aw-sec"><div class="aw-h"><h3>มอนสเตอร์ที่จะตี</h3><span class="aw-allbtns"><button type="button" data-all="1">เลือกทั้งหมด</button><button type="button" data-all="0">ไม่เลือก</button></span></div>

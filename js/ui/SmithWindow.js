@@ -1,10 +1,10 @@
 // v0.89 ช่างตีเหล็ก — ซ่อมอุปกรณ์ (ความทนทาน) · ถอดการ์ดคืน (ค่าบริการแพงมาก)
 // เปิดจาก NPC ช่างตีเหล็กในเมือง หรือหน้า VIP (ซ่อมได้ทุกที่ · ถอดการ์ดต้องมาที่ร้าน)
-import { ITEMS, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.93.0-p3.25';
-import { CARDS } from '../data/cards.js?v=0.93.0-p3.25';
-import { duraOf, DURA_MAX, DURA_LOW, unsocketCost } from '../data/durability.js?v=0.93.0-p3.25';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.25';
-import { fmtZ } from '../data/shops.js?v=0.93.0-p3.25';
+import { ITEMS, itemMods, EQUIP_SLOTS } from '../data/items.js?v=0.93.0-p3.28';
+import { CARDS } from '../data/cards.js?v=0.93.0-p3.28';
+import { duraOf, DURA_MAX, DURA_LOW, unsocketCost } from '../data/durability.js?v=0.93.0-p3.28';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.28';
+import { fmtZ } from '../data/shops.js?v=0.93.0-p3.28';
 
 const slotName = (id) => (EQUIP_SLOTS.find((s) => s.id === id) || {}).name || id;
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -51,16 +51,18 @@ export class SmithWindow {
     body.append(head);
     if (!list.length) { body.insertAdjacentHTML('beforeend', '<p class="inv-empty">อุปกรณ์ทุกชิ้นสภาพดี ไม่ต้องซ่อม ✔</p>'); return; }
     const all = document.createElement('button'); all.type = 'button'; all.className = 'primary sm-all';
-    all.innerHTML = `ซ่อมทั้งหมด ${list.length} ชิ้น · <b>${fmtZ(total)}</b>`;
-    all.disabled = p.zeny < total;
+    const short = p.zeny < total;   // fix20 เงินไม่พอ → ซ่อมบางส่วนเท่าที่มี
+    all.innerHTML = short ? `ซ่อมบางส่วนด้วย Zeny ที่มี · <b>${fmtZ(p.zeny)}</b> <small>(ซ่อมเต็มต้องใช้ ${fmtZ(total)})</small>` : `ซ่อมทั้งหมด ${list.length} ชิ้น · <b>${fmtZ(total)}</b>`;
+    all.disabled = p.zeny < 50;
     all.addEventListener('click', () => { g.repairItems(list); this.render(); });
     body.append(all);
     const ul = document.createElement('div'); ul.className = 'sm-list';
     for (const r of list) {
       const it = ITEMS[r.key], row = document.createElement('div'); row.className = 'sm-row' + (r.dura <= 0 ? ' broken' : '');
       row.innerHTML = `<img alt="" src="${iconURL(r.key)}"><span class="rn"><b>${esc(it.name)}</b><small>${r.where === 'equip' ? 'สวมอยู่ · ' + slotName(r.slot) : 'ในกระเป๋า'} · ${r.dura <= 0 ? '<em class="bad">พังแล้ว</em>' : `ความทนทาน ${Math.ceil(r.dura)}/${DURA_MAX}`}</small>${duraBar(r.dura)}</span>`;
-      const b = document.createElement('button'); b.type = 'button'; b.innerHTML = `ซ่อม<small>${fmtZ(r.cost)}</small>`;
-      b.disabled = p.zeny < r.cost;
+      const b = document.createElement('button'); b.type = 'button';
+      b.innerHTML = p.zeny >= r.cost ? `ซ่อม<small>${fmtZ(r.cost)}</small>` : `ซ่อมบางส่วน<small>${fmtZ(p.zeny)} / ${fmtZ(r.cost)}</small>`;
+      b.disabled = p.zeny < 50;
       b.addEventListener('click', () => { g.repairItems([r]); this.render(); });
       row.append(b); ul.append(row);
     }

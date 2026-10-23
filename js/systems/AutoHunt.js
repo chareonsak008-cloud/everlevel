@@ -4,11 +4,13 @@
 // · ยาเลือดหมดหรือกระเป๋าเต็ม → ใช้ใบกลับเมืองแล้วหยุด
 // · v0.17.1: เอาการเดินเก็บของอัตโนมัติออกแล้ว (เก็บเองด้วยการแตะของ หรือใช้สัตว์เลี้ยงช่วยเก็บ)
 // · เดินเองระหว่างออโต้ = ย้ายจุดตีไปที่ที่หยุดเดิน · แตะมอนเอง = ตีตัวนั้นก่อน
-import { TILE } from '../config.js?v=0.93.0-p3.25';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.25';
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.25';
-import { SKILLS, skillSp } from '../data/skills.js?v=0.93.0-p3.25';
-import { SHOPS, buyPrice } from '../data/shops.js?v=0.93.0-p3.25';
+import { TILE } from '../config.js?v=0.93.0-p3.28';
+import { START_MAP } from '../data/maps/index.js?v=0.93.0-p3.28';
+import { isBroken } from '../data/durability.js?v=0.93.0-p3.28';   // fix20
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.28';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.28';
+import { SKILLS, skillSp } from '../data/skills.js?v=0.93.0-p3.28';
+import { SHOPS, buyPrice } from '../data/shops.js?v=0.93.0-p3.28';
 
 export const AUTO_RANGE = [3, 25];          // ช่อง
 export const AUTO_DEFAULT = {
@@ -16,7 +18,7 @@ export const AUTO_DEFAULT = {
   spOn: true, spPct: 30, spItem: 'auto',
   potAlways: false,                         // ใช้ยาอัตโนมัติแม้ไม่ได้เปิดออโต้
   buyOn: false, buyMin: 20, buyTo: 100,     // v0.45 VIP: ยาเหลือน้อยกว่า buyMin → ซื้อเติมให้ถึง buyTo (ใช้ Zeny)
-  range: 10, retaliate: true, goHome: true,
+  range: 10, retaliate: true, goHome: true, brokeHome: true,   // fix20 brokeHome = อาวุธพัง → กลับเมือง
   pick: {},                                 // { ชนิดมอน: true/false } (ไม่ระบุ = ตี ยกเว้น MVP)
   skills: [],                               // สกิลที่ติ๊กให้ใช้
 };
@@ -46,7 +48,7 @@ export function normAuto(a) {
   const o = { ...AUTO_DEFAULT, pick: {}, skills: [] };
   if (!a || typeof a !== 'object') return o;
   const pct = (v, d) => (Number.isFinite(v) ? Math.max(5, Math.min(95, Math.round(v))) : d);
-  for (const k of ['hpOn', 'spOn', 'potAlways', 'retaliate', 'goHome', 'buyOn']) if (typeof a[k] === 'boolean') o[k] = a[k];
+  for (const k of ['hpOn', 'spOn', 'potAlways', 'retaliate', 'goHome', 'buyOn', 'brokeHome']) if (typeof a[k] === 'boolean') o[k] = a[k];
   o.hpPct = pct(a.hpPct, o.hpPct); o.spPct = pct(a.spPct, o.spPct);
   o.hpItem = HP_POTS.includes(a.hpItem) ? a.hpItem : 'auto';
   o.spItem = SP_POTS.includes(a.spItem) ? a.spItem : 'auto';
@@ -156,7 +158,9 @@ export class AutoHunt {
   onMapLoaded() {
     if (!this.on) return;
     const why = this.leaving ? `กลับถึงเมืองแล้ว — ${this.leaving.reason}` : 'เปลี่ยนแผนที่';
+    const rep = this.leaving && this.leaving.repair;
     this.stop(why);
+    if (rep && this.g.map && this.g.map.def && this.g.map.def.safe) this.g.schedule(1.2, () => { if (this.g.repairList().length) { this.g.smith.show('repair'); this.g.hud.log('🔧 เปิดหน้าซ่อมอุปกรณ์ให้แล้ว', 'info'); } });   // fix20
   }
 
   // ตั้งค่าเปลี่ยน (จาก UI)
@@ -210,6 +214,7 @@ export class AutoHunt {
 
     const c = this.cfg;
     if (!this.leaving && c.goHome && pl.inventory.stacks.length >= pl.inventory.capacity) this.leave('กระเป๋าเต็ม');
+    if (!this.leaving && c.brokeHome && isBroken(pl, pl.equip.weapon)) this.leave('อาวุธพัง', { free: true, repair: true });   // fix20
     if (this.leaving) { this.updateLeaving(); return; }
     if (pl.cast) { this.setStatus(pl.cast.item ? `กำลังใช้ ${pl.cast.name}` : 'กำลังร่ายสกิล'); return; }
     if (pl.pendingSkill || pl.lockUntil > g.time) return;
@@ -379,14 +384,20 @@ export class AutoHunt {
 
   /* ---------- กลับเมือง ---------- */
 
-  leave(reason) {
+  // free = ไม่มีใบกลับเมืองก็กลับได้ (อาวุธพัง) · repair = ถึงเมืองแล้วเปิดหน้าซ่อมให้
+  leave(reason, { free = false, repair = false } = {}) {
     const g = this.g, pl = g.player;
+    if (free && pl.inventory.count('return_scroll') <= 0) {
+      this.leaving = { reason, free, repair };
+      g.hud.log(`⚠ ${reason} — กำลังวาร์ปกลับเมืองไปซ่อม แล้วจะหยุดออโต้`, 'sys');
+      return;
+    }
     if (pl.inventory.count('return_scroll') <= 0) {
       g.hud.log(`⚠ ${reason} — ไม่มีใบกลับเมือง จึงหยุดออโต้อยู่ที่นี่`, 'sys');
       this.stop(reason, { silent: true });
       return;
     }
-    this.leaving = { reason };
+    this.leaving = { reason, repair };
     g.hud.log(`⚠ ${reason} — ใช้ใบกลับเมืองแล้วจะหยุดออโต้`, 'sys');
   }
 
@@ -394,10 +405,21 @@ export class AutoHunt {
     const g = this.g, pl = g.player;
     if (pl.cast) { this.setStatus('กำลังร่ายใบกลับเมือง'); return; }
     if (pl.pendingSkill || pl.lockUntil > g.time) return;
+    const hit = this.nearest((m) => m.target === pl && Math.hypot(m.x - pl.x, m.y - pl.y) < 6 * TILE);
+    if (this.leaving.free && (this.leaving.t || pl.inventory.count('return_scroll') <= 0 || hit)) {   // fix20 อาวุธพัง: ไม่มีใบ/โดนรุม → วาร์ปกลับให้ฟรี (3 วิ ไม่ถูกขัด)
+      if (pl.target) g.clearTarget();
+      pl.path = []; pl.pendingPickup = null;
+      if (!this.leaving.t) { this.leaving.t = g.time + 3; g.gfx.warpIn && g.gfx.warpIn(pl, '#8fd8ff'); }
+      this.setStatus(`กำลังวาร์ปกลับเมือง… ${Math.max(0, Math.ceil(this.leaving.t - g.time))}`);
+      if (g.time >= this.leaving.t) { this.leaving.t = 0; g.hud.log('🏠 วาร์ปกลับเมือง Asteria Town', 'sys'); g.warp(START_MAP, null); }
+      return;
+    }
     // ยังมีตัวตีเราอยู่ → สู้ให้หลุดก่อน (โดนตีจะหยุดร่าย)
-    const a = this.nearest((m) => m.target === pl && Math.hypot(m.x - pl.x, m.y - pl.y) < 6 * TILE);
+    const a = hit;
     if (a) { if (pl.target !== a) g.setTarget(a); pl.engage = true; this.useAttackSkill(a); this.setStatus(`สู้ให้หลุดก่อนกลับเมือง (${a.name})`); return; }
-    if (pl.inventory.count('return_scroll') <= 0) { this.stop(`${this.leaving.reason} · ใบกลับเมืองหมด`); return; }
+    if (pl.inventory.count('return_scroll') <= 0) {
+      this.stop(`${this.leaving.reason} · ใบกลับเมืองหมด`); return;
+    }
     if (pl.target) g.clearTarget();
     pl.path = []; pl.pendingPickup = null;
     g.useItem('return_scroll');

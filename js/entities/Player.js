@@ -1,31 +1,31 @@
 // ผู้เล่น: เดินด้วยคีย์บอร์ด / จอย / คลิกตามเส้นทาง + เลเวล EXP และค่าสถานะ
-import { cleanOutfit } from '../data/outfits.js?v=0.93.0-p3.25';   // v0.91 สีชุด
-import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.93.0-p3.25';
-import { Entity } from './Entity.js?v=0.93.0-p3.25';
-import { PLAYER_SPEED, TILE } from '../config.js?v=0.93.0-p3.25';
+import { cleanOutfit } from '../data/outfits.js?v=0.93.0-p3.28';   // v0.91 สีชุด
+import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.93.0-p3.28';
+import { Entity } from './Entity.js?v=0.93.0-p3.28';
+import { PLAYER_SPEED, TILE } from '../config.js?v=0.93.0-p3.28';
 import {
   derive, baseExpToNext, jobExpToNext, statPointsForLevel, statCost,
   START_STAT_POINTS, MAX_STAT, STAT_KEYS, JOBS, jobStatBonus, JOB_CHANGE_JOB_LEVEL, FIRST_JOBS, SECOND_OF, JOB2_JOB_LEVEL, jobTier,
   THIRD_OF, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, parentJob,
-} from '../data/progression.js?v=0.93.0-p3.25';
-import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.93.0-p3.25';
-import { setInfo } from '../data/affixes.js?v=0.93.0-p3.25';
-import { DURA_MAX, DURA_LOW, DURA_LOSS, duraOf } from '../data/durability.js?v=0.93.0-p3.25';   // v0.89 ความทนทาน
-import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.93.0-p3.25';
-import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.93.0-p3.25';
-import { Inventory } from '../systems/Inventory.js?v=0.93.0-p3.25';
-import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.93.0-p3.25';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.25';
-import { CONSUMABLES } from '../data/consumables.js?v=0.93.0-p3.25';
-import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.93.0-p3.25';
-import { normAuto } from '../systems/AutoHunt.js?v=0.93.0-p3.25';
-import { normPick } from '../systems/PetPick.js?v=0.93.0-p3.25';
-import { normDungeon } from '../data/dungeons.js?v=0.93.0-p3.25';
-import { normCol } from '../systems/Collection.js?v=0.93.0-p3.25';
-import { ACH_BY_ID } from '../data/collection.js?v=0.93.0-p3.25';
-import { titleInfo, titlesOf } from '../data/seasonTitles.js?v=0.93.0-p3.25';   // v0.76 ฉายา 3 อัน + ฉายาฤดูกาล
-import { normMail } from '../data/mail.js?v=0.93.0-p3.25';
-import { AR, syncAttr } from '../data/arena.js?v=0.93.0-p3.25';   // v0.78
+} from '../data/progression.js?v=0.93.0-p3.28';
+import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.93.0-p3.28';
+import { setInfo } from '../data/affixes.js?v=0.93.0-p3.28';
+import { DURA_MAX, DURA_LOW, DURA_LOSS, duraOf } from '../data/durability.js?v=0.93.0-p3.28';   // v0.89 ความทนทาน
+import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.93.0-p3.28';
+import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.93.0-p3.28';
+import { Inventory } from '../systems/Inventory.js?v=0.93.0-p3.28';
+import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.93.0-p3.28';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.28';
+import { CONSUMABLES } from '../data/consumables.js?v=0.93.0-p3.28';
+import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.93.0-p3.28';
+import { normAuto } from '../systems/AutoHunt.js?v=0.93.0-p3.28';
+import { normPick } from '../systems/PetPick.js?v=0.93.0-p3.28';
+import { normDungeon } from '../data/dungeons.js?v=0.93.0-p3.28';
+import { normCol } from '../systems/Collection.js?v=0.93.0-p3.28';
+import { ACH_BY_ID } from '../data/collection.js?v=0.93.0-p3.28';
+import { titleInfo, titlesOf } from '../data/seasonTitles.js?v=0.93.0-p3.28';   // v0.76 ฉายา 3 อัน + ฉายาฤดูกาล
+import { normMail } from '../data/mail.js?v=0.93.0-p3.28';
+import { AR, syncAttr } from '../data/arena.js?v=0.93.0-p3.28';   // v0.78
 
 // v0.15: รหัสสุ่มประจำตัวละคร (ตัวละครใหม่ = รหัสใหม่ · รับจดหมาย "ทุกตัวละคร" ได้ตัวละ 1 ครั้ง)
 export const newCid = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 16);
