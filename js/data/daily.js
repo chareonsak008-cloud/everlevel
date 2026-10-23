@@ -1,8 +1,8 @@
 // v0.74 กระดานภารกิจรายวัน — ข้อมูลภารกิจ (สุ่มวันละ 4 อย่าง · รีเซ็ตเที่ยงคืนเวลาไทย)
 // type = เหตุการณ์ที่นับความคืบหน้า (เรียก DailyBoard.bump(type, ...) จากระบบเกม)
 // n(lv) = จำนวนเป้าหมาย · minLv = เลเวลขั้นต่ำที่สุ่มเจอ · online = ต้องเล่นออนไลน์ (ปาร์ตี้)
-import { MAPS } from './maps/index.js?v=0.93.0-p2.13';
-import { MONSTERS } from './monsters.js?v=0.93.0-p2.13';
+import { MAPS } from './maps/index.js?v=0.93.0-p2.14';
+import { MONSTERS } from './monsters.js?v=0.93.0-p2.14';
 
 export const DAILY_COUNT = 4;          // ภารกิจต่อวัน
 export const DAILY_REROLLS = 1;        // เปลี่ยนภารกิจฟรีวันละกี่ครั้ง

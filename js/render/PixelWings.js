@@ -1,8 +1,8 @@
 // v0.35: ปีกแฟชั่นภาพพิกเซล 8 ทิศ (จาก PixelLab) — แผ่นป้ายหันหากล้อง วางซ้อนหลัง/หน้าตัวละครพิกเซลตามทิศที่หัน
 // แผ่นภาพ assets/fashion/wings/<key>.png : 8 แถว (N·NE·E·SE·S·SW·W·NW) × F คอลัมน์ (เฟรมกระพือ) · ช่องละ cell px
 // ค่าในชิ้นแฟชั่น p = { px: key, cell, frames, fps, lift, scale }
-import { THREE } from './three.js?v=0.93.0-p2.13';
-import { VERSION } from '../config.js?v=0.93.0-p2.13';
+import { THREE } from './three.js?v=0.93.0-p2.14';
+import { VERSION } from '../config.js?v=0.93.0-p2.14';
 
 const PXW = 3.55 / 96;   // หน่วยโลกต่อพิกเซล (เท่าตัวละครพิกเซล)
 const ROW = { n: 0, ne: 1, e: 2, se: 3, s: 4, sw: 5, w: 6, nw: 7 };

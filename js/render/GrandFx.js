@@ -1,7 +1,7 @@
 // v0.93 fix7 เอฟเฟกต์อลังการ: วงเวทจุดวาร์ป (ถาวรบนแผนที่) · ตอนวาร์ปมาถึง · ตอนเลเวลอัป
 // ทุกชิ้นใช้ภาพที่วาดด้วยโค้ด (สีขาว แล้วย้อมสีด้วยวัสดุ) + อนุภาคเชดเดอร์ (ขนาด/สี/ความจางต่อเม็ด) วาดเป็นชุดเดียว
-import { THREE } from './three.js?v=0.93.0-p2.13';
-import { LightSpot } from './Effects.js?v=0.93.0-p2.13';
+import { THREE } from './three.js?v=0.93.0-p2.14';
+import { LightSpot } from './Effects.js?v=0.93.0-p2.14';
 
 const TAU = Math.PI * 2;
 const ADD = THREE.AdditiveBlending;
