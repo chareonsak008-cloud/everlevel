@@ -1,8 +1,8 @@
 // รูปย่อสัตว์เลี้ยง (v0.13) — เรนเดอร์โมเดล 3 มิติลงผืนผ้าใบเล็ก แล้วเก็บเป็น dataURL ใช้ซ้ำในหน้าต่างสัตว์เลี้ยง
 // สร้าง WebGL renderer แยกเฉพาะตอนเปิดหน้าต่างครั้งแรก
-import { THREE } from './three.js?v=0.93.0-p3.28';
-import { PetView } from './Pets.js?v=0.93.0-p3.28';
-import { PixelSprites, PIXEL } from './PixelSprites.js?v=0.93.0-p3.28';   // v0.17: รูปย่อแบบพิกเซล
+import { THREE } from './three.js?v=0.93.0-p3.31';
+import { PetView } from './Pets.js?v=0.93.0-p3.31';
+import { PixelSprites, PIXEL } from './PixelSprites.js?v=0.93.0-p3.31';   // v0.17: รูปย่อแบบพิกเซล
 
 let R = null, scene = null, cam = null;
 const cache = new Map();

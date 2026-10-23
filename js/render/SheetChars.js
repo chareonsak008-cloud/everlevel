@@ -2,9 +2,9 @@
 // แผ่นละอาชีพ = 8 คอลัมน์ × 8 แถว (ช่องละ 128px)
 //   แถว: N · NE · E · SE · S · SW · W · NW  (ทิศตัวละครหันเทียบจอ)
 //   คอลัมน์ 0–3 = เดิน 4 เฟรม · 4–7 = โจมตี 4 เฟรม (นักบวช = ท่าร่าย/ฮีล)
-import { THREE } from './three.js?v=0.93.0-p3.28';
-import { VERSION } from '../config.js?v=0.93.0-p3.28';
-import { outfitParams } from '../data/outfits.js?v=0.93.0-p3.28';   // v0.91 สีชุด
+import { THREE } from './three.js?v=0.93.0-p3.31';
+import { VERSION } from '../config.js?v=0.93.0-p3.31';
+import { outfitParams } from '../data/outfits.js?v=0.93.0-p3.31';   // v0.91 สีชุด
 
 // แผ่นวาดมือ 8×8 (ช่อง 128px): คอลัมน์ 0–3 เดิน · 4–7 โจมตี
 const HAND = { cols: 8, size: 2.75, pixel: false, anim: { idle: [7], walk: [0, 1, 2, 3], attack: [4, 5, 6, 7] } };
@@ -186,7 +186,7 @@ export class SheetSprite {
     const oid = (ent.look && ent.look.oc) || 'def', ok = oid + '|' + this.job;
     if (ok !== this.ocKey) {
       this.ocKey = ok;
-      const P = this.job.endsWith('_dragon') ? null : outfitParams(oid, S.base || this.job);
+      const P = this.job.endsWith('_dragon') || S.npc ? null : outfitParams(oid, S.base || this.job);
       if (P) { this.oc.uOc.value.set(P.mode, P.hue, 0, 0); this.oc.uOcBand.value.set(P.band[0], P.band[1], P.band[2]); } else this.oc.uOc.value.set(0, 0, 0, 0);
     }
     if (view && view.hurtT > 0) this.mat.color.setRGB(1, 0.45, 0.45);

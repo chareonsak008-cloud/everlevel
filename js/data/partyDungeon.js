@@ -1,5 +1,5 @@
 // v0.75 ดันเจี้ยนปาร์ตี้ "วิหารผนึกจันทรา" — ข้อมูล (เลือดบอส/รางวัล/โควตาตัดสินที่เซิร์ฟเวอร์: supabase/party_dungeon_v0.75.sql)
-import { MONSTERS } from './monsters.js?v=0.93.0-p3.28';
+import { MONSTERS } from './monsters.js?v=0.93.0-p3.31';
 
 export const PD = {
   name: 'วิหารผนึกจันทรา',

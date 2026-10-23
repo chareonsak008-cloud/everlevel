@@ -1,38 +1,40 @@
 // ตัววาดโลก 3 มิติ: แสงเงา, กล้อง, สร้างฉากจากข้อมูลแผนที่, ป้ายชื่อ
-import { SheetSprite, liveSheet, screenDir, sheetOf } from './SheetChars.js?v=0.93.0-p3.28';
-import { PixelWingSprite } from './PixelWings.js?v=0.93.0-p3.28';
-import { SeraphWings } from './SeraphWings.js?v=0.93.0-p3.28';   // v0.95 ปีกเทวทูต 6 ปีก (โมเดล 3 มิติ หมุนตามตัวแบบลื่น)
-import { paintPlate } from '../ui/Nameplates.js?v=0.93.0-p3.28';
-import { PixelVfx } from './PixelVfx.js?v=0.93.0-p3.28';
-import { THREE } from './three.js?v=0.93.0-p3.28';
-import { TILE } from '../config.js?v=0.93.0-p3.28';
-import { T } from '../data/tileTypes.js?v=0.93.0-p3.28';
-import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.93.0-p3.28';
-import { pumpkinHat, townDecor } from './Halloween.js?v=0.93.0-p3.28';   // fix15
-import { PXAA } from './PixelGround.js?v=0.93.0-p3.28';
-import { GrandPortal, GrandFx, setGrandViewport, screenFlash } from './GrandFx.js?v=0.93.0-p3.28';
-import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.93.0-p3.28';
-import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.93.0-p3.28';
+import { SheetSprite, liveSheet, screenDir, sheetOf, registerSheet } from './SheetChars.js?v=0.93.0-p3.31';
+import { NPC_SHEETS, NPC_SPRITES, npcSheetDef } from '../data/npcSprites.js?v=0.93.0-p3.31';   // fix21 NPC ภาพพิกเซล
+for (const [k, d] of Object.entries(NPC_SHEETS)) registerSheet(k, npcSheetDef(d));
+import { PixelWingSprite } from './PixelWings.js?v=0.93.0-p3.31';
+import { SeraphWings } from './SeraphWings.js?v=0.93.0-p3.31';   // v0.95 ปีกเทวทูต 6 ปีก (โมเดล 3 มิติ หมุนตามตัวแบบลื่น)
+import { paintPlate } from '../ui/Nameplates.js?v=0.93.0-p3.31';
+import { PixelVfx } from './PixelVfx.js?v=0.93.0-p3.31';
+import { THREE } from './three.js?v=0.93.0-p3.31';
+import { TILE } from '../config.js?v=0.93.0-p3.31';
+import { T } from '../data/tileTypes.js?v=0.93.0-p3.31';
+import { rng, lerp, lerpAngle, damp, clamp } from '../core/util.js?v=0.93.0-p3.31';
+import { pumpkinHat, townDecor } from './Halloween.js?v=0.93.0-p3.31';   // fix15
+import { PXAA } from './PixelGround.js?v=0.93.0-p3.31';
+import { GrandPortal, GrandFx, setGrandViewport, screenFlash } from './GrandFx.js?v=0.93.0-p3.31';
+import { groundTexture, skyTexture, glowTexture, blobShadowTexture, magicCircleTexture, beamTexture } from './Textures.js?v=0.93.0-p3.31';
+import { batchStatic, mergeGeometries, std, lin } from './Geo.js?v=0.93.0-p3.31';
 import {
   BUILDERS, cityWalls, bridges, setPixelModels, glowSprite, roundTreeGeometry, pineGeometry, treeMaterial, snowPineGeometry, snowTreeGeometry, deadTreeGeometry,
   grassTuftGeometry, flowerGeometry, rockGeometry,
-} from './Models.js?v=0.93.0-p3.28';
-import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.93.0-p3.28';
-import { iconCanvas } from './ItemIcons.js?v=0.93.0-p3.28';
-import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p3.28';
-import { MonsterView } from './Monsters.js?v=0.93.0-p3.28';
-import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.93.0-p3.28';
-import { SkillFX } from './SkillFX.js?v=0.93.0-p3.28';
-import { PostFX } from './PostFX.js?v=0.93.0-p3.28';
-import { Weather } from './Weather.js?v=0.93.0-p3.28';   // v0.91 สภาพอากาศ
-import { costumeLook, wearCostume } from './Costumes.js?v=0.93.0-p3.28';
-import { TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0-p3.28';
-import { PetView } from './Pets.js?v=0.93.0-p3.28';
-import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.93.0-p3.28';
-import { pixelGround, PixelWater } from './PixelGround.js?v=0.93.0-p3.28';
-import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.93.0-p3.28';
-import { gradientMap } from './Toon.js?v=0.93.0-p3.28';
-import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.93.0-p3.28';
+} from './Models.js?v=0.93.0-p3.31';
+import { CharacterView, CHAR_HEAD } from './Characters.js?v=0.93.0-p3.31';
+import { iconCanvas } from './ItemIcons.js?v=0.93.0-p3.31';
+import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p3.31';
+import { MonsterView } from './Monsters.js?v=0.93.0-p3.31';
+import { Water, FountainSpray, Portal, Motes, ClickMarker, Bursts, TargetRing, Campfire, MagicCircles, WarpCrystal, Projectiles, Strikes, Telegraphs, AutoZone } from './Effects.js?v=0.93.0-p3.31';
+import { SkillFX } from './SkillFX.js?v=0.93.0-p3.31';
+import { PostFX } from './PostFX.js?v=0.93.0-p3.31';
+import { Weather } from './Weather.js?v=0.93.0-p3.31';   // v0.91 สภาพอากาศ
+import { costumeLook, wearCostume } from './Costumes.js?v=0.93.0-p3.31';
+import { TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0-p3.31';
+import { PetView } from './Pets.js?v=0.93.0-p3.31';
+import { PixelSprites, PX_LAYER, PIXEL, PX } from './PixelSprites.js?v=0.93.0-p3.31';
+import { pixelGround, PixelWater } from './PixelGround.js?v=0.93.0-p3.31';
+import { roundTreePx, pinePx, snowTreePx, snowPinePx, deadTreePx, bushPx, grassTuftPx, flowerPx, rockPx, floraMaterial, vcToon } from './PixelFlora.js?v=0.93.0-p3.31';
+import { gradientMap } from './Toon.js?v=0.93.0-p3.31';
+import { paintHonor, injectTitleCss } from '../ui/TitleFx.js?v=0.93.0-p3.31';
 // v0.86 กลางวัน · ตอนเย็น · กลางคืน · รุ่งสาง — ตัวคูณแสง (h=ฟ้า s=แดด e=exposure) + สีที่ผสมเข้าไป (mix)
 const DAY_PRESETS = {
   day: { name: 'กลางวัน', icon: '☀', h: 1, s: 1, e: 1, mix: 0, glow: 1, tint: [0, 0, 0, 0] },
@@ -585,7 +587,7 @@ export class Renderer3D {
     if (!npc && !remote) {
       castbar = document.createElement('div'); castbar.className = 'castbar'; castbar.innerHTML = '<span></span><b><i></i></b>'; castbar.hidden = true; this.labelLayer.append(castbar);
     }
-    this.characters.set(entity, { hitbox: hb, view, costume, glow, pxw, label, bubble, hpbar, castbar, npc, kind: npc ? 'npc' : remote ? 'remote' : 'player', head: CHAR_HEAD * 1.3 * scale, lastText: '', lastHp: -1 });
+    this.characters.set(entity, { hitbox: hb, view, costume, glow, pxw, label, bubble, hpbar, castbar, npc, kind: npc ? 'npc' : remote ? 'remote' : 'player', head: CHAR_HEAD * 1.3 * scale, lastText: '', lastHp: -1, npcSheet: npc ? this.npcSheetOf(entity) : null });
     this.actorQuality(this.characters.get(entity));
     this.pxChar(entity, view);
     view.update(0, entity);
@@ -849,9 +851,12 @@ export class Renderer3D {
   }
 
 
+  // fix21 แผ่นภาพของ NPC: 'แผนที่:ไอดี' ก่อน แล้วค่อยไอดีอย่างเดียว
+  npcSheetOf(n) { const k = NPC_SPRITES[`${n.mapId}:${n.id}`] || NPC_SPRITES[n.id]; return k && NPC_SHEETS[k] ? k : null; }
+
   // v0.33: ตัวละครพิกเซล 8 ทิศ (สไปรต์ชีต) แทนโมเดล สำหรับอาชีพที่มีภาพแล้ว
   sheetChar(c, entity, dt) {
-    const job = this.spriteChars !== false ? liveSheet(entity.jobId) : null;
+    const job = c.npcSheet ? (this.spriteChars !== false ? c.npcSheet : null) : this.spriteChars !== false ? liveSheet(entity.jobId) : null;   // fix21 NPC ใช้แผ่นของตัวเอง
     const root = c.view.root;
     if (!job) {
       if (c.sheet) { c.sheet.dispose(); c.sheet = null; c.ent = entity; this.sheetBody(c, false); }
@@ -1698,6 +1703,7 @@ export class Renderer3D {
       c.view.update(simDt, entity);
       if (c.aura) this.updateBossAura(c, entity, simDt);
       if (c.kind === 'player' || c.kind === 'remote') { this.sheetChar(c, entity, simDt); this.pixelWear(c, entity, simDt); }
+      else if (c.npcSheet) this.sheetChar(c, entity, simDt);   // fix21
       if (c.costume) { c.costume.update(simDt, c.view); if (c.glow && c.kind === 'player' && !c.sheet) glowC = c; }
       this.placeLabel(entity, c);
     }
@@ -1762,7 +1768,7 @@ export class Renderer3D {
       el.textContent = c.qm === 'd' ? '!' : c.qm || '';
       el.hidden = !c.qm;
     }
-    const p = this.project(x, c.npc ? (c.head + 0.2) * this.vs : -0.05, z);
+    const p = this.project(x, c.npc ? ((c.sheet ? c.sheet.headH - 0.35 : c.head) + 0.2) * this.vs : -0.05, z);
     const k = this.tagScale(), sc = k === 1 ? '' : ` scale(${k})`;
     setV(c.label, !!p);
     if (c.hpbar) setV(c.hpbar, !!p);
