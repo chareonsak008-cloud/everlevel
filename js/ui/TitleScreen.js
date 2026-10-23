@@ -1,12 +1,12 @@
 // หน้าจอเข้าเกม (v0.11): เข้าสู่ระบบ → เลือก/สร้างตัวละคร (สูงสุด 3 ตัว)
 // v0.17.1: เอาโหมดออฟไลน์ออก — ต่อเซิร์ฟเวอร์ไม่ได้ = แจ้งเตือน + ปุ่มลองใหม่ (ไม่มีทางเลือกเล่นออฟไลน์)
-import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0-p2.18';   // v0.91 สีชุด
-import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0-p2.18';
-import { MAX_CHARS, validName } from '../net/Online.js?v=0.93.0-p2.18';
-import { BETA } from '../data/beta.js?v=0.93.0-p2.18';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p2.18';
-import { JOBS } from '../data/progression.js?v=0.93.0-p2.18';
-import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.93.0-p2.18';
+import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0-p3.23';   // v0.91 สีชุด
+import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0-p3.23';
+import { MAX_CHARS, validName } from '../net/Online.js?v=0.93.0-p3.23';
+import { BETA } from '../data/beta.js?v=0.93.0-p3.23';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p3.23';
+import { JOBS } from '../data/progression.js?v=0.93.0-p3.23';
+import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.93.0-p3.23';
 
 const HAIR = ['#e8a838', '#5e3f27', '#2a2430', '#c4467c', '#b8c8ff', '#e8e2d0', '#d8433a', '#4a8a5a'];
 const STYLES = [['spiky', 'ผมชี้'], ['short', 'ผมสั้น'], ['ponytail', 'หางม้า']];

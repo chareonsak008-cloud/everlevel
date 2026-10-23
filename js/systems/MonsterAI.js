@@ -1,8 +1,9 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.93.0-p2.18';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p2.18';
-import { Monster } from '../entities/Monster.js?v=0.93.0-p2.18';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p2.18';
+import { TILE } from '../config.js?v=0.93.0-p3.23';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.23';
+import { Monster } from '../entities/Monster.js?v=0.93.0-p3.23';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p3.23';
+import { rollChampion, goldenAI } from './Elites.js?v=0.93.0-p3.23';   // v0.93 fix17 แชมเปี้ยน · มอนทองคำ
 
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
@@ -22,7 +23,7 @@ export class MonsterManager {
       const n = isBossDef(def) ? def.count : Math.ceil(def.count * SPAWN_MUL);
       for (let i = 0; i < n; i++) {
         const p = this.randomSpot(def);
-        if (p) this.list.push(new Monster(def.mob, p.x, p.y, def));
+        if (p) { const m = new Monster(def.mob, p.x, p.y, def); rollChampion(m, map.def); this.list.push(m); }
       }
     }
   }
@@ -107,6 +108,7 @@ export class MonsterManager {
           const want = !boss && Math.random() < (auto ? NEAR_CHANCE_AUTO : NEAR_CHANCE) && (!auto || this.countIn(f) < AUTO_CAP);
           const p = (want && this.spotNear(m.spawnDef, f, player)) || this.randomSpot(m.spawnDef) || m.home;   // v0.72.1 · v0.88
           m.reset(p.x, p.y);
+          rollChampion(m, this.map.def);   // fix17
           hooks.onRespawn && hooks.onRespawn(m);
         }
         continue;
@@ -126,6 +128,7 @@ export class MonsterManager {
       if (m.pulledUntil > time) { m.moving = false; continue; }   // v0.35: กำลังถูกดูด
       m.slowK = m.slowUntil > time ? (m.slowMul || 0.6) : 1;     // v0.35: สถานะช้า
       if (m.busyUntil > time) { m.moving = false; continue; }   // บอสกำลังง้างท่าพิเศษ
+      if (m.golden) { goldenAI(this, m, player, dt); continue; }   // fix17 มอนทองคำ: วิ่งหนี ไม่โจมตี
       m.attackCd -= dt;
       const playerOk = player && !player.dead;
       const dPlayer = playerOk ? Math.hypot(player.x - m.x, player.y - m.y) : Infinity;

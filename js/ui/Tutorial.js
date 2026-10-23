@@ -2,8 +2,8 @@
 // เดิน → คุยกับมีร่า (รับเควสแรก) → ไป Beginner Field → ตีมอน → เก็บของ → เปิดกระเป๋า → อัปสเตตัส → จบ (รับรางวัลเล็กน้อย 1 ครั้งต่อตัวละคร)
 // ช่วงที่ 2 (v0.94): สกิลพื้นฐาน → สวมอุปกรณ์ → ตีออโต้ → เก็บ Job Lv.10 + ทักษะพื้นฐาน Lv.9 → รู้จัก 4 อาชีพ → เปลี่ยนอาชีพกับออเรล → รางวัล
 // ตัวละครที่เลเวลเกิน 10 หรือเคยทำ/ข้ามแล้ว ไม่แสดง · บันทึกใน player.tut / player.tut2 ('done' หรือเลขขั้น)
-import { START_EQUIP } from '../data/items.js?v=0.93.0-p2.18';
-import { ITEMS } from '../data/items.js?v=0.93.0-p2.18';
+import { START_EQUIP } from '../data/items.js?v=0.93.0-p3.23';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.23';
 
 const touch = () => document.body.classList.contains('touch');
 const STEPS = [

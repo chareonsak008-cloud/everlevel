@@ -33,6 +33,16 @@ function crown(g, C, y, w) {
 
 function make(kind) {
   const N = 96, C = N / 2, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d');
+  if (kind === 'gold' || kind === 'champ') {   // v0.93 fix17 มอนทองคำ = เหรียญทองดาวประกาย · แชมเปี้ยน = ดาวม่วงห้าแฉก
+    const gold = kind === 'gold';
+    g.fillStyle = gold ? '#7a4a08' : '#2a0e3a'; g.beginPath(); g.arc(C, C, N * 0.44, 0, TAU); g.fill();
+    const gd = g.createRadialGradient(C - 8, C - 10, 4, C, C, N * 0.4); gd.addColorStop(0, gold ? '#fff6c0' : '#f0d8ff'); gd.addColorStop(0.5, gold ? '#ffcf3a' : '#b46aff'); gd.addColorStop(1, gold ? '#c07a0e' : '#5a1aa0');
+    g.fillStyle = gd; g.beginPath(); g.arc(C, C, N * 0.38, 0, TAU); g.fill();
+    g.fillStyle = '#ffffff'; g.strokeStyle = gold ? '#8a5208' : '#3a0a5a'; g.lineWidth = 3; g.beginPath();
+    for (let i = 0; i <= 10; i++) { const a = -Math.PI / 2 + i / 10 * TAU, r = i % 2 ? N * 0.12 : N * 0.28; g[i ? 'lineTo' : 'moveTo'](C + Math.cos(a) * r, C + Math.sin(a) * r); }
+    g.closePath(); g.fill(); g.stroke();
+    return c;
+  }
   if (kind === 'world') {
     // เปลวไฟ 12 แฉกรอบตรา
     const fl = g.createRadialGradient(C, C, N * 0.2, C, C, N * 0.5); fl.addColorStop(0, '#ffde6a'); fl.addColorStop(0.55, '#ff5a1a'); fl.addColorStop(1, 'rgba(160,10,30,0)');
@@ -60,11 +70,11 @@ function make(kind) {
 }
 
 export function bossIcon(kind) { return cache[kind] || (cache[kind] = make(kind)); }
-export function bossKind(m) { const d = m.data || m; return d.worldBoss || m.worldRun ? 'world' : 'mvp'; }
+export function bossKind(m) { const d = m.data || m; return m.golden ? 'gold' : m.champ ? 'champ' : d.worldBoss || m.worldRun ? 'world' : 'mvp'; }
 
 // วาดสัญลักษณ์ + วงแสงกะพริบ ที่ (x, y) ขนาด size พิกเซล
 export function drawBossIcon(g, x, y, size, kind, t = performance.now() / 1000) {
-  const world = kind === 'world', col = world ? '255,70,40' : '255,200,60';
+  const world = kind === 'world', col = world ? '255,70,40' : kind === 'champ' ? '190,110,255' : '255,200,60';
   const k = (t * (world ? 1.2 : 0.9)) % 1;
   g.save();
   // วงคลื่นแผ่ออก 2 ระลอก

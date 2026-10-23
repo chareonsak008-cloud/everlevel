@@ -1,10 +1,10 @@
 // v0.27: หน้าต่างแผนที่ (N) — แท็บ "แผนที่นี้" (ผังเมือง/ทุ่ง + ป้ายชื่อ NPC/ทางออก) และ "แผนที่โลก" (ภูมิภาค · เลเวล · มอนสเตอร์)
-import { drawBossIcon, bossKind, bossIcon } from './BossIcons.js?v=0.93.0-p2.18';
-import { TILE } from '../config.js?v=0.93.0-p2.18';
-import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p2.18';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p2.18';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p2.18';
-import { GameMap } from '../world/GameMap.js?v=0.93.0-p2.18';
+import { drawBossIcon, bossKind, bossIcon } from './BossIcons.js?v=0.93.0-p3.23';
+import { TILE } from '../config.js?v=0.93.0-p3.23';
+import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p3.23';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p3.23';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.23';
+import { GameMap } from '../world/GameMap.js?v=0.93.0-p3.23';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const SVC = { shop: ['#ff9a3a', 'ร้านค้า'], storage: ['#5ae0a8', 'คลัง'], warp: ['#7fe0ff', 'วาร์ป'], job: ['#d49bff', 'เปลี่ยนอาชีพ'] };
@@ -189,11 +189,11 @@ export class MapWindow {
     }
     // MVP
     // v0.93 fix8 สัญลักษณ์บอส MVP / บอสโลก + ป้ายชื่อ (แทนจุดแดง)
-    const bosses = this.g.mobs ? this.g.mobs.list.filter((m) => (m.data.mvp || m.data.worldBoss || m.worldRun) && !m.dead) : [];
+    const bosses = this.g.mobs ? this.g.mobs.list.filter((m) => (m.data.mvp || m.data.worldBoss || m.worldRun || m.golden || m.champ) && !m.dead) : [];
     for (const b of bosses) {
-      const x = b.x / TILE * S, y = b.y / TILE * S, k = bossKind(b), sz = Math.max(42, S * 4.6) * (k === 'world' ? 1.3 : 1);
+      const x = b.x / TILE * S, y = b.y / TILE * S, k = bossKind(b), sz = Math.max(42, S * 4.6) * (k === 'world' ? 1.3 : k === 'champ' ? 0.7 : 1);
       drawBossIcon(g, x, y, sz, k, t);
-      label((k === 'world' ? '🌍 บอสโลก · ' : '👑 MVP · ') + (b.name || b.data.name || ''), x, y - sz * 0.75, k === 'world' ? '#ffb39a' : '#ffe08a', k === 'world' ? 'rgba(70,8,16,.88)' : 'rgba(50,30,6,.88)', 11, true);
+      label((k === 'world' ? '🌍 บอสโลก · ' : k === 'gold' ? '' : k === 'champ' ? `⭐ ${b.champ.name} · ` : '👑 MVP · ') + (b.name || b.data.name || ''), x, y - sz * 0.75, k === 'world' ? '#ffb39a' : k === 'champ' ? '#e0c0ff' : '#ffe08a', k === 'world' ? 'rgba(70,8,16,.88)' : k === 'champ' ? 'rgba(40,10,60,.88)' : 'rgba(50,30,6,.88)', 11, true);
     }
     // ผู้เล่น
     const px = pl.x / TILE * S, py = pl.y / TILE * S;

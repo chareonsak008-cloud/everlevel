@@ -1,8 +1,8 @@
 // หน้าจอข้อมูล (DOM): สถานะตัวละคร, แชท, ชื่อแผนที่, FPS, บัฟ
-import { SKILLS } from '../data/skills.js?v=0.93.0-p2.18';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p2.18';
-import { ITEMS } from '../data/items.js?v=0.93.0-p2.18';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p2.18';
+import { SKILLS } from '../data/skills.js?v=0.93.0-p3.23';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p3.23';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.23';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.23';
 export class HUD {
   constructor(root) {
     this.el = {

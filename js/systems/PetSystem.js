@@ -1,12 +1,12 @@
 // สัตว์เลี้ยงช่วยเก็บของ (v0.13) — เดินตามเจ้าของ · วิ่งไปเก็บของที่ตกในรัศมี · นำกลับมาใส่กระเป๋า · ความสามารถพิเศษตามตัว
 // ข้อมูลอยู่ใน data/pets.js · โมเดลอยู่ใน render/Pets.js · ผู้เล่นคนอื่นเห็นสัตว์เลี้ยงของกันผ่าน presence (pt, ps)
-import { TILE, PLAYER_SPEED } from '../config.js?v=0.93.0-p2.18';
-import { PETS, petStats, STAR_MAX } from '../data/pets.js?v=0.93.0-p2.18';
-import { ITEMS } from '../data/items.js?v=0.93.0-p2.18';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p2.18';
-import { THREE } from '../render/three.js?v=0.93.0-p2.18';
-import { normPick, pickCat, GRADE_RANK } from './PetPick.js?v=0.93.0-p2.18';
-export { PICK_CATS, PICK_RANKS, PICK_GRADES, normPick } from './PetPick.js?v=0.93.0-p2.18';
+import { TILE, PLAYER_SPEED } from '../config.js?v=0.93.0-p3.23';
+import { PETS, petStats, STAR_MAX } from '../data/pets.js?v=0.93.0-p3.23';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.23';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p3.23';
+import { THREE } from '../render/three.js?v=0.93.0-p3.23';
+import { normPick, pickCat, GRADE_RANK } from './PetPick.js?v=0.93.0-p3.23';
+export { PICK_CATS, PICK_RANKS, PICK_GRADES, normPick } from './PetPick.js?v=0.93.0-p3.23';
 
 const RANK = { common: 0, uncommon: 1, rare: 2, epic: 3, legend: 4, mythic: 5, celestial: 6 };
 export const PET_FILTERS = [

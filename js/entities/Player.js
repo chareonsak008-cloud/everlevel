@@ -1,31 +1,31 @@
 // ผู้เล่น: เดินด้วยคีย์บอร์ด / จอย / คลิกตามเส้นทาง + เลเวล EXP และค่าสถานะ
-import { cleanOutfit } from '../data/outfits.js?v=0.93.0-p2.18';   // v0.91 สีชุด
-import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.93.0-p2.18';
-import { Entity } from './Entity.js?v=0.93.0-p2.18';
-import { PLAYER_SPEED, TILE } from '../config.js?v=0.93.0-p2.18';
+import { cleanOutfit } from '../data/outfits.js?v=0.93.0-p3.23';   // v0.91 สีชุด
+import { equipmentDesign } from '../data/equipmentDesigns.js?v=0.93.0-p3.23';
+import { Entity } from './Entity.js?v=0.93.0-p3.23';
+import { PLAYER_SPEED, TILE } from '../config.js?v=0.93.0-p3.23';
 import {
   derive, baseExpToNext, jobExpToNext, statPointsForLevel, statCost,
   START_STAT_POINTS, MAX_STAT, STAT_KEYS, JOBS, jobStatBonus, JOB_CHANGE_JOB_LEVEL, FIRST_JOBS, SECOND_OF, JOB2_JOB_LEVEL, jobTier,
   THIRD_OF, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, parentJob,
-} from '../data/progression.js?v=0.93.0-p2.18';
-import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.93.0-p2.18';
-import { setInfo } from '../data/affixes.js?v=0.93.0-p2.18';
-import { DURA_MAX, DURA_LOW, DURA_LOSS, duraOf } from '../data/durability.js?v=0.93.0-p2.18';   // v0.89 ความทนทาน
-import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.93.0-p2.18';
-import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.93.0-p2.18';
-import { Inventory } from '../systems/Inventory.js?v=0.93.0-p2.18';
-import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.93.0-p2.18';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p2.18';
-import { CONSUMABLES } from '../data/consumables.js?v=0.93.0-p2.18';
-import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.93.0-p2.18';
-import { normAuto } from '../systems/AutoHunt.js?v=0.93.0-p2.18';
-import { normPick } from '../systems/PetPick.js?v=0.93.0-p2.18';
-import { normDungeon } from '../data/dungeons.js?v=0.93.0-p2.18';
-import { normCol } from '../systems/Collection.js?v=0.93.0-p2.18';
-import { ACH_BY_ID } from '../data/collection.js?v=0.93.0-p2.18';
-import { titleInfo, titlesOf } from '../data/seasonTitles.js?v=0.93.0-p2.18';   // v0.76 ฉายา 3 อัน + ฉายาฤดูกาล
-import { normMail } from '../data/mail.js?v=0.93.0-p2.18';
-import { AR, syncAttr } from '../data/arena.js?v=0.93.0-p2.18';   // v0.78
+} from '../data/progression.js?v=0.93.0-p3.23';
+import { ITEMS, EQUIP_SLOTS, START_INVENTORY, START_EQUIP, START_HOTBAR, canJobUse } from '../data/items.js?v=0.93.0-p3.23';
+import { setInfo } from '../data/affixes.js?v=0.93.0-p3.23';
+import { DURA_MAX, DURA_LOW, DURA_LOSS, duraOf } from '../data/durability.js?v=0.93.0-p3.23';   // v0.89 ความทนทาน
+import { CARD_COMBOS, toBonus } from '../data/cardCatalog.js?v=0.93.0-p3.23';
+import { SKILLS, skillTrees, LEGACY_JOB2 } from '../data/skills.js?v=0.93.0-p3.23';
+import { Inventory } from '../systems/Inventory.js?v=0.93.0-p3.23';
+import { START_ZENY, MAX_ZENY } from '../data/shops.js?v=0.93.0-p3.23';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.23';
+import { CONSUMABLES } from '../data/consumables.js?v=0.93.0-p3.23';
+import { PETS, STAR_MAX, PET_DUP_ZENY } from '../data/pets.js?v=0.93.0-p3.23';
+import { normAuto } from '../systems/AutoHunt.js?v=0.93.0-p3.23';
+import { normPick } from '../systems/PetPick.js?v=0.93.0-p3.23';
+import { normDungeon } from '../data/dungeons.js?v=0.93.0-p3.23';
+import { normCol } from '../systems/Collection.js?v=0.93.0-p3.23';
+import { ACH_BY_ID } from '../data/collection.js?v=0.93.0-p3.23';
+import { titleInfo, titlesOf } from '../data/seasonTitles.js?v=0.93.0-p3.23';   // v0.76 ฉายา 3 อัน + ฉายาฤดูกาล
+import { normMail } from '../data/mail.js?v=0.93.0-p3.23';
+import { AR, syncAttr } from '../data/arena.js?v=0.93.0-p3.23';   // v0.78
 
 // v0.15: รหัสสุ่มประจำตัวละคร (ตัวละครใหม่ = รหัสใหม่ · รับจดหมาย "ทุกตัวละคร" ได้ตัวละ 1 ครั้ง)
 export const newCid = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 16);
@@ -107,6 +107,7 @@ export class Player extends Entity {
     this.hotbar = [...START_HOTBAR];
     this.zeny = START_ZENY;
     this.friends = [];   // v0.38: รายชื่อเพื่อน (ชื่อตัวละคร)
+    this.chests = {};    // v0.93 fix17 หีบสมบัติที่เปิดแล้ววันนี้ { 'map#i': 'YYYY-MM-DD' }
     // สกิล (v0.6)
     this.skills = { first_aid: 1 };   // id → เลเวล
     this.buffs = [];                  // { id, lv, left, total, bonus }
@@ -692,6 +693,7 @@ export class Player extends Entity {
       inventory: this.inventory.toSave(), equip: { ...this.equip }, hotbar: [...this.hotbar], zeny: this.zeny,
       skills: { ...this.skills },
       friends: [...this.friends],
+      chests: { ...this.chests },
       tut: this.tut, tut2: this.tut2,   // v0.94 สอนผู้เล่นใหม่ (เลขขั้น หรือ 'done')
       hp: Math.round(this.hp), sp: Math.round(this.sp),
       fashion: { owned: [...this.fashion.owned], worn: { ...this.fashion.worn }, opened: this.fashion.opened, hidden: this.fashion.hidden },
@@ -739,6 +741,7 @@ export class Player extends Entity {
     this.cid = typeof p.cid === 'string' && /^[a-z0-9]{8,24}$/.test(p.cid) ? p.cid : newCid();   // v0.15
     this.tut = p.tut === 'done' || (Number.isInteger(p.tut) && p.tut >= 0 && p.tut < 20) ? p.tut : null;   // v0.94
     this.tut2 = p.tut2 === 'done' || (Number.isInteger(p.tut2) && p.tut2 >= 0 && p.tut2 < 20) ? p.tut2 : null;
+    this.chests = {}; if (p.chests && typeof p.chests === 'object') for (const [k, v] of Object.entries(p.chests).slice(0, 80)) if (typeof k === 'string' && k.length < 48 && typeof v === 'string' && /^\d{4}-\d\d-\d\d$/.test(v)) this.chests[k] = v;
     this.friends = Array.isArray(p.friends) ? [...new Set(p.friends.filter((n) => typeof n === 'string' && n.length >= 2 && n.length <= 16))].slice(0, 100) : [];
     this.mail = { welcome: !!(p.mail && p.mail.welcome), box: [], hidden: new Set(p.mail && Array.isArray(p.mail.hidden) ? p.mail.hidden.filter((k) => typeof k === 'string' && k.length < 80).slice(-300) : []) };
     // v0.18: จดหมายจากระบบเกม (ตรวจของ/จำนวนเหมือนจดหมายเซิร์ฟเวอร์)

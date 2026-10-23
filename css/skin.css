@@ -372,3 +372,6 @@ button .px-ic + span, button .px-ic { margin-right: 2px; }
 .pf-go { flex: none; align-self: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(143, 240, 255, 0.5); background: rgba(40, 90, 120, 0.6); color: #bff6ff; font-size: 13px; line-height: 1; cursor: pointer; pointer-events: auto; filter: none !important; }
 .pf-go:hover, .pf-go:focus-visible { background: rgba(70, 150, 190, 0.8); outline: none; }
 .pf-row.away .pf-go { filter: none; opacity: 1; }
+/* v0.93 fix17 ป้ายชื่อมอนแชมเปี้ยน / มอนทองคำ */
+.tag.tag-champ { color: #f0d8ff !important; text-shadow: 0 0 6px #9a4aff, 0 1px 0 #000 !important; font-weight: 700; }
+.tag.tag-gold { color: #fff2a8 !important; text-shadow: 0 0 8px #ffb21a, 0 1px 0 #000 !important; font-weight: 700; }
