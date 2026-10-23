@@ -3,12 +3,12 @@
 // attackDelay = วินาทีต่อการโจมตี 1 ครั้ง | respawn = [ต่ำสุด, สูงสุด] วินาที
 // baseExp / jobExp = EXP ที่ผู้เล่นได้เมื่อกำจัด
 // drops = [ไอเทม, โอกาสดรอป 0..1] สุ่มแยกกันทีละชิ้น
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.93.0-p1.6';
-import { ASCEND_MONSTERS } from './ascendData.js?v=0.93.0-p1.6';   // v0.46 Lv.100–150
-import { BASE_ITEMS } from './items.js?v=0.93.0-p1.6';
-import { WEAPON_DEFS } from './weapons.js?v=0.93.0-p1.6';
-import { OFFHAND_DROPS } from './offhand.js?v=0.93.0-p1.6';
-import { FEST_MONSTERS } from './festivals.js?v=0.93.0-p1.6';   // v0.79 มอนเทศกาล
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.93.0-p1.7';
+import { ASCEND_MONSTERS } from './ascendData.js?v=0.93.0-p1.7';   // v0.46 Lv.100–150
+import { BASE_ITEMS } from './items.js?v=0.93.0-p1.7';
+import { WEAPON_DEFS } from './weapons.js?v=0.93.0-p1.7';
+import { OFFHAND_DROPS } from './offhand.js?v=0.93.0-p1.7';
+import { FEST_MONSTERS } from './festivals.js?v=0.93.0-p1.7';   // v0.79 มอนเทศกาล
 export const MONSTERS = {
   ...ENDGAME_MONSTERS,
   ...ASCEND_MONSTERS,
