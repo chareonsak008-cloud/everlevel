@@ -1,16 +1,16 @@
 // หน้าต่างกระเป๋า + อุปกรณ์ที่สวมใส่ (เปิดด้วย I หรือ Alt+E)
-import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.93.0-p1.7';
-import { duraOf, DURA_MAX, DURA_LOW } from '../data/durability.js?v=0.93.0-p1.7';   // v0.89
-import { weaponLines, rollLine } from './WeaponInfo.js?v=0.93.0-p1.7';
-import { refineBonus, canRefine } from '../data/refine.js?v=0.93.0-p1.7';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p1.7';
-import { socketTargets } from '../systems/Forge.js?v=0.93.0-p1.7';
-import { JOBS } from '../data/progression.js?v=0.93.0-p1.7';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.7';
-import { sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p1.7';
-import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.93.0-p1.7';
-import { fmtDur } from '../data/consumables.js?v=0.93.0-p1.7';
-import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.93.0-p1.7';
+import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.93.0-p1.8';
+import { duraOf, DURA_MAX, DURA_LOW } from '../data/durability.js?v=0.93.0-p1.8';   // v0.89
+import { weaponLines, rollLine } from './WeaponInfo.js?v=0.93.0-p1.8';
+import { refineBonus, canRefine } from '../data/refine.js?v=0.93.0-p1.8';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p1.8';
+import { socketTargets } from '../systems/Forge.js?v=0.93.0-p1.8';
+import { JOBS } from '../data/progression.js?v=0.93.0-p1.8';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.8';
+import { sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p1.8';
+import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.93.0-p1.8';
+import { fmtDur } from '../data/consumables.js?v=0.93.0-p1.8';
+import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.93.0-p1.8';
 
 const TABS = [
   { id: 'all', name: 'ทั้งหมด', test: () => true },

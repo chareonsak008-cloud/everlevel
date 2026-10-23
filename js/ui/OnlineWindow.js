@@ -1,8 +1,8 @@
 // หน้าต่างผู้เล่นออนไลน์ (v0.11): ใครอยู่ในแผนที่เดียวกัน · ใครออนไลน์ทั้งหมด · อันดับเลเวล
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p1.7';
-import { JOBS } from '../data/progression.js?v=0.93.0-p1.7';
-import { EMBLEM_SHAPES, EMBLEM_ICONS, EMBLEM_COLORS, emblemSvg, parseEmblem, emblemCode, randomEmblem } from '../data/guildEmblems.js?v=0.93.0-p1.7';
-import { GUILD_COST, GUILD_LV, PARTY_MAX } from '../systems/Social.js?v=0.93.0-p1.7';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p1.8';
+import { JOBS } from '../data/progression.js?v=0.93.0-p1.8';
+import { EMBLEM_SHAPES, EMBLEM_ICONS, EMBLEM_COLORS, emblemSvg, parseEmblem, emblemCode, randomEmblem } from '../data/guildEmblems.js?v=0.93.0-p1.8';
+import { GUILD_COST, GUILD_LV, PARTY_MAX } from '../systems/Social.js?v=0.93.0-p1.8';
 
 const clean = (s, n = 16) => String(s || '').replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g, '').slice(0, n);
 const TABS = [['here', 'แผนที่นี้'], ['all', 'ออนไลน์'], ['friends', 'เพื่อน'], ['party', 'ปาร์ตี้'], ['guild', 'กิลด์'], ['rank', 'อันดับ']];

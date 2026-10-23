@@ -1,11 +1,11 @@
 // v0.79 อีเวนต์ตามเทศกาล — เปิดเองตามปฏิทิน (เวลาไทยจากเซิร์ฟเวอร์ผ่าน EventService)
 // · ช่วงเทศกาล: ทุกแผนที่ล่า (ไม่ใช่เมือง/ดันเจี้ยน) มีมอนเทศกาลเพิ่ม (ปรับเลเวลตามมอนในแผนที่) + บอสเทศกาลแผนที่ละ 1 ตัว
 // · ของสะสมเทศกาลแลกของที่หน้าต่างเทศกาลได้ทุกเมื่อ · ออร่าเทศกาลแลกได้เฉพาะช่วงเทศกาล (+3 วัน) แล้วเป็นของเราถาวร
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.7';
-import { ITEMS } from '../data/items.js?v=0.93.0-p1.7';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p1.7';
-import { scaledData } from '../data/dungeons.js?v=0.93.0-p1.7';
-import { FESTIVALS, FEST_GRACE, FEST_SHOP, FEST_AURA_COST, festivalsAt, nextFestivals } from '../data/festivals.js?v=0.93.0-p1.7';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.8';
+import { ITEMS } from '../data/items.js?v=0.93.0-p1.8';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p1.8';
+import { scaledData } from '../data/dungeons.js?v=0.93.0-p1.8';
+import { FESTIVALS, FEST_GRACE, FEST_SHOP, FEST_AURA_COST, festivalsAt, nextFestivals } from '../data/festivals.js?v=0.93.0-p1.8';
 
 export class Festival {
   constructor(game) { this.g = game; this.seen = new Set(); this.t = 3; this.ids = ''; }

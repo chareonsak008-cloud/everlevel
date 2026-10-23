@@ -1,8 +1,8 @@
 // หน้าจอข้อมูล (DOM): สถานะตัวละคร, แชท, ชื่อแผนที่, FPS, บัฟ
-import { SKILLS } from '../data/skills.js?v=0.93.0-p1.7';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p1.7';
-import { ITEMS } from '../data/items.js?v=0.93.0-p1.7';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.7';
+import { SKILLS } from '../data/skills.js?v=0.93.0-p1.8';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p1.8';
+import { ITEMS } from '../data/items.js?v=0.93.0-p1.8';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.8';
 export class HUD {
   constructor(root) {
     this.el = {
@@ -123,14 +123,16 @@ export class HUD {
   }
 
   // แบนเนอร์กลางจอตอนเลเวลอัป
+  // v0.93 fix7 ป้ายเลเวลอัปแบบอลังการ: รังสีหมุน + ปีกแสง + ตัวอักษรทองมีแสงวิ่ง + เลเวลใหม่
   levelBanner(title, sub) {
     const b = this.el.banner;
-    b.innerHTML = '';
-    b.append(document.createTextNode(title));
-    const s = document.createElement('small'); s.textContent = sub; b.append(s);
-    b.classList.add('show', 'lv');
+    b.classList.remove('show', 'lv', 'lvx'); void b.offsetWidth;
+    b.innerHTML = '<i class="lvx-rays" aria-hidden="true"></i><i class="lvx-wing l" aria-hidden="true"></i><i class="lvx-wing r" aria-hidden="true"></i><b class="lvx-t">LEVEL UP!</b><span class="lvx-n"></span><small></small>';
+    b.querySelector('.lvx-n').textContent = title;
+    b.querySelector('small').textContent = sub;
+    b.classList.add('show', 'lv', 'lvx');
     clearTimeout(this.bannerTimer);
-    this.bannerTimer = setTimeout(() => b.classList.remove('show', 'lv'), 2200);
+    this.bannerTimer = setTimeout(() => b.classList.remove('show', 'lv', 'lvx'), 3200);
   }
 
   flashHurt() {
@@ -144,7 +146,7 @@ export class HUD {
     b.innerHTML = '';
     b.append(document.createTextNode(map.name));
     if (map.subtitle) { const s = document.createElement('small'); s.textContent = map.subtitle; b.append(s); }
-    b.classList.remove('lv');
+    b.classList.remove('lv', 'lvx');
     b.classList.add('show');
     clearTimeout(this.bannerTimer);
     this.bannerTimer = setTimeout(() => b.classList.remove('show'), 2800);

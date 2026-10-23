@@ -1,10 +1,10 @@
 // v0.77 หน้าต่างหลอมอุปกรณ์นิรันดร์กาล (การ์ธ ช่างตีเหล็ก)
-import { ITEMS, describeBonus } from '../data/items.js?v=0.93.0-p1.7';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.7';
-import { statsToBonus } from '../data/affixes.js?v=0.93.0-p1.7';
-import { ETERNAL_LINES, ETERNAL_SLOTS, eternalId, baseOf, LUCK_MAX, LUCK_STEP } from '../data/eternal.js?v=0.93.0-p1.7';
-import { forgeCheck, invHave } from '../systems/EternalForge.js?v=0.93.0-p1.7';
-import { parentJob, JOBS } from '../data/progression.js?v=0.93.0-p1.7';
+import { ITEMS, describeBonus } from '../data/items.js?v=0.93.0-p1.8';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.8';
+import { statsToBonus } from '../data/affixes.js?v=0.93.0-p1.8';
+import { ETERNAL_LINES, ETERNAL_SLOTS, eternalId, baseOf, LUCK_MAX, LUCK_STEP } from '../data/eternal.js?v=0.93.0-p1.8';
+import { forgeCheck, invHave } from '../systems/EternalForge.js?v=0.93.0-p1.8';
+import { parentJob, JOBS } from '../data/progression.js?v=0.93.0-p1.8';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');

@@ -2438,3 +2438,38 @@ body.touch .hud > :is(.panel.char, .buffs, .panel.mini, .topbar, .qtrack, .hotba
 body.touch #chatWrap.open[data-size="l"] .chat { max-height: min(52vh, 360px); }
 body.touch #chatWrap.open[data-size="s"] .chat { max-height: 90px; }
 #chatWrap[data-size="l"] { z-index: 20; }
+
+/* v0.93 fix7 แสงวาบเต็มจอ (วาร์ป/เลเวลอัป) */
+.scr-flash { position: fixed; inset: 0; z-index: 60; pointer-events: none; background: radial-gradient(circle at 50% 55%, #fff 0%, var(--fc, #bfe8ff) 22%, transparent 70%); mix-blend-mode: screen; opacity: 0; animation: scrFlash 0.85s ease-out forwards; }
+@keyframes scrFlash { 0% { opacity: 0; } 8% { opacity: var(--fo, 0.55); } 100% { opacity: 0; } }
+
+/* v0.93 fix7 ป้ายเลเวลอัปอลังการ */
+.banner.lvx { top: 15%; transition: opacity 0.4s ease; transform: translate(-50%, 0); opacity: 0; }
+.banner.lvx.show { opacity: 1; animation: lvxOut 3.2s ease forwards; }
+.banner.lvx .lvx-t { position: relative; display: block; text-shadow: none; font-size: 64px; line-height: 1; letter-spacing: 0.08em; color: transparent;
+  background: linear-gradient(100deg, #fff6c8 0%, #ffd36b 30%, #fffef0 45%, #ffd36b 55%, #e08a1a 80%, #ffd36b 100%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text;
+  -webkit-text-stroke: 1.5px #8a5212; filter: drop-shadow(0 0 1px #3a2006) drop-shadow(0 3px 0 #5a3208) drop-shadow(0 0 16px rgba(255, 180, 60, 0.9)); animation: lvxPop 0.7s cubic-bezier(.2, 1.6, .4, 1) both, lvxShine 1.6s 0.3s linear infinite; }
+.banner.lvx .lvx-n { position: relative; display: block; margin-top: 6px; font-size: 26px; letter-spacing: 0.14em; color: #fff3c4; text-shadow: 0 0 12px rgba(255, 210, 110, 0.9), 0 2px 0 #5a3a10; animation: lvxRise 0.6s 0.25s ease both; }
+.banner.lvx small { position: relative; animation: lvxRise 0.6s 0.4s ease both; }
+.banner.lvx .lvx-rays { position: absolute; left: 50%; top: 42%; width: 520px; height: 520px; margin: -260px 0 0 -260px; border-radius: 50%; pointer-events: none;
+  background: repeating-conic-gradient(rgba(255, 220, 120, 0.55) 0deg 4deg, transparent 4deg 15deg); -webkit-mask: radial-gradient(circle, #000 0%, rgba(0,0,0,.6) 30%, transparent 68%); mask: radial-gradient(circle, #000 0%, rgba(0,0,0,.6) 30%, transparent 68%);
+  animation: lvxRays 6s linear infinite, lvxRaysIn 0.8s ease both; }
+.banner.lvx .lvx-wing { position: absolute; top: 4px; width: 150px; height: 66px; pointer-events: none; opacity: 0.9;
+  background: repeating-linear-gradient(180deg, rgba(255, 226, 140, 0.95) 0 5px, transparent 5px 11px); -webkit-mask: linear-gradient(var(--wd, 90deg), #000, transparent); mask: linear-gradient(var(--wd, 90deg), #000, transparent);
+  filter: drop-shadow(0 0 8px rgba(255, 200, 90, 0.9)); animation: lvxWing 0.8s 0.15s cubic-bezier(.2, 1.4, .4, 1) both; }
+.banner.lvx .lvx-wing.l { right: calc(100% - 10px); --wd: 270deg; transform-origin: right center; clip-path: polygon(0 10%, 100% 30%, 100% 75%, 15% 100%); }
+.banner.lvx .lvx-wing.r { left: calc(100% - 10px); --wd: 90deg; transform-origin: left center; clip-path: polygon(0 30%, 100% 10%, 85% 100%, 0 75%); }
+@keyframes lvxPop { 0% { transform: scale(2.6); opacity: 0; filter: blur(6px) drop-shadow(0 0 30px #fff); } 60% { opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes lvxShine { to { background-position: -250% 0; } }
+@keyframes lvxRise { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes lvxRays { to { transform: rotate(360deg); } }
+@keyframes lvxRaysIn { from { opacity: 0; scale: 0.3; } to { opacity: 1; scale: 1; } }
+@keyframes lvxWing { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: 0.9; } }
+@keyframes lvxOut { 0%, 82% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -14px); } }
+@media (max-width: 760px) {
+  .banner.lvx .lvx-t { font-size: 42px; }
+  .banner.lvx .lvx-n { font-size: 18px; }
+  .banner.lvx .lvx-rays { width: 340px; height: 340px; margin: -170px 0 0 -170px; }
+  .banner.lvx .lvx-wing { width: 84px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .banner.lvx *, .scr-flash { animation-duration: 0.01s !important; animation-iteration-count: 1 !important; } }
