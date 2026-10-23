@@ -1,8 +1,8 @@
 // หน้าต่างผู้เล่นออนไลน์ (v0.11): ใครอยู่ในแผนที่เดียวกัน · ใครออนไลน์ทั้งหมด · อันดับเลเวล
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p2.14';
-import { JOBS } from '../data/progression.js?v=0.93.0-p2.14';
-import { EMBLEM_SHAPES, EMBLEM_ICONS, EMBLEM_COLORS, emblemSvg, parseEmblem, emblemCode, randomEmblem } from '../data/guildEmblems.js?v=0.93.0-p2.14';
-import { GUILD_COST, GUILD_LV, PARTY_MAX } from '../systems/Social.js?v=0.93.0-p2.14';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p2.17';
+import { JOBS } from '../data/progression.js?v=0.93.0-p2.17';
+import { EMBLEM_SHAPES, EMBLEM_ICONS, EMBLEM_COLORS, emblemSvg, parseEmblem, emblemCode, randomEmblem } from '../data/guildEmblems.js?v=0.93.0-p2.17';
+import { GUILD_COST, GUILD_LV, PARTY_MAX } from '../systems/Social.js?v=0.93.0-p2.17';
 
 const clean = (s, n = 16) => String(s || '').replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g, '').slice(0, n);
 const TABS = [['here', 'แผนที่นี้'], ['all', 'ออนไลน์'], ['friends', 'เพื่อน'], ['party', 'ปาร์ตี้'], ['guild', 'กิลด์'], ['rank', 'อันดับ']];
@@ -137,7 +137,10 @@ export class OnlineWindow {
         const p = document.createElement('button'); p.type = 'button'; p.className = 'on-act'; p.textContent = '+ปาร์ตี้';
         p.disabled = S.inParty && S.members.has(f.key);
         p.addEventListener('click', () => S.invite(f.key, f.name));
-        box.append(w, p);
+        const go = document.createElement('button'); go.type = 'button'; go.className = 'on-act'; go.textContent = 'วาร์ปไปหา';   // fix15
+        go.title = 'วาร์ปไปข้างเพื่อน (ฟรี · คูลดาวน์ 90 วิ)';
+        go.addEventListener('click', () => { if (g.friendWarp(f.name, f.m)) this.toggle(false); });
+        box.append(w, p, go);
       }
       const d = document.createElement('button'); d.type = 'button'; d.className = 'on-act no'; d.textContent = 'ลบ';
       d.addEventListener('click', () => { if (d.dataset.sure) S.removeFriend(f.name); else { d.dataset.sure = '1'; d.textContent = 'ยืนยัน?'; } });

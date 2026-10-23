@@ -1,12 +1,12 @@
 // ตู้แฟชั่น (v0.9): ดูชิ้นที่สะสมได้ สวม/ถอดแฟชั่น ดูชุดเซ็ต · เปิดด้วย O
 // ชิ้นที่ยังไม่มีจะแสดงเป็นภาพสีเทาพร้อมแม่กุญแจ (ได้จากการเปิดกล่องแฟชั่นเท่านั้น)
-import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.93.0-p2.14';
-import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.93.0-p2.14';
-import { SLOT_INFO } from '../render/Costumes.js?v=0.93.0-p2.14';
-import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.93.0-p2.14';
-import { FASHION_SLOTS } from '../entities/Player.js?v=0.93.0-p2.14';
-import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0-p2.14';
-import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0-p2.14';   // v0.91 สีชุด
+import { COSTUMES, COSTUME_BY_ID, SETS } from '../data/costumes.js?v=0.93.0-p2.17';
+import { FASHION_RARITY, TIER_RANK, BOX_ODDS, BOX_ITEMS, fmtPct, poolSize } from '../data/fashionBoxes.js?v=0.93.0-p2.17';
+import { SLOT_INFO } from '../render/Costumes.js?v=0.93.0-p2.17';
+import { requestThumb, clearThumbQueue } from '../render/CostumeThumbs.js?v=0.93.0-p2.17';
+import { FASHION_SLOTS } from '../entities/Player.js?v=0.93.0-p2.17';
+import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0-p2.17';
+import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0-p2.17';   // v0.91 สีชุด
 
 // v0.35: แสดงเฉพาะช่องที่มีชิ้นแฟชั่นในเกม (ชิ้น 3 มิติถูกถอดออก รอออกแบบใหม่) · แท็บชุดเซ็ตซ่อนเมื่อไม่มีเซ็ต
 const TABS = [['color', 'สีชุด'], ...FASHION_SLOTS.filter((s) => COSTUMES.some((c) => c.slot === s)).map((s) => [s, SLOT_INFO[s].name]), ...(SETS.length ? [['set', 'ชุดเซ็ต']] : [])];

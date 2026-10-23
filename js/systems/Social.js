@@ -4,7 +4,9 @@
 //   · เชิญผ่านห้องรวม (pi → pr) · หัวหน้า = คนที่เข้าปาร์ตี้ก่อนสุด · สูงสุด 6 คน
 //   · แชร์ EXP: คนที่อยู่แมพเดียวกันแบ่ง EXP เท่ากัน + โบนัส 20% ต่อสมาชิกเพิ่ม 1 คน (มอนยังจำลองแยกเครื่อง — แชร์แค่ EXP)
 // กิลด์ — ข้อมูลถาวรในฐานข้อมูล (supabase/guild.sql) · ห้อง everlevel-guild-<id> ไว้แชตกิลด์ + ดูว่าใครออนไลน์
-import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.93.0-p2.14';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p2.17';
+const MAPS_NAME = (id) => (MAPS[id] && MAPS[id].name) || '';
+import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.93.0-p2.17';
 
 export const PARTY_MAX = 6;
 export const PARTY_GRACE = 25000;   // v0.94 (เดิม) — ตอนนี้ใช้แค่เป็นช่วง "เพิ่งหลุด" ที่ยังนับแชร์ EXP
@@ -340,9 +342,28 @@ export class Social {
     const g = this.game;
     if (!g.started || !p || this.dupMsg('xp' + p.id)) return;
     if (p.k === this.myKey || p.m !== (g.map && g.map.id) || g.player.dead) return;   // fix10 รับจากทุกคนในห้องปาร์ตี้ (เพื่อนที่เพิ่งเชื่อมต่อใหม่ได้คีย์ใหม่ก่อนรายชื่อจะอัปเดต — เดิม EXP หาย)
-    const b = Math.floor(num(p.b, 0, 5e6)), j = Math.floor(num(p.j, 0, 5e6));
+    let b = Math.floor(num(p.b, 0, 5e6)), j = Math.floor(num(p.j, 0, 5e6));
     if (!b && !j) return;
+    // v0.93 fix15 กันโกง EXP ปาร์ตี้ (ข้อความในห้องปาร์ตี้มาจากเครื่องผู้เล่น ปลอมได้):
+    // · ส่วนแบ่งต่อตัวต้องไม่เกิน 2 เท่าของ EXP มอนที่แรงสุดในแผนที่นี้ (ส่วนแบ่งจริง ≤ 0.6 เท่า) · เกิน → ตัดลงเท่าเพดาน
+    // · คนเดียวส่งได้ไม่เกิน 30 ครั้ง / 10 วิ (ตีมอนจริงไม่ถึง) · เกิน → ไม่รับ
+    const cap = this.expCap();
+    if (!cap) return;   // แผนที่ไม่มีมอน (เมือง) → ไม่มีการกำจัดมอนจริง
+    if (b > cap.b) b = cap.b; if (j > cap.j) j = cap.j;
+    const now = Date.now(), r = (this.xpRate = this.xpRate || new Map()), q = (r.get(p.k) || []).filter((t) => now - t < 10000);
+    if (q.length >= 30) return; q.push(now); r.set(p.k, q);
     g.partyExp(b, j, clean(p.n), clean(p.mob, 24));
+  }
+
+  // เพดาน EXP ต่อข้อความ: 2 เท่าของ EXP ดิบสูงสุดของมอนที่มีอยู่ในแผนที่ตอนนี้ (รวมบอส/มอนเทศกาลที่ปรับเลเวลแล้ว) · คิดใหม่ทุก 5 วิ
+  expCap() {
+    const g = this.game, now = Date.now();
+    if (this.capAt && now - this.capAt < 5000 && this.capMap === (g.map && g.map.id)) return this.capVal;
+    let mb = 0, mj = 0;
+    for (const m of (g.mobs && g.mobs.list) || []) { const d = m.data || {}; mb = Math.max(mb, d.baseExp || 0); mj = Math.max(mj, d.jobExp || 0); }
+    this.capAt = now; this.capMap = g.map && g.map.id;
+    this.capVal = mb ? { b: Math.ceil(mb * 2 * 2), j: Math.ceil(Math.max(mj, 1) * 2 * 2) } : null;   // ×2 เผื่อดันเจี้ยน/อีเวนต์คูณ EXP ดิบ
+    return this.capVal;
   }
 
   // v0.65.2 ฮีล/บัฟของนักบวชถึงเพื่อนในปาร์ตี้ (แมพเดียวกัน) — ส่งตำแหน่งผู้ร่าย + รัศมี ให้ฝั่งรับเช็กระยะกับตัวเองแล้วใส่ผลเอง
@@ -360,6 +381,7 @@ export class Social {
     const g = this.game, pl = g.player;
     if (!g.started || !p || typeof p.id !== 'string' || this.dupMsg(ev + p.id)) return;
     if (p.k === this.myKey || !this.members.has(p.k) || p.m !== (g.map && g.map.id)) return;
+    { const now = Date.now(), r = (this.supRate = this.supRate || new Map()), q = (r.get(p.k) || []).filter((t) => now - t < 3000); if (q.length >= 8) return; q.push(now); r.set(p.k, q); }   // fix15 กันสแปมฮีล/บัฟ
     const reach = num(p.r, 1, 10, 6) * 16 + 6;   // ช่อง → พิกเซลโลก (16 = 1 ช่อง)
     if (Math.hypot(pl.x - num(p.x, -1e6, 1e6, -1e6), pl.y - num(p.y, -1e6, 1e6, -1e6)) > reach) return;
     const who = clean(p.n) || (this.members.get(p.k) || {}).n || 'เพื่อน';
@@ -529,6 +551,12 @@ export class Social {
     this.t = 1;
     if (this.party) { this.trackParty(); this.party.tick(); this.expireMembers(); this.savePid(); }
     if (this.guildCh) { this.guildCh.track(this.guildState()); this.guildCh.tick(); }
+    // v0.93 fix15 แจ้งเมื่อเพื่อนเข้าเกม (ทุก 5 วิ · รอบแรกไม่แจ้ง)
+    if ((this.fwT = (this.fwT || 0) + 1) % 5 === 0 && this.friends.length) {
+      const on = new Map(this.friendList().filter((f) => f.online).map((f) => [f.name, f.m]));
+      if (this.friendOn) for (const [n, m] of on) if (!this.friendOn.has(n)) this.log(`💛 ${n} ออนไลน์แล้ว${m && MAPS_NAME(m) ? ` · อยู่ที่ ${MAPS_NAME(m)}` : ''} — เปิด 👥 แท็บ "เพื่อน" เพื่อวาร์ปไปหา`, 'net');
+      this.friendOn = on;
+    }
     const now = Date.now(), before = this.prompts.length;
     this.prompts = this.prompts.filter((p) => { if (p.until > now) return true; p.no(); return false; });
     if (before !== this.prompts.length) this.changed();

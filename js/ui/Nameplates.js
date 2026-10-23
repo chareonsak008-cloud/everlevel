@@ -1,6 +1,6 @@
 // v0.36 กรอบป้ายชื่อตัวละคร 7 ระดับตามเลเวล (ภาพพิกเซลจาก PixelLab · assets/ui/nameplate/tN.png)
 // ป้ายเป็นภาพขนาดคงที่ · ชื่ออยู่ในช่องกลางกรอบ (ย่อตัวอักษรเองเมื่อชื่อยาว) · ระดับสูงมีปีก/มงกุฎ/เปลวไฟกินพื้นที่รอบกรอบ
-import { emblemSvg } from '../data/guildEmblems.js?v=0.93.0-p2.14';
+import { emblemSvg } from '../data/guildEmblems.js?v=0.93.0-p2.17';
 
 export const PLATE_TIERS = [
   { t: 1, min: 1, name: 'ไม้', color: '#c9a27a' },

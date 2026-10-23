@@ -1,6 +1,6 @@
 // v0.37 กรอบปาร์ตี้ใต้แผงตัวละคร (ชื่อ เลเวล เลือดเพื่อน · อยู่แมพไหน) + กล่องคำเชิญปาร์ตี้/กิลด์
-import { JOBS } from '../data/progression.js?v=0.93.0-p2.14';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p2.14';
+import { JOBS } from '../data/progression.js?v=0.93.0-p2.17';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p2.17';
 
 export class PartyFrame {
   constructor(root, game) {
@@ -40,6 +40,9 @@ export class PartyFrame {
       if (!r) {
         r = document.createElement('div'); r.className = 'pf-row';
         r.innerHTML = '<span class="pf-crest"></span><div class="pf-info"><div class="pf-top"><b></b><span class="pf-lv"></span></div><div class="bar hp pf-hp"><i></i></div><small class="pf-map"></small></div>';
+        const go = document.createElement('button'); go.type = 'button'; go.className = 'pf-go'; go.textContent = '➜'; go.title = 'วาร์ปไปหา (ฟรี · คูลดาวน์ 90 วิ)'; go.setAttribute('aria-label', 'วาร์ปไปหาเพื่อนในปาร์ตี้');   // fix15
+        go.addEventListener('click', (e) => { e.stopPropagation(); const mm = r._m; if (mm) g.friendWarp(mm.n, mm.m); });
+        r.append(go);
         this.rows.set(m.key, r); this.el.append(r);
       }
       const J = JOBS[m.j] || JOBS.novice;
@@ -55,6 +58,7 @@ export class PartyFrame {
       r.querySelector('.pf-hp i').style.width = `${Math.round(h * 100)}%`;
       r.classList.toggle('low', h < 0.3); r.classList.toggle('dead', !!dead); r.classList.toggle('away', !here); r.classList.toggle('stale', !!m.stale);   // v0.94 กำลังเชื่อมต่อใหม่
       r.classList.toggle('off', !!m.off);
+      r._m = m; r.querySelector('.pf-go').hidden = here || !!m.stale || !m.m;
       r.querySelector('.pf-map').textContent = m.off ? 'ออฟไลน์ (ออกจากเกม)' : m.stale ? 'กำลังเชื่อมต่อ… (ยังอยู่ในปาร์ตี้)' : dead ? 'หมดสติ' : here ? '' : `อยู่ที่ ${(MAPS[m.m] || {}).name || 'แผนที่อื่น'}`;   // fix10
     }
     for (const [k, r] of this.rows) if (!seen.has(k)) { r.remove(); this.rows.delete(k); }

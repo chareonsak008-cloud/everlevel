@@ -1,6 +1,6 @@
 // v0.25.0: ผลของอาวุธระหว่างต่อสู้ — ธาตุ/เผ่า/ขนาด, Melee/Ranged DMG%, ดูดเลือด/ดูด SP, พาสซีฟเกรดทอง/แดง
-import { ITEMS } from '../data/items.js?v=0.93.0-p2.14';
-import { mobTraits, elementMul, ELEMENT_COLOR } from '../data/affixes.js?v=0.93.0-p2.14';
+import { ITEMS } from '../data/items.js?v=0.93.0-p2.17';
+import { mobTraits, elementMul, ELEMENT_COLOR } from '../data/affixes.js?v=0.93.0-p2.17';
 
 const weaponOf = (pl) => (pl.equip.weapon && ITEMS[pl.equip.weapon]) || null;
 const avg = (r) => (r ? (r[0] + r[1]) / 2 : 0);
