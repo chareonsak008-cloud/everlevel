@@ -1,12 +1,12 @@
 // หน้าจอเข้าเกม (v0.11): เข้าสู่ระบบ → เลือก/สร้างตัวละคร (สูงสุด 3 ตัว)
 // v0.17.1: เอาโหมดออฟไลน์ออก — ต่อเซิร์ฟเวอร์ไม่ได้ = แจ้งเตือน + ปุ่มลองใหม่ (ไม่มีทางเลือกเล่นออฟไลน์)
-import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0-p1.6';   // v0.91 สีชุด
-import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0-p1.6';
-import { MAX_CHARS, validName } from '../net/Online.js?v=0.93.0-p1.6';
-import { BETA } from '../data/beta.js?v=0.93.0-p1.6';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p1.6';
-import { JOBS } from '../data/progression.js?v=0.93.0-p1.6';
-import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.93.0-p1.6';
+import { drawOutfitPreview, outfitSwatches } from './OutfitPicker.js?v=0.93.0-p1.7';   // v0.91 สีชุด
+import { OUTFIT_BY_ID } from '../data/outfits.js?v=0.93.0-p1.7';
+import { MAX_CHARS, validName } from '../net/Online.js?v=0.93.0-p1.7';
+import { BETA } from '../data/beta.js?v=0.93.0-p1.7';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p1.7';
+import { JOBS } from '../data/progression.js?v=0.93.0-p1.7';
+import { VERSION, ALLOW_OFFLINE } from '../config.js?v=0.93.0-p1.7';
 
 const HAIR = ['#e8a838', '#5e3f27', '#2a2430', '#c4467c', '#b8c8ff', '#e8e2d0', '#d8433a', '#4a8a5a'];
 const STYLES = [['spiky', 'ผมชี้'], ['short', 'ผมสั้น'], ['ponytail', 'หางม้า']];
@@ -304,6 +304,9 @@ export class TitleScreen {
     }
     const off = this.panel.querySelector('[data-a=off]');
     if (off) off.addEventListener('click', () => this.offline());
+    // v0.93 fix6 โหลดหน้าใหม่หลังภาพหาย (พับจอนาน) → เข้าตัวละครเดิมอัตโนมัติ
+    let rs = 0; try { rs = +sessionStorage.getItem('everlevel.resume') || 0; sessionStorage.removeItem('everlevel.resume'); } catch (e) { /* ไม่มีที่เก็บ */ }
+    if (rs && acc.chars[rs - 1]) this.play(rs);
   }
 
   async play(slot) {

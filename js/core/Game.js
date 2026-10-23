@@ -1,113 +1,113 @@
 // ตัวควบคุมหลักของเกม: ลูป, แผนที่/วาร์ป, การเดิน, การต่อสู้ → ส่งต่อให้ Renderer3D วาด
-import { SKILL_VFX } from '../render/PixelVfx.js?v=0.93.0-p1.6';
-import { BETA } from '../data/beta.js?v=0.93.0-p1.6';
-import { EventService } from '../systems/EventService.js?v=0.93.0-p1.6';
-import { EventWindow } from '../ui/EventWindow.js?v=0.93.0-p1.6';
-import { MvpService } from '../systems/MvpService.js?v=0.93.0-p1.6';   // v0.53 MVP ร่วม
-import { GemExchange } from '../ui/GemExchange.js?v=0.93.0-p1.6';   // v0.50 ตลาดแลกเพชร
-import { WikiWindow } from '../ui/WikiWindow.js?v=0.93.0-p1.6';   // v0.49 วิกิ
-import { BossWindow } from '../ui/BossWindow.js?v=0.93.0-p1.6';   // v0.47 เช็กบอสโลก/MVP
-import { PartyDungeon } from '../systems/PartyDungeon.js?v=0.93.0-p1.6';   // v0.75 ดันเจี้ยนปาร์ตี้
-import { Arena } from '../systems/Arena.js?v=0.93.0-p1.6';   // v0.78 สนามประลอง PvP
-import { ArenaWindow } from '../ui/ArenaWindow.js?v=0.93.0-p1.6';
-import { Festival } from '../systems/Festival.js?v=0.93.0-p1.6';   // v0.79 อีเวนต์เทศกาล
-import { FestivalWindow } from '../ui/FestivalWindow.js?v=0.93.0-p1.6';
-import { DailyBoard } from '../systems/DailyBoard.js?v=0.93.0-p1.6';   // v0.74 ภารกิจรายวัน
-import { titlesOf, setSeasonHolders } from '../data/seasonTitles.js?v=0.93.0-p1.6';   // v0.76
-import { EternalWindow } from '../ui/EternalWindow.js?v=0.93.0-p1.6';   // v0.77 หลอมอุปกรณ์นิรันดร์กาล
-import { doForge } from '../systems/EternalForge.js?v=0.93.0-p1.6';
-import { eternalId } from '../data/eternal.js?v=0.93.0-p1.6';
-import { SeasonWindow } from '../ui/SeasonWindow.js?v=0.93.0-p1.6';   // v0.76 อันดับประจำฤดูกาล
-import { DailyWindow } from '../ui/DailyWindow.js?v=0.93.0-p1.6';
-import { TILE, AUTOSAVE_SECONDS, SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js?v=0.93.0-p1.6';
-import { GameMap } from '../world/GameMap.js?v=0.93.0-p1.6';
-import { MAPS, START_MAP } from '../data/maps/index.js?v=0.93.0-p1.6';
-import { Player } from '../entities/Player.js?v=0.93.0-p1.6';
-import { NPC } from '../entities/NPC.js?v=0.93.0-p1.6';
-import { Input, isTyping } from './Input.js?v=0.93.0-p1.6';
-import { SaveManager } from './Save.js?v=0.93.0-p1.6';
-import { findPath, smoothPath, nearestWalkable } from './Pathfinder.js?v=0.93.0-p1.6';
-import { HUD } from '../ui/HUD.js?v=0.93.0-p1.6';
-import { Minimap } from '../ui/Minimap.js?v=0.93.0-p1.6';
-import { MapWindow, regionInfo } from '../ui/MapWindow.js?v=0.93.0-p1.6';
-import { CardModal } from '../ui/CardView.js?v=0.93.0-p1.6';
-import { Renderer3D } from '../render/Renderer3D.js?v=0.93.0-p1.6';
-import { MonsterManager } from '../systems/MonsterAI.js?v=0.93.0-p1.6';
-import { rollAttack, rollSkill } from '../systems/Combat.js?v=0.93.0-p1.6';
-import * as WeaponFx from '../systems/WeaponFx.js?v=0.93.0-p1.6';   // v0.25: ธาตุ/เผ่า/ขนาด + พาสซีฟอาวุธ
-import { skillElement, mobTraits } from '../data/affixes.js?v=0.93.0-p1.6';
-import { StatusWindow } from '../ui/StatusWindow.js?v=0.93.0-p1.6';
-import { InventoryWindow } from '../ui/InventoryWindow.js?v=0.93.0-p1.6';
-import { Hotbar } from '../ui/Hotbar.js?v=0.93.0-p1.6';
-import { ITEMS, RARITY, canJobUse } from '../data/items.js?v=0.93.0-p1.6';
-import { rollDrops } from '../systems/Loot.js?v=0.93.0-p1.6';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.6';
-import { Inventory } from '../systems/Inventory.js?v=0.93.0-p1.6';
-import { NpcDialog } from '../ui/Dialog.js?v=0.93.0-p1.6';
-import { ShopWindow } from '../ui/ShopWindow.js?v=0.93.0-p1.6';
-import { StorageWindow } from '../ui/StorageWindow.js?v=0.93.0-p1.6';
-import { SHOPS, WARP_ROUTES, STORAGE_CAPACITY, buyPrice, sellPrice, fmtZ, MAX_ZENY } from '../data/shops.js?v=0.93.0-p1.6';
-import { SKILLS, skillSp, skillCast, sval } from '../data/skills.js?v=0.93.0-p1.6';
-import { JOBS, FIRST_JOBS, jobTier } from '../data/progression.js?v=0.93.0-p1.6';
-import { JOB3_SFX, JOB3_IMPACT_SFX } from '../data/job3Skills.js?v=0.93.0-p1.6';   // v0.85
-import { JOB2_QUEST, JOB3_QUEST } from '../data/quests.js?v=0.93.0-p1.6';
-import { SkillWindow } from '../ui/SkillWindow.js?v=0.93.0-p1.6';
-import { isSkillKey } from '../entities/Player.js?v=0.93.0-p1.6';
-import { clamp } from './util.js?v=0.93.0-p1.6';
-import { Social } from '../systems/Social.js?v=0.93.0-p1.6';
+import { SKILL_VFX } from '../render/PixelVfx.js?v=0.93.0-p1.7';
+import { BETA } from '../data/beta.js?v=0.93.0-p1.7';
+import { EventService } from '../systems/EventService.js?v=0.93.0-p1.7';
+import { EventWindow } from '../ui/EventWindow.js?v=0.93.0-p1.7';
+import { MvpService } from '../systems/MvpService.js?v=0.93.0-p1.7';   // v0.53 MVP ร่วม
+import { GemExchange } from '../ui/GemExchange.js?v=0.93.0-p1.7';   // v0.50 ตลาดแลกเพชร
+import { WikiWindow } from '../ui/WikiWindow.js?v=0.93.0-p1.7';   // v0.49 วิกิ
+import { BossWindow } from '../ui/BossWindow.js?v=0.93.0-p1.7';   // v0.47 เช็กบอสโลก/MVP
+import { PartyDungeon } from '../systems/PartyDungeon.js?v=0.93.0-p1.7';   // v0.75 ดันเจี้ยนปาร์ตี้
+import { Arena } from '../systems/Arena.js?v=0.93.0-p1.7';   // v0.78 สนามประลอง PvP
+import { ArenaWindow } from '../ui/ArenaWindow.js?v=0.93.0-p1.7';
+import { Festival } from '../systems/Festival.js?v=0.93.0-p1.7';   // v0.79 อีเวนต์เทศกาล
+import { FestivalWindow } from '../ui/FestivalWindow.js?v=0.93.0-p1.7';
+import { DailyBoard } from '../systems/DailyBoard.js?v=0.93.0-p1.7';   // v0.74 ภารกิจรายวัน
+import { titlesOf, setSeasonHolders } from '../data/seasonTitles.js?v=0.93.0-p1.7';   // v0.76
+import { EternalWindow } from '../ui/EternalWindow.js?v=0.93.0-p1.7';   // v0.77 หลอมอุปกรณ์นิรันดร์กาล
+import { doForge } from '../systems/EternalForge.js?v=0.93.0-p1.7';
+import { eternalId } from '../data/eternal.js?v=0.93.0-p1.7';
+import { SeasonWindow } from '../ui/SeasonWindow.js?v=0.93.0-p1.7';   // v0.76 อันดับประจำฤดูกาล
+import { DailyWindow } from '../ui/DailyWindow.js?v=0.93.0-p1.7';
+import { TILE, AUTOSAVE_SECONDS, SAVE_KEY, SAVE_SCHEMA, VERSION } from '../config.js?v=0.93.0-p1.7';
+import { GameMap } from '../world/GameMap.js?v=0.93.0-p1.7';
+import { MAPS, START_MAP } from '../data/maps/index.js?v=0.93.0-p1.7';
+import { Player } from '../entities/Player.js?v=0.93.0-p1.7';
+import { NPC } from '../entities/NPC.js?v=0.93.0-p1.7';
+import { Input, isTyping } from './Input.js?v=0.93.0-p1.7';
+import { SaveManager } from './Save.js?v=0.93.0-p1.7';
+import { findPath, smoothPath, nearestWalkable } from './Pathfinder.js?v=0.93.0-p1.7';
+import { HUD } from '../ui/HUD.js?v=0.93.0-p1.7';
+import { Minimap } from '../ui/Minimap.js?v=0.93.0-p1.7';
+import { MapWindow, regionInfo } from '../ui/MapWindow.js?v=0.93.0-p1.7';
+import { CardModal } from '../ui/CardView.js?v=0.93.0-p1.7';
+import { Renderer3D } from '../render/Renderer3D.js?v=0.93.0-p1.7';
+import { MonsterManager } from '../systems/MonsterAI.js?v=0.93.0-p1.7';
+import { rollAttack, rollSkill } from '../systems/Combat.js?v=0.93.0-p1.7';
+import * as WeaponFx from '../systems/WeaponFx.js?v=0.93.0-p1.7';   // v0.25: ธาตุ/เผ่า/ขนาด + พาสซีฟอาวุธ
+import { skillElement, mobTraits } from '../data/affixes.js?v=0.93.0-p1.7';
+import { StatusWindow } from '../ui/StatusWindow.js?v=0.93.0-p1.7';
+import { InventoryWindow } from '../ui/InventoryWindow.js?v=0.93.0-p1.7';
+import { Hotbar } from '../ui/Hotbar.js?v=0.93.0-p1.7';
+import { ITEMS, RARITY, canJobUse } from '../data/items.js?v=0.93.0-p1.7';
+import { rollDrops } from '../systems/Loot.js?v=0.93.0-p1.7';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.7';
+import { Inventory } from '../systems/Inventory.js?v=0.93.0-p1.7';
+import { NpcDialog } from '../ui/Dialog.js?v=0.93.0-p1.7';
+import { ShopWindow } from '../ui/ShopWindow.js?v=0.93.0-p1.7';
+import { StorageWindow } from '../ui/StorageWindow.js?v=0.93.0-p1.7';
+import { SHOPS, WARP_ROUTES, STORAGE_CAPACITY, buyPrice, sellPrice, fmtZ, MAX_ZENY } from '../data/shops.js?v=0.93.0-p1.7';
+import { SKILLS, skillSp, skillCast, sval } from '../data/skills.js?v=0.93.0-p1.7';
+import { JOBS, FIRST_JOBS, jobTier } from '../data/progression.js?v=0.93.0-p1.7';
+import { JOB3_SFX, JOB3_IMPACT_SFX } from '../data/job3Skills.js?v=0.93.0-p1.7';   // v0.85
+import { JOB2_QUEST, JOB3_QUEST } from '../data/quests.js?v=0.93.0-p1.7';
+import { SkillWindow } from '../ui/SkillWindow.js?v=0.93.0-p1.7';
+import { isSkillKey } from '../entities/Player.js?v=0.93.0-p1.7';
+import { clamp } from './util.js?v=0.93.0-p1.7';
+import { Social } from '../systems/Social.js?v=0.93.0-p1.7';
 const DROP_GATE = 0.4;   // v0.38: โอกาสที่มอนธรรมดาจะดรอปของ (ก่อนลุ้นทีละชิ้น)
-import { PartyFrame } from '../ui/PartyFrame.js?v=0.93.0-p1.6';
-import { PlayerMenu } from '../ui/PlayerMenu.js?v=0.93.0-p1.6';
-import { TradeWindow, MarketWindow } from '../ui/TradeMarket.js?v=0.93.0-p1.6';   // v0.42
-import { CashShopWindow } from '../ui/CashShop.js?v=0.93.0-p1.6';   // v0.43 ร้านเพชร
-import { QuestNav } from '../systems/QuestNav.js?v=0.93.0-p1.6';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.6';
-import { THREE } from '../render/three.js?v=0.93.0-p1.6';
-import { WardrobeWindow } from '../ui/WardrobeWindow.js?v=0.93.0-p1.6';
-import { BoxOpenWindow } from '../ui/BoxOpenWindow.js?v=0.93.0-p1.6';
-import { rollBox, DUP_ZENY, FASHION_RARITY, TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0-p1.6';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p1.6';
-import { FASHION_SLOTS, FASHION_WEAPON_FIT } from '../entities/Player.js?v=0.93.0-p1.6';
-import { QUESTS } from '../data/quests.js?v=0.93.0-p1.6';
-import { QuestLog, rewardText, npcWhere, goalText } from '../systems/Quests.js?v=0.93.0-p1.6';
-import { QuestWindow } from '../ui/QuestWindow.js?v=0.93.0-p1.6';
-import { RefineWindow } from '../ui/RefineWindow.js?v=0.93.0-p1.6';
-import { doRefine, doSocket, doUnsocket } from '../systems/Forge.js?v=0.93.0-p1.6';
-import { duraOf, repairCost, DURA_MAX } from '../data/durability.js?v=0.93.0-p1.6';   // v0.89
-import { SmithWindow } from '../ui/SmithWindow.js?v=0.93.0-p1.6';   // v0.89 ซ่อม/ถอดการ์ด
-import { EquipWindow } from '../ui/EquipWindow.js?v=0.93.0-p1.6';   // v0.89 หน้าดูตัวละคร
-import { UpdateNotice } from '../ui/UpdateNotice.js?v=0.93.0-p1.6';   // v0.91 แจ้งอัปเดต
-import { FeedbackWindow } from '../ui/FeedbackWindow.js?v=0.93.0-p1.6';
-import { Tutorial } from '../ui/Tutorial.js?v=0.93.0-p1.6';
-import { enableWindowDrag } from '../ui/DragWindows.js?v=0.93.0-p1.6';   // v0.94 ลากหน้าต่าง   // v0.94 สอนผู้เล่นใหม่   // v0.92 แจ้งปัญหาถึง GM   // v0.91 ไอคอนพิกเซลแทนอีโมจิบนปุ่ม
-import { stoneDrops } from '../data/refine.js?v=0.93.0-p1.6';
-import { cardDrops, CARDS } from '../data/cards.js?v=0.93.0-p1.6';
-import { statResetCost } from '../data/progression.js?v=0.93.0-p1.6';
+import { PartyFrame } from '../ui/PartyFrame.js?v=0.93.0-p1.7';
+import { PlayerMenu } from '../ui/PlayerMenu.js?v=0.93.0-p1.7';
+import { TradeWindow, MarketWindow } from '../ui/TradeMarket.js?v=0.93.0-p1.7';   // v0.42
+import { CashShopWindow } from '../ui/CashShop.js?v=0.93.0-p1.7';   // v0.43 ร้านเพชร
+import { QuestNav } from '../systems/QuestNav.js?v=0.93.0-p1.7';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.7';
+import { THREE } from '../render/three.js?v=0.93.0-p1.7';
+import { WardrobeWindow } from '../ui/WardrobeWindow.js?v=0.93.0-p1.7';
+import { BoxOpenWindow } from '../ui/BoxOpenWindow.js?v=0.93.0-p1.7';
+import { rollBox, DUP_ZENY, FASHION_RARITY, TIER_RANK } from '../data/fashionBoxes.js?v=0.93.0-p1.7';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p1.7';
+import { FASHION_SLOTS, FASHION_WEAPON_FIT } from '../entities/Player.js?v=0.93.0-p1.7';
+import { QUESTS } from '../data/quests.js?v=0.93.0-p1.7';
+import { QuestLog, rewardText, npcWhere, goalText } from '../systems/Quests.js?v=0.93.0-p1.7';
+import { QuestWindow } from '../ui/QuestWindow.js?v=0.93.0-p1.7';
+import { RefineWindow } from '../ui/RefineWindow.js?v=0.93.0-p1.7';
+import { doRefine, doSocket, doUnsocket } from '../systems/Forge.js?v=0.93.0-p1.7';
+import { duraOf, repairCost, DURA_MAX } from '../data/durability.js?v=0.93.0-p1.7';   // v0.89
+import { SmithWindow } from '../ui/SmithWindow.js?v=0.93.0-p1.7';   // v0.89 ซ่อม/ถอดการ์ด
+import { EquipWindow } from '../ui/EquipWindow.js?v=0.93.0-p1.7';   // v0.89 หน้าดูตัวละคร
+import { UpdateNotice } from '../ui/UpdateNotice.js?v=0.93.0-p1.7';   // v0.91 แจ้งอัปเดต
+import { FeedbackWindow } from '../ui/FeedbackWindow.js?v=0.93.0-p1.7';
+import { Tutorial } from '../ui/Tutorial.js?v=0.93.0-p1.7';
+import { enableWindowDrag } from '../ui/DragWindows.js?v=0.93.0-p1.7';   // v0.94 ลากหน้าต่าง   // v0.94 สอนผู้เล่นใหม่   // v0.92 แจ้งปัญหาถึง GM   // v0.91 ไอคอนพิกเซลแทนอีโมจิบนปุ่ม
+import { stoneDrops } from '../data/refine.js?v=0.93.0-p1.7';
+import { cardDrops, CARDS } from '../data/cards.js?v=0.93.0-p1.7';
+import { statResetCost } from '../data/progression.js?v=0.93.0-p1.7';
 // v0.11: เสียง · ตั้งค่า · ออนไลน์ · แชต · เมนูมือถือ
-import { AudioEngine } from '../audio/AudioEngine.js?v=0.93.0-p1.6';
-import { loadSettings, saveSettings } from '../systems/Settings.js?v=0.93.0-p1.6';
-import { SettingsWindow } from '../ui/SettingsWindow.js?v=0.93.0-p1.6';
-import { RemotePlayers } from '../net/RemotePlayers.js?v=0.93.0-p1.6';
-import { OnlineWindow } from '../ui/OnlineWindow.js?v=0.93.0-p1.6';
-import { ChatBox } from '../ui/ChatBox.js?v=0.93.0-p1.6';
-import { MenuPanel } from '../ui/MenuPanel.js?v=0.93.0-p1.6';
+import { AudioEngine } from '../audio/AudioEngine.js?v=0.93.0-p1.7';
+import { loadSettings, saveSettings } from '../systems/Settings.js?v=0.93.0-p1.7';
+import { SettingsWindow } from '../ui/SettingsWindow.js?v=0.93.0-p1.7';
+import { RemotePlayers } from '../net/RemotePlayers.js?v=0.93.0-p1.7';
+import { OnlineWindow } from '../ui/OnlineWindow.js?v=0.93.0-p1.7';
+import { ChatBox } from '../ui/ChatBox.js?v=0.93.0-p1.7';
+import { MenuPanel } from '../ui/MenuPanel.js?v=0.93.0-p1.7';
 // v0.13: สัตว์เลี้ยงช่วยเก็บของ · ไอเทมใช้งานชุดใหม่
-import { PetSystem } from '../systems/PetSystem.js?v=0.93.0-p1.6';
-import { useConsumable, STORAGE_UP } from '../systems/ItemUse.js?v=0.93.0-p1.6';
-import { CONSUMABLES, consumableDrops } from '../data/consumables.js?v=0.93.0-p1.6';
-import { PETS, PET_RARITY, hatchEgg as rollHatch } from '../data/pets.js?v=0.93.0-p1.6';
-import { PetWindow } from '../ui/PetWindow.js?v=0.93.0-p1.6';
-import { HatchWindow } from '../ui/HatchWindow.js?v=0.93.0-p1.6';
-import { pickOfTier, FASHION_TIERS } from '../data/fashionBoxes.js?v=0.93.0-p1.6';
+import { PetSystem } from '../systems/PetSystem.js?v=0.93.0-p1.7';
+import { useConsumable, STORAGE_UP } from '../systems/ItemUse.js?v=0.93.0-p1.7';
+import { CONSUMABLES, consumableDrops } from '../data/consumables.js?v=0.93.0-p1.7';
+import { PETS, PET_RARITY, hatchEgg as rollHatch } from '../data/pets.js?v=0.93.0-p1.7';
+import { PetWindow } from '../ui/PetWindow.js?v=0.93.0-p1.7';
+import { HatchWindow } from '../ui/HatchWindow.js?v=0.93.0-p1.7';
+import { pickOfTier, FASHION_TIERS } from '../data/fashionBoxes.js?v=0.93.0-p1.7';
 // v0.14: ตีมอนออโต้
-import { AutoHunt } from '../systems/AutoHunt.js?v=0.93.0-p1.6';
-import { AutoWindow } from '../ui/AutoWindow.js?v=0.93.0-p1.6';
+import { AutoHunt } from '../systems/AutoHunt.js?v=0.93.0-p1.7';
+import { AutoWindow } from '../ui/AutoWindow.js?v=0.93.0-p1.7';
 // v0.15: จดหมาย + ของขวัญต้อนรับ
-import { Mailbox } from '../systems/Mailbox.js?v=0.93.0-p1.6';
-import { MailWindow } from '../ui/MailWindow.js?v=0.93.0-p1.6';
-import { Collection } from '../systems/Collection.js?v=0.93.0-p1.6';          // v0.18: ระบบสะสม
-import { CollectionWindow } from '../ui/CollectionWindow.js?v=0.93.0-p1.6';
-import { Dungeons } from '../systems/Dungeons.js?v=0.93.0-p1.6';              // v0.32: ดันเจี้ยนถ้ำ + หอคอย
+import { Mailbox } from '../systems/Mailbox.js?v=0.93.0-p1.7';
+import { MailWindow } from '../ui/MailWindow.js?v=0.93.0-p1.7';
+import { Collection } from '../systems/Collection.js?v=0.93.0-p1.7';          // v0.18: ระบบสะสม
+import { CollectionWindow } from '../ui/CollectionWindow.js?v=0.93.0-p1.7';
+import { Dungeons } from '../systems/Dungeons.js?v=0.93.0-p1.7';              // v0.32: ดันเจี้ยนถ้ำ + หอคอย
 
 // เสียงตอนใช้สกิล (เริ่ม) และตอนกระแทก (จังหวะกล้องสั่น)
 const SKILL_SFX = {
@@ -415,6 +415,7 @@ export class Game {
     const flush = () => { if (this.dirty && this.started) this.saveNow(false); };
     document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); this.audio.setHidden(document.hidden); });
     window.addEventListener('pagehide', flush);
+    this.setupContextGuard();
   }
 
   /* ---------- แผนที่ ---------- */
@@ -582,6 +583,10 @@ export class Game {
     // ตีมอน ออโต้ เก็บของ สกิล และเซฟทำงานต่อ · กลับมาหน้าเกมแล้ววาดภาพตามปกติ
     this.startBackgroundLoop(() => last, (t) => { last = t; });
     const frame = (now) => {
+      try { frameBody(now); } catch (e) { if (!this.frameErr) { this.frameErr = 1; console.error('frame', e); } }
+      requestAnimationFrame(frame);
+    };
+    const frameBody = (now) => {
       const real = Math.max(0, (now - last) / 1000); last = now;   // เวลา rAF อาจย้อนเล็กน้อยในเฟรมแรก
       const dt = Math.min(0.05, real);
       // หยุดภาพชั่วขณะ (hit-stop): โลกนิ่ง แต่กล้องยังสั่นและคลื่นกระแทกบนจอยังขยาย
@@ -603,7 +608,6 @@ export class Game {
         this.autoQuality(fps);
         this.fpsFrames = 0; this.fpsTime = 0;
       }
-      requestAnimationFrame(frame);
     };
     requestAnimationFrame(frame);
   }
@@ -2843,6 +2847,38 @@ export class Game {
     });
     (this.root.querySelector('.hud') || this.root).append(el);
     setTimeout(() => el.querySelector('.beta-ok')?.focus(), 50);
+  }
+
+  // v0.93 fix6 พับจอนาน → เบราว์เซอร์คืนหน่วยความจำการ์ดจอ (WebGL context lost) → จอขาว
+  // ตรวจตอนกลับมาหน้าเกม: ภาพหาย → เซฟแล้วโหลดหน้าใหม่ และเข้าตัวละครเดิมให้อัตโนมัติ
+  setupContextGuard() {
+    const cv = this.gfx && this.gfx.renderer && this.gfx.renderer.domElement; if (!cv) return;
+    this.ctxLost = false;
+    cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.ctxLost = true; if (!document.hidden) this.recoverGfx(); }, false);
+    cv.addEventListener('webglcontextrestored', () => { if (this.ctxLost && !this.ctxReloading) this.recoverGfx(); }, false);
+    const check = () => {
+      if (document.hidden || this.ctxReloading) return;
+      let lost = this.ctxLost;
+      try { const gl = this.gfx.renderer.getContext(); if (gl && gl.isContextLost && gl.isContextLost()) lost = true; } catch (e) { /* ไม่รองรับ */ }
+      if (lost) this.recoverGfx();
+    };
+    document.addEventListener('visibilitychange', () => setTimeout(check, 300));
+    window.addEventListener('focus', () => setTimeout(check, 300));
+    window.addEventListener('pageshow', () => setTimeout(check, 300));
+  }
+
+  async recoverGfx() {
+    if (this.ctxReloading) return; this.ctxReloading = true;
+    const el = document.createElement('div');
+    el.className = 'ctx-lost';
+    el.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#0d1020;color:#f3e7c4;font:600 16px/1.6 system-ui,sans-serif;text-align:center;padding:20px';
+    el.innerHTML = '<div><div style="font-size:30px;margin-bottom:6px">⏳</div>ภาพเกมหายเพราะพับหน้าจอนาน<br><small style="opacity:.75;font-weight:400">เซฟให้แล้ว — กำลังโหลดใหม่และเข้าตัวละครเดิม…</small></div>';
+    document.body.append(el);
+    try {
+      if (this.started) await Promise.race([this.saveNow(false, true), new Promise((r) => setTimeout(r, 4000))]);
+    } catch (e) { console.warn('save before reload', e); }
+    try { if (this.online && this.online.slot) sessionStorage.setItem('everlevel.resume', String(this.online.slot)); } catch (e) { /* ไม่มีที่เก็บ */ }
+    location.reload();
   }
 
   // v0.87 วนเกมตอนหน้าเกมถูกซ่อน (Worker ส่งจังหวะทุก 100 ms · ตัวจับเวลาใน Worker ไม่ถูกเบราว์เซอร์ชะลอแบบหน้าเว็บ)
