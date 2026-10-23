@@ -1,9 +1,9 @@
 // เท็กซ์เจอร์ทั้งหมดวาดด้วย Canvas (ไม่มีไฟล์รูปภายนอก) — ลายเนียน ไล่เฉด
-import { THREE } from './three.js?v=0.93.0-p2.17';
-import { rng } from '../core/util.js?v=0.93.0-p2.17';
-import { T } from '../data/tileTypes.js?v=0.93.0-p2.17';
-import { PIXEL } from './PixelSprites.js?v=0.93.0-p2.17';
-import { pixelizeCanvas, nearestTexture } from './PixelArt.js?v=0.93.0-p2.17';
+import { THREE } from './three.js?v=0.93.0-p2.18';
+import { rng } from '../core/util.js?v=0.93.0-p2.18';
+import { T } from '../data/tileTypes.js?v=0.93.0-p2.18';
+import { PIXEL } from './PixelSprites.js?v=0.93.0-p2.18';
+import { pixelizeCanvas, nearestTexture } from './PixelArt.js?v=0.93.0-p2.18';
 // v0.17: เท็กซ์เจอร์แสง/เงา/วงเวทย์เวอร์ชันพิกเซล
 const pxTex = (c, n, a, o) => nearestTexture(pixelizeCanvas(c, n, n, { alpha: a }), o);
 
