@@ -1,7 +1,7 @@
 // v0.41: ออร่าสายยุทธ์ (กระบี่บินวน · เคียวยักษ์ลอยหลัง · ลำแสงปลดปล่อยพลัง)
 // ชิ้นส่วนเป็นภาพพิกเซลวาดด้วยโค้ด (ออกแบบเอง) แปะเป็นสไปรต์หันหากล้อง · ใช้ความลึกจริง → ดาบที่วนไปด้านหลังถูกตัวละครบัง
 // รับตัวช่วยจาก Costumes.js ผ่าน H (mesh, unlit, spriteOf, shockwaves, flashSprite, burstCycle, scatter, discPos, lin, TX)
-import { THREE } from './three.js?v=0.93.0-p1.3';
+import { THREE } from './three.js?v=0.93.0-p1.6';
 
 /* ---------------- ภาพพิกเซล ---------------- */
 const texCache = new Map();
