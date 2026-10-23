@@ -1,7 +1,7 @@
 // v0.85 สกิลเทพธิดาแห่งแสง (สายฮีลคลาส 3): แสงส้มทอง · ปีกขนนกหลายคู่ · ทรงกลมแสงชำระ
 // fx_h3_* · ดาเมจ/ฮีลจาก sk.nf ผ่าน fx_nf · ใช้ตัวช่วยจาก SwordFX/HealFX/MageFX/MageC3FX
-import { THREE } from './three.js?v=0.93.0-p1.9';
-import * as TX from './FxTextures.js?v=0.93.0-p1.9';
+import { THREE } from './three.js?v=0.93.0-p1.10';
+import * as TX from './FxTextures.js?v=0.93.0-p1.10';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);

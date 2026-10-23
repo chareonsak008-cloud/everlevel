@@ -2,7 +2,7 @@
 // - บลูมเฉพาะเอฟเฟกต์ (เรนเดอร์ราก SkillFX แยกอีกรอบที่ครึ่งความละเอียด แล้วเบลอแบบ dual-kawase)
 // - คลื่นกระแทกบนจอ (บิดภาพเป็นวง), แสงวาบทั้งจอ, สีเหลื่อมตอนกระแทก, เส้นความเร็วตอนชาร์จพลัง
 // ใช้: post.setSize(w,h) → ทุกเฟรม post.update(dt) แล้ว post.render(scene, camera, fx.root, (k) => fx.setPixelScale(k))
-import { THREE } from './three.js?v=0.93.0-p1.9';
+import { THREE } from './three.js?v=0.93.0-p1.10';
 
 const VERT = 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
 const MAX_SHOCKS = 4;
@@ -77,12 +77,13 @@ export class PostFX {
         strength: { value: strength }, aspect: { value: 1 }, ca: { value: 0 },
         flashC: { value: new THREE.Color() }, flashA: { value: 0 },
         lines: { value: 0 }, time: { value: 0 }, shocks: { value: this.shockU },
-        pxMap: { value: new THREE.Vector4(1, 1, 0, 0) },   // v0.17: ภาพพิกเซล (ย่อ/เลื่อนพิกัดก่อนอ่านภาพฉาก)
+        pxMap: { value: new THREE.Vector4(1, 1, 0, 0) },
+        pxTex: { value: new THREE.Vector3(0, 0, 0) },   // v0.93 fix9 ขนาดภาพพิกเซล (w, h) และตัวคูณขยาย k (0 = ไม่ใช้)
         hd: { value: 0 }, tilt: { value: 0 }, sTexel: { value: new THREE.Vector2(1, 1) },   // v0.89
       },
       fragmentShader: `uniform sampler2D tScene; uniform sampler2D tBloom; uniform sampler2D tGlow;
         uniform float strength; uniform float aspect; uniform float ca; uniform vec3 flashC; uniform float flashA;
-        uniform float lines; uniform float time; uniform vec4 shocks[${MAX_SHOCKS}]; uniform vec4 pxMap;
+        uniform float lines; uniform float time; uniform vec4 shocks[${MAX_SHOCKS}]; uniform vec4 pxMap; uniform vec3 pxTex;
         uniform float hd; uniform float tilt; uniform vec2 sTexel;
         varying vec2 vUv;
         float hash(float n) { return fract(sin(n) * 43758.5453); }
@@ -100,6 +101,8 @@ export class PostFX {
           }
           vec2 c = uv - 0.5;
           vec2 su = (uv - 0.5) * pxMap.xy + 0.5 + pxMap.zw;
+          // v0.93 fix9 ขยายภาพพิกเซลแบบ sharp bilinear: ทุกพิกเซลภาพเป็นบล็อกคม ขนาดเท่ากันทั้งจอ (แม้ k ไม่ใช่จำนวนเต็ม) ขอบนุ่ม 1 พิกเซลจอ
+          if (pxTex.z > 0.0) { vec2 tp = su * pxTex.xy - 0.5; vec2 ti = floor(tp); vec2 tf = clamp((tp - ti - 0.5) * pxTex.z + 0.5, 0.0, 1.0); su = (ti + tf + 0.5) / pxTex.xy; }
           vec3 col;
           if (ca > 0.002) {
             vec2 off = c * ca * 0.014 * pxMap.xy;
@@ -177,12 +180,12 @@ export class PostFX {
     const PN = { ...P, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter };
     this.pxRT = new THREE.WebGLRenderTarget(4, 4, PN);
     this.pxRT.depthTexture = new THREE.DepthTexture(4, 4); this.pxRT.depthTexture.type = renderer.capabilities.isWebGL2 ? THREE.FloatType : THREE.UnsignedIntType;   // v0.24.1: WebGL2 ใช้ความลึก 32 บิต (กันเส้นขีดบน Android)
-    this.pxOut = new THREE.WebGLRenderTarget(4, 4, { ...PN, depthBuffer: false });
+    this.pxOut = new THREE.WebGLRenderTarget(4, 4, { ...P, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false });   // v0.93 fix9 อ่านแบบ sharp bilinear
     this.matPx = new THREE.ShaderMaterial({
       ...common,
       defines: { LINEAR: this.linear ? 1 : 0 },
-      uniforms: { tCol: { value: null }, tDep: { value: null }, texel: { value: new THREE.Vector2() }, cn: { value: 0.5 }, cf: { value: 220 }, zo: { value: 0 }, ink: { value: new THREE.Color('#3a2a4a') } },
-      fragmentShader: `uniform sampler2D tCol; uniform sampler2D tDep; uniform vec2 texel; uniform float cn; uniform float cf; uniform float zo; uniform vec3 ink;
+      uniforms: { tCol: { value: null }, tDep: { value: null }, texel: { value: new THREE.Vector2() }, cn: { value: 0.5 }, cf: { value: 220 }, zo: { value: 0 }, ink: { value: new THREE.Color('#3a2a4a') }, soft: { value: 0 } },
+      fragmentShader: `uniform sampler2D tCol; uniform sampler2D tDep; uniform vec2 texel; uniform float cn; uniform float cf; uniform float zo; uniform vec3 ink; uniform float soft;
         varying vec2 vUv;
         float lz(float d) { float z = d * 2.0 - 1.0; return 2.0 * cn * cf / (cf + cn - z * (cf - cn)); }
         float dz(vec2 o) { float d = texture2D(tDep, vUv + o * texel).x; return d >= 0.99999 ? 1e4 : lz(d); }
@@ -205,12 +208,21 @@ export class PostFX {
             float zq = max(z0 - zo, 4.0);
             float th = max(0.22, zq * 0.03);
             // เส้นขอบนอก: เพื่อนบ้านอยู่ไกลกว่ามาก → พิกเซลนี้คือขอบของวัตถุด้านหน้า
-            float outer = step(th, max(max(zl, zr), max(zu, zd)) - z0);
-            // รอยพับ/มุมตึก: ความลึกหักมุมกะทันหัน
             float tc = zq * 0.018 + 0.05;
-            float crease = step(tc, abs(zl + zr - 2.0 * z0)) + step(tc, abs(zu + zd - 2.0 * z0));
-            if (outer > 0.5) col = mix(col * vec3(0.42, 0.4, 0.5), ink, 0.25);
-            else if (crease > 0.5) col *= 0.78;
+            float dOut = max(max(zl, zr), max(zu, zd)) - z0, dCr = max(abs(zl + zr - 2.0 * z0), abs(zu + zd - 2.0 * z0));
+            if (soft > 0.5) {
+              // v0.93 fix9 โหมด HD (กล้องเลื่อนนุ่ม): เส้นขอบ/รอยพับไล่ความเข้มตามระยะ แทนการตัดขาด → เส้นไม่กระพริบ/วิ่งไปมาตอนเดิน
+              float outer = smoothstep(th * 0.6, th * 1.6, dOut);
+              float crease = (1.0 - outer) * smoothstep(tc * 0.9, tc * 2.2, dCr);
+              col = mix(col, mix(col * vec3(0.42, 0.4, 0.5), ink, 0.25), outer * 0.9);
+              col *= 1.0 - 0.2 * crease;
+            } else {
+              float outer = step(th, dOut);
+              // รอยพับ/มุมตึก: ความลึกหักมุมกะทันหัน
+              float crease = step(tc, abs(zl + zr - 2.0 * z0)) + step(tc, abs(zu + zd - 2.0 * z0));
+              if (outer > 0.5) col = mix(col * vec3(0.42, 0.4, 0.5), ink, 0.25);
+              else if (crease > 0.5) col *= 0.78;
+            }
           }
 #if LINEAR
           col = toL(col);
@@ -298,12 +310,13 @@ export class PostFX {
       camera.fov = fov; camera.aspect = asp; camera.updateProjectionMatrix();
       const U = this.matPx.uniforms;
       U.tCol.value = this.pxRT.texture; U.tDep.value = this.pxRT.depthTexture; U.texel.value.set(1 / L.w, 1 / L.h);
-      U.cn.value = camera.near; U.cf.value = camera.far; U.zo.value = px.zo || 0;
+      U.cn.value = camera.near; U.cf.value = camera.far; U.zo.value = px.zo || 0; U.soft.value = px.hd ? 1 : 0;
       this.pass(this.matPx, this.pxOut);
       C.pxMap.value.set(L.sx, L.sy, (px.ox || 0) / L.w, (px.oy || 0) / L.h);
+      C.pxTex.value.set(L.w, L.h, px.hd ? 0 : px.k);
       C.tScene.value = this.pxOut.texture;
     } else {
-      C.pxMap.value.set(1, 1, 0, 0);
+      C.pxMap.value.set(1, 1, 0, 0); C.pxTex.value.set(0, 0, 0);
       if (!this.enabled || (!this.hd && this.idleT > 30)) { r.setRenderTarget(null); r.render(scene, camera); return; }
       r.setRenderTarget(this.sceneRT);
       r.render(scene, camera);

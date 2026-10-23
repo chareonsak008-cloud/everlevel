@@ -1,7 +1,7 @@
 // v0.17: เท็กซ์เจอร์วัสดุแบบภาพพิกเซล (หิน ปูน กระเบื้องหลังคา ไม้ ลังไม้ ผ้าใบลายทาง)
 // 48×48 พิกเซลต่อ 1 หน่วยโลก = 1 พิกเซลภาพที่ระยะกล้องปกติ · กรองแบบ nearest (ขอบคม)
-import { THREE } from './three.js?v=0.93.0-p1.9';
-import { rng } from '../core/util.js?v=0.93.0-p1.9';
+import { THREE } from './three.js?v=0.93.0-p1.10';
+import { rng } from '../core/util.js?v=0.93.0-p1.10';
 
 const N = 48;
 const hex = (h) => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
@@ -19,7 +19,8 @@ function make(key, w, h, draw) {
   g.putImageData(img, 0, 0);
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding;
-  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestMipmapNearestFilter;
+  // v0.93 fix9 อ่านแบบ linear แล้วให้เชดเดอร์ (pxAAMaterial) เลือกเองว่าจะคมแบบพิกเซลหรือเกลี่ยขอบ → ลายบ้าน/กำแพงไม่ยุบยับตอนเดิน
+  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false;
   cache.set(key, t); return t;
 }
 
@@ -112,4 +113,28 @@ export function boardPx(base = '#b98a58') {
     for (let g = 0; g < 14; g++) { const x = r() * N; let y = r() * N; const len = 8 + r() * 20; for (let i = 0; i < len; i++) P(x, y + i, sh(b, -0.18)); }
     for (let k = 0; k < 3; k++) { const x = r() * N, y = r() * N; P(x, y, sh(b, -0.4)); P(x + 1, y, sh(b, -0.3)); P(x, y + 1, sh(b, -0.3)); }
   });
+}
+
+// v0.93 fix9 วัสดุที่ใช้ลายพิกเซล: ขอบพิกเซลลายผสมกันตามสัดส่วนที่ครอบพิกเซลจอ (กว้างไม่เกิน 1 พิกเซลจอ) · ภายในคมเหมือนเดิม
+// PXAA = 0 → อ่านกลางพิกเซลลายพอดี (เท่ากับ Nearest เดิม)
+import { PXAA } from './PixelGround.js?v=0.93.0-p1.10';
+export function pxAAMaterial(m) {
+  const t = m.map; if (!t || !t.image || m.userData.pxAA) return m;
+  m.userData.pxAA = true;
+  const size = new THREE.Vector2(t.image.width, t.image.height);
+  m.extensions = { ...(m.extensions || {}), derivatives: true };
+  m.onBeforeCompile = (s) => {
+    s.uniforms.pxTexSize = { value: size }; s.uniforms.pxAA = PXAA;
+    s.fragmentShader = 'uniform vec2 pxTexSize; uniform float pxAA;\n' + s.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
+  {
+    vec2 pp = vUv * pxTexSize - 0.5; vec2 pi = floor(pp); vec2 fw = max(fwidth(pp), vec2(1e-4));
+    vec2 pf = pxAA > 0.5 ? clamp((pp - pi - 0.5) / fw + 0.5, 0.0, 1.0) : step(0.5, pp - pi);
+    vec4 texelColor = texture2D(map, (pi + pf + 0.5) / pxTexSize);
+    texelColor = mapTexelToLinear(texelColor);
+    diffuseColor *= texelColor;
+  }
+#endif`);
+  };
+  m.customProgramCacheKey = () => 'pxaa';
+  return m;
 }

@@ -1,11 +1,11 @@
 // โมเดล 3 มิติของสิ่งปลูกสร้างและของตกแต่ง (สร้างจากรูปทรงพื้นฐาน)
 // หน่วย: 1 = 1 ช่องแผนที่ | ด้านหน้าของโมเดลหันไปทาง +z (ทิศใต้)
-import { THREE } from './three.js?v=0.93.0-p1.9';
-import { std, box, cyl, sphere, mesh, boxGeo, mergeGeometries, paint, lin, GEO } from './Geo.js?v=0.93.0-p1.9';
-import { gradientMap } from './Toon.js?v=0.93.0-p1.9';
-import * as PT from './PixelTextures.js?v=0.93.0-p1.9';
-import { stoneTexture, plasterTexture, shingleTexture, woodTexture, crateTexture, stripeTexture, signTexture, glowTexture, shadeHex } from './Textures.js?v=0.93.0-p1.9';
-import { rng } from '../core/util.js?v=0.93.0-p1.9';
+import { THREE } from './three.js?v=0.93.0-p1.10';
+import { std, box, cyl, sphere, mesh, boxGeo, mergeGeometries, paint, lin, GEO } from './Geo.js?v=0.93.0-p1.10';
+import { gradientMap } from './Toon.js?v=0.93.0-p1.10';
+import * as PT from './PixelTextures.js?v=0.93.0-p1.10';
+import { stoneTexture, plasterTexture, shingleTexture, woodTexture, crateTexture, stripeTexture, signTexture, glowTexture, shadeHex } from './Textures.js?v=0.93.0-p1.10';
+import { rng } from '../core/util.js?v=0.93.0-p1.10';
 
 /* ---------- วัสดุ ---------- */
 // v0.17: โหมดพิกเซล → วัสดุ toon (แสงเป็นขั้น) + ลายพิกเซล 48 จุด/หน่วย
@@ -17,7 +17,7 @@ const tm = (key, o = {}) => {
     const q = { gradientMap: gradientMap(), ...o };
     if (typeof q.color === 'string') q.color = lin(q.color);
     if (typeof q.emissive === 'string') q.emissive = lin(q.emissive);
-    tcache.set(key, new THREE.MeshToonMaterial(q));
+    tcache.set(key, q.map && q.map.magFilter === THREE.LinearFilter && q.map.wrapS === THREE.RepeatWrapping ? PT.pxAAMaterial(new THREE.MeshToonMaterial(q)) : new THREE.MeshToonMaterial(q));   // v0.93 fix9 ลายพิกเซลกันยุบยับ
   }
   return tcache.get(key);
 };

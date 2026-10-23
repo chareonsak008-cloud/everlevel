@@ -1,9 +1,9 @@
 // v0.17: พื้นแผนที่แบบภาพพิกเซล — แผ่นลายพิกเซล 48×48 ต่อช่อง (1 พิกเซลลาย = 1 พิกเซลภาพที่ระยะกล้องปกติ)
 // วาดลายทุกชนิดพื้น × 4 แบบลงแผ่นรวม (atlas) แล้วให้เชดเดอร์เลือกลายตามชนิดพื้นของแต่ละช่อง
 // ขอบระหว่างพื้นต่างชนิดเป็นหยักแบบพิกเซล (สุ่มเลื่อนทีละกลุ่ม 3×3) · เงาใต้วัตถุเป็นขั้นแบบพิกเซล
-import { THREE } from './three.js?v=0.93.0-p1.9';
-import { T } from '../data/tileTypes.js?v=0.93.0-p1.9';
-import { rng } from '../core/util.js?v=0.93.0-p1.9';
+import { THREE } from './three.js?v=0.93.0-p1.10';
+import { T } from '../data/tileTypes.js?v=0.93.0-p1.10';
+import { rng } from '../core/util.js?v=0.93.0-p1.10';
 
 export const TP = 48;          // พิกเซลลายต่อ 1 ช่อง
 const NV = 4, NT = 8;          // แบบต่อชนิด · จำนวนชนิดพื้น
@@ -182,18 +182,20 @@ function aoTexture(map) {
 }
 
 /* ---------- วัสดุพื้น (Lambert + ลายพิกเซลจากเชดเดอร์) ---------- */
-export function pixelGround(map) {
+// v0.93 fix9 เปิด/ปิดการเกลี่ยขอบพิกเซลลาย (เปิดในโหมด HD ที่กล้องเลื่อนนุ่ม · ปิดในโหมดพิกเซลที่กล้องล็อกตาราง)
+export const PXAA = { value: 1 };
+export function pixelGround(map, { aa = true } = {}) {
   const atlas = buildAtlas(map), types = typeTexture(map), ao = aoTexture(map);
   const fill = map.def.fill && T[map.def.fill] != null ? T[map.def.fill] : T.GRASS;
   const mat = new THREE.MeshLambertMaterial({ color: '#ffffff' });
   const U = {
     tAtlas: { value: atlas }, tTypes: { value: types }, tAO: { value: ao },
-    mapSize: { value: new THREE.Vector2(map.w, map.h) }, outerType: { value: fill },
+    mapSize: { value: new THREE.Vector2(map.w, map.h) }, outerType: { value: fill }, pxAA: PXAA,
   };
   mat.onBeforeCompile = (s) => {
     Object.assign(s.uniforms, U);
     s.vertexShader = 'varying vec2 vGW;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vGW = (modelMatrix * vec4(transformed, 1.0)).xz;');
-    s.fragmentShader = `uniform sampler2D tAtlas; uniform sampler2D tTypes; uniform sampler2D tAO; uniform vec2 mapSize; uniform float outerType;
+    s.fragmentShader = `uniform sampler2D tAtlas; uniform sampler2D tTypes; uniform sampler2D tAO; uniform vec2 mapSize; uniform float outerType; uniform float pxAA;
 varying vec2 vGW;
 float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float tileType(vec2 t) {
@@ -206,17 +208,34 @@ float texelType(vec2 tp) {
   vec2 j = vec2(h21(b), h21(b + 17.31)) - 0.5;
   return tileType(floor((tp + 0.5) / ${TP.toFixed(1)} + j * 0.42));
 }
+// สีของพิกเซลลาย 1 จุด (ชนิดพื้น · ลายแต่ละช่อง · เส้นรอยต่อ)
+// คืน (สี sRGB, ตัวคูณเส้นรอยต่อ) — แปลงเป็น linear ใน main (ฟังก์ชันแปลงสีของ three ประกาศหลังจุดนี้)
+vec4 gTexel(vec2 tp) {
+  float ty = texelType(tp);
+  vec2 tile = floor(tp / ${TP.toFixed(1)});
+  float v = floor(h21(tile * 1.37 + 3.1) * ${NV.toFixed(1)});
+  vec2 inT = mod(tp, ${TP.toFixed(1)});
+  vec2 auv = (vec2(ty, ${(NV - 1).toFixed(1)} - v) * ${TP.toFixed(1)} + vec2(inT.x, ${TP.toFixed(1)} - 1.0 - inT.y) + 0.5) / vec2(${(NT * TP).toFixed(1)}, ${(NV * TP).toFixed(1)});
+  vec3 tc = texture2D(tAtlas, auv).rgb;
+  float seam = (texelType(tp + vec2(0.0, -1.0)) != ty || texelType(tp + vec2(-1.0, 0.0)) != ty) ? 0.8 : 1.0;   // ขอบรอยต่อพื้นต่างชนิด: เส้นเข้ม 1 พิกเซล
+  return vec4(tc, seam);
+}
 ` + s.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   {
+    // v0.93 fix9 กันลายพื้นยุบยับตอนกล้องเลื่อน: ขอบพิกเซลลายผสมสีเพื่อนบ้านตามสัดส่วนที่ครอบพิกเซลจอ (กว้างไม่เกิน 1 พิกเซลจอ)
+    // ภายในพิกเซลลายยังคมเป๊ะเหมือนเดิม · ไกลจนลายเล็กกว่าพิกเซลจอ → เฉลี่ยสี (ไม่กระพริบ)
     vec2 tp = floor(vGW * ${TP.toFixed(1)});
-    float ty = texelType(tp);
-    vec2 tile = floor(tp / ${TP.toFixed(1)});
-    float v = floor(h21(tile * 1.37 + 3.1) * ${NV.toFixed(1)});
-    vec2 inT = mod(tp, ${TP.toFixed(1)});
-    vec2 auv = (vec2(ty, ${(NV - 1).toFixed(1)} - v) * ${TP.toFixed(1)} + vec2(inT.x, ${TP.toFixed(1)} - 1.0 - inT.y) + 0.5) / vec2(${(NT * TP).toFixed(1)}, ${(NV * TP).toFixed(1)});
-    vec3 tc = sRGBToLinear(texture2D(tAtlas, auv)).rgb;
-    // ขอบรอยต่อพื้นต่างชนิด: เส้นเข้ม 1 พิกเซล
-    if (texelType(tp + vec2(0.0, -1.0)) != ty || texelType(tp + vec2(-1.0, 0.0)) != ty) tc *= 0.8;
+    vec4 tq;
+#ifdef PX_AA
+    vec2 pp = vGW * ${TP.toFixed(1)} - 0.5; vec2 pi = floor(pp); vec2 fw = max(fwidth(pp), vec2(1e-4));
+    vec2 pf = pxAA > 0.5 ? clamp((pp - pi - 0.5) / fw + 0.5, 0.0, 1.0) : step(0.5, pp - pi);
+    if (pf.x > 0.002 && pf.x < 0.998 || pf.y > 0.002 && pf.y < 0.998) {
+      tq = mix(mix(gTexel(pi), gTexel(pi + vec2(1.0, 0.0)), pf.x), mix(gTexel(pi + vec2(0.0, 1.0)), gTexel(pi + vec2(1.0, 1.0)), pf.x), pf.y);
+    } else tq = gTexel(pi + step(0.5, pf));
+#else
+    tq = gTexel(tp);
+#endif
+    vec3 tc = sRGBToLinear(vec4(tq.rgb, 1.0)).rgb * tq.a;
     // เงาใต้วัตถุเป็นขั้น
     vec2 aw = vGW / mapSize;
     float a = (aw.x < 0.0 || aw.y < 0.0 || aw.x > 1.0 || aw.y > 1.0) ? 1.0 : texture2D(tAO, vec2(aw.x, 1.0 - aw.y)).r;
@@ -224,7 +243,8 @@ float texelType(vec2 tp) {
     diffuseColor.rgb *= tc * mix(0.55, 1.0, a);
   }`);
   };
-  mat.customProgramCacheKey = () => 'pixelGround';
+  if (aa) { mat.defines = { PX_AA: 1 }; mat.extensions = { derivatives: true }; }
+  mat.customProgramCacheKey = () => 'pixelGround' + (aa ? 'aa' : '');
   return { material: mat, dispose() { atlas.dispose(); types.dispose(); ao.dispose(); mat.dispose(); } };
 }
 
