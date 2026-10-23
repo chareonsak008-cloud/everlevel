@@ -1,10 +1,10 @@
 // v0.27: หน้าต่างแผนที่ (N) — แท็บ "แผนที่นี้" (ผังเมือง/ทุ่ง + ป้ายชื่อ NPC/ทางออก) และ "แผนที่โลก" (ภูมิภาค · เลเวล · มอนสเตอร์)
-import { drawBossIcon, bossKind, bossIcon } from './BossIcons.js?v=0.93.0-p3.24';
-import { TILE } from '../config.js?v=0.93.0-p3.24';
-import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p3.24';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p3.24';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.24';
-import { GameMap } from '../world/GameMap.js?v=0.93.0-p3.24';
+import { drawBossIcon, bossKind, bossIcon } from './BossIcons.js?v=0.93.0-p3.25';
+import { TILE } from '../config.js?v=0.93.0-p3.25';
+import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p3.25';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p3.25';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.25';
+import { GameMap } from '../world/GameMap.js?v=0.93.0-p3.25';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const SVC = { shop: ['#ff9a3a', 'ร้านค้า'], storage: ['#5ae0a8', 'คลัง'], warp: ['#7fe0ff', 'วาร์ป'], job: ['#d49bff', 'เปลี่ยนอาชีพ'] };
@@ -28,7 +28,7 @@ const WORLD = {
   sky_citadel: { x: 790, y: 105, land: '#eef6ff', sky: true },
 };
 const WW = 980, WH = 500;   // v0.46 ขยายผืนผ้าใบให้มีที่สำหรับหมู่เกาะ
-const SEA_LINKS = [['haunted_forest', 'sunken_coast']];   // เส้นทางเรือ/วาร์ป (ไม่มีประตูมิติตรง)
+const SEA_LINKS = [];   // v0.93 fix19: ป่าวิญญาณ ↔ หาดปะการังจม มีประตูมิติตรงแล้ว
 
 function shade(hex, k) {
   const n = parseInt(hex.slice(1), 16); const r = n >> 16, g = (n >> 8) & 255, b = n & 255;

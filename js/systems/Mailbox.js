@@ -2,11 +2,11 @@
 // · ของขวัญต้อนรับ: ทุกตัวละครได้ 1 ฉบับ (เลือกชุดแฟชั่น 1 เซ็ต + สัตว์เลี้ยง 1 ตัว + ของใช้เริ่มต้น) — ใช้ได้ทุกโหมด
 // · จดหมายจากแอดมิน (เซิร์ฟเวอร์ Supabase): ส่งถึงทุกคนหรือระบุชื่อตัวละคร · รับได้บัญชีละครั้งหรือตัวละครละครั้ง
 // · v0.18: จดหมายจากระบบเกม (รางวัลเช็กอินรายวัน) เก็บในเซฟตัวละคร player.mail.box — sys: true
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.24';
-import { PETS } from '../data/pets.js?v=0.93.0-p3.24';
-import { MAX_ZENY } from '../data/shops.js?v=0.93.0-p3.24';
-import { normMail, setById, hasGift } from '../data/mail.js?v=0.93.0-p3.24';
-import { COSTUMES, COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.24';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.25';
+import { PETS } from '../data/pets.js?v=0.93.0-p3.25';
+import { MAX_ZENY } from '../data/shops.js?v=0.93.0-p3.25';
+import { normMail, setById, hasGift } from '../data/mail.js?v=0.93.0-p3.25';
+import { COSTUMES, COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.25';
 
 const REFRESH_SEC = 180;
 

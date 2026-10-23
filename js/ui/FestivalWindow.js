@@ -1,10 +1,10 @@
 // v0.79 หน้าต่างอีเวนต์เทศกาล — เทศกาลที่เปิดอยู่ · มอน/บอสเทศกาล · แลกออร่าและของ · ปฏิทินเทศกาลถัดไป
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.24';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.24';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.24';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.24';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.93.0-p3.24';
-import { FEST_SHOP, FEST_AURA_COST, FEST_GRACE } from '../data/festivals.js?v=0.93.0-p3.24';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.25';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.25';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.25';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.25';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.93.0-p3.25';
+import { FEST_SHOP, FEST_AURA_COST, FEST_GRACE } from '../data/festivals.js?v=0.93.0-p3.25';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
