@@ -1,6 +1,6 @@
 // v0.46 Sunken Coast · หาดปะการังจม Lv.100–117 · MVP ไทดาลอส ราชันย์คลื่น
 // หาดทรายขาวริมทะเลทางใต้-ตะวันออก · ทะเลสาบน้ำเค็มกลางแผนที่ · ซากเรือ · ซากวิหารจมทางเหนือ
-import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0-p3.24';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0-p3.25';
 const W=80,H=64,lanes=[[0,30,70,4],[38,0,4,30],[22,30,4,20],[22,44,40,4],[56,30,4,18]],camp=[2,25,11,15],arena=[56,40,12,12],sea=[[0,54,80,10],[70,0,10,64]];
 const look={hair:'#3fe6d0',skin:'#e8c4a8',eye:'#1f6a78',tunic:'#2a8a9a',pants:'#244a5a',boot:'#2a2a3a',hairStyle:'ponytail',accessory:'wizard',hatColor:'#1f6a78',orbColor:'#9afff0',weapon:'staff'};
 const RAW = {
@@ -30,7 +30,7 @@ const RAW = {
   ...borderTrees(W,H,2,[{x0:0,x1:2,y0:29,y1:35},{x0:36,x1:44,y0:0,y1:2}],80317,.5)],
  npcs:[{id:'marin',name:'มาริน',title:'ผู้นำทางกระแสน้ำ',x:8,y:28,dir:'down',look,service:{type:'warp',routes:'coast'},greet:'คลื่นวันนี้สงบดี · เหนือขึ้นไปคือหุบเขาคริสตัล',lines:['ไทดาลอสอยู่ถ้ำริมทะเลตะวันออกเฉียงใต้ · ระวังวงน้ำแข็งที่มันเรียกลงมา','ชุดห้วงสมุทรดรอปจากมอนแถวนี้ ยิ่งลึกยิ่งดรอปง่าย']},
   {id:'coast_supply',name:'ทาร่า',title:'เสบียงริมหาด',x:7,y:34,dir:'down',look:{...look,tunic:'#e8c87a',accessory:'clerk'},service:{type:'shop',shop:'endgame'},greet:'ยาครบ ผลึกตีบวกครบ ซื้อก่อนลงทะเลนะ'}],
- portals:[{x:37,y:0,w:6,h:2,to:'crystal_valley',arrive:{x:5.5,y:31.5,angle:Math.PI/2},label:'Crystal Valley · Lv.118–134'}],
+ portals:[{x:0,y:30,w:2,h:4,to:'haunted_forest',arrive:{x:75.5,y:31.5,angle:-Math.PI/2},label:'Haunted Forest · Lv.75–99'},{x:37,y:0,w:6,h:2,to:'crystal_valley',arrive:{x:5.5,y:31.5,angle:Math.PI/2},label:'Crystal Valley · Lv.118–134'}],
  spawns:[{mob:'reef_crab',count:8,areas:[[12,38,10,12],[12,8,14,14]]},{mob:'shell_turtle',count:7,areas:[[26,36,14,7],[24,14,12,10]]},{mob:'abyss_jelly',count:7,areas:[[30,20,8,6],[44,22,10,8]]},{mob:'drowned_knight',count:6,areas:[[46,4,14,14]]},{mob:'siren_eel',count:6,areas:[[60,26,8,12],[46,40,8,8]]},{mob:'tidalos',count:1,areas:[[61,45,3,3]]}],
  restSpots:[{x:7.5,y:35.5,r:3}]
 };

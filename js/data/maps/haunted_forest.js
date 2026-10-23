@@ -1,4 +1,4 @@
-import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0-p3.24';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0-p3.25';
 const W=80,H=64,lanes=[[0,30,80,4],[16,7,4,50],[38,8,4,49],[60,8,4,49],[16,10,49,4],[16,50,55,4]],camp=[2,25,11,15],arena=[64,40,12,18];
 const look={hair:'#a59ab4',skin:'#e5c4b4',eye:'#684a89',tunic:'#676581',pants:'#353746',boot:'#282635',hairStyle:'long',accessory:'wizard',hatColor:'#45405d',orbColor:'#c2a8ff',weapon:'staff'};
 const RAW = {
@@ -18,12 +18,12 @@ const RAW = {
   {tile:'DIRT',path:[[16,51.5],[28,53],[40,51],[54,53],[70,51.5]],w:3.4},
   {tile:'WATER',circle:[28.5,22.5,3.6,3.2]},{tile:'WATER',circle:[50,41,4,3]},{tile:'WATER',circle:[8,52,2.2,1.6]},
  ],
- objects:[{kind:'tent',x:3,y:26,color:'#686582'},{kind:'campfire',x:8,y:36},{kind:'warpstone',x:4,y:37,color:'#c4a9ff'},{kind:'sign',x:12,y:28,text:'Haunted Forest · Lv.75–90'},{kind:'sign',x:59,y:28,text:'⚠ เขตคราส Lv.94–98 / MVP Lv.99'},
+ objects:[{kind:'tent',x:3,y:26,color:'#686582'},{kind:'campfire',x:8,y:36},{kind:'warpstone',x:4,y:37,color:'#c4a9ff'},{kind:'sign',x:12,y:28,text:'Haunted Forest · Lv.75–90'},{kind:'sign',x:59,y:28,text:'⚠ เขตคราส Lv.94–98 / MVP Lv.99'},{kind:'sign',x:72,y:28,text:'→ Sunken Coast · Lv.100+'},
  ...[[22,15],[34,7],[43,20],[58,42],[65,45],[73,45],[73,54]].map(([x,y],i)=>({kind:'pillar',x,y,seed:900+i})),{kind:'bones',x:26,y:37},{kind:'bones',x:68,y:9},{kind:'bigshroom',x:34,y:45,color:'#bb93df'},{kind:'bigshroom',x:47,y:16,color:'#89d2c4'},
  ...scatterTrees(W,H,68,[...lanes,camp,arena,[24,18,9,9],[45,37,10,8],[25,36,5,5]],77431,3,.15),
- ...borderTrees(W,H,2,[{x0:0,x1:2,y0:29,y1:35}],55319,.55)],
+ ...borderTrees(W,H,2,[{x0:0,x1:2,y0:29,y1:35},{x0:77,x1:79,y0:29,y1:35}],55319,.55)],
  npcs:[{id:'selene',name:'เซลีน',title:'ผู้นำทางจันทร์',x:8,y:28,dir:'down',look,service:{type:'warp',routes:'haunted'},greet:'เขตนอกเหมาะกับเลเวล 75–90 ส่วนเขตตะวันออกมีมอนปกติ Lv.94–98 ให้ล่าจนถึง 99',lines:['น็อคธาร์อยู่สุสานตะวันออกเฉียงใต้ · วงโจมตีสีแดงต้องหลบ','อาวุธทองและแดงหาได้จากมอนในเขตลึกด้วย ไม่ต้องรอ MVP อย่างเดียว']},{id:'forest_supply',name:'โนอา',title:'เสบียงป่าวิญญาณ',x:7,y:34,dir:'down',look:{...look,tunic:'#937898',accessory:'clerk'},service:{type:'shop',shop:'endgame'},greet:'เติมยาให้พร้อมก่อนเข้าป่าลึกนะ'}],
- portals:[{x:0,y:30,w:2,h:4,to:'ancient_ruins',arrive:{x:71.5,y:29.5,angle:-Math.PI/2},label:'Ancient Ruins · Lv.60–75'}],
+ portals:[{x:0,y:30,w:2,h:4,to:'ancient_ruins',arrive:{x:71.5,y:29.5,angle:-Math.PI/2},label:'Ancient Ruins · Lv.60–75'},{x:78,y:30,w:2,h:4,to:'sunken_coast',arrive:{x:5.5,y:31.5,angle:Math.PI/2},label:'Sunken Coast · Lv.100–114'}],   // v0.93 fix19: ทางต่อไปหาดปะการังจม
  spawns:[{mob:'haunt_spider',count:7,areas:[[5,43,15,14],[5,6,10,17]]},{mob:'hollow_wolf',count:7,areas:[[21,5,15,10],[21,45,15,13]]},{mob:'mourning_shade',count:7,areas:[[34,16,20,12]]},{mob:'cursed_stag',count:7,areas:[[42,45,16,14],[43,6,15,9]]},{mob:'eclipse_reaper',count:6,areas:[[64,15,11,13]]},{mob:'bloodmoon_knight',count:6,areas:[[63,34,12,5],[62,56,13,5]]},{mob:'nocthar',count:1,areas:[[67,47,3,3]]}],
  restSpots:[{x:7.5,y:35.5,r:3}]
 };
