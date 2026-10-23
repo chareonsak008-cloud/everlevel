@@ -1,5 +1,5 @@
 // Ancient Ruins Lv.60–75; broad, connected lanes with a safe western camp.
-import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0-p1.7';
+import { borderTrees, scatterTrees, scaleMap, FIELD_SCALE } from './helpers.js?v=0.93.0-p1.8';
 const W=76,H=60;
 const lanes=[[0,28,W,4],[14,6,4,48],[38,8,4,44],[56,8,4,43],[14,8,48,4],[14,48,50,4]];
 const camp=[2,24,10,14],arena=[51,12,18,15];
