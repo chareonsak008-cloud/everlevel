@@ -360,3 +360,10 @@ button .px-ic + span, button .px-ic { margin-right: 2px; }
 .hud .panel .st-head, .hud .panel .dlg-head, .hud .menu-panel > header { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
 .hud .panel.dragging { transition: none !important; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6) !important; }
 .hud .panel.dragging .st-head, .hud .panel.dragging .dlg-head { cursor: grabbing; }
+/* v0.93 fix10 ปาร์ตี้: อยู่คนละแมพ = สีเทา · หลุดชั่วคราว/ออฟไลน์ = เทาจางกว่า (ยังอยู่ในปาร์ตี้) */
+.pf-row.away { opacity: 0.7; filter: grayscale(1); }
+.pf-row.away .pf-hp i { background: linear-gradient(90deg, #8a8a92, #b4b4bc) !important; }
+.pf-row.away .pf-crest { background: #8a8a92 !important; }
+.pf-row.stale { opacity: 0.5; filter: grayscale(1); }
+.pf-row.off { opacity: 0.38; }
+.pf-row.off .pf-map, .pf-row.stale .pf-map { color: #b9b9c4; font-style: italic; }

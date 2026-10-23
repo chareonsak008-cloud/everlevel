@@ -1,13 +1,13 @@
 // v0.43 ร้านเพชร + เติมเพชร (โอนพร้อมเพย์ → ส่งสลิป → v0.80 ตรวจสลิปอัตโนมัติ / แอดมินอนุมัติเมื่อไม่ชัวร์)
 // ราคา/สินค้า/แพ็กมาจากเซิร์ฟเวอร์ (supabase/cashshop.sql) · ซื้อแล้วของเข้าเซฟบนเซิร์ฟเวอร์ → ดึง ledger มาปรับในเครื่อง
-import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p1.10';
-import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.93.0-p1.10';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p1.10';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.93.0-p1.10';
-import { ready } from './TradeMarket.js?v=0.93.0-p1.10';
-import { WARP_ROUTES } from '../data/shops.js?v=0.93.0-p1.10';
-import { PETS, PET_RARITY } from '../data/pets.js?v=0.93.0-p1.10';
-import { petThumb } from '../render/PetThumbs.js?v=0.93.0-p1.10';
+import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p2.11';
+import { COSTUME_BY_ID, RARITY as FASHION_RARITY } from '../data/costumes.js?v=0.93.0-p2.11';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p2.11';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.93.0-p2.11';
+import { ready } from './TradeMarket.js?v=0.93.0-p2.11';
+import { WARP_ROUTES } from '../data/shops.js?v=0.93.0-p2.11';
+import { PETS, PET_RARITY } from '../data/pets.js?v=0.93.0-p2.11';
+import { petThumb } from '../render/PetThumbs.js?v=0.93.0-p2.11';
 
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
 const QR_SRC = 'assets/ui/topup_qr.png';

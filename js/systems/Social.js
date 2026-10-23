@@ -4,10 +4,13 @@
 //   · เชิญผ่านห้องรวม (pi → pr) · หัวหน้า = คนที่เข้าปาร์ตี้ก่อนสุด · สูงสุด 6 คน
 //   · แชร์ EXP: คนที่อยู่แมพเดียวกันแบ่ง EXP เท่ากัน + โบนัส 20% ต่อสมาชิกเพิ่ม 1 คน (มอนยังจำลองแยกเครื่อง — แชร์แค่ EXP)
 // กิลด์ — ข้อมูลถาวรในฐานข้อมูล (supabase/guild.sql) · ห้อง everlevel-guild-<id> ไว้แชตกิลด์ + ดูว่าใครออนไลน์
-import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.93.0-p1.10';
+import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.93.0-p2.11';
 
 export const PARTY_MAX = 6;
-export const PARTY_GRACE = 25000;   // v0.94 หายจาก presence นานเท่านี้ (มิลลิวินาที) ถึงจะถือว่าออกจากปาร์ตี้
+export const PARTY_GRACE = 25000;   // v0.94 (เดิม) — ตอนนี้ใช้แค่เป็นช่วง "เพิ่งหลุด" ที่ยังนับแชร์ EXP
+// v0.93 fix10 ปาร์ตี้ไม่หลุด: เน็ตสะดุด/สลับแท็บ/เชื่อมต่อใหม่ → ยังอยู่ในปาร์ตี้ (สีเทา "กำลังเชื่อมต่อ") นานสุด 15 นาที
+// · ออกจากเกม (ปิดแท็บ/เบราว์เซอร์) → ส่งสัญญาณ off → แสดง "ออฟไลน์" แล้วค่อยออกจากปาร์ตี้เมื่อไม่กลับมาใน 2 นาที (รีเฟรชหน้ากลับมาทันได้)
+export const PARTY_HOLD = 15 * 60000, PARTY_OFF = 120000;
 export const PARTY_BONUS = 0.2;
 export const GUILD_COST = 50000, GUILD_LV = 20;
 const clean = (s, n = 16) => String(s || '').replace(/[\u0000-\u001f\u007f​-‏‪-‮]/g, '').slice(0, n);
@@ -27,6 +30,11 @@ export class Social {
   }
 
   get net() { return this.game.online; }
+  // fix10 ปิดแท็บ/ออกจากเกม → บอกเพื่อนในปาร์ตี้ว่าออฟไลน์ (ไม่ใช่ออกจากปาร์ตี้ — รีเฟรชกลับมาภายใน 2 นาทียังอยู่ต่อ)
+  hookQuit() {
+    if (this.quitHooked || typeof window === 'undefined') return; this.quitHooked = true;
+    window.addEventListener('pagehide', () => { try { if (this.party) this.party.send('off', {}); } catch (e) { /* ปิดไปแล้ว */ } });
+  }
   get enabled() { const o = this.net; return !!o && this.game.mode === 'online' && o.kind === 'supabase' && !!o.social; }
   get myKey() { return this.net && this.net.key; }
   onChange(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
@@ -178,11 +186,12 @@ export class Social {
     this.pid = pid; this.jt = rejoin ? (this.jt || Date.now()) : Date.now();
     this.members = new Map(); this.knownKeys = new Set(); this.byeKeys = new Set();
     this.party = this.net.sideChannel('party-' + pid, {
-      events: ['pc', 'xp', 'kick', 'bye', 'hl', 'bf', 'pd', 'arq'],   // v0.78 arq = ชวนลงคิวอารีน่า 3v3   // v0.65.2 hl = ฮีล · bf = บัฟ/โล่ จากสกิลนักบวช · v0.75 pd = คำเชิญดันเจี้ยนปาร์ตี้
+      events: ['pc', 'xp', 'kick', 'bye', 'hl', 'bf', 'pd', 'arq', 'off'],   // v0.78 arq = ชวนลงคิวอารีน่า 3v3   // v0.65.2 hl = ฮีล · bf = บัฟ/โล่ จากสกิลนักบวช · v0.75 pd = คำเชิญดันเจี้ยนปาร์ตี้
       onEvent: (ev, p) => this.onPartyEvent(ev, p),
       onSync: (m) => this.onPartySync(m),
     });
     this.lastTrack = null; this.trackParty(true);
+    this.hookQuit();
     this.savePid();
     this.changed();
   }
@@ -219,7 +228,7 @@ export class Social {
       if (this.byeKeys && this.byeKeys.has(k)) continue;                          // ออกเอง → ลบทันที
       const nk = m.u && liveU.get(m.u);
       if (nk && nk !== k) { silent.add(nk); if (!prev.has(nk)) next.get(nk).jt = Math.min(next.get(nk).jt, m.jt); continue; }   // รีเฟรช: คงลำดับหัวหน้า
-      if (now - (m.seen || now) < PARTY_GRACE) next.set(k, { ...m, stale: true });   // หายชั่วคราว → เก็บไว้ก่อน
+      if (now - (m.seen || now) < PARTY_HOLD && !(m.off && now - m.off >= PARTY_OFF)) next.set(k, { ...m, stale: true });   // fix10 หายชั่วคราว → อยู่ในปาร์ตี้ต่อ (สีเทา)
     }
     // เกิน 6 คน: คนที่เข้ามาทีหลังสุดออกเอง (นับเฉพาะคนที่ยังเชื่อมต่ออยู่)
     const live = [...next.entries()].filter(([, m]) => !m.stale);
@@ -240,7 +249,11 @@ export class Social {
   // เรียกทุก 1 วิ: สมาชิกที่หายเกินเวลาผ่อนผัน → ถือว่าออกแล้ว
   expireMembers() {
     const now = Date.now(); let gone = false;
-    for (const [k, m] of this.members) if (m.stale && now - (m.seen || 0) >= PARTY_GRACE) { this.members.delete(k); gone = true; if (this.game.started) this.log(`${m.n} ออกจากปาร์ตี้ (ขาดการเชื่อมต่อ)`); }
+    for (const [k, m] of this.members) {
+      if (!m.stale) continue;
+      const quit = m.off && now - m.off >= PARTY_OFF, lost = now - (m.seen || 0) >= PARTY_HOLD;
+      if (quit || lost) { this.members.delete(k); gone = true; if (this.game.started) this.log(quit ? `${m.n} ออกจากเกมแล้ว (ออกจากปาร์ตี้)` : `${m.n} ออกจากปาร์ตี้ (ขาดการเชื่อมต่อนาน)`); }
+    }
     if (gone) { this.knownKeys = new Set(this.members.keys()); this.syncTags(); this.changed(); }
   }
 
@@ -257,6 +270,7 @@ export class Social {
     else if (ev === 'arq') { if (p.k !== this.myKey && this.members.has(p.k) && g.arena) g.arena.onPartyQueue(p, clean(p.n) || (this.members.get(p.k) || {}).n || 'เพื่อนในปาร์ตี้'); }
     else if (ev === 'pd') { if (p.k !== this.myKey && this.members.has(p.k) && g.pd) g.pd.onInvite(p, clean(p.n) || (this.members.get(p.k) || {}).n || 'หัวหน้าปาร์ตี้'); }
     else if (ev === 'kick') { if (p.to === this.myKey && p.k === this.leaderKey) { this.leaveParty(true); this.log('คุณถูกเชิญออกจากปาร์ตี้', 'sys'); } }
+    else if (ev === 'off') { const m = this.members.get(p.k); if (m) { this.members.set(p.k, { ...m, stale: true, off: Date.now(), seen: Math.min(m.seen || Date.now(), Date.now()) }); this.changed(); } }   // fix10 เพื่อนปิดเกม → ออฟไลน์ (รอ 2 นาทีเผื่อรีเฟรช)
     else if (ev === 'bye') { (this.byeKeys = this.byeKeys || new Set()).add(p.k); const m = this.members.get(p.k); if (m && m.stale) { this.members.delete(p.k); this.log(`${m.n} ออกจากปาร์ตี้`); this.changed(); } }   // v0.94 ออกเอง = ลบทันที (ไม่รอเวลาผ่อนผัน)
   }
 
@@ -307,7 +321,8 @@ export class Social {
     if (!this.pid) return 1;
     const map = this.game.map && this.game.map.id;
     let n = 1;
-    for (const [k, m] of this.members) if (k !== this.myKey && !m.stale && m.m === map) n++;
+    const now = Date.now();
+    for (const [k, m] of this.members) if (k !== this.myKey && m.m === map && (!m.stale || (!m.off && now - (m.seen || 0) < PARTY_GRACE))) n++;   // fix10 เพิ่งหลุดชั่วครู่ (<25 วิ) ยังนับแชร์ EXP · ไม่ให้โบนัสปาร์ตี้หายวูบวาบ
     return n;
   }
 
@@ -324,7 +339,7 @@ export class Social {
   onShareExp(p) {
     const g = this.game;
     if (!g.started || !p || this.dupMsg('xp' + p.id)) return;
-    if (!this.members.has(p.k) || p.m !== (g.map && g.map.id) || g.player.dead) return;
+    if (p.k === this.myKey || p.m !== (g.map && g.map.id) || g.player.dead) return;   // fix10 รับจากทุกคนในห้องปาร์ตี้ (เพื่อนที่เพิ่งเชื่อมต่อใหม่ได้คีย์ใหม่ก่อนรายชื่อจะอัปเดต — เดิม EXP หาย)
     const b = Math.floor(num(p.b, 0, 5e6)), j = Math.floor(num(p.j, 0, 5e6));
     if (!b && !j) return;
     g.partyExp(b, j, clean(p.n), clean(p.mob, 24));

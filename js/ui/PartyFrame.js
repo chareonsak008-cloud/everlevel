@@ -1,6 +1,6 @@
 // v0.37 กรอบปาร์ตี้ใต้แผงตัวละคร (ชื่อ เลเวล เลือดเพื่อน · อยู่แมพไหน) + กล่องคำเชิญปาร์ตี้/กิลด์
-import { JOBS } from '../data/progression.js?v=0.93.0-p1.10';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p1.10';
+import { JOBS } from '../data/progression.js?v=0.93.0-p2.11';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p2.11';
 
 export class PartyFrame {
   constructor(root, game) {
@@ -54,7 +54,8 @@ export class PartyFrame {
       r.querySelector('.pf-lv').textContent = `Lv.${m.lv}`;
       r.querySelector('.pf-hp i').style.width = `${Math.round(h * 100)}%`;
       r.classList.toggle('low', h < 0.3); r.classList.toggle('dead', !!dead); r.classList.toggle('away', !here); r.classList.toggle('stale', !!m.stale);   // v0.94 กำลังเชื่อมต่อใหม่
-      r.querySelector('.pf-map').textContent = m.stale ? 'กำลังเชื่อมต่อ…' : dead ? 'หมดสติ' : here ? '' : `อยู่ที่ ${(MAPS[m.m] || {}).name || 'แผนที่อื่น'}`;
+      r.classList.toggle('off', !!m.off);
+      r.querySelector('.pf-map').textContent = m.off ? 'ออฟไลน์ (ออกจากเกม)' : m.stale ? 'กำลังเชื่อมต่อ… (ยังอยู่ในปาร์ตี้)' : dead ? 'หมดสติ' : here ? '' : `อยู่ที่ ${(MAPS[m.m] || {}).name || 'แผนที่อื่น'}`;   // fix10
     }
     for (const [k, r] of this.rows) if (!seen.has(k)) { r.remove(); this.rows.delete(k); }
   }

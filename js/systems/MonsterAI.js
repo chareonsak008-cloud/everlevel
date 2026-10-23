@@ -1,8 +1,8 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.93.0-p1.10';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.10';
-import { Monster } from '../entities/Monster.js?v=0.93.0-p1.10';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p1.10';
+import { TILE } from '../config.js?v=0.93.0-p2.11';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p2.11';
+import { Monster } from '../entities/Monster.js?v=0.93.0-p2.11';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p2.11';
 
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
