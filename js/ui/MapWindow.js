@@ -1,9 +1,10 @@
 // v0.27: หน้าต่างแผนที่ (N) — แท็บ "แผนที่นี้" (ผังเมือง/ทุ่ง + ป้ายชื่อ NPC/ทางออก) และ "แผนที่โลก" (ภูมิภาค · เลเวล · มอนสเตอร์)
-import { TILE } from '../config.js?v=0.93.0-p1.8';
-import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p1.8';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p1.8';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.8';
-import { GameMap } from '../world/GameMap.js?v=0.93.0-p1.8';
+import { drawBossIcon, bossKind, bossIcon } from './BossIcons.js?v=0.93.0-p1.9';
+import { TILE } from '../config.js?v=0.93.0-p1.9';
+import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p1.9';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p1.9';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p1.9';
+import { GameMap } from '../world/GameMap.js?v=0.93.0-p1.9';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const SVC = { shop: ['#ff9a3a', 'ร้านค้า'], storage: ['#5ae0a8', 'คลัง'], warp: ['#7fe0ff', 'วาร์ป'], job: ['#d49bff', 'เปลี่ยนอาชีพ'] };
@@ -138,7 +139,13 @@ export class MapWindow {
     return out;
   }
 
+  // ไอคอนบอสในคำอธิบายสัญลักษณ์ (วาดจากภาพเดียวกับบนแผนที่)
+  legendIcons() {
+    if (this.legendDone) return; this.legendDone = true;
+    for (const [cls, kind] of [['bi-mvp', 'mvp'], ['bi-world', 'world']]) document.querySelectorAll('.mw-legend .' + cls).forEach((el) => { el.style.background = `url(${bossIcon(kind).toDataURL()}) center/contain no-repeat`; });
+  }
   drawLocal() {
+    this.legendIcons();
     const map = this.g.map, npcs = this.g.npcs || [], pl = this.g.player; if (!map) return;
     const { c, S } = this.base(map, npcs);
     const cv = this.cv, g = this.ctx;
@@ -181,8 +188,13 @@ export class MapWindow {
       label(n.name + (sv ? ` · ${sv[1]}` : n.title ? ` · ${n.title}` : ''), x, y - S * 1.15, col === '#ffd34d' ? '#fff3c4' : col, 'rgba(7,13,34,.8)', 11);
     }
     // MVP
-    const bosses = this.g.mobs ? this.g.mobs.list.filter((m) => m.data.mvp && !m.dead) : [];
-    for (const b of bosses) { const x = b.x / TILE * S, y = b.y / TILE * S, k = t % 1; g.strokeStyle = `rgba(255,70,70,${1 - k})`; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 6 + k * 14, 0, 7); g.stroke(); g.fillStyle = '#ff4646'; g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); }
+    // v0.93 fix8 สัญลักษณ์บอส MVP / บอสโลก + ป้ายชื่อ (แทนจุดแดง)
+    const bosses = this.g.mobs ? this.g.mobs.list.filter((m) => (m.data.mvp || m.data.worldBoss || m.worldRun) && !m.dead) : [];
+    for (const b of bosses) {
+      const x = b.x / TILE * S, y = b.y / TILE * S, k = bossKind(b), sz = Math.max(42, S * 4.6) * (k === 'world' ? 1.3 : 1);
+      drawBossIcon(g, x, y, sz, k, t);
+      label((k === 'world' ? '🌍 บอสโลก · ' : '👑 MVP · ') + (b.name || b.data.name || ''), x, y - sz * 0.75, k === 'world' ? '#ffb39a' : '#ffe08a', k === 'world' ? 'rgba(70,8,16,.88)' : 'rgba(50,30,6,.88)', 11, true);
+    }
     // ผู้เล่น
     const px = pl.x / TILE * S, py = pl.y / TILE * S;
     g.fillStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.arc(px, py, S * 1.6 + Math.sin(t * 4) * 2, 0, 7); g.fill();
@@ -283,7 +295,7 @@ export class MapWindow {
       for (const [x, y, w, h] of s.areas) {
         if (on && this.selMob) { g.strokeStyle = '#f3dc95'; g.lineWidth = 1; g.strokeRect(x * m.S + 0.5, y * m.S + 0.5, w * m.S, h * m.S); }
         const n = s.m.mvp ? 1 : Math.max(2, Math.round(s.count / s.areas.length));
-        for (let i = 0; i < n; i++) { const px = (x + r() * w) * m.S, py = (y + r() * h) * m.S; g.beginPath(); g.arc(px, py, s.m.mvp ? 4 : 2.2, 0, 7); g.fill(); if (s.m.mvp && on) { g.strokeStyle = '#ff4646'; g.lineWidth = 1.5; g.stroke(); } }
+        for (let i = 0; i < n; i++) { const px = (x + r() * w) * m.S, py = (y + r() * h) * m.S; if (s.m.mvp || s.m.worldBoss) { if (on) drawBossIcon(g, px, py, 16, s.m.worldBoss ? 'world' : 'mvp', 0); continue; } g.beginPath(); g.arc(px, py, 2.2, 0, 7); g.fill(); }
       }
     }
     return out;

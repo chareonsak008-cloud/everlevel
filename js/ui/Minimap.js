@@ -1,6 +1,7 @@
 // มินิแมพมุมขวาบน (ทิศเหนืออยู่ด้านบนเสมอ, กรวยแสดงทิศที่กล้องมอง)
-import { TILE } from '../config.js?v=0.93.0-p1.8';
-import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p1.8';
+import { TILE } from '../config.js?v=0.93.0-p1.9';
+import { TILE_INFO } from '../data/tileTypes.js?v=0.93.0-p1.9';
+import { drawBossIcon, bossKind } from './BossIcons.js?v=0.93.0-p1.9';
 
 const S = 2; // พิกเซลต่อช่อง
 const OBJ_COLORS = { tent: '#c8643a', icecrystal: '#7fe0ff', obsidian: '#1c1420', house: '#9a5f3e', tree: '#2f6b35', pine: '#2a5e3a', fountain: '#7fb3e6', stall: '#d0904a', well: '#9a958a', tower: '#7a7482' };
@@ -35,14 +36,9 @@ export class Minimap {
       const big = t ? 1 : 0;
       ctx.fillRect(Math.floor(n.x / TILE) * S - big, Math.floor(n.y / TILE) * S - big, S + big * 2, S + big * 2);
     }
-    // ตำแหน่งบอส MVP: จุดแดงกะพริบ + วงแหวน
-    for (const b of bosses) {
-      const bx = (b.x / TILE) * S, by = (b.y / TILE) * S, k = (performance.now() / 600) % 1;
-      ctx.strokeStyle = `rgba(255,70,70,${1 - k})`; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(bx, by, 3 + k * 7, 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = '#ff4646'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(bx, by, 3.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    }
+    // v0.93 fix8 ตำแหน่งบอส: สัญลักษณ์ MVP (เหรียญทองหัวกะโหลกสวมมงกุฎ) · บอสโลก (ตราแดงเพลิง หัวปีศาจ)
+    const t = performance.now() / 1000;
+    for (const b of bosses) { const k = bossKind(b); drawBossIcon(ctx, (b.x / TILE) * S, (b.y / TILE) * S, k === 'world' ? 22 : 17, k, t); }
     const px = (player.x / TILE) * S, py = (player.y / TILE) * S;
     // กรวยมุมกล้อง: กล้องมองไปทาง (-sin yaw, -cos yaw)
     const a = Math.atan2(-Math.cos(yaw), -Math.sin(yaw));

@@ -1,6 +1,6 @@
 // v0.38 เมนูเมื่อคลิก/แตะผู้เล่นคนอื่น: เชิญเข้าปาร์ตี้ · กระซิบ · เพิ่มเพื่อน · ชวนเข้ากิลด์ · ดูข้อมูล
-import { JOBS } from '../data/progression.js?v=0.93.0-p1.8';
-import { emblemSvg } from '../data/guildEmblems.js?v=0.93.0-p1.8';
+import { JOBS } from '../data/progression.js?v=0.93.0-p1.9';
+import { emblemSvg } from '../data/guildEmblems.js?v=0.93.0-p1.9';
 
 export class PlayerMenu {
   constructor(root, game) {

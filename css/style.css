@@ -2050,6 +2050,7 @@ body:not(.touch) .menu-btn {display:grid;place-items:center;position:absolute;ri
 .mw-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; font-size: 11.5px; color: var(--muted); margin-top: 4px; }
 .mw-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; box-shadow: 0 0 0 1px #000; }
 .mw-legend i.dia { border-radius: 1px; transform: rotate(45deg); background: #e8b8ff; }
+.mw-legend i.bi-mvp, .mw-legend i.bi-world { width: 16px; height: 16px; border-radius: 0; box-shadow: none; vertical-align: -4px; }
 .wm-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; }
 #wmCanvas { width: 100%; height: auto; aspect-ratio: 680 / 500; display: block; border: 2px solid var(--brassD); border-radius: 6px; cursor: pointer; background: #1d5a8c; }
 .wm-info { background: #0a1229; border: 1px solid rgba(216, 180, 92, 0.35); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
