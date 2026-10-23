@@ -1,4 +1,4 @@
-import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.93.0-p1';
+import { FASHION_COLLECTION, FASHION_SETS } from './fashionCollection.js?v=0.93.0-p1.3';
 // แคตตาล็อกชุดแฟชั่น (v0.9) — ได้จากการเปิดกล่องแฟชั่นสุ่ม (data/fashionBoxes.js) — ชิ้นแฟชั่นเป็น "ชุดทับ" ไม่เพิ่มค่าสถานะ ใส่ทับอุปกรณ์จริงได้
 // slot: wings | outfit | head | face | back | weapon | aura | pet · kind = ชื่อตัวสร้างใน render/Costumes.js · p = ค่าปรับแต่ง
 // rarity: common ธรรมดา | rare หายาก | epic ล้ำค่า | legend ตำนาน | mythic | celestial
@@ -380,6 +380,8 @@ COSTUMES.push(
 COSTUMES.push(
   CS('a_rp_reaper', 'reaper', 'ยมทูตเคียวมรณะ', 'Grim Reaper', 'celestial', '#1aa878', 'ยมทูตคลุมผ้าขาดรุ่งริ่งลอยเหนือศีรษะ หน้ากะโหลกในฮู้ดดำ ตาเรืองวิญญาณ ถือเคียวยักษ์ใบคมเรืองแสง ดวงวิญญาณสามดวงโคจรรอบเอว วงอักขระมรณะบนพื้น ทุกจังหวะยมทูตง้างเคียวแล้วฟาดลงเป็นเสี้ยวจันทร์รอบตัว ดวงวิญญาณถูกดูดขึ้นไปหาเคียว'),
 );
+// v0.95 ปีกเทวทูต 6 ปีก — ร้านเพชรเท่านั้น · โมเดลอยู่ใน render/SeraphWings.js (ไม่ใช้แผ่นภาพ) · ราคาใน supabase/fashion_seraph.sql
+// (ยังไม่เปิดขาย) ปีกเทวทูตหกปีก w_px_seraph6 — โมเดลพร้อมใน render/SeraphWings.js
 export const COSTUME_BY_ID = Object.fromEntries(COSTUMES.map((c) => [c.id, c]));
 
 // ชุดเซ็ตแนะนำ (สวมทีเดียวทั้งชุด)

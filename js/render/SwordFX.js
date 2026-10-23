@@ -1,8 +1,8 @@
 // v0.67 สกิลสายดาบชุดใหม่ วาดเป็นเอฟเฟกต์ 3 มิติในฉากจริง (แทน sprite sheet มุมข้าง v0.64)
 // ทุกชิ้นวางตามตำแหน่ง/ทิศจริงของผู้เล่นกับเป้า → ไม่ลอย ไม่เอียง ขนาดตามโลก · ดาเมจ/ฮีลยังมาจาก sk.nf ผ่าน fx_nf (จังหวะเดิม)
 // สีสด: ทุกรอยฟันมีชั้นรองสีเข้มแบบผสมปกติ (อ่านออกบนพื้นหญ้า/ทรายสว่าง) + ชั้นเรืองแสงแบบบวกแสง 2 ชั้น
-import { THREE } from './three.js?v=0.93.0-p1';
-import * as TX from './FxTextures.js?v=0.93.0-p1';
+import { THREE } from './three.js?v=0.93.0-p1.3';
+import * as TX from './FxTextures.js?v=0.93.0-p1.3';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);

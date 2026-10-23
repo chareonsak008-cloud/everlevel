@@ -1,14 +1,14 @@
-import { ANCIENT_RUINS } from './ancient_ruins.js?v=0.93.0-p1';
-import { HAUNTED_FOREST } from './haunted_forest.js?v=0.93.0-p1';
-import { SUNKEN_COAST } from './sunken_coast.js?v=0.93.0-p1';     // v0.46 Lv.100–117
-import { CRYSTAL_VALLEY } from './crystal_valley.js?v=0.93.0-p1'; // v0.46 Lv.118–134
-import { SKY_CITADEL } from './sky_citadel.js?v=0.93.0-p1';       // v0.46 Lv.135–150
+import { ANCIENT_RUINS } from './ancient_ruins.js?v=0.93.0-p1.3';
+import { HAUNTED_FOREST } from './haunted_forest.js?v=0.93.0-p1.3';
+import { SUNKEN_COAST } from './sunken_coast.js?v=0.93.0-p1.3';     // v0.46 Lv.100–117
+import { CRYSTAL_VALLEY } from './crystal_valley.js?v=0.93.0-p1.3'; // v0.46 Lv.118–134
+import { SKY_CITADEL } from './sky_citadel.js?v=0.93.0-p1.3';       // v0.46 Lv.135–150
 // ทะเบียนแผนที่ทั้งหมด — เพิ่มแผนที่ใหม่ที่นี่
-import { ASTERIA_TOWN } from './asteria_town.js?v=0.93.0-p1';
-import { BEGINNER_FIELD } from './beginner_field.js?v=0.93.0-p1';
-import { WHISPER_FOREST } from './whisper_forest.js?v=0.93.0-p1';
-import { FROSTVEIL_PEAKS } from './frostveil_peaks.js?v=0.93.0-p1';
-import { EMBER_CALDERA } from './ember_caldera.js?v=0.93.0-p1';
+import { ASTERIA_TOWN } from './asteria_town.js?v=0.93.0-p1.3';
+import { BEGINNER_FIELD } from './beginner_field.js?v=0.93.0-p1.3';
+import { WHISPER_FOREST } from './whisper_forest.js?v=0.93.0-p1.3';
+import { FROSTVEIL_PEAKS } from './frostveil_peaks.js?v=0.93.0-p1.3';
+import { EMBER_CALDERA } from './ember_caldera.js?v=0.93.0-p1.3';
 
 export const MAPS = {
   ancient_ruins: ANCIENT_RUINS,
@@ -26,7 +26,7 @@ export const MAPS = {
 export const START_MAP = ASTERIA_TOWN.id;
 
 // v0.47 บอส MVP สุ่มจุดเกิด: นอกจากรังเดิม ยังเกิดได้ทุกโซนมอนของแผนที่นั้น (สุ่มใหม่ทุกครั้งที่เกิดตามเวลา)
-import { MONSTERS } from '../monsters.js?v=0.93.0-p1';
+import { MONSTERS } from '../monsters.js?v=0.93.0-p1.3';
 for (const def of Object.values(MAPS)) {
   const sp = def.spawns || [], zones = sp.filter((s) => MONSTERS[s.mob] && !MONSTERS[s.mob].mvp).flatMap((s) => s.areas);
   for (const s of sp) if (MONSTERS[s.mob] && MONSTERS[s.mob].mvp && zones.length) { s.lair = s.areas; s.areas = [...s.areas, ...zones]; }
@@ -34,8 +34,8 @@ for (const def of Object.values(MAPS)) {
 
 // v0.72 ปรับอัตราดรอป: ของดี/ของหายาก (อุปกรณ์ระดับหายากขึ้นไป) และการ์ด ดรอปยากขึ้น · ของธรรมดา/ดี ยาใช้งาน หิน คงเดิม
 // ปรับที่ข้อมูลโดยตรง จึงเห็นตรงกันทั้งตอนสุ่มดรอปจริง วิกิ และหน้าบอส · มอนเกิดเร็วขึ้น (SPAWN_MUL/RESPAWN_MUL ใน MonsterAI.js) ชดเชยจำนวนที่ฆ่าได้ต่อชั่วโมง
-import { ITEMS } from '../items.js?v=0.93.0-p1';
-import { CARDS } from '../cards.js?v=0.93.0-p1';
+import { ITEMS } from '../items.js?v=0.93.0-p1.3';
+import { CARDS } from '../cards.js?v=0.93.0-p1.3';
 export const DROP_TUNE = {
   mob:  { rare: 0.7, epic: 0.4, legend: 0.3, mythic: 0.3, celestial: 0.3, abyssal: 0.35, divine: 0.35 },   // มอนธรรมดา
   boss: { rare: 0.6, epic: 0.35, legend: 0.25, mythic: 0.2, celestial: 0.25, abyssal: 0.2, divine: 0.2 },   // MVP / บอส / บอสโลก (v0.73 ยากขึ้นอีก)
@@ -61,7 +61,7 @@ for (const m of Object.values(MONSTERS)) {
 }
 
 // v0.77 เศษนิรันดร์กาล: มอนปกติใน Sky Citadel + MVP Lv.117 ขึ้นไป (ของหายากที่สุดในเกม · ใช้หลอมอุปกรณ์นิรันดร์กาล)
-import { SHARD_DROPS } from '../eternal.js?v=0.93.0-p1';
+import { SHARD_DROPS } from '../eternal.js?v=0.93.0-p1.3';
 {
   const sky = MAPS[SHARD_DROPS.mapMobs], seen = new Set();
   for (const s of (sky && sky.spawns) || []) {

@@ -1,17 +1,17 @@
-import { FASHION_BUILDERS } from './FashionCollection.js?v=0.93.0-p1';
+import { FASHION_BUILDERS } from './FashionCollection.js?v=0.93.0-p1.3';
 // ชุดแฟชั่น (v0.9 preview): ปีก · ชุด · หมวก · หน้า · หลัง/หาง · อาวุธ · ออร่า · ผู้ติดตาม
 // ทุกชิ้นสร้างจากโค้ด (ไม่มีไฟล์โมเดล) แล้วติดเข้ากับโครงของ CharacterView
 // ใช้:  const look = costumeLook(baseLook, items);  const view = new CharacterView(look);
 //       const rt = wearCostume(view, items, { world: scene });  ทุกเฟรม rt.update(dt, view)
-import { THREE } from './three.js?v=0.93.0-p1';
-import { toon, toonOwn, bake, gradientMap } from './Toon.js?v=0.93.0-p1';
-import { shadeHex } from './Textures.js?v=0.93.0-p1';
-import * as TX from './FxTextures.js?v=0.93.0-p1';
-import { wuxiaAura } from './AuraBlades.js?v=0.93.0-p1';
-import { cosmicAuras } from './AuraCosmic.js?v=0.93.0-p1';
-import { reaperAuras } from './AuraReaper.js?v=0.93.0-p1';   // v0.94 ยมทูตเคียวมรณะ
-import { Particles } from './SkillFX.js?v=0.93.0-p1';
-import { COSTUME_PETS } from './CostumePets.js?v=0.93.0-p1';   // v0.17: ผู้ติดตามแฟชั่นแบบใหม่ (หน้าเป็นโมเดล เห็นชัดในสไปรต์พิกเซล)
+import { THREE } from './three.js?v=0.93.0-p1.3';
+import { toon, toonOwn, bake, gradientMap } from './Toon.js?v=0.93.0-p1.3';
+import { shadeHex } from './Textures.js?v=0.93.0-p1.3';
+import * as TX from './FxTextures.js?v=0.93.0-p1.3';
+import { wuxiaAura } from './AuraBlades.js?v=0.93.0-p1.3';
+import { cosmicAuras } from './AuraCosmic.js?v=0.93.0-p1.3';
+import { reaperAuras } from './AuraReaper.js?v=0.93.0-p1.3';   // v0.94 ยมทูตเคียวมรณะ
+import { Particles } from './SkillFX.js?v=0.93.0-p1.3';
+import { COSTUME_PETS } from './CostumePets.js?v=0.93.0-p1.3';   // v0.17: ผู้ติดตามแฟชั่นแบบใหม่ (หน้าเป็นโมเดล เห็นชัดในสไปรต์พิกเซล)
 
 /* ================= ตัวช่วยพื้นฐาน ================= */
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
