@@ -1,12 +1,12 @@
 // สัตว์เลี้ยงช่วยเก็บของ (v0.13) — เดินตามเจ้าของ · วิ่งไปเก็บของที่ตกในรัศมี · นำกลับมาใส่กระเป๋า · ความสามารถพิเศษตามตัว
 // ข้อมูลอยู่ใน data/pets.js · โมเดลอยู่ใน render/Pets.js · ผู้เล่นคนอื่นเห็นสัตว์เลี้ยงของกันผ่าน presence (pt, ps)
-import { TILE, PLAYER_SPEED } from '../config.js?v=0.93.0-p3.23';
-import { PETS, petStats, STAR_MAX } from '../data/pets.js?v=0.93.0-p3.23';
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.23';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p3.23';
-import { THREE } from '../render/three.js?v=0.93.0-p3.23';
-import { normPick, pickCat, GRADE_RANK } from './PetPick.js?v=0.93.0-p3.23';
-export { PICK_CATS, PICK_RANKS, PICK_GRADES, normPick } from './PetPick.js?v=0.93.0-p3.23';
+import { TILE, PLAYER_SPEED } from '../config.js?v=0.93.0-p3.24';
+import { PETS, petStats, STAR_MAX } from '../data/pets.js?v=0.93.0-p3.24';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.24';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p3.24';
+import { THREE } from '../render/three.js?v=0.93.0-p3.24';
+import { normPick, pickCat, GRADE_RANK } from './PetPick.js?v=0.93.0-p3.24';
+export { PICK_CATS, PICK_RANKS, PICK_GRADES, normPick } from './PetPick.js?v=0.93.0-p3.24';
 
 const RANK = { common: 0, uncommon: 1, rare: 2, epic: 3, legend: 4, mythic: 5, celestial: 6 };
 export const PET_FILTERS = [
@@ -60,7 +60,7 @@ export class PetSystem {
     const a = pl.angle || 0;
     const e = {
       id, x: pl.x - Math.sin(a) * 22 + Math.cos(a) * 12, y: pl.y - Math.cos(a) * 22 - Math.sin(a) * 12, angle: a, moving: false, speedK: 1,
-      state: 'follow', carry: [], timer: 0, path: [], pathFor: null, target: null, magnetT: 1.5, grabCd: 1, vacuumT: 4, orbit: 0, skip: new Set(), repath: 0,
+      state: 'follow', carry: [], timer: 0, path: [], pathFor: null, target: null, magnetT: 1.5, grabCd: 1, vacuumT: 4, orbit: 0, skip: new Map(), repath: 0,
     };
     this.pet = e;
     this.view = this.g.gfx.addPet(e, id, pl.pets.owned[id] || 0);
@@ -123,8 +123,12 @@ export class PetSystem {
 
   // ของชิ้นนี้ควรเก็บไหม (ตามตัวกรองที่ผู้เล่นตั้ง)
   wants(d) {
-    if (d.noPet || this.pet.skip.has(d.uid)) return false;
+    // v0.93 fix18: ของที่วางคืนเพราะกระเป๋าเต็ม/ทางตัน → พักไว้ชั่วคราว แล้วกลับมาเก็บใหม่ได้ (เดิมเมินถาวร → ยาตกค้างบนพื้น)
+    const now = this.g.time || 0;
+    if (d.noPetUntil > now) return false;
+    const sk = this.pet.skip.get(d.uid); if (sk !== undefined && sk > now) return false;
     const it = ITEMS[d.id]; if (!it) return false;
+    if (!this.g.player.inventory.canAdd(d.id) && !(this.mods.autoSell && it.type === 'etc')) return false;   // ใส่กระเป๋าไม่ได้ → ไม่หยิบให้เปล่าประโยชน์
     const P = this.g.player.pets.pick || normPick(null, this.g.player.pets.filter);
     const cat = pickCat(d.id) || 'etc';
     if (!P[cat]) return false;
@@ -220,7 +224,7 @@ export class PetSystem {
       if (!t || !g.drops.includes(t) || dist(t, pl) > RR + TILE * 2.5) { e.state = e.carry.length ? 'return' : 'follow'; e.target = null; }
       else {
         const r = this.moveToward(e, t.x, t.y, 10, spd * 1.15, dt);
-        if (r === 'blocked') { e.skip.add(t.uid); e.state = 'follow'; e.target = null; }
+        if (r === 'blocked') { e.skip.set(t.uid, (g.time || 0) + 12); e.state = 'follow'; e.target = null; }
         else if (r) { this.view.pick(); this.grab(t); e.state = 'picking'; e.timer = 0.12; }
       }
     }
