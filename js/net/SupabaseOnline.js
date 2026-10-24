@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.93.0-p3.31';
-import { SideChannel } from './SideChannel.js?v=0.93.0-p3.31';
+import { Online, MAX_CHARS } from './Online.js?v=0.93.0-p3.34';
+import { SideChannel } from './SideChannel.js?v=0.93.0-p3.34';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -103,8 +103,11 @@ export class SupabaseOnline extends Online {
     this.lobbyEv = {};                  // v0.37: เหตุการณ์ในห้องรวมที่ระบบอื่นขอฟัง (คำเชิญปาร์ตี้/กิลด์) · event → fn(payload)
     this.lastStorage = null;
     this.status = 'idle';
-    this.sb.auth.onAuthStateChange((event) => {
+    this.sb.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') { this.recovery = true; if (this.onRecovery) this.onRecovery(); }
+      // fix22 แท็บอื่นเปลี่ยนบัญชี/ออกจากระบบ (session ใช้ร่วมกันทุกแท็บ) → หยุดเซฟทันที กันเซฟตัวละครนี้ทับตัวละครของอีกบัญชี
+      const id = session && session.user && session.user.id;
+      if (this.charUid && (event === 'SIGNED_OUT' || (id && id !== this.charUid))) this.halt('account', 'บัญชีถูกเปลี่ยนในแท็บอื่น');
     });
   }
 
@@ -213,6 +216,10 @@ export class SupabaseOnline extends Online {
     if (!data) return null;
     this.rev = Number.isFinite(+data.rev) ? +data.rev : 0;
     this.serverSave = undefined; this.tradeLock = null;
+    this.charUid = this.uid; this.charName = data.name;   // fix22 เจ้าของ/ชื่อตัวละครที่โหลด — ใช้ตรวจก่อนเซฟทุกครั้ง
+    // fix22 รหัสประจำการเปิดครั้งนี้ — เปิดตัวละครเดียวกันที่อื่นทีหลัง หน้านี้จะเซฟไม่ได้อีก (กันเซฟทับกันสลับไปมา)
+    this.sess = null;
+    try { const r = await this.sb.rpc('claim_session', { p_slot: slot }); if (!r.error && r.data) this.sess = r.data; } catch (e) { this.sess = null; }
     const d = data.data && typeof data.data === 'object' ? data.data : {};
     // ตัวละครที่จองชื่อแล้วแต่ยังไม่เคยเซฟ → เริ่มใหม่ด้วยชื่อนั้น
     if (!d.player) return { schema: 1, player: { name: data.name } };
@@ -252,12 +259,21 @@ export class SupabaseOnline extends Online {
     const { storage, ...rest } = s;   // คลังเก็บแยกไว้ในตาราง accounts (ใช้ร่วมทุกตัวละคร)
     // v0.42: เซฟผ่านฟังก์ชันตรวจบนเซิร์ฟเวอร์ (supabase/trade.sql) · ยังไม่ติดตั้ง → เขียนตรงแบบเดิม
     if (this.halted) return;   // v0.82 เซิร์ฟเวอร์สั่งหยุด (ปฏิเสธเซฟ / GM ย้อนข้อมูล) → รอโหลดใหม่
+    // fix22 กันเซฟข้ามบัญชี: บัญชีที่ล็อกอินตอนนี้ต้องเป็นเจ้าของตัวละครที่โหลด และชื่อในเซฟต้องตรงชื่อแถว
+    { let cur = null; try { const { data: ss } = await this.sb.auth.getSession(); cur = ss && ss.session && ss.session.user ? ss.session.user.id : null; } catch (e) { cur = null; }
+      if (!this.charUid) { this.charUid = cur || this.uid; this.charName = p.name || null; }
+      if (!cur || cur !== this.charUid || (this.charName && p.name && p.name !== this.charName)) { this.halt('account', 'บัญชีที่ล็อกอินไม่ตรงกับตัวละครนี้'); return; } }
     if (this.serverSave !== false) {
       const st = JSON.stringify(storage || []);
-      const { data, error } = await this.sb.rpc('save_state', { p_slot: this.slot, p_rev: this.rev || 0, p_data: rest, p_storage: st !== this.lastStorage ? (storage || []) : null });
+      const args = { p_slot: this.slot, p_rev: this.rev || 0, p_data: rest, p_storage: st !== this.lastStorage ? (storage || []) : null };
+      if (this.sess) args.p_sess = this.sess;
+      const { data, error } = await this.sb.rpc('save_state', args);
       if (error && (error.code === 'PGRST202' || error.code === '42883')) this.serverSave = false;
       else if (error) throw error;
-      else if (data && data.ok === false && data.reason === 'stale') {
+      else if (data && data.ok === false && data.reason === 'dup') {
+        this.halt('dup');   // fix22 ตัวละครนี้ถูกเปิดจากแท็บ/เครื่องอื่นแล้ว → หยุดเซฟ ไม่โหลดใหม่เอง (กันแย่งกันไปมา)
+        return;
+      } else if (data && data.ok === false && data.reason === 'stale') {
         // เซิร์ฟเวอร์เพิ่งแก้เซฟ (ขายของได้/แลกเสร็จ) → ปรับกระเป๋าในเครื่องก่อน แล้วเซฟสถานะใหม่ต่อทันที
         await this.syncLedger();
         if (this.freshState) this.pending = this.pending || this.freshState();
@@ -374,7 +390,7 @@ export class SupabaseOnline extends Online {
   halt(kind, info) {
     if (this.halted) return;
     this.halted = kind; this.pending = null;
-    if (this.onHalt) this.onHalt(kind, info); else setTimeout(() => location.reload(), 1500);
+    if (this.onHalt) this.onHalt(kind, info); else if (kind !== 'dup') setTimeout(() => location.reload(), 1500);
   }
 
   /* ---------- v0.42: แลกของ / ตลาด (supabase/trade.sql) ---------- */

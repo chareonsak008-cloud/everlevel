@@ -1,10 +1,10 @@
 // v0.30 พรีวิวเอฟเฟ็กฉายา — ตัวละคร/สไปรต์พิกเซลเดียวกับในเกม + ป้ายฉายา CSS ชุดเดียวกับในเกม
-import { THREE } from './render/three.js?v=0.93.0-p3.31';
-import { CharacterView } from './render/Characters.js?v=0.93.0-p3.31';
-import { PixelSprites } from './render/PixelSprites.js?v=0.93.0-p3.31';
-import { ACHIEVEMENTS } from './data/collection.js?v=0.93.0-p3.31';
-import { describeBonus } from './data/items.js?v=0.93.0-p3.31';
-import { paintHonor, honorInner, honorClass, injectTitleCss, TIER_ORDER, TIER_NAME, TIER_COLOR, FX_NAME } from './ui/TitleFx.js?v=0.93.0-p3.31';
+import { THREE } from './render/three.js?v=0.93.0-p3.34';
+import { CharacterView } from './render/Characters.js?v=0.93.0-p3.34';
+import { PixelSprites } from './render/PixelSprites.js?v=0.93.0-p3.34';
+import { ACHIEVEMENTS } from './data/collection.js?v=0.93.0-p3.34';
+import { describeBonus } from './data/items.js?v=0.93.0-p3.34';
+import { paintHonor, honorInner, honorClass, injectTitleCss, TIER_ORDER, TIER_NAME, TIER_COLOR, FX_NAME } from './ui/TitleFx.js?v=0.93.0-p3.34';
 
 injectTitleCss();
 const $ = (s) => document.querySelector(s);

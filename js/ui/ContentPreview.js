@@ -1,6 +1,6 @@
 // Only loaded by preview.html. No account login, cloud save or live-character data.
-import { SKILLS } from '../data/skills.js?v=0.93.0-p3.31';
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.31';
+import { SKILLS } from '../data/skills.js?v=0.93.0-p3.34';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.34';
 const jobs={swordsman:['สายดาบ','sword'],mage:['สายเวท','staff'],archer:['สายธนู','bow'],acolyte:['สายซัพ','mace']};
 const t=setInterval(()=>{const g=window.asteria;if(!g?.started)return;clearInterval(t);init(g);},50);
 function init(g){

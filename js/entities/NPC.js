@@ -1,6 +1,6 @@
 // NPC: ยืนประจำที่ คลิกเพื่อคุย หรือเปิดบริการ (ร้านค้า คลัง วาร์ป)
-import { Entity } from './Entity.js?v=0.93.0-p3.31';
-import { TILE } from '../config.js?v=0.93.0-p3.31';
+import { Entity } from './Entity.js?v=0.93.0-p3.34';
+import { TILE } from '../config.js?v=0.93.0-p3.34';
 
 export class NPC extends Entity {
   constructor(def) {

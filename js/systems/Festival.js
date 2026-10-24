@@ -1,11 +1,11 @@
 // v0.79 อีเวนต์ตามเทศกาล — เปิดเองตามปฏิทิน (เวลาไทยจากเซิร์ฟเวอร์ผ่าน EventService)
 // · ช่วงเทศกาล: ทุกแผนที่ล่า (ไม่ใช่เมือง/ดันเจี้ยน) มีมอนเทศกาลเพิ่ม (ปรับเลเวลตามมอนในแผนที่) + บอสเทศกาลแผนที่ละ 1 ตัว
 // · ของสะสมเทศกาลแลกของที่หน้าต่างเทศกาลได้ทุกเมื่อ · ออร่าเทศกาลแลกได้เฉพาะช่วงเทศกาล (+3 วัน) แล้วเป็นของเราถาวร
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.31';
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.31';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.31';
-import { scaledData } from '../data/dungeons.js?v=0.93.0-p3.31';
-import { FESTIVALS, FEST_GRACE, FEST_SHOP, FEST_AURA_COST, festivalsAt, nextFestivals } from '../data/festivals.js?v=0.93.0-p3.31';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.34';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.34';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.34';
+import { scaledData } from '../data/dungeons.js?v=0.93.0-p3.34';
+import { FESTIVALS, FEST_GRACE, FEST_SHOP, FEST_AURA_COST, festivalsAt, nextFestivals } from '../data/festivals.js?v=0.93.0-p3.34';
 
 export class Festival {
   constructor(game) { this.g = game; this.seen = new Set(); this.t = 3; this.ids = ''; }
@@ -75,15 +75,20 @@ export class Festival {
     if (g.festWin) g.festWin.render();
   }
 
-  buyAura(fid) {
-    const g = this.g, pl = g.player, F = FESTIVALS[fid], it = F && COSTUME_BY_ID[F.aura];
+  // aid = ไอดีออร่า (ไม่ระบุ = ออร่าหลักของเทศกาล) · fix22 เทศกาลมีออร่าเพิ่มได้ (F.extra)
+  auraCost(F, aid) { const x = (F.extra || []).find((e) => e.aura === aid); return x ? x.cost : FEST_AURA_COST; }
+  buyAura(fid, aid) {
+    const g = this.g, pl = g.player, F = FESTIVALS[fid];
+    if (!F) return;
+    aid = aid && (aid === F.aura || (F.extra || []).some((e) => e.aura === aid)) ? aid : F.aura;
+    const it = COSTUME_BY_ID[aid], cost = this.auraCost(F, aid);
     if (!it) return;
     if (!this.auraOpen(fid)) { g.hud.log('ออร่านี้แลกได้เฉพาะช่วงเทศกาลเท่านั้น', 'sys'); return; }
     if (pl.fashion.owned.has(it.id)) { g.hud.log('คุณมีออร่านี้แล้ว', 'info'); return; }
-    if (this.count(F.token) < FEST_AURA_COST) { g.hud.log(`${ITEMS[F.token].name}ไม่พอ (ต้องใช้ ${FEST_AURA_COST})`, 'sys'); return; }
-    pl.inventory.remove(F.token, FEST_AURA_COST);
+    if (this.count(F.token) < cost) { g.hud.log(`${ITEMS[F.token].name}ไม่พอ (ต้องใช้ ${cost})`, 'sys'); return; }
+    pl.inventory.remove(F.token, cost);
     pl.addFashion(it.id);
-    g.hud.log(`✨ ได้รับออร่าเทศกาล "${it.name}" (ถาวร) · สวมใส่ได้ที่ตู้แฟชั่น`, 'f-legend');
+    g.hud.log(`✨ ได้รับออร่าเทศกาล "${it.name}" (ถาวร) · สวมใส่ได้ที่ตู้แฟชั่น`, it.rarity === 'mythic' ? 'f-mythic' : 'f-legend');
     g.sfx('levelUp', { gap: 0 });
     g.refreshItemsUI(); g.dirty = true; g.saveNow(false);
     if (g.festWin) g.festWin.render();

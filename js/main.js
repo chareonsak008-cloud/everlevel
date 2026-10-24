@@ -2,12 +2,12 @@
 // v0.11: หน้าเข้าเกม (เลือก/สร้างตัวละคร หรือเล่นออฟไลน์) ก่อนเริ่มโลก
 // v0.12: ถ้าตั้งค่าเซิร์ฟเวอร์ Supabase ไว้ (js/net/server-config.js) → สมัคร/เข้าสู่ระบบด้วยอีเมล + รหัสผ่าน เล่นบนเบราว์เซอร์ไหนก็ได้
 // v0.13: โหลดไฟล์ตั้งค่าแบบไม่บังคับ — ถ้าไม่มีไฟล์นี้ เกมยังเปิดได้ (โหมดออฟไลน์/บัญชี Claude)
-import { hookErrors, report, attachReporter } from './net/ErrorReporter.js?v=0.93.0-p3.31';   // v0.93 fix15 รายงานปัญหาอัตโนมัติ
+import { hookErrors, report, attachReporter } from './net/ErrorReporter.js?v=0.93.0-p3.34';   // v0.93 fix15 รายงานปัญหาอัตโนมัติ
 hookErrors();
 
 async function serverConfig() {
   if(window.__contentPreview)return {};
-  try { return await import('./net/server-config.js?v=0.93.0-p3.31'); } catch (e) { return {}; }
+  try { return await import('./net/server-config.js?v=0.93.0-p3.34'); } catch (e) { return {}; }
 }
 
 const root = document.getElementById('game');
@@ -104,7 +104,7 @@ async function createOnline({ Online }) {
   if (configured && !window.__noServer) {
     if (window.supabase || await loadScript(SUPABASE_JS)) {
       try {
-        const { SupabaseOnline } = await import('./net/SupabaseOnline.js?v=0.93.0-p3.31');
+        const { SupabaseOnline } = await import('./net/SupabaseOnline.js?v=0.93.0-p3.34');
         const client = window.supabase.createClient(url, key, {
           auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
         });
@@ -121,7 +121,7 @@ async function createOnline({ Online }) {
 if (!window.THREE) {
   fatal('โหลดกราฟิก 3 มิติ (Three.js) ไม่สำเร็จ — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วรีเฟรชหน้า');
 } else {
-  staleGuard().then((went) => { if (went) return new Promise(() => {}); }).then(() => Promise.all([import('./core/Game.js?v=0.93.0-p3.31'), import('./net/Online.js?v=0.93.0-p3.31'), import('./audio/AudioEngine.js?v=0.93.0-p3.31'), import('./ui/TitleScreen.js?v=0.93.0-p3.31'), import('./core/Save.js?v=0.93.0-p3.31'), import('./render/CardPortraits.js?v=0.93.0-p3.31')])
+  staleGuard().then((went) => { if (went) return new Promise(() => {}); }).then(() => Promise.all([import('./core/Game.js?v=0.93.0-p3.34'), import('./net/Online.js?v=0.93.0-p3.34'), import('./audio/AudioEngine.js?v=0.93.0-p3.34'), import('./ui/TitleScreen.js?v=0.93.0-p3.34'), import('./core/Save.js?v=0.93.0-p3.34'), import('./render/CardPortraits.js?v=0.93.0-p3.34')])
     .then(async ([{ Game }, OnlineMod, { AudioEngine }, { TitleScreen }, { SaveManager }, Portraits]) => {
       const step = (v, t) => { try { if (window.__loadStep) window.__loadStep(v, t); } catch (e) { /* หน้าโหลดไม่มีก็ได้ */ } };
       step(30, 'กำลังวาดตัวละครและมอนสเตอร์…');

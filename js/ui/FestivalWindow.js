@@ -1,10 +1,10 @@
 // v0.79 หน้าต่างอีเวนต์เทศกาล — เทศกาลที่เปิดอยู่ · มอน/บอสเทศกาล · แลกออร่าและของ · ปฏิทินเทศกาลถัดไป
-import { ITEMS } from '../data/items.js?v=0.93.0-p3.31';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.31';
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.31';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.31';
-import { requestThumb } from '../render/CostumeThumbs.js?v=0.93.0-p3.31';
-import { FEST_SHOP, FEST_AURA_COST, FEST_GRACE } from '../data/festivals.js?v=0.93.0-p3.31';
+import { ITEMS } from '../data/items.js?v=0.93.0-p3.34';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.34';
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p3.34';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p3.34';
+import { requestThumb } from '../render/CostumeThumbs.js?v=0.93.0-p3.34';
+import { FEST_SHOP, FEST_AURA_COST, FEST_GRACE } from '../data/festivals.js?v=0.93.0-p3.34';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -23,7 +23,7 @@ export class FestivalWindow {
     el.addEventListener('click', (e) => {
       const F = this.g.festival; if (!F) return;
       const s = e.target.closest('[data-fsel]'); if (s) { this.sel = s.dataset.fsel; this.render(); return; }
-      const a = e.target.closest('[data-aura]'); if (a) { F.buyAura(a.dataset.aura); return; }
+      const a = e.target.closest('[data-aura]'); if (a) { F.buyAura(a.dataset.aura, a.dataset.aid); return; }
       const x = e.target.closest('[data-ex]'); if (x) F.exchange(x.dataset.tok, x.dataset.ex);
     });
     this.body = el.querySelector('.fw-body');
@@ -51,8 +51,9 @@ export class FestivalWindow {
         <p class="fw-desc">${esc(cur.desc)}</p>
         <div class="fw-row"><div class="fw-mobs"><p>🗺 ทุกแผนที่ล่า (ปรับเลเวลตามแผนที่)</p><p>• <b>${esc(mob.name)}</b> — ดรอป ${esc(ITEMS[cur.token].name)}</p><p>• บอส <b>${esc(boss.name)}</b> แผนที่ละ 1 ตัว (เกิดใหม่ 10–15 นาที) — ดรอป ${esc(ITEMS[cur.token].name)} 12–20 ชิ้น</p></div>
         <div class="fw-tok"><img alt="" src="${iconURL(cur.token)}"><b>${fmt(have)}</b><small>${esc(ITEMS[cur.token].name)}</small></div></div>
-        <div class="fw-aura"><img class="fw-thumb" alt="" data-thumb="${cur.aura}"><div><b class="r-legend">${esc(aura.name)}</b><small>ออร่าเทศกาล · ได้ถาวร · หาได้เฉพาะช่วงเทศกาล</small><p>${esc(aura.desc)}</p></div>
-          ${owned ? '<span class="fw-own">✔ มีแล้ว</span>' : `<button type="button" class="dq-btn gold" data-aura="${cur.id}" ${have >= FEST_AURA_COST ? '' : 'disabled'}>แลก ${FEST_AURA_COST}</button>`}</div>
+        ${[{ aura: cur.aura, cost: FEST_AURA_COST }, ...(cur.extra || [])].filter((x) => COSTUME_BY_ID[x.aura]).map((x) => { const A = COSTUME_BY_ID[x.aura], own = pl.fashion.owned.has(x.aura), mythic = A.rarity === 'mythic';
+          return `<div class="fw-aura${mythic ? ' fw-aura-mythic' : ''}"><img class="fw-thumb" alt="" data-thumb="${x.aura}"><div><b class="${mythic ? 'r-mythic' : 'r-legend'}">${esc(A.name)}</b><small>${mythic ? '✦ ออร่าเทศกาลระดับ Mythical' : 'ออร่าเทศกาล'} · ได้ถาวร · หาได้เฉพาะช่วงเทศกาล</small><p>${esc(A.desc)}</p></div>
+          ${own ? '<span class="fw-own">✔ มีแล้ว</span>' : `<button type="button" class="dq-btn gold" data-aura="${cur.id}" data-aid="${x.aura}" ${have >= x.cost ? '' : 'disabled'}>แลก ${fmt(x.cost)}</button>`}</div>`; }).join('')}
       </section>`;
     } else {
       main = `<p class="sn-note">ตอนนี้ยังไม่มีเทศกาล — ดูปฏิทินด้านล่าง ระหว่างนี้ของสะสมที่เหลือยังแลกของได้</p>`;

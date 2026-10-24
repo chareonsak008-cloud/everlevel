@@ -1,5 +1,5 @@
 // กระเป๋าไอเทม: เก็บเป็นกอง (stack) ตามชนิดไอเทม
-import { ITEMS, rollItem } from '../data/items.js?v=0.93.0-p3.31';
+import { ITEMS, rollItem } from '../data/items.js?v=0.93.0-p3.34';
 
 export const STACK_MAX = 999;
 

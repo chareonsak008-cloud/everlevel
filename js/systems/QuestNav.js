@@ -2,12 +2,12 @@
 // · ส่งเควสได้แล้ว → NPC ที่รับส่ง · ล่ามอน → จุดเกิด/ตัวที่ใกล้ที่สุด · เก็บของ → มอนที่ดรอปของนั้น · ไปแผนที่ → แผนที่นั้น
 // · เป้าหมายอยู่แผนที่อื่น → ชี้ประตูวาร์ปที่พาไปทางนั้น (หาเส้นทางสั้นสุดผ่านประตูของแต่ละแผนที่)
 // · ไม่มีเควสที่ทำอยู่ → ไม่แสดงลูกศร (v0.40.1) · เปิด/ปิดได้ที่ปุ่ม 🧭 บนแถบติดตามเควส
-import { QUESTS } from '../data/quests.js?v=0.93.0-p3.31';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p3.31';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.31';
-import { THREE } from '../render/three.js?v=0.93.0-p3.31';
-import { TILE } from '../config.js?v=0.93.0-p3.31';
-import { WARP_ROUTES } from '../data/shops.js?v=0.93.0-p3.31';
+import { QUESTS } from '../data/quests.js?v=0.93.0-p3.34';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p3.34';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.34';
+import { THREE } from '../render/three.js?v=0.93.0-p3.34';
+import { TILE } from '../config.js?v=0.93.0-p3.34';
+import { WARP_ROUTES } from '../data/shops.js?v=0.93.0-p3.34';
 
 let IDX = null;
 function index() {
