@@ -1,4 +1,4 @@
-import { EVENT_RATES, WORLD_BOSSES } from '../data/events.js?v=0.93.0-p3.34';
+import { EVENT_RATES, WORLD_BOSSES } from '../data/events.js?v=0.93.0-p3.35';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const time=s=>s?new Date(s).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',hour12:false}):'ตลอด';
 export class EventWindow {
