@@ -1,8 +1,8 @@
 // v0.94 ภาพของสกิลบอสชุดใหม่ (ดู systems/BossSkills.js) — สัญญาณเตือนบนพื้น (พัด · แนวตรง · วงแหวน · ตราตามตัว · วงปลอดภัย)
 // และเอฟเฟกต์ตามธีม (พงไพร น้ำแข็ง เพลิง ศักดิ์สิทธิ์ โลหิต สายน้ำ ผลึก คราส) · พิกัดเข้า = พิกัดเกม (px) แปลงเป็นฉากด้วย S
-import { THREE } from './three.js?v=0.93.0-p4.2';
-import * as TX from './FxTextures.js?v=0.93.0-p4.2';
-import { TILE } from '../config.js?v=0.93.0-p4.2';
+import { THREE } from './three.js?v=0.93.0-p4.4';
+import * as TX from './FxTextures.js?v=0.93.0-p4.4';
+import { TILE } from '../config.js?v=0.93.0-p4.4';
 
 const S = 1 / TILE;
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);

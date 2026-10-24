@@ -3,8 +3,8 @@
 //   · บัญชี: Supabase Auth (รหัสผ่านถูกเข้ารหัสโดยเซิร์ฟเวอร์ เกมไม่เคยเก็บรหัสผ่านเอง)
 //   · เซฟ: ตาราง characters / accounts (ดู supabase/setup.sql — ผู้เล่นแก้ได้เฉพาะของตัวเอง)
 //   · ผู้เล่นพร้อมกัน: Realtime — ห้องรวม "lobby" (ใครออนไลน์อยู่แผนที่ไหน) + ห้องแยกต่อแผนที่ (ตำแหน่ง ท่าทาง แชต)
-import { Online, MAX_CHARS } from './Online.js?v=0.93.0-p4.2';
-import { SideChannel } from './SideChannel.js?v=0.93.0-p4.2';
+import { Online, MAX_CHARS } from './Online.js?v=0.93.0-p4.4';
+import { SideChannel } from './SideChannel.js?v=0.93.0-p4.4';
 
 // v0.16.1: เขียนระบบผู้เล่นพร้อมกันใหม่ (ดูคำอธิบายที่หัวส่วน "ผู้เล่นพร้อมกัน" ด้านล่าง)
 const LOBBY_KEYS = ['n', 'j', 'lv', 'm', 'u'];                       // ห้องรวม (presence): ชื่อ อาชีพ เลเวล แผนที่ — เปลี่ยนนาน ๆ ครั้ง
@@ -552,7 +552,7 @@ export class SupabaseOnline extends Online {
   connectRoom(onPeers, handlers = {}) {
     if (!this.online) return false;
     this.peersHandler = onPeers;
-    this.sayHandler = handlers.onSay || null; this.shoutHandler = handlers.onShout || null;
+    this.sayHandler = handlers.onSay || null; this.shoutHandler = handlers.onShout || null; this.skillHandler = handlers.onSkill || null;
     if (this.roomOn) { this.emitPeers(); return true; }
     this.roomOn = true;
     this.openLobby();
@@ -699,6 +699,7 @@ export class SupabaseOnline extends Online {
       ch.on('broadcast', { event: 'hi' }, ({ payload }) => { if (mine()) this.onHi(payload); });
       ch.on('broadcast', { event: 'bye' }, ({ payload }) => { if (mine()) this.onBye(payload); });
       ch.on('broadcast', { event: 'say' }, ({ payload }) => { if (mine()) this.onSay(payload); });
+      ch.on('broadcast', { event: 'sk' }, ({ payload }) => { if (mine()) this.onSkill(payload); });   // v0.94 สกิลของผู้เล่นคนอื่น (ภาพอย่างเดียว)
       ch.subscribe((status) => {
         if (!mine()) return;
         if (status === 'SUBSCRIBED') { this.mapReady = true; this.mapBack = 0; this.sendFull(); this.sendHi(); this.flushSays(); this.emitPeers(); }
@@ -813,6 +814,27 @@ export class SupabaseOnline extends Online {
     const now = Date.now(), e = this.mapPeers.get(p.k);
     if (e) e.seen = now; else if (now - this.lastHi > 1500) this.sendHi();
     if (this.sayHandler) this.sayHandler({ peer: p.k, name: cutS(p.n, 16) || (e && e.st.n) || '', text, t });
+  }
+
+  // v0.94 สกิลของผู้เล่นคนอื่นในแผนที่ — เล่นเอฟเฟกต์อย่างเดียว ไม่มีผลต่อเกม · จำกัดถี่ต่อคน
+  onSkill(p) {
+    if (!p || typeof p.k !== 'string' || p.k === this.key || typeof p.id !== 'string' || p.id.length > 40) return;
+    const x = clampN(p.x, -1e5, 1e5), y = clampN(p.y, -1e5, 1e5), lv = clampN(p.lv, 1, 30);
+    if (x === undefined || y === undefined) return;
+    const now = Date.now(), e = this.mapPeers.get(p.k);
+    if (!e) return;   // ยังไม่รู้จักคนนี้ (ยังไม่เห็นตัว) = ข้าม
+    if (e.skAt && now - e.skAt < 300) return;
+    e.skAt = now; e.seen = now;
+    if (this.skillHandler) this.skillHandler({ peer: p.k, id: p.id, lv: Math.round(lv || 1), x, y, d: clampN(p.d, 0, 1e9) || 0 });
+  }
+  sendSkill(id, lv, x, y, d = 0) {
+    if (!this.mapReady || !this.mapCh || !this.mapPeers.size) return;   // ไม่มีใครในแมพ = ไม่ส่ง (ประหยัดโควตา)
+    const now = Date.now();
+    if (document.hidden || now - (this.lastSk || 0) < 400 + 200 * this.mapPeers.size) return;   // ประหยัดโควตา: คนเยอะ = ส่งห่างขึ้น (2 คน 0.8 วิ · 10 คน 2.4 วิ)
+    this.lastSk = now;
+    const P = { k: this.key, id: String(id).slice(0, 40), lv: lv | 0, x: Math.round(x), y: Math.round(y) };
+    if (d > 0) P.d = Math.round(d);
+    this.raw(this.mapCh, 'sk', P);
   }
 
   onShout(p) {

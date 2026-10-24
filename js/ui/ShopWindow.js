@@ -1,14 +1,16 @@
 // หน้าต่างร้านค้า NPC: แท็บซื้อ / ขาย พร้อมตะกร้าเลือกจำนวน
-import { ITEMS, RARITY, EQUIP_SLOTS, describeBonus, canJobUse, itemMods } from '../data/items.js?v=0.93.0-p4.2';
-import { JOBS } from '../data/progression.js?v=0.93.0-p4.2';
-import { SHOPS, buyPrice, sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p4.2';
-import { STACK_MAX } from '../systems/Inventory.js?v=0.93.0-p4.2';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.2';
+import { ITEMS, RARITY, EQUIP_SLOTS, describeBonus, canJobUse, itemMods } from '../data/items.js?v=0.93.0-p4.4';
+import { JOBS } from '../data/progression.js?v=0.93.0-p4.4';
+import { SHOPS, buyPrice, sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p4.4';
+import { STACK_MAX } from '../systems/Inventory.js?v=0.93.0-p4.4';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.4';
 
 // v0.93 แท็บขายแยกหมวด: ขยะ/ของสะสม · อุปกรณ์ · ของใช้ · การ์ด/อื่น ๆ
 const SELL_CATS = [['etc', 'ขยะ'], ['equip', 'อุปกรณ์'], ['usable', 'ของใช้'], ['other', 'วัสดุ / การ์ด'], ['all', 'ทั้งหมด']];
 const catOf = (it) => (it.type === 'etc' ? (it.keep ? 'other' : 'etc') : it.type === 'equip' || it.type === 'usable' ? it.type : 'other');
 const plainEquip = (id) => { const it = ITEMS[id]; if (!it || it.type !== 'equip' || !['common', 'uncommon'].includes(it.rarity || 'common')) return false; const m = itemMods(id); return !m.refine && !(m.cards && m.cards.length); };
+const GRADES = Object.keys(RARITY);   // v0.94 ลำดับระดับ ธรรมดา → นิรันดร์
+const gradeOf = (it) => Math.max(0, GRADES.indexOf((it && it.rarity) || 'common'));
 const slotName = (id) => (EQUIP_SLOTS.find((s) => s.id === id) || {}).name || '';
 
 export class ShopWindow {
@@ -23,6 +25,7 @@ export class ShopWindow {
     this.rows = [];
     this.confirmRare = false;
     this.sellCat = 'etc';
+    this.grade = 0;   // v0.94 ระดับสูงสุดที่ "เลือกตามระดับ" จะเลือก (0 = ธรรมดา)
     this.filt = document.createElement('div'); this.filt.className = 'shop-filter'; this.filt.setAttribute('role', 'tablist');
     this.$('shopTabs').after(this.filt);
 
@@ -65,8 +68,13 @@ export class ShopWindow {
   list() {
     const inv = this.player.inventory;
     if (this.tab === 'buy') return SHOPS[this.shopId].items.map((id) => ({ id, have: inv.count(id) }));
-    const all = inv.stacks.filter((s) => sellPrice(s.id) > 0);
-    return all.filter((s) => this.sellCat === 'all' || catOf(ITEMS[s.id]) === this.sellCat).map((s) => ({ id: s.id, have: s.qty }));
+    const seen = new Set(), out = [];   // v0.94 หลายกองชนิดเดียวกัน = แถวเดียว (รวมจำนวน)
+    for (const st of inv.stacks) {
+      if (seen.has(st.id) || !(sellPrice(st.id) > 0)) continue;
+      seen.add(st.id);
+      if (this.sellCat === 'all' || catOf(ITEMS[st.id]) === this.sellCat) out.push({ id: st.id, have: inv.count(st.id) });
+    }
+    return out;
   }
 
   detail(id) {
@@ -88,10 +96,16 @@ export class ShopWindow {
     box.innerHTML = '';
     this.filt.hidden = this.tab !== 'sell';
     if (this.tab === 'sell') {
-      const st = this.player.inventory.stacks.filter((x) => sellPrice(x.id) > 0), n = (c) => (c === 'all' ? st.length : st.filter((x) => catOf(ITEMS[x.id]) === c).length);
+      const st = [...new Map(this.player.inventory.stacks.filter((x) => sellPrice(x.id) > 0).map((x) => [x.id, x])).values()], n = (c) => (c === 'all' ? st.length : st.filter((x) => catOf(ITEMS[x.id]) === c).length);
       this.filt.innerHTML = SELL_CATS.map(([c, name]) => `<button type="button" role="tab" data-c="${c}" aria-selected="${this.sellCat === c}">${name} <small>${n(c)}</small></button>`).join('');
       this.filt.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { this.sellCat = b.dataset.c; this.cart.clear(); this.confirmRare = false; this.build(); }));
       this.$('shopQuick').textContent = this.sellCat === 'equip' ? 'เลือกอุปกรณ์ธรรมดาทั้งหมด' : 'เลือกขยะทั้งหมด';
+      // v0.94 เลือกขายตามระดับ: ทุกชิ้นในหมวดนี้ที่ระดับไม่เกินที่เลือก (ข้ามของตีบวก/ใส่การ์ด และของสะสมสำคัญ)
+      const g = document.createElement('div'); g.className = 'shop-grade';
+      g.innerHTML = `<label>เลือกตามระดับ <select aria-label="ระดับสูงสุดที่จะเลือก">${GRADES.map((r, i) => `<option value="${i}"${i === this.grade ? ' selected' : ''}>≤ ${RARITY[r].name}</option>`).join('')}</select></label><button type="button" class="ghost">เลือก</button>`;
+      g.querySelector('select').addEventListener('change', (e) => { this.grade = +e.target.value; });
+      g.querySelector('button').addEventListener('click', () => this.selectByGrade());
+      this.filt.append(g);
     }
     this.rows = [];
     const items = this.list();
@@ -105,9 +119,13 @@ export class ShopWindow {
       row.innerHTML = `<img alt="" src="${iconURL(id)}">
         <div class="sh-info"><b style="color:${RARITY[rar].color}">${it.name}</b><small>${this.detail(id)}</small></div>
         <div class="sh-price"><b>${fmtZ(this.price(id))}</b><small>${this.tab === 'sell' ? `มี ${have}` : have ? `มีอยู่ ${have}` : ''}</small></div>
-        <div class="stepper"><button type="button" class="mn" aria-label="ลดจำนวน">−</button><span class="q">0</span><button type="button" class="pl" aria-label="เพิ่มจำนวน">+</button><button type="button" class="mx" title="สูงสุด" aria-label="จำนวนสูงสุด">≫</button></div>`;
+        <div class="stepper"><button type="button" class="mn" aria-label="ลดจำนวน">−</button><input class="q" type="number" min="0" inputmode="numeric" value="0" aria-label="จำนวน"><button type="button" class="pl" aria-label="เพิ่มจำนวน">+</button><button type="button" class="mx" title="สูงสุด" aria-label="จำนวนสูงสุด">≫</button></div>`;
       const r = { id, have, row, q: row.querySelector('.q'), mn: row.querySelector('.mn'), pl: row.querySelector('.pl'), mx: row.querySelector('.mx') };
       const add = (n) => this.setQty(id, (this.cart.get(id) || 0) + n);
+      r.q.addEventListener('pointerdown', (e) => e.stopPropagation());
+      r.q.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') r.q.blur(); });   // พิมพ์ตัวเลขได้ ไม่ไปกดปุ่มลัดในเกม
+      r.q.addEventListener('focus', () => r.q.select());
+      r.q.addEventListener('change', () => this.setQty(id, Math.min(+r.q.value || 0, this.tab === 'sell' ? this.player.inventory.count(id) : this.maxFor(id))));
       row.querySelector('.sh-info').addEventListener('click', (e) => add(e.shiftKey ? 10 : 1));
       row.querySelector('img').addEventListener('click', (e) => add(e.shiftKey ? 10 : 1));
       r.pl.addEventListener('click', (e) => add(e.shiftKey ? 10 : 1));
@@ -127,18 +145,17 @@ export class ShopWindow {
     const others = this.total() - (this.cart.get(id) || 0) * buyPrice(id);
     const byZeny = Math.floor((p.zeny - others) / Math.max(1, buyPrice(id)));
     const inv = p.inventory;
-    let byRoom = inv.room(id);
-    if (!inv.count(id)) {
-      // ช่องว่างที่เหลือหลังหักสินค้าชนิดใหม่อื่น ๆ ในตะกร้า
-      let newOthers = 0;
-      for (const [k, q] of this.cart) if (k !== id && q > 0 && !inv.count(k)) newOthers++;
-      byRoom = inv.stacks.length + newOthers < inv.capacity ? STACK_MAX : 0;
-    }
-    return Math.max(0, Math.min(byZeny, byRoom, STACK_MAX));
+    // v0.94 หลายกองได้: ที่ว่างในกองเดิม + ช่องว่างที่เหลือหลังหักของอื่นในตะกร้า × 999
+    let free = 0; for (const st of inv.stacks) if (st.id === id) free += STACK_MAX - st.qty;
+    const rest = [...this.cart].filter(([k, q]) => k !== id && q > 0);
+    let slots = inv.capacity - inv.stacks.length;
+    for (const [k, q] of rest) { let f = 0; for (const st of inv.stacks) if (st.id === k) f += STACK_MAX - st.qty; slots -= Math.ceil(Math.max(0, q - f) / STACK_MAX); }
+    const byRoom = free + Math.max(0, slots) * STACK_MAX;
+    return Math.max(0, Math.min(byZeny, byRoom, 9999));
   }
 
   setQty(id, q) {
-    const cap = this.tab === 'sell' ? this.player.inventory.count(id) : STACK_MAX;
+    const cap = this.tab === 'sell' ? this.player.inventory.count(id) : 9999;
     q = Math.max(0, Math.min(cap, Math.floor(q)));
     if (q) this.cart.set(id, q); else this.cart.delete(id);
     this.confirmRare = false;
@@ -152,6 +169,19 @@ export class ShopWindow {
     for (const r of this.rows) if (eq ? plainEquip(r.id) : ITEMS[r.id].type === 'etc' && !ITEMS[r.id].keep) this.cart.set(r.id, this.player.inventory.count(r.id));
     this.confirmRare = false;
     this.refresh();
+  }
+
+  // v0.94 เลือกทุกชิ้นในหมวดที่เปิดอยู่ ที่ระดับไม่เกินที่เลือก
+  selectByGrade() {
+    let n = 0;
+    for (const r of this.rows) {
+      const it = ITEMS[r.id], m = itemMods(r.id);
+      if (!it || gradeOf(it) > this.grade || m.refine || (m.cards && m.cards.length) || it.keep) continue;
+      this.cart.set(r.id, this.player.inventory.count(r.id)); n++;
+    }
+    this.confirmRare = false;
+    this.refresh();
+    if (!n) { const msg = this.$('shopMsg'); msg.textContent = 'ไม่มีของระดับนี้ในหมวดที่เลือก (ของตีบวก/ใส่การ์ดจะไม่ถูกเลือก)'; msg.classList.remove('bad'); }
   }
 
   problem() {
@@ -169,7 +199,7 @@ export class ShopWindow {
     const p = this.player;
     for (const r of this.rows) {
       const q = this.cart.get(r.id) || 0;
-      r.q.textContent = q;
+      if (document.activeElement !== r.q) r.q.value = q;
       r.row.classList.toggle('sel', q > 0);
       r.mn.disabled = q <= 0;
       r.pl.disabled = this.tab === 'sell' ? q >= p.inventory.count(r.id) : false;
@@ -180,7 +210,7 @@ export class ShopWindow {
     this.$('shopTotal').textContent = (this.tab === 'buy' ? '' : '+') + fmtZ(total);
     const prob = this.problem();
     const msg = this.$('shopMsg');
-    const rare = this.tab === 'sell' && [...this.cart.keys()].some((id) => ['rare', 'epic'].includes(ITEMS[id].rarity));
+    const rare = this.tab === 'sell' && [...this.cart.keys()].some((id) => gradeOf(ITEMS[id]) >= 2);
     msg.textContent = prob || (this.confirmRare ? 'มีของหายากในรายการขาย กดยืนยันอีกครั้งเพื่อขาย' : '');
     msg.classList.toggle('bad', !!prob);
     const ok = this.$('shopOk');
@@ -194,7 +224,7 @@ export class ShopWindow {
     if (!this.cart.size || this.problem()) return;
     const list = [...this.cart];
     if (this.tab === 'sell') {
-      const rare = list.some(([id]) => ['rare', 'epic'].includes(ITEMS[id].rarity));
+      const rare = list.some(([id]) => gradeOf(ITEMS[id]) >= 2);
       if (rare && !this.confirmRare) { this.confirmRare = true; this.refresh(); return; }
       this.onSell(list);
     } else {

@@ -1,6 +1,6 @@
 // หน้าต่างคลังเก็บของ: ฝาก/ถอนระหว่างกระเป๋ากับคลัง (คลังใช้ร่วมกันทั้งบัญชี)
-import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p4.2';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.2';
+import { ITEMS, RARITY } from '../data/items.js?v=0.93.0-p4.4';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.4';
 
 export class StorageWindow {
   constructor(root, player, storage, { onMove, onClose } = {}) {
@@ -78,9 +78,14 @@ export class StorageWindow {
     const rar = RARITY[it.rarity || 'common'];
     act.innerHTML = `<img alt="" src="${iconURL(id)}">
       <div class="sa-info"><b style="color:${rar.color}">${it.name}</b><small>${from === 'bag' ? 'ในกระเป๋า' : 'ในคลัง'} ${have} ชิ้น</small></div>
-      <div class="stepper"><button type="button" class="mn" aria-label="ลดจำนวน">−</button><span class="q">${this.qty}</span><button type="button" class="pl" aria-label="เพิ่มจำนวน">+</button><button type="button" class="mx" aria-label="ทั้งหมด" title="ทั้งหมด">≫</button></div>
+      <div class="stepper"><button type="button" class="mn" aria-label="ลดจำนวน">−</button><input class="q" type="number" min="1" max="${have}" inputmode="numeric" value="${this.qty}" aria-label="จำนวน"><button type="button" class="pl" aria-label="เพิ่มจำนวน">+</button><button type="button" class="mx" aria-label="ทั้งหมด" title="ทั้งหมด">≫</button></div>
       <button type="button" class="primary go">${from === 'bag' ? 'ฝากเข้าคลัง' : 'ถอนออกมา'}</button>`;
-    const set = (q) => { this.qty = Math.max(1, Math.min(have, q)); act.querySelector('.q').textContent = this.qty; };
+    const qi = act.querySelector('.q');
+    const set = (q) => { this.qty = Math.max(1, Math.min(have, Math.floor(q) || 1)); qi.value = this.qty; };
+    qi.addEventListener('pointerdown', (e) => e.stopPropagation());
+    qi.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') qi.blur(); });   // v0.94 พิมพ์จำนวนได้
+    qi.addEventListener('focus', () => qi.select());
+    qi.addEventListener('change', () => set(+qi.value));
     act.querySelector('.mn').addEventListener('click', (e) => set(this.qty - (e.shiftKey ? 10 : 1)));
     act.querySelector('.pl').addEventListener('click', (e) => set(this.qty + (e.shiftKey ? 10 : 1)));
     act.querySelector('.mx').addEventListener('click', () => set(have));

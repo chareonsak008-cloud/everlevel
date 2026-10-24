@@ -1,16 +1,17 @@
 // หน้าต่างกระเป๋า + อุปกรณ์ที่สวมใส่ (เปิดด้วย I หรือ Alt+E)
-import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.93.0-p4.2';
-import { duraOf, DURA_MAX, DURA_LOW } from '../data/durability.js?v=0.93.0-p4.2';   // v0.89
-import { weaponLines, rollLine } from './WeaponInfo.js?v=0.93.0-p4.2';
-import { refineBonus, canRefine } from '../data/refine.js?v=0.93.0-p4.2';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p4.2';
-import { socketTargets } from '../systems/Forge.js?v=0.93.0-p4.2';
-import { JOBS } from '../data/progression.js?v=0.93.0-p4.2';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.2';
-import { sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p4.2';
-import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.93.0-p4.2';
-import { fmtDur } from '../data/consumables.js?v=0.93.0-p4.2';
-import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.93.0-p4.2';
+import { upgradeInfo } from '../data/gearScore.js?v=0.93.0-p4.4';   // v0.94 เทียบอุปกรณ์
+import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.93.0-p4.4';
+import { duraOf, DURA_MAX, DURA_LOW } from '../data/durability.js?v=0.93.0-p4.4';   // v0.89
+import { weaponLines, rollLine } from './WeaponInfo.js?v=0.93.0-p4.4';
+import { refineBonus, canRefine } from '../data/refine.js?v=0.93.0-p4.4';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p4.4';
+import { socketTargets } from '../systems/Forge.js?v=0.93.0-p4.4';
+import { JOBS } from '../data/progression.js?v=0.93.0-p4.4';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.4';
+import { sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p4.4';
+import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.93.0-p4.4';
+import { fmtDur } from '../data/consumables.js?v=0.93.0-p4.4';
+import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.93.0-p4.4';
 
 const TABS = [
   { id: 'all', name: 'ทั้งหมด', test: () => true },
@@ -114,6 +115,8 @@ export class InventoryWindow {
     const list = inv.stacks.filter((s) => test(ITEMS[s.id]));
     for (const s of list) {
       const c = this.cell(s.id, s.qty);
+      const up = upgradeInfo(p, s.id);   // v0.94 ป้าย ▲ = ดีกว่าที่ใส่อยู่
+      if (up) { const bd = document.createElement('span'); bd.className = 'up-badge'; bd.textContent = '▲'; bd.title = `ดีกว่าที่ใส่อยู่ (+${up.pct}%)`; c.append(bd); }
       c.draggable = true;
       c.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', s.id); e.dataTransfer.effectAllowed = 'copy'; });
       c.addEventListener('click', () => this.select({ from: 'bag', id: s.id }));
@@ -142,6 +145,7 @@ export class InventoryWindow {
 
     const { id } = this.sel, it = ITEMS[id], rar = RARITY[it.rarity || 'common'];
     const lines = [];
+    if (this.sel.from === 'bag') { const up = upgradeInfo(p, id); if (up) lines.push(`<span style="color:#6dff7a;font-weight:700">▲ ดีกว่า${up.cur ? `${ITEMS[up.cur].name} ที่ใส่อยู่ (+${up.pct}%)` : 'ช่องที่ยังว่าง'}</span>`); }   // v0.94
     if (it.heal) {
       const h = [];
       if (it.heal.hp) h.push(`HP +${it.heal.hp[0]}~${it.heal.hp[1]}`);

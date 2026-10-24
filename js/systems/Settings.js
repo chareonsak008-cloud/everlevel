@@ -4,6 +4,7 @@ const KEY = typeof window !== 'undefined' && window.__contentPreview ? 'everleve
 export const DEFAULT_SETTINGS = {
   quality: 'auto',      // auto | 0 สูงสุด | 1 สูง | 2 กลาง | 3 ประหยัด
   othersFx: true,       // v0.94 ออร่า/ปีกของผู้เล่นคนอื่น
+  othersSkills: true,   // v0.94 เอฟเฟกต์สกิลของผู้เล่นคนอื่น
   weather: true,        // v0.91 ฝน หิมะ ใบไม้ หิ่งห้อย
   hd: true,             // v0.89 ภาพ HD-2D (ปิด = ภาพพิกเซลแบบเดิม)
   bloom: true,          // แสงเรือง

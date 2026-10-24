@@ -1,7 +1,7 @@
 // ทดลอง: ตัวละครสไปรต์ชีตวาดมือในเกมจริง (โหลดเฉพาะ sprite-trial.html) — ไม่บันทึกเข้าบัญชีจริง
-import { SKILLS, jobSkills } from '../data/skills.js?v=0.93.0-p4.2';
-import { JOBS } from '../data/progression.js?v=0.93.0-p4.2';
-import { SheetSprite } from '../render/SheetChars.js?v=0.93.0-p4.2';
+import { SKILLS, jobSkills } from '../data/skills.js?v=0.93.0-p4.4';
+import { JOBS } from '../data/progression.js?v=0.93.0-p4.4';
+import { SheetSprite } from '../render/SheetChars.js?v=0.93.0-p4.4';
 
 const KIT = {
   swordsman: { w: 'astral_sword', attr: { str: 1, agi: 0.55, vit: 0.85, int: 0.2, dex: 0.6, luk: 0.25 } },

@@ -1,9 +1,9 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.93.0-p4.2';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p4.2';
-import { Monster } from '../entities/Monster.js?v=0.93.0-p4.2';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p4.2';
-import { rollChampion, goldenAI } from './Elites.js?v=0.93.0-p4.2';   // v0.93 fix17 แชมเปี้ยน · มอนทองคำ
+import { TILE } from '../config.js?v=0.93.0-p4.4';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p4.4';
+import { Monster } from '../entities/Monster.js?v=0.93.0-p4.4';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p4.4';
+import { rollChampion, goldenAI } from './Elites.js?v=0.93.0-p4.4';   // v0.93 fix17 แชมเปี้ยน · มอนทองคำ
 
 // fix24 โดนผู้เล่นตีภายใน 8 วิล่าสุด (Game ใส่ m.hitAt ทุกครั้งที่ทำดาเมจ)
 const hurtRecent = (m) => m.hitAt && performance.now() - m.hitAt < 8000;

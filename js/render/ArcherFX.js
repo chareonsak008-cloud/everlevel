@@ -1,8 +1,8 @@
 // v0.70 สกิลสายธนูชุดใหม่ วาดเป็นเอฟเฟกต์ 3 มิติในฉากจริง (แทน sprite sheet มุมข้าง v0.66)
 // Archer = นักธนูแสงดาว ทอง-ขาว (fx_ar_*) · Hunter = พรานเงาจันทรา ม่วงเงา (fx_hn_*)
 // ดาเมจ/สถานะยังมาจาก sk.nf ผ่าน fx_nf · ใช้ตัวช่วยจาก SwordFX/HealFX/MageFX (swCharge · swLine · swWave · hlCircle · mgHit · mgUnder · mgBlast · mgBolt)
-import { THREE } from './three.js?v=0.93.0-p4.2';
-import * as TX from './FxTextures.js?v=0.93.0-p4.2';
+import { THREE } from './three.js?v=0.93.0-p4.4';
+import * as TX from './FxTextures.js?v=0.93.0-p4.4';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);
