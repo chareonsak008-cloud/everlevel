@@ -672,6 +672,7 @@ body.touch .dlg { z-index: 5; }
 .dmg.taken.big { font-size: 38px; background-image: linear-gradient(#fff0d0 10%, #ff8a3a 55%, #c81e2a); }
 .dmg.mvp { font-family: var(--display); font-weight: 700; font-size: 46px; letter-spacing: 0.08em; background-image: linear-gradient(#fffbe0 10%, #ffd36b 50%, #e07a1a); }
 .dmg.status.root { color: #e8c890; }
+.dmg.boss-skill { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: 0.04em; background-image: linear-gradient(#ffffff 10%, #ffd0a0 50%, #ff5a3a); }   /* v0.94 ชื่อท่าบอส */
 @media (max-width: 900px) {
   .bossbar { width: auto; left: 12px; right: 12px; transform: none; min-width: 0; top: calc(276px + env(safe-area-inset-top, 0px)); }
 }
