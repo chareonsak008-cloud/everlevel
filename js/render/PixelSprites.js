@@ -5,13 +5,13 @@
 // แล้วลงสีแบบพิกเซลอาร์ตด้วยเชดเดอร์: แรเงา 4 ระดับ (เงาอมม่วง ไฮไลต์อมเหลือง) · เส้นขอบนอกสีเข้มของชิ้นนั้น ·
 // เส้นในระหว่างชิ้นที่ซ้อนกัน · ลบจุดแสงเดี่ยว ๆ · วาดตาอนิเมะทีละพิกเซล · กระพริบขาวตอนโดนตี
 // ผลลัพธ์เป็นภาพเล็กแปะบนแผ่นป้ายที่หันหาหน้ากล้องเสมอ (ขยายแบบไม่เบลอ) · หันได้ 8 ทิศตามมุมกล้อง
-import { THREE } from './three.js?v=0.93.0-p3.35';
+import { THREE } from './three.js?v=0.93.0-p4.2';
 
 export const PX_LAYER = 1;
 export const PIXEL = { on: true };            // โหมดภาพพิกเซล (ตั้งค่า → กราฟิก) · ใช้กับรูปย่อในหน้าต่างด้วย
 const SNAPS = new WeakMap();
 export const PX = 1 / 48;                     // หน่วยโลกต่อ 1 พิกเซลของสไปรต์ (ตัวละครสูง ~85 พิกเซล) · 1 ช่องแผนที่ = 48 พิกเซลพอดี
-const SCRATCH = 320;   // v0.25.1: เผื่อปีก/อาวุธใหญ่ (เดิม 256)                          // ขนาดภาพทดสอบชั่วคราว (สไปรต์ใหญ่สุด)
+const SCRATCH = 768;   // v0.93.4 บอสตัวใหญ่ไม่โดนตัดหัว และบอสโลกยังคมเท่ามอนอื่น (เดิม 320 · v0.25.1 256)                          // ขนาดภาพทดสอบชั่วคราว (สไปรต์ใหญ่สุด)
 const PITCH = 20 * Math.PI / 180;             // มุมก้มของ "ช่างวาด" (คงที่ทุกแผนที่) — มองค่อนข้างตรงแบบสไปรต์เกม
 const RANGE = 24;                             // ระยะความลึกที่เก็บ (หน่วยโลก)
 const STEP = 1 / 12;                          // แอนิเมชันแบบเฟรมพิกเซล 12 เฟรม/วินาที
@@ -290,7 +290,7 @@ export class PixelSprites {
       key, view, root, kind, w: size.w, h: size.h, ax: size.ax, ay: size.ay,
       rt: nearestRT(size.w, size.h), t: Math.random() * STEP, dirty: true, meshes: [], scanN: -1, hidden: [], moved: [],
       eyes: opts.eyes || null, eyeColor: new THREE.Color(opts.eyeColor || '#3a2440'), face: opts.face || null,
-      lastDir: null, lastYaw: null, px: opts.px || 0,
+      lastDir: null, lastYaw: null, px: opts.px || size.px || 0,
     };
     s.rt.texture.encoding = THREE.sRGBEncoding;
     const Q = s.px || PX;
@@ -334,12 +334,18 @@ export class PixelSprites {
       return { w, h, ax: w / 2, ay: Math.min(h - 8, above) };
     }
     if (box.isEmpty()) return { w: 64, h: 64, ax: 32, ay: 52 };
-    const rad = Math.max(Math.abs(box.min.x), Math.abs(box.max.x), Math.abs(box.min.z), Math.abs(box.max.z));
-    const up = box.max.y * Math.cos(PITCH) + rad * Math.sin(PITCH);
-    const w = Math.min(SCRATCH, Math.ceil(((rad * 2 + 0.7) / PX) / 8) * 8);
-    const above = Math.ceil((up + 0.45) / PX), below = Math.ceil((rad * Math.sin(PITCH) + 0.35) / PX);
+    // v0.93.4 แก้หัว/อาวุธมอนโดนตัด: คิดขนาดที่ขยายจริงของตัว (บอส) + เผื่อท่าฟัน/ทุบ/ลอยตัว
+    //   ถ้าใหญ่เกินภาพทดสอบ → วาดละเอียดน้อยลงเล็กน้อย (หน่วยโลกต่อพิกเซลมากขึ้น) แทนการตัดภาพทิ้ง
+    const k = root.getWorldScale(new THREE.Vector3()).x || 1;
+    box.min.multiplyScalar(k); box.max.multiplyScalar(k);
+    const rad = Math.max(Math.abs(box.min.x), Math.abs(box.max.x), Math.abs(box.min.z), Math.abs(box.max.z)) * 1.22 + 0.25 * k;
+    const up = box.max.y * 1.12 * Math.cos(PITCH) + rad * Math.sin(PITCH);
+    const needW = (rad * 2 + 0.7) / PX, needA = (up + 0.6) / PX, needB = (rad * Math.sin(PITCH) + 0.35) / PX;
+    const fit = Math.max(1, needW / SCRATCH, (needA + needB) / SCRATCH), q = PX * fit;
+    const w = Math.min(SCRATCH, Math.ceil(needW / fit / 8) * 8);
+    const above = Math.ceil(needA / fit), below = Math.ceil(needB / fit);
     const h = Math.min(SCRATCH, Math.ceil((above + below) / 8) * 8);
-    return { w: Math.max(48, w), h: Math.max(48, h), ax: Math.max(48, w) / 2, ay: Math.min(h - 4, above) };
+    return { w: Math.max(48, w), h: Math.max(48, h), ax: Math.max(48, w) / 2, ay: Math.min(h - 4, above), px: fit > 1 ? q : 0 };
   }
 
   // แยกชิ้น: ชิ้นทึบ → วาดเป็นพิกเซล (ซ่อนจากฉากหลัก) · เส้นขอบเดิม/หน้าเดิม → ซ่อน · โปร่งแสงจาง ๆ/อนุภาค → คงเป็น 3D
