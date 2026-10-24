@@ -1,12 +1,12 @@
 // จัดการมอนสเตอร์ในแผนที่: เกิด, เดินเล่น, ไล่ล่า, โจมตี, ตาย, เกิดใหม่
-import { TILE } from '../config.js?v=0.93.0-p3.35';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.35';
-import { Monster } from '../entities/Monster.js?v=0.93.0-p3.35';
-import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p3.35';
-import { rollChampion, goldenAI } from './Elites.js?v=0.93.0-p3.35';   // v0.93 fix17 แชมเปี้ยน · มอนทองคำ
+import { TILE } from '../config.js?v=0.93.0-p4.2';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p4.2';
+import { Monster } from '../entities/Monster.js?v=0.93.0-p4.2';
+import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p4.2';
+import { rollChampion, goldenAI } from './Elites.js?v=0.93.0-p4.2';   // v0.93 fix17 แชมเปี้ยน · มอนทองคำ
 
-// fix24 โดนผู้เล่นตีภายใน 5 วิล่าสุด (Game ใส่ m.hitAt ทุกครั้งที่ทำดาเมจ)
-const hurtRecent = (m) => m.hitAt && performance.now() - m.hitAt < 5000;
+// fix24 โดนผู้เล่นตีภายใน 8 วิล่าสุด (Game ใส่ m.hitAt ทุกครั้งที่ทำดาเมจ)
+const hurtRecent = (m) => m.hitAt && performance.now() - m.hitAt < 8000;
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
 
@@ -157,7 +157,8 @@ export class MonsterManager {
         case 'chase': {
           const t = m.target;
           if (!t || t.dead) { m.state = 'return'; m.target = null; break; }
-          if (Math.hypot(m.x - m.home.x, m.y - m.home.y) > (m.data.leash ? m.data.leash * TILE : LEASH)) { m.state = 'return'; m.target = null; m.path = []; break; }
+          // fix25 ยังโดนตีอยู่ = ไล่ได้ไกลขึ้น 2.5 เท่า (กันมอนหันกลับบ้านไปมาเมื่อผู้เล่นถอยตี/ออโต้ขยับ)
+          if (Math.hypot(m.x - m.home.x, m.y - m.home.y) > (m.data.leash ? m.data.leash * TILE : LEASH) * (hurtRecent(m) ? 2.5 : 1)) { m.state = 'return'; m.target = null; m.path = []; break; }
           const d = Math.hypot(t.x - m.x, t.y - m.y);
           if (d <= m.data.attackRange) { m.state = 'attack'; m.moving = false; m.path = []; break; }
           m.repath -= dt;
