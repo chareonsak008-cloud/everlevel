@@ -869,7 +869,7 @@ export class Game {
       if (!m.target) this.mobs.aggro(m, this.player);
       return;
     }
-    m.hp -= r.amount;
+    m.hp -= r.amount; m.hitAt = performance.now();   // fix24 เวลาโดนตีล่าสุด (มอนไม่ฟื้นเลือดขณะถูกตี)
     this.sfx(r.crit ? 'crit' : 'hit');
     this.gfx.floatText(m, r.crit ? `${r.amount}!` : `${r.amount}`, r.crit ? 'crit' : magic ? 'hit magic' : 'hit');
     this.gfx.playHurt(m);

@@ -5,6 +5,8 @@ import { Monster } from '../entities/Monster.js?v=0.93.0-p3.35';
 import { findPath, smoothPath, lineClear } from '../core/Pathfinder.js?v=0.93.0-p3.35';
 import { rollChampion, goldenAI } from './Elites.js?v=0.93.0-p3.35';   // v0.93 fix17 แชมเปี้ยน · มอนทองคำ
 
+// fix24 โดนผู้เล่นตีภายใน 5 วิล่าสุด (Game ใส่ m.hitAt ทุกครั้งที่ทำดาเมจ)
+const hurtRecent = (m) => m.hitAt && performance.now() - m.hitAt < 5000;
 const LEASH = 15 * TILE;      // ไล่ไกลจากบ้านเกินนี้แล้วจะกลับ
 const WANDER_R = 4;           // รัศมีเดินเล่นรอบบ้าน (ช่อง)
 
@@ -164,7 +166,14 @@ export class MonsterManager {
             m.path = lineClear(map, m, t) ? [] : this.pathTo(m, t.x, t.y);
           }
           this.steer(m, t.x, t.y, 1, dt);
-          if (m.blocked > 2) { m.state = 'return'; m.target = null; m.blocked = 0; } // ไปต่อไม่ได้ (เช่น ติดน้ำ)
+          // fix24 เส้นตรงดูโล่งแต่ตัวมอนชนมุมสิ่งกีดขวาง → บังคับหาเส้นทางอ้อม
+          if (m.blocked > 0.7 && m.repath > 0.2) { m.path = this.pathTo(m, t.x, t.y); m.repath = 0.2; }
+          if (m.blocked > 2) {   // ไปต่อไม่ได้ (เช่น ติดน้ำ/หอคอย)
+            m.blocked = 0;
+            // fix24 ยังโดนตีอยู่ → ยืนสู้ตรงนี้ (ไม่วิ่งกลับไปฟื้นเลือดแล้ววนกลับมาใหม่)
+            if (hurtRecent(m)) { m.state = 'hold'; m.timer = 3; m.path = []; m.moving = false; }
+            else { m.state = 'return'; m.target = null; }
+          }
           break;
         }
 
@@ -179,14 +188,30 @@ export class MonsterManager {
           break;
         }
 
+        case 'hold': {   // fix24 ไปหาเป้าไม่ได้แต่ยังถูกโจมตี: ยืนหันหน้าสู้ · เข้าระยะเมื่อไรก็ตี
+          const t = m.target;
+          m.moving = false;
+          if (!t || t.dead) { m.state = 'return'; m.target = null; break; }
+          m.face(t.x - m.x, t.y - m.y);
+          const d = Math.hypot(t.x - m.x, t.y - m.y);
+          if (d <= m.data.attackRange) { m.state = 'attack'; break; }
+          m.timer -= dt;
+          if (m.timer <= 0) {
+            if (hurtRecent(m)) { m.state = 'chase'; m.repath = 0; }   // ลองหาทางใหม่ (เป้าอาจขยับแล้ว)
+            else { m.state = 'return'; m.target = null; m.path = []; }
+          }
+          break;
+        }
+
         case 'return': {
-          if (!m.worldRun) m.hp = Math.min(m.maxHp, m.hp + m.maxHp * 0.25 * dt);
+          // fix24 ถูกตีอยู่ระหว่างกลับบ้าน = ไม่ฟื้นเลือด (กันตีไม่ตายเพราะมอนวิ่งไปวิ่งกลับ)
+          if (!m.worldRun && !hurtRecent(m)) m.hp = Math.min(m.maxHp, m.hp + m.maxHp * 0.25 * dt);
           m.repath -= dt;
           if (m.repath <= 0) { m.repath = 1; m.path = lineClear(map, m, m.home) ? [] : this.pathTo(m, m.home.x, m.home.y); }
           const d = this.steer(m, m.home.x, m.home.y, 1.2, dt);
           if (d < 3 || m.stuck) {
             if (d >= 3) { m.x = m.home.x; m.y = m.home.y; }   // v0.16: ติดสิ่งกีดขวางระหว่างทางกลับ → กลับถึงบ้านทันที (ไม่ยืนฟื้นเลือดกลางทาง)
-            m.state = 'idle'; m.timer = 1 + Math.random() * 2; if (!m.worldRun) m.hp = m.maxHp; m.moving = false; m.stuck = false;
+            m.state = 'idle'; m.timer = 1 + Math.random() * 2; if (!m.worldRun && !hurtRecent(m)) m.hp = m.maxHp; m.moving = false; m.stuck = false;
             // บอสกลับบ้าน = รีเซ็ตสถานะต่อสู้ (หายโกรธ · เรียกลูกน้องได้ใหม่)
             if (m.data.boss) { m.enraged = false; m.attackDelay = 0; m.summonDone = 0; }
           }
