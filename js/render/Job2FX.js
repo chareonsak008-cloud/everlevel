@@ -1,9 +1,9 @@
 // v0.35 เอฟเฟกต์สกิลอาชีพขั้นที่ 2 — Wizard ชุดใหม่ (สไตล์อนิเมะ) · อาชีพอื่นชุด v0.31.1 — ติดตั้งเป็นเมธอดของ SkillFX
 // ภาษาภาพใหม่ต่างจากขั้น 1: วาดบนเลเยอร์ HD ความละเอียดเต็มจอ · ริบบิ้นแสงนุ่ม · วงเวทเฉพาะอาชีพที่วาดตัวเอง
 // · เปลวไฟ/โล่/ลำแสงแบบเชดเดอร์ · อนุภาคขอบนุ่ม — ดาเมจยังเข้าตามจังหวะเดิมผ่าน c.hit()
-import { THREE } from './three.js?v=0.93.0-p3.31';
-import * as TX from './FxTextures.js?v=0.93.0-p3.31';
-import { T, Ribbon, sigilMat, ribbonMat, flameMat, energyMat, beamMat, vortexMat } from './Job2Kit.js?v=0.93.0-p3.31';
+import { THREE } from './three.js?v=0.93.0-p3.34';
+import * as TX from './FxTextures.js?v=0.93.0-p3.34';
+import { T, Ribbon, sigilMat, ribbonMat, flameMat, energyMat, beamMat, vortexMat } from './Job2Kit.js?v=0.93.0-p3.34';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rand = (a, b) => a + Math.random() * (b - a);

@@ -12,6 +12,7 @@ export const FEST_GRACE = 3 * DAY;   // หลังจบเทศกาลย�
 export const FESTIVALS = {
   halloween: {
     name: 'ฮาโลวีนราตรีหลอน', icon: '🎃', color: '#ff8a1a', token: 'fest_candy', aura: 'a_fest_halloween', mob: 'fest_pumpkin', boss: 'fest_pumpking',
+    extra: [{ aura: 'a_fest_hw_witch', cost: 900 }],   // fix22 ออร่าเทศกาลระดับพิเศษ (Mythical) · ต้องไม่เกิน 999 (กองสูงสุดในกระเป๋า)
     range: (y) => [bkk(y, 10, 24), bkk(y, 11, 3)],
     when: '24 ต.ค. – 2 พ.ย.', desc: 'ฟักทองหลอนบุกทุกแผนที่! ปราบแล้วเก็บลูกอมฮาโลวีนไปแลกของ',
   },

@@ -5,7 +5,7 @@
 // · พื้น: วงเวทแม่มดสีส้ม-ม่วง 2 ชั้น · รอยแยกพื้นเรืองไฟ · ป้ายหลุมศพ 4 หลักพร้อมเทียน · หมอกสุสาน
 // · ทุก ~4.6 วิ: ราชันย์ฟักทองอ้าปากคำราม → ไฟผีระเบิดเป็นวงรอบตัว คลื่นส้ม/ม่วง ค้างคาวแตกฮือ ผีกรีดร้องพุ่งขึ้นฟ้า
 // ภาพทั้งหมดวาดด้วยโค้ด (ออกแบบเอง ไม่ใช้ภาพจากที่อื่น) · ใช้ตัวช่วยชุดเดียวกับออร่ายมทูต (ส่งมาจาก Costumes.js)
-import { THREE } from './three.js?v=0.93.0-p3.31';
+import { THREE } from './three.js?v=0.93.0-p3.34';
 
 const TAU = Math.PI * 2;
 const CY = 1.05;            // กลางลำตัวตัวละครพิกเซล
@@ -201,6 +201,105 @@ export function halloweenAuras(H) {
     g.fillStyle = '#0a1a0a'; g.beginPath(); g.moveTo(64, 108); g.lineTo(59, 118); g.lineTo(69, 118); g.closePath(); g.fill();
     for (let i = 0; i < 4; i++) g.fillRect(50 + i * 8, 130, 3, 10);
   });
+  /* ================= v0.93 fix22 ออร่าเทศกาล "ราชินีแม่มดหม้อยาวิญญาณ" — ภาพวาดด้วยโค้ด ================= */
+  const W_GREEN = '#5aff7a', W_LIME = '#c8ff6a', W_VIOLET = '#b05aff', W_PINK = '#ff5ad0';
+  // หม้อยาแม่มดเหล็กดำ ขาสามขา · น้ำยาเขียวเดือดล้นขอบ · อักขระม่วงเรืองบนตัวหม้อ · ฟืนลุกไฟใต้หม้อ (360×300)
+  const cauldronTex = () => ctex('hw_cauldron', 360, 300, (g) => {
+    const cx = 180;
+    // ฟืน + ไฟ
+    g.strokeStyle = '#4a2a14'; g.lineWidth = 16; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(90, 284); g.lineTo(270, 262); g.moveTo(96, 262); g.lineTo(266, 286); g.stroke();
+    for (let i = 0; i < 7; i++) {
+      const x = 110 + i * 23, h = 40 + (i % 3) * 16;
+      const f = g.createLinearGradient(0, 270, 0, 270 - h); f.addColorStop(0, '#ffe07a'); f.addColorStop(0.4, '#ff8a1a'); f.addColorStop(1, 'rgba(255,60,20,0)');
+      g.fillStyle = f; g.beginPath(); g.moveTo(x - 14, 272); g.quadraticCurveTo(x - 10, 270 - h * 0.6, x + (i % 2 ? 6 : -6), 270 - h); g.quadraticCurveTo(x + 12, 270 - h * 0.5, x + 14, 272); g.fill();
+    }
+    // ขาหม้อ
+    g.fillStyle = '#16141c'; for (const d of [-1, 0, 1]) { g.beginPath(); g.moveTo(cx + d * 92 - 12, 230); g.lineTo(cx + d * 104 + (d ? d * 10 : 0) - 8, 278); g.lineTo(cx + d * 104 + (d ? d * 10 : 0) + 10, 278); g.lineTo(cx + d * 92 + 14, 230); g.fill(); }
+    // ตัวหม้อ
+    const body = g.createRadialGradient(cx - 50, 130, 20, cx, 160, 170); body.addColorStop(0, '#5a5670'); body.addColorStop(0.45, '#26232e'); body.addColorStop(1, '#0a090e');
+    g.fillStyle = body; g.beginPath(); g.ellipse(cx, 160, 150, 100, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = 'rgba(160,150,200,0.35)'; g.lineWidth = 4; g.beginPath(); g.ellipse(cx, 160, 150, 100, 0, Math.PI * 1.05, Math.PI * 1.55); g.stroke();   // แสงสะท้อน
+    // อักขระม่วงรอบหม้อ
+    g.strokeStyle = W_VIOLET; g.lineWidth = 3; g.shadowColor = W_VIOLET; g.shadowBlur = 10;
+    for (let i = 0; i < 7; i++) {
+      const x = cx - 108 + i * 36, y = 176 + Math.sin(i * 0.9) * 6;
+      g.beginPath(); g.arc(x, y, 9, 0.4, Math.PI * 2 - 0.4); g.moveTo(x, y - 14); g.lineTo(x, y + 14); if (i % 2) { g.moveTo(x - 10, y + 6); g.lineTo(x + 10, y + 6); } g.stroke();
+    }
+    g.shadowBlur = 0;
+    // ขอบปากหม้อ
+    const rim = g.createLinearGradient(0, 60, 0, 96); rim.addColorStop(0, '#6a6680'); rim.addColorStop(1, '#1a1822');
+    g.fillStyle = rim; g.beginPath(); g.ellipse(cx, 78, 156, 34, 0, 0, Math.PI * 2); g.fill();
+    // น้ำยาเขียวเดือด
+    const brew = g.createRadialGradient(cx, 74, 8, cx, 76, 140); brew.addColorStop(0, '#f0ffb0'); brew.addColorStop(0.35, '#8aff5a'); brew.addColorStop(0.8, '#22c84a'); brew.addColorStop(1, '#0a6a2a');
+    g.fillStyle = brew; g.beginPath(); g.ellipse(cx, 78, 138, 25, 0, 0, Math.PI * 2); g.fill();
+    // ฟองบนผิว
+    g.fillStyle = 'rgba(230,255,180,0.9)'; for (const [x, y, r] of [[-70, 2, 12], [-20, -6, 16], [34, 4, 10], [78, -2, 13], [10, 10, 8], [-100, 6, 7], [110, 6, 7]]) { g.beginPath(); g.arc(cx + x, 76 + y, r, Math.PI, 0); g.fill(); }
+    // น้ำยาไหลย้อยข้างหม้อ
+    g.fillStyle = '#4aff6a'; for (const [x, l] of [[-120, 46], [-64, 70], [52, 54], [116, 38]]) { g.beginPath(); g.moveTo(cx + x - 10, 92); g.quadraticCurveTo(cx + x - 8, 92 + l, cx + x, 96 + l); g.quadraticCurveTo(cx + x + 8, 92 + l, cx + x + 10, 92); g.fill(); g.beginPath(); g.arc(cx + x, 96 + l, 6, 0, Math.PI * 2); g.fill(); }
+    // ไม้คนยาพาดขอบ
+    g.strokeStyle = '#6a4024'; g.lineWidth = 11; g.beginPath(); g.moveTo(cx + 40, 74); g.lineTo(cx + 150, -10); g.stroke();
+    g.strokeStyle = '#8a5a34'; g.lineWidth = 4; g.beginPath(); g.moveTo(cx + 46, 70); g.lineTo(cx + 150, -6); g.stroke();
+  });
+  // ไม้กวาดแม่มด (ด้าม + พู่ฟาง + เชือกม่วง + ดาวห้อย) 220×72
+  const broomTex = () => ctex('hw_broom', 220, 72, (g) => {
+    g.strokeStyle = '#5a3418'; g.lineWidth = 7; g.lineCap = 'round'; g.beginPath(); g.moveTo(8, 30); g.quadraticCurveTo(80, 24, 150, 34); g.stroke();
+    g.strokeStyle = '#8a5a2a'; g.lineWidth = 2; g.beginPath(); g.moveTo(10, 28); g.quadraticCurveTo(80, 22, 150, 32); g.stroke();
+    for (let i = 0; i < 22; i++) { const y = 18 + i * 1.7; g.strokeStyle = i % 3 ? '#e8b84a' : '#b8862a'; g.lineWidth = 3; g.beginPath(); g.moveTo(146, 34); g.quadraticCurveTo(180, y, 214, y * 1.15 - 6 + (i % 2) * 4); g.stroke(); }
+    g.fillStyle = W_VIOLET; g.fillRect(142, 26, 10, 16);
+    g.fillStyle = '#ffd24a'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 4 : 9; g[i ? 'lineTo' : 'moveTo'](60 + Math.cos(a) * r, 52 + Math.sin(a) * r); } g.closePath(); g.fill();
+    g.strokeStyle = '#ffd24a'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(60, 28); g.lineTo(60, 44); g.stroke();
+  });
+  // ตำราเวทลอย: เปิดกว้าง/หุบครึ่ง (2 เฟรม) 180×120
+  const bookTex = (open) => ctex('hw_book' + (open ? 1 : 0), 180, 120, (g) => {
+    const cx = 90, sp = open ? 1 : 0.62;
+    g.fillStyle = '#4a1a6a';
+    for (const d of [-1, 1]) { g.beginPath(); g.moveTo(cx, 30); g.lineTo(cx + d * 86 * sp, 18 + (1 - sp) * 20); g.lineTo(cx + d * 86 * sp, 98); g.lineTo(cx, 108); g.fill(); }
+    g.fillStyle = '#f4ead0';
+    for (const d of [-1, 1]) { g.beginPath(); g.moveTo(cx, 34); g.quadraticCurveTo(cx + d * 40 * sp, 18, cx + d * 80 * sp, 24 + (1 - sp) * 18); g.lineTo(cx + d * 80 * sp, 92); g.quadraticCurveTo(cx + d * 40 * sp, 86, cx, 102); g.fill(); }
+    g.strokeStyle = W_VIOLET; g.lineWidth = 2; g.shadowColor = W_VIOLET; g.shadowBlur = 6;
+    for (const d of [-1, 1]) for (let r = 0; r < 5; r++) { const y = 40 + r * 11; g.beginPath(); g.moveTo(cx + d * 12 * sp, y); for (let k = 1; k < 6; k++) g.lineTo(cx + d * (12 + k * 11) * sp, y + ((k + r) % 2 ? -3 : 3)); g.stroke(); }
+    g.shadowBlur = 0; g.strokeStyle = '#2a0a3a'; g.lineWidth = 3; g.beginPath(); g.moveTo(cx, 32); g.lineTo(cx, 104); g.stroke();
+    g.fillStyle = '#ffd24a'; g.beginPath(); g.arc(cx, 60, 5, 0, Math.PI * 2); g.fill();
+  });
+  // ขวดยาวิเศษ (สีตามพารามิเตอร์) 72×104
+  const bottleTex = (c) => ctex('hw_bottle' + c, 72, 104, (g) => {
+    g.fillStyle = '#8a5a2a'; g.fillRect(28, 4, 16, 14);
+    g.fillStyle = 'rgba(220,240,255,0.55)'; g.fillRect(30, 16, 12, 18);
+    g.beginPath(); g.arc(36, 66, 32, 0, Math.PI * 2); g.fill();
+    const lq = g.createRadialGradient(28, 62, 4, 36, 70, 30); lq.addColorStop(0, '#ffffff'); lq.addColorStop(0.3, c); lq.addColorStop(1, c);
+    g.fillStyle = lq; g.beginPath(); g.arc(36, 68, 28, -0.25, Math.PI + 0.25); g.closePath(); g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.85)'; g.beginPath(); g.ellipse(24, 54, 5, 9, -0.4, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#ffd24a'; g.fillRect(28, 30, 16, 4);
+  });
+  // เงาแม่มดขี่ไม้กวาด (บินตัดหน้าจันทร์) 260×150
+  const witchSilTex = () => ctex('hw_witchsil', 260, 150, (g) => {
+    g.fillStyle = '#0a0612';
+    g.beginPath(); g.moveTo(10, 104); g.quadraticCurveTo(120, 96, 210, 108); g.lineTo(210, 114); g.quadraticCurveTo(120, 104, 10, 110); g.fill();   // ด้าม
+    for (let i = 0; i < 9; i++) { g.beginPath(); g.moveTo(206, 110); g.lineTo(250, 92 + i * 5); g.lineTo(250, 96 + i * 5); g.fill(); }
+    g.beginPath(); g.moveTo(96, 104); g.quadraticCurveTo(92, 70, 112, 56); g.quadraticCurveTo(140, 50, 150, 70); g.quadraticCurveTo(160, 92, 176, 104); g.closePath(); g.fill();   // ตัว
+    g.beginPath(); g.moveTo(150, 70); g.quadraticCurveTo(190, 76, 214, 64); g.quadraticCurveTo(196, 88, 160, 94); g.fill();   // ผ้าคลุมปลิว
+    g.beginPath(); g.arc(112, 48, 13, 0, Math.PI * 2); g.fill();   // หัว
+    g.beginPath(); g.moveTo(88, 42); g.lineTo(140, 40); g.lineTo(122, 34); g.quadraticCurveTo(112, 10, 90, 2); g.quadraticCurveTo(104, 20, 102, 36); g.closePath(); g.fill();   // หมวก
+    g.beginPath(); g.moveTo(102, 46); g.lineTo(92, 52); g.lineTo(104, 52); g.fill();   // จมูก
+    g.beginPath(); g.moveTo(112, 92); g.lineTo(100, 122); g.lineTo(108, 124); g.lineTo(122, 96); g.fill();   // ขา
+    g.fillStyle = '#7aff6a'; g.beginPath(); g.arc(30, 80, 4, 0, Math.PI * 2); g.fill();   // แมวดำตาเขียวท้ายไม้กวาด
+    g.fillStyle = '#0a0612'; g.beginPath(); g.ellipse(36, 92, 14, 10, 0, 0, Math.PI * 2); g.fill(); g.beginPath(); g.arc(28, 82, 8, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.moveTo(22, 78); g.lineTo(24, 68); g.lineTo(28, 76); g.moveTo(30, 75); g.lineTo(34, 67); g.lineTo(35, 77); g.fill();
+    g.fillStyle = '#7aff6a'; g.beginPath(); g.arc(26, 82, 1.6, 0, Math.PI * 2); g.arc(31, 82, 1.6, 0, Math.PI * 2); g.fill();
+  });
+  // จันทร์เลือดเสี้ยวใหญ่ (ม่วงแดง) + หลุมอุกกาบาต 340×340
+  const bloodMoonTex = () => ctex('hw_bloodmoon', 340, 340, (g) => {
+    const c = 170;
+    const halo = g.createRadialGradient(c, c, 110, c, c, 170); halo.addColorStop(0, 'rgba(255,90,170,0.55)'); halo.addColorStop(1, 'rgba(140,40,200,0)'); g.fillStyle = halo; g.fillRect(0, 0, 340, 340);
+    const disc = g.createRadialGradient(c - 40, c - 40, 20, c, c, 130); disc.addColorStop(0, '#ffd0e8'); disc.addColorStop(0.45, '#ff5aa0'); disc.addColorStop(1, '#7a1a6a');
+    g.fillStyle = disc; g.beginPath(); g.arc(c, c, 124, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(120,20,90,0.35)'; for (const [x, y, r] of [[-40, -30, 20], [30, 20, 26], [-10, 60, 14], [50, -50, 12], [-60, 40, 10]]) { g.beginPath(); g.arc(c + x, c + y, r, 0, Math.PI * 2); g.fill(); }
+    g.globalCompositeOperation = 'destination-out';
+    const cut = g.createRadialGradient(c + 70, c - 30, 60, c + 70, c - 30, 120); cut.addColorStop(0, 'rgba(0,0,0,1)'); cut.addColorStop(0.85, 'rgba(0,0,0,1)'); cut.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = cut; g.beginPath(); g.arc(c + 70, c - 30, 120, 0, Math.PI * 2); g.fill();
+    g.globalCompositeOperation = 'source-over';
+  });
   const KW = 2.45, KH = KW * 340 / 320;   // ขนาดราชันย์ฟักทอง (หน่วยโลก)
   const K_CY = -0.54;                     // ยกภาพขึ้นเหนือศีรษะ (center.y ติดลบ)
 
@@ -321,6 +420,70 @@ export function halloweenAuras(H) {
         circle.rotation.z = t * 0.22; circle2.rotation.z = -t * 0.5;
         circle.material.opacity = 0.65 + 0.1 * Math.sin(t * 2) + kick * 0.35; circle2.material.opacity = 0.45 + kick * 0.4;
         crack.material.opacity = 0.4 + 0.15 * Math.sin(t * 3.1) + kick * 0.5; rim.material.opacity = 0.4 + kick * 0.5;
+      });
+    },
+    // v0.93 fix22 ออร่าเทศกาล "ราชินีแม่มดหม้อยาวิญญาณ" — แลกด้วยลูกอมฮาโลวีน
+    // หลังตัว: จันทร์เลือดเสี้ยว + เงาแม่มดขี่ไม้กวาดบินผ่าน · หม้อยายักษ์เดือดเขียว ควันวิญญาณลอยขึ้น
+    // รอบตัว: ไม้กวาดวิเศษ 3 ด้าม · ตำราเวท 2 เล่มเปิด-ปิด · ขวดยา 4 สี · ไฟวิญญาณเขียวหมุนวนขึ้น · ค้างคาว · เทียนลอย
+    // พื้น: วงเวทแม่มดเขียว-ม่วง 3 ชั้น · ใยแมงมุม · บ่อยาเรืองแสงเป็นระลอก
+    // ทุก ~5.2 วิ: หม้อยาปะทุ → เสาไฟเขียวพุ่ง · หน้าแม่มดวิญญาณหัวเราะในควัน · คลื่นเวท · ลูกอม/ฟองยา/ดาวกระจาย
+    hwWitch(rig, p, rt) {
+      const G = stage(rig, rt);
+      /* --- พื้น --- */
+      const dark = flat(G, 5.0, unlit('#0a0614', { map: TX.softDot(), opacity: 0.62 }), 0.018); dark.material.depthWrite = false;
+      const circle = flat(G, 4.4, unlit(W_GREEN, { map: witchCircleTex(), opacity: 0.7, add: true }), 0.03);
+      const circle2 = flat(G, 3.0, unlit(W_VIOLET, { map: TX.runeCircle('hex'), opacity: 0.55, add: true }), 0.034);
+      const circle3 = flat(G, 1.7, unlit(W_LIME, { map: TX.runeCircle('star'), opacity: 0.45, add: true }), 0.038);
+      const web = flat(G, 4.6, unlit('#d8c8ff', { map: webTex(), opacity: 0.2, add: true }), 0.026);
+      const rim = flat(G, 4.8, unlit(W_VIOLET, { map: TX.softRing(), opacity: 0.4, add: true }), 0.024);
+      const ripples = [0, 1, 2].map((i) => { const m = flat(G, 1, unlit(W_GREEN, { map: TX.softRing(), opacity: 0, add: true }), 0.04 + i * 0.002, 3); m.userData.o = i / 3; return m; });
+      /* --- หลังตัว: จันทร์เลือด + เงาแม่มด + หม้อยา --- */
+      const mist = deep(sprite(TX.softDot(), '#3a1a6a', 5.0, 4.4, 0.55), 29); mist.position.y = CY + 0.4; G.add(mist);
+      const moon = deep(sprite(bloodMoonTex(), '#ffffff', 3.9, 3.9, 0.95, false), 30); moon.position.y = CY; moon.center.set(0.42, 0.5 - 1.15 / 3.9); G.add(moon);
+      const moonGlow = deep(sprite(TX.softDot(), '#ff5ab0', 4.6, 4.6, 0.3), 31); moonGlow.position.y = CY; moonGlow.center.set(0.5, 0.5 - 0.95 / 4.6); G.add(moonGlow);
+      const witch = deep(sprite(witchSilTex(), '#ffffff', 1.3, 0.75, 0.95, false), 32); witch.position.y = CY; G.add(witch);
+      const cauldron = deep(sprite(cauldronTex(), '#ffffff', 3.3, 2.75, 1, false), 34); cauldron.center.set(0.5, 0.02); cauldron.position.y = 0.0; G.add(cauldron);
+      const brew = deep(sprite(TX.softDot(), W_GREEN, 3.2, 1.5, 0.55), 35); brew.position.y = 0; brew.center.set(0.5, 0.5 - 1.95 / 1.5); G.add(brew);
+      /* --- รอบตัว --- */
+      const brooms = Array.from({ length: 3 }, (_, i) => { const s = deep(sprite(broomTex(), '#ffffff', 0.95, 0.31, 1, false), 40); const gl = deep(sprite(TX.softDot(), W_VIOLET, 0.8, 0.5, 0.45), 39); G.add(gl, s); return { s, gl, ph: i / 3 * TAU }; });
+      const bk = [bookTex(true), bookTex(false)];
+      const books = Array.from({ length: 2 }, (_, i) => { const s = deep(sprite(bk[0], '#ffffff', 0.62, 0.42, 1, false), 41); const gl = deep(sprite(TX.softDot(), W_VIOLET, 0.9, 0.9, 0.5), 40); G.add(gl, s); return { s, gl, ph: i * Math.PI }; });
+      const bottles = [W_GREEN, W_VIOLET, '#ff9a2a', W_PINK].map((c, i) => { const s = deep(sprite(bottleTex(c), '#ffffff', 0.3, 0.43, 1, false), 41); const gl = deep(sprite(TX.softDot(), c, 0.6, 0.6, 0.5), 40); G.add(gl, s); return { s, gl, ph: i / 4 * TAU, c }; });
+      const wisps = Array.from({ length: 8 }, (_, i) => { const f = deep(sprite(flameTex(), i % 3 === 2 ? W_VIOLET : W_GREEN, 0.3, 0.6, 0.9), 41); const gl = deep(sprite(TX.softDot(), W_GREEN, 0.7, 0.7, 0.35), 40); G.add(gl, f); return { f, gl, ph: i / 8, a: i * 0.8 }; });
+      const bt = [batTex(true), batTex(false)];
+      const bats = Array.from({ length: 10 }, (_, i) => { const s = deep(sprite(bt[i % 2], '#ffffff', 0.44, 0.27, 1, false), 40); G.add(s); return { s, ph: i / 10 * TAU, r: 1.3 + (i % 3) * 0.3, y: 1.0 + (i * 0.37 % 1) * 1.3, sp: 0.8 + (i % 4) * 0.15, fl: rnd(), scat: 0 }; });
+      const candles = Array.from({ length: 7 }, (_, i) => { const s = deep(sprite(candleTex(), '#ffffff', 0.16, 0.32, 1, false), 40); const gl = deep(sprite(TX.softDot(), '#ffc040', 0.36, 0.36, 0.5), 41); G.add(s, gl); return { s, gl, ph: i / 7 * TAU }; });
+      /* --- อนุภาค --- */
+      const sc0 = () => rig.root.scale.y || 1;
+      auraEmitter(rig, rt, 16, (b) => { const sc = sc0(); rt.ps('bubble').emit({ pos: V(b.x + rand(-1.2, 1.2) * sc, b.y + 1.9 * sc, b.z + rand(-0.15, 0.15) * sc), count: 1, vel: () => V(rand(-0.1, 0.1), rand(0.4, 0.8), 0), life: [0.9, 1.6], size: [0.08, 0.16], sizeEnd: 1.3, color: [W_GREEN, W_LIME, '#e8ffb0'] }); });
+      auraEmitter(rig, rt, 9, (b) => { const sc = sc0(); rt.ps('smoke', NB).emit({ pos: V(b.x + rand(-1.0, 1.0) * sc, b.y + 2.0 * sc, b.z), count: 1, vel: () => V(rand(-0.15, 0.15), rand(0.35, 0.6), 0), life: [2.0, 3.0], size: [0.35, 0.5], sizeEnd: 2.2, alpha: 0.4, color: ['#2a6a3a', '#3a2a6a', '#1a4a2a'] }); });
+      auraEmitter(rig, rt, 18, (b) => { const sc = sc0(), a = rand(0, TAU), r = rand(0.4, 2.0) * sc; rt.ps('flame').emit({ pos: V(b.x + Math.cos(a) * r, b.y + 0.05, b.z + Math.sin(a) * r), count: 1, vel: () => V(rand(-0.08, 0.08), rand(0.5, 1.0), rand(-0.08, 0.08)), life: [0.6, 1.1], size: [0.1, 0.18], color: [W_GREEN, W_LIME, W_VIOLET] }); });
+      auraEmitter(rig, rt, 14, (b) => { const sc = sc0(), a = rand(0, TAU), r = rand(0.3, 1.7) * sc; rt.ps('star').emit({ pos: V(b.x + Math.cos(a) * r, b.y + rand(0.3, 2.2) * sc, b.z + Math.sin(a) * r), count: 1, speed: 0.06, life: [0.5, 1.0], size: [0.08, 0.15], color: [W_VIOLET, W_PINK, '#ffd24a', W_LIME, '#ffffff'] }); });
+      const kick = 0;
+      rt.on(({ t, dt }) => {
+        const sc = sc0();
+        // หม้อยาเดือด
+        cauldron.material.rotation = Math.sin(t * 7) * 0.006 * (1 + kick * 4);
+        brew.material.opacity = 0.45 + 0.15 * Math.sin(t * 3.3) + kick * 0.5;
+        for (const R of ripples) { const k = (t * 0.45 + R.userData.o) % 1; R.scale.setScalar(0.6 + k * 3.6); R.material.opacity = 0.45 * (1 - k); }
+        // จันทร์ + แม่มดบินผ่าน
+        moonGlow.material.opacity = 0.28 + 0.08 * Math.sin(t * 1.2) + kick * 0.25; mist.material.opacity = 0.5 + 0.08 * Math.sin(t * 0.8);
+        const q = (t * 0.085) % 1; witch.center.set(0.5 + (0.5 - q) * 3.6, 0.5 - (0.95 + 0.25 + Math.sin(q * 9) * 0.12) / 0.75); witch.material.opacity = Math.sin(q * Math.PI) * 0.95;
+        // ไม้กวาดวน
+        for (const B of brooms) { const a = B.ph + t * 0.75, y = CY + 0.3 + Math.sin(t * 1.9 + B.ph) * 0.18; B.s.position.set(Math.cos(a) * 1.45, y, Math.sin(a) * 1.45); B.gl.position.copy(B.s.position); B.s.material.rotation = (Math.sin(a) > 0 ? -1 : 1) * 0.18 + Math.sin(t * 3 + B.ph) * 0.08; B.s.scale.x = (Math.sin(a) > 0 ? -0.95 : 0.95); }
+        // ตำราเปิด-ปิด
+        for (const K of books) { const a = K.ph - t * 0.5, y = CY + 0.95 + Math.sin(t * 1.6 + K.ph) * 0.1; K.s.position.set(Math.cos(a) * 1.1, y, Math.sin(a) * 1.1); K.gl.position.copy(K.s.position); K.s.material.map = bk[Math.floor(t * 1.4 + K.ph) % 2]; K.gl.material.opacity = 0.4 + 0.2 * Math.sin(t * 4 + K.ph); }
+        // ขวดยาโยก
+        for (const P of bottles) { const a = P.ph + t * 1.1, y = CY - 0.35 + Math.sin(t * 2.4 + P.ph) * 0.12; P.s.position.set(Math.cos(a) * 0.95, y, Math.sin(a) * 0.95); P.gl.position.copy(P.s.position); P.s.material.rotation = Math.sin(t * 2 + P.ph) * 0.3; }
+        // ไฟวิญญาณหมุนวนขึ้น
+        for (const W of wisps) { W.ph = (W.ph + dt * 0.18) % 1; const k = W.ph, a = W.a + k * 6 + t * 0.6, r = 1.6 - k * 0.9; W.f.position.set(Math.cos(a) * r, 0.2 + k * 2.6, Math.sin(a) * r); W.gl.position.copy(W.f.position); const o = Math.sin(k * Math.PI); W.f.material.opacity = o * 0.9; W.gl.material.opacity = o * 0.35; W.f.scale.set(0.3 * (0.8 + 0.2 * Math.sin(t * 12 + W.a)), 0.6, 1); }
+        // ค้างคาว
+        for (const B of bats) { const a = B.ph + t * B.sp * (1 + B.scat * 1.5), r = B.r * (1 + B.scat * 0.9), y = B.y + Math.sin(t * 2.6 + B.ph * 3) * 0.12 + B.scat * 0.5; B.s.position.set(Math.cos(a) * r, y, Math.sin(a) * r); B.s.material.map = bt[Math.floor(t * (10 + B.scat * 8) + B.fl * 10) % 2]; }
+        // เทียนลอยวงบนศีรษะ
+        for (const C of candles) { const a = C.ph - t * 0.4, y = CY + 1.55 + Math.sin(t * 1.7 + C.ph * 2) * 0.1; C.s.position.set(Math.cos(a) * 0.9, y, Math.sin(a) * 0.9); C.gl.position.copy(C.s.position); C.gl.center.set(0.5, 0.15); C.gl.material.opacity = 0.4 + 0.2 * Math.sin(t * 15 + C.ph * 5); }
+        // พื้น
+        circle.rotation.z = t * 0.2; circle2.rotation.z = -t * 0.45; circle3.rotation.z = t * 0.8; web.rotation.z = -t * 0.04;
+        circle.material.opacity = 0.6 + 0.1 * Math.sin(t * 2) + kick * 0.35; circle2.material.opacity = 0.5 + kick * 0.4; circle3.material.opacity = 0.4 + 0.15 * Math.sin(t * 3) + kick * 0.4; rim.material.opacity = 0.35 + kick * 0.5;
       });
     },
   };

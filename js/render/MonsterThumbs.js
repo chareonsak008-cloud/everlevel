@@ -1,8 +1,8 @@
 // รูปย่อมอนสเตอร์ (v0.14) — เรนเดอร์โมเดล 3 มิติจริงเป็นภาพเล็ก ใช้ในหน้าต่างตีออโต้ (ติ๊กเลือกมอน)
-import { THREE } from './three.js?v=0.93.0-p3.31';
-import { MonsterView } from './Monsters.js?v=0.93.0-p3.31';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.31';
-import { snapThumb } from './PetThumbs.js?v=0.93.0-p3.31';
+import { THREE } from './three.js?v=0.93.0-p3.34';
+import { MonsterView } from './Monsters.js?v=0.93.0-p3.34';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p3.34';
+import { snapThumb } from './PetThumbs.js?v=0.93.0-p3.34';
 
 export function monsterThumb(type, size = 112) {
   const data = MONSTERS[type];
