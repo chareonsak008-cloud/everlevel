@@ -1,11 +1,11 @@
 // โมเดล 3 มิติของสิ่งปลูกสร้างและของตกแต่ง (สร้างจากรูปทรงพื้นฐาน)
 // หน่วย: 1 = 1 ช่องแผนที่ | ด้านหน้าของโมเดลหันไปทาง +z (ทิศใต้)
-import { THREE } from './three.js?v=0.93.0-p3.34';
-import { std, box, cyl, sphere, mesh, boxGeo, mergeGeometries, paint, lin, GEO } from './Geo.js?v=0.93.0-p3.34';
-import { gradientMap } from './Toon.js?v=0.93.0-p3.34';
-import * as PT from './PixelTextures.js?v=0.93.0-p3.34';
-import { stoneTexture, plasterTexture, shingleTexture, woodTexture, crateTexture, stripeTexture, signTexture, glowTexture, shadeHex } from './Textures.js?v=0.93.0-p3.34';
-import { rng } from '../core/util.js?v=0.93.0-p3.34';
+import { THREE } from './three.js?v=0.93.0-p3.35';
+import { std, box, cyl, sphere, mesh, boxGeo, mergeGeometries, paint, lin, GEO } from './Geo.js?v=0.93.0-p3.35';
+import { gradientMap } from './Toon.js?v=0.93.0-p3.35';
+import * as PT from './PixelTextures.js?v=0.93.0-p3.35';
+import { stoneTexture, plasterTexture, shingleTexture, woodTexture, crateTexture, stripeTexture, signTexture, glowTexture, shadeHex } from './Textures.js?v=0.93.0-p3.35';
+import { rng } from '../core/util.js?v=0.93.0-p3.35';
 
 /* ---------- วัสดุ ---------- */
 // v0.17: โหมดพิกเซล → วัสดุ toon (แสงเป็นขั้น) + ลายพิกเซล 48 จุด/หน่วย

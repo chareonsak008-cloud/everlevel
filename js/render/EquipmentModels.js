@@ -1,5 +1,5 @@
-import {THREE} from './three.js?v=0.93.0-p3.34';
-import {toon,bake} from './Toon.js?v=0.93.0-p3.34';
+import {THREE} from './three.js?v=0.93.0-p3.35';
+import {toon,bake} from './Toon.js?v=0.93.0-p3.35';
 // Shared geometry for inventory portraits, fitting room, and equipped characters.
 // v0.25: อาวุธ 12 ประเภท แต่ละชิ้นมีทรง (shape) และสีของตัวเอง · ชุดใช้สีของชิ้นนั้น
 export function makeEquipmentModel(d){
