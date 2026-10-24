@@ -1,10 +1,10 @@
 // v0.17: มอนสเตอร์ออกแบบใหม่ทั้งหมด (ใช้ถ่ายเป็นสไปรต์พิกเซลแบบเกม RPG — render/PixelSprites.js)
 // แต่ละชนิด = build (สร้างโมเดลจากชิ้นรูปทรง) + anim (ท่าทางต่อเฟรม) · ส่วนกลาง: กระพริบตอนโดนตี ตาย เกิดใหม่ แช่แข็ง มึน ทุบพื้น
-import { THREE } from './three.js?v=0.93.0-p4.4';
-import { lin, mergeGeometries } from './Geo.js?v=0.93.0-p4.4';
-import { toon, toonOwn, addOutline } from './Toon.js?v=0.93.0-p4.4';
-import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.93.0-p4.4';
-import { lerpAngle, damp } from '../core/util.js?v=0.93.0-p4.4';
+import { THREE } from './three.js?v=0.93.0-p4.6';
+import { lin, mergeGeometries } from './Geo.js?v=0.93.0-p4.6';
+import { toon, toonOwn, addOutline } from './Toon.js?v=0.93.0-p4.6';
+import { blobShadowTexture, shadeHex, glowTexture } from './Textures.js?v=0.93.0-p4.6';
+import { lerpAngle, damp } from '../core/util.js?v=0.93.0-p4.6';
 
 const PI = Math.PI;
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -986,6 +986,32 @@ function spectralShade(v,d){
 DEFS.shade={build:spectralShade,anim(v,P,{t,moving,atk,slam}){P.core.position.y=.32+Math.sin(t*2.6)*.10;P.core.position.z=atk*.3;P.core.rotation.z=Math.sin(t*1.7)*.04;P.arms.forEach((a,i)=>a.rotation.x=-atk*1.4+(slam>=0?-Math.sin(slam*PI)*1.8:Math.sin(t*1.3+i)*.08));}};
 DEFS.reaper=DEFS.shade;
 DEFS.stag={build(v,d){const P=shadowBeast(v,{...d,model:'basilisk',stag:true}),antler=v.own('#d3b996');for(const side of [-1,1]){const h=grp(P.head,side*.19,.18,0);add(h,tube([[0,0,0],[side*.18,.35,0],[side*.30,.60,-.05]],[.045,.032,.009],6,12),antler);for(const [y,z] of [[.22,.18],[.38,-.16]])add(h,tube([[side*.1,y,0],[side*.22,y+.15,z]],[.025,.008],6,6),antler);}return P;},anim(v,P,a){animQuad(v,P,a,{stride:.8,rate:1.1});}};
+
+// v0.94 หุ่นฝึกซ้อม: เสาไม้ปักพื้น ตัวฟางมัดเชือก แขนไม้ขวาง เป้าวงแดงที่อก · โดนตีแล้วโยก
+DEFS.dummy = {
+  build(v, d) {
+    const wood = toon('#8a5a32'), dark = toon('#5a3a20'), straw = v.own(d.color || '#c89a58'), rope = toon('#7a5a3a'), red = toon('#d83a32'), white = toon('#f4ead8');
+    const base = grp(v.body, 0, 0, 0);
+    add(base, cyl(0.42, 0.5, 0.12, 12), dark, 0, 0.06, 0);   // ฐานไม้
+    add(base, cyl(0.08, 0.1, 1.5, 8), wood, 0, 0.8, 0);       // เสา
+    const core = grp(base, 0, 0.12, 0);
+    add(core, cyl(0.3, 0.26, 0.75, 12), straw, 0, 0.95, 0);    // ตัวฟาง
+    add(core, sph(0.24, 12, 10), straw, 0, 1.55, 0);            // หัวฟาง
+    for (const y of [0.7, 1.05, 1.3]) add(core, cyl(0.31, 0.31, 0.05, 12), rope, 0, y, 0);   // เชือกมัด
+    add(core, cyl(0.04, 0.04, 1.1, 6).rotateZ(Math.PI / 2), wood, 0, 1.18, 0);   // แขนไม้ขวาง
+    for (const sx of [-1, 1]) add(core, sph(0.09, 8, 6), straw, sx * 0.55, 1.18, 0);   // ปลายแขนพันฟาง
+    // เป้าที่อก (หันไปด้านหน้า)
+    add(core, cyl(0.17, 0.17, 0.02, 16).rotateX(Math.PI / 2), red, 0, 1.0, 0.27);
+    add(core, cyl(0.11, 0.11, 0.025, 16).rotateX(Math.PI / 2), white, 0, 1.0, 0.28);
+    add(core, cyl(0.05, 0.05, 0.03, 12).rotateX(Math.PI / 2), red, 0, 1.0, 0.29);
+    return { core };
+  },
+  anim(v, P, { t }) {
+    const h = Math.max(0, v.hurtT || 0);   // โดนตี = โยกไปมา
+    P.core.rotation.z = Math.sin(t * 22) * h * 0.6;
+    P.core.rotation.x = -h * 0.5;
+  },
+};
 
 /* ---------- v0.46: มอนดินแดน Lv.100–150 (ออกแบบใหม่) ---------- */
 // แครบปะการัง: กระดองกว้างแบน ก้ามใหญ่สองข้าง ตาบนก้าน ปะการังงอกบนหลัง

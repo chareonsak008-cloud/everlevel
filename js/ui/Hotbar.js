@@ -1,9 +1,11 @@
-// แถบปุ่มลัด F1–F9 (หรือเลข 1–9): ใช้ยา/สวมใส่อุปกรณ์/ใช้สกิลได้ทันที
-import { ITEMS } from '../data/items.js?v=0.93.0-p4.4';
-import { SKILLS, skillSp } from '../data/skills.js?v=0.93.0-p4.4';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.4';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p4.4';
-import { isSkillKey, validHotkey } from '../entities/Player.js?v=0.93.0-p4.4';
+// แถบปุ่มลัด 1–0 (หรือ F1–F10): ใช้ยา/สวมใส่อุปกรณ์/ใช้สกิลได้ทันที
+import { ITEMS } from '../data/items.js?v=0.93.0-p4.6';
+import { SKILLS, skillSp, skillCd } from '../data/skills.js?v=0.93.0-p4.6';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.6';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p4.6';
+import { isSkillKey, validHotkey } from '../entities/Player.js?v=0.93.0-p4.6';
+
+export const HKN = (i) => (i === 9 ? '0' : String(i + 1));   // v0.94 ชื่อปุ่มลัด 1–9, 0
 
 export class Hotbar {
   constructor(root, player, { onUse, onAssign }) {
@@ -13,10 +15,10 @@ export class Hotbar {
     this.arc = root.querySelector('#skillArc');   // v0.11: มือถือ — ปุ่มลัด 1–4 เรียงเป็นวงรอบปุ่มโจมตี
     this.touch = false;
     this.slots = [];
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 10; i++) {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'hk';
-      b.innerHTML = `<span class="key">F${i + 1}</span><img alt="" hidden><span class="qty"></span><i class="cd"></i><i class="cdw"></i>`;
+      b.innerHTML = `<span class="key">${HKN(i)}</span><img alt="" hidden><span class="qty"></span><i class="cd"></i><i class="cdw"></i>`;
       b.addEventListener('click', () => this.onUse(i));
       b.addEventListener('contextmenu', (e) => { e.preventDefault(); this.onAssign(i, null); });
       b.addEventListener('dragover', (e) => { e.preventDefault(); b.classList.add('over'); });
@@ -52,17 +54,17 @@ export class Hotbar {
         q.textContent = lv ? `Lv${lv}` : '';
         b.classList.add('skill');
         b.classList.toggle('dim', !lv);
-        b.title = `F${i + 1}: ${sk.name} Lv.${lv} · SP ${skillSp(sk, Math.max(1, lv))} · คลิกขวาเพื่อนำออก`;
+        b.title = `${HKN(i)}: ${sk.name} Lv.${lv} · SP ${skillSp(sk, Math.max(1, lv))} · คลิกขวาเพื่อนำออก`;
         return;
       }
       const it = id && ITEMS[id];
-      if (!it) { img.hidden = true; q.textContent = ''; b.title = `F${i + 1} ว่าง (ลากไอเทมหรือสกิลมาวาง)`; return; }
+      if (!it) { img.hidden = true; q.textContent = ''; b.title = `${HKN(i)} ว่าง (ลากไอเทมหรือสกิลมาวาง)`; return; }
       img.hidden = false; img.src = iconURL(id);
       const n = it.type === 'equip' ? p.inventory.count(id) + (p.equip[it.slot] === id ? 1 : 0) : p.inventory.count(id);
       q.textContent = it.type === 'equip' ? '' : n;
       b.classList.toggle('dim', n <= 0);
       b.classList.toggle('eq', it.type === 'equip' && p.equip[it.slot] === id);
-      b.title = `F${i + 1}: ${it.name}${it.type === 'equip' ? '' : ` (${n})`} · คลิกขวาเพื่อนำออก`;
+      b.title = `${HKN(i)}: ${it.name}${it.type === 'equip' ? '' : ` (${n})`} · คลิกขวาเพื่อนำออก`;
     });
   }
 
@@ -75,7 +77,7 @@ export class Hotbar {
       if (!isSkillKey(id) || !SKILLS[id.slice(6)]) { if (w.style.opacity !== '0') w.style.opacity = '0'; return; }
       const sid = id.slice(6), sk = SKILLS[sid], lv = p.skillLv(sid);
       const left = p.cooldowns[sid] != null ? p.cooldowns[sid] - time : 0;
-      if (left > 0 && sk.cd) { w.style.opacity = '1'; w.style.setProperty('--k', String(Math.min(1, left / sk.cd))); } else if (w.style.opacity !== '0') w.style.opacity = '0';
+      if (left > 0 && sk.cd) { w.style.opacity = '1'; w.style.setProperty('--k', String(Math.min(1, left / skillCd(sk)))); } else if (w.style.opacity !== '0') w.style.opacity = '0';
       b.classList.toggle('nosp', !!lv && p.sp < skillSp(sk, lv));
       b.classList.toggle('casting', !!p.cast && p.cast.id === sid);
     });

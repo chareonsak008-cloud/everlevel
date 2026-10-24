@@ -7,9 +7,9 @@
 //   cross   ลำแสงตามแนวกากบาท/ดาว (ยืนในช่องว่าง)  shield โล่ลดดาเมจ 75% ชั่วครู่ (หยุดตี/ใช้บัฟ)
 //   adds    เรียกลูกน้อง                         cataclysm  ถล่มทั้งลาน เว้นวงปลอดภัย (บอสโลก)
 // รายบอสอยู่ใน BOSS_KITS · ค่า mult เทียบกับพลังโจมตีบอส (ผ่าน rollSkill เดิม · หลบ Miss ได้)
-import { TILE } from '../config.js?v=0.93.0-p4.4';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p4.4';
-import { rollSkill } from './Combat.js?v=0.93.0-p4.4';
+import { TILE } from '../config.js?v=0.93.0-p4.6';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p4.6';
+import { rollSkill } from './Combat.js?v=0.93.0-p4.6';
 
 const TAU = Math.PI * 2;
 const rnd = (a, b) => a + Math.random() * (b - a);

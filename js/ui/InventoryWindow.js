@@ -1,17 +1,17 @@
 // หน้าต่างกระเป๋า + อุปกรณ์ที่สวมใส่ (เปิดด้วย I หรือ Alt+E)
-import { upgradeInfo } from '../data/gearScore.js?v=0.93.0-p4.4';   // v0.94 เทียบอุปกรณ์
-import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.93.0-p4.4';
-import { duraOf, DURA_MAX, DURA_LOW } from '../data/durability.js?v=0.93.0-p4.4';   // v0.89
-import { weaponLines, rollLine } from './WeaponInfo.js?v=0.93.0-p4.4';
-import { refineBonus, canRefine } from '../data/refine.js?v=0.93.0-p4.4';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p4.4';
-import { socketTargets } from '../systems/Forge.js?v=0.93.0-p4.4';
-import { JOBS } from '../data/progression.js?v=0.93.0-p4.4';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.4';
-import { sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p4.4';
-import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.93.0-p4.4';
-import { fmtDur } from '../data/consumables.js?v=0.93.0-p4.4';
-import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.93.0-p4.4';
+import { upgradeInfo } from '../data/gearScore.js?v=0.93.0-p4.6';   // v0.94 เทียบอุปกรณ์
+import { ITEMS, EQUIP_SLOTS, RARITY, describeBonus, canJobUse, itemMods, BASE_ITEMS } from '../data/items.js?v=0.93.0-p4.6';
+import { duraOf, DURA_MAX, DURA_LOW } from '../data/durability.js?v=0.93.0-p4.6';   // v0.89
+import { weaponLines, rollLine } from './WeaponInfo.js?v=0.93.0-p4.6';
+import { refineBonus, canRefine } from '../data/refine.js?v=0.93.0-p4.6';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p4.6';
+import { socketTargets } from '../systems/Forge.js?v=0.93.0-p4.6';
+import { JOBS } from '../data/progression.js?v=0.93.0-p4.6';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.6';
+import { sellPrice, fmtZ } from '../data/shops.js?v=0.93.0-p4.6';
+import { BOX_ODDS, FASHION_RARITY, FASHION_TIERS, fmtPct } from '../data/fashionBoxes.js?v=0.93.0-p4.6';
+import { fmtDur } from '../data/consumables.js?v=0.93.0-p4.6';
+import { PET_EGGS, PET_RARITY, PET_TIERS } from '../data/pets.js?v=0.93.0-p4.6';
 
 const TABS = [
   { id: 'all', name: 'ทั้งหมด', test: () => true },
@@ -63,7 +63,7 @@ export class InventoryWindow {
     this.render();
   }
 
-  select(sel) { this.sel = sel; this.confirmDrop = false; this.sockPick = null; this.render(); }
+  select(sel) { if (!this.sel || !sel || this.sel.id !== sel.id) this.dropQty = 1; this.sel = sel; this.confirmDrop = false; this.sockPick = null; this.render(); }
 
   cell(id, qty, { equipped = false, slotName = '' } = {}) {
     const it = id && ITEMS[id];
@@ -224,17 +224,30 @@ export class InventoryWindow {
       if (it.type !== 'etc' && it.type !== 'card') {
         const keys = box.querySelector('.d-keys');
         btn('ตั้งปุ่มลัด', () => { keys.hidden = !keys.hidden; });
-        for (let i = 0; i < 9; i++) {
-          const k = document.createElement('button'); k.type = 'button'; k.textContent = `F${i + 1}`;
+        for (let i = 0; i < 10; i++) {
+          const k = document.createElement('button'); k.type = 'button'; k.textContent = i === 9 ? '0' : String(i + 1);
           if (p.hotbar[i] === id) k.classList.add('on');
           k.addEventListener('click', () => { this.act.assign(i, id); keys.hidden = true; this.render(); });
           keys.append(k);
         }
       }
-      btn(this.confirmDrop ? 'ยืนยันทิ้ง 1 ชิ้น?' : 'ทิ้ง', () => {
+      // v0.94 ทิ้งได้หลายชิ้น: ช่องพิมพ์จำนวน (มีมากกว่า 1 ชิ้น) · กดสองครั้งเพื่อยืนยัน
+      const have = p.inventory.count(id);
+      this.dropQty = Math.max(1, Math.min(have, this.dropQty || 1));
+      if (have > 1) {
+        const q = document.createElement('input'); q.type = 'number'; q.className = 'q'; q.min = '1'; q.max = String(have); q.value = String(this.dropQty);
+        q.title = `จำนวนที่จะทิ้ง (มี ${have})`; q.setAttribute('aria-label', 'จำนวนที่จะทิ้ง');
+        q.addEventListener('pointerdown', (e) => e.stopPropagation());
+        q.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') q.blur(); });
+        q.addEventListener('focus', () => q.select());
+        q.addEventListener('change', () => { this.dropQty = Math.max(1, Math.min(have, Math.floor(+q.value) || 1)); q.value = String(this.dropQty); this.confirmDrop = false; this.renderDetail(); });
+        actions.append(q);
+      }
+      btn(this.confirmDrop ? `ยืนยันทิ้ง ${this.dropQty} ชิ้น?` : 'ทิ้ง', () => {
         if (!this.confirmDrop) { this.confirmDrop = true; this.renderDetail(); return; }
         this.confirmDrop = false;
-        this.act.drop(id);
+        this.act.drop(id, this.dropQty);
+        this.dropQty = 1;
       }, this.confirmDrop ? 'danger' : 'ghost');
     }
   }

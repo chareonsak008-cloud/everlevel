@@ -3,16 +3,22 @@
 // attackDelay = วินาทีต่อการโจมตี 1 ครั้ง | respawn = [ต่ำสุด, สูงสุด] วินาที
 // baseExp / jobExp = EXP ที่ผู้เล่นได้เมื่อกำจัด
 // drops = [ไอเทม, โอกาสดรอป 0..1] สุ่มแยกกันทีละชิ้น
-import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.93.0-p4.4';
-import { ASCEND_MONSTERS } from './ascendData.js?v=0.93.0-p4.4';   // v0.46 Lv.100–150
-import { BASE_ITEMS } from './items.js?v=0.93.0-p4.4';
-import { WEAPON_DEFS } from './weapons.js?v=0.93.0-p4.4';
-import { OFFHAND_DROPS } from './offhand.js?v=0.93.0-p4.4';
-import { FEST_MONSTERS } from './festivals.js?v=0.93.0-p4.4';   // v0.79 มอนเทศกาล
+import { ENDGAME_MONSTERS } from './endgameMonsters.js?v=0.93.0-p4.6';
+import { ASCEND_MONSTERS } from './ascendData.js?v=0.93.0-p4.6';   // v0.46 Lv.100–150
+import { BASE_ITEMS } from './items.js?v=0.93.0-p4.6';
+import { WEAPON_DEFS } from './weapons.js?v=0.93.0-p4.6';
+import { OFFHAND_DROPS } from './offhand.js?v=0.93.0-p4.6';
+import { FEST_MONSTERS } from './festivals.js?v=0.93.0-p4.6';   // v0.79 มอนเทศกาล
 export const MONSTERS = {
   ...ENDGAME_MONSTERS,
   ...ASCEND_MONSTERS,
   ...FEST_MONSTERS,
+  // v0.94 หุ่นฝึกซ้อมในเมือง: ไม่ขยับ ไม่ตีกลับ ไม่ตาย (เลือดเต็มตลอด) · ไม่ให้ EXP/ของ · โชว์ดาเมจต่อวินาที
+  training_dummy: {
+    name: 'หุ่นฝึกซ้อม', level: 1, hp: 9999999, baseExp: 0, jobExp: 0, atk: [0, 0], def: 0, mdef: 0, hit: 0, flee: 0, crit: 0,
+    speed: 0, attackDelay: 99, attackRange: 0, aggressive: false, respawn: [1, 1], dummy: true,
+    model: 'dummy', color: '#c89a58', height: 1.7, radius: 0.45, drops: [],
+  },
   bloblet: {
     name: 'บล็อบเล็ต', level: 1, hp: 32, baseExp: 8, jobExp: 6, atk: [4, 6], def: 0, mdef: 0, hit: 76, flee: 3, crit: 0,
     speed: 32, attackDelay: 1.6, attackRange: 22, aggressive: false, respawn: [6, 9],

@@ -6,9 +6,9 @@
 //       ดาเมจจริงต่อฮิต = (ตัวคูณของฮิตนั้นในเอฟเฟกต์ / ref) × mult(lv)
 //       lock = วินาทีที่ยืนนิ่งระหว่างท่า · delay = หน่วงก่อนใช้สกิลถัดไป (after-cast delay)
 // fx (แบบเก่า v0.6) ยังใช้กับสกิลที่ไม่มี vfx: strike | nova | bolt | storm | arrows | rain | heal | buff
-import { JOBS } from './progression.js?v=0.93.0-p4.4';
-import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.93.0-p4.4';
-import { job3Skills, JOB3_PARTY } from './job3Skills.js?v=0.93.0-p4.4';   // v0.85 อาชีพคลาส 3
+import { JOBS } from './progression.js?v=0.93.0-p4.6';
+import { JOB2_SKILLS, LEGACY_JOB2 } from './job2Skills.js?v=0.93.0-p4.6';
+import { job3Skills, JOB3_PARTY } from './job3Skills.js?v=0.93.0-p4.6';   // v0.85 อาชีพคลาส 3
 export { LEGACY_JOB2 };
 
 export function healAmount(lv, pl) {
@@ -274,7 +274,10 @@ for (const [id, r] of Object.entries(PARTY_SUPPORT)) {
 // ตัวช่วยอ่านค่าที่อาจเป็นตัวเลขหรือฟังก์ชัน
 export const sval = (v, lv, pl) => (typeof v === 'function' ? v(lv, pl) : v);
 export const skillSp = (sk, lv) => sval(sk.sp, lv) || 0;
-export const skillCast = (sk, lv) => sval(sk.cast, lv) || 0;
+// v0.94 ใช้สกิลรัวขึ้นทุกอาชีพ: ตัวคูณคูลดาวน์ / เวลาร่าย / หน่วงหลังใช้ / ล็อกท่า (ปรับความเร็วรวมได้ที่นี่ที่เดียว)
+export const SKILL_SPEED = { cd: 0.5, cast: 0.6, delay: 0.5, lock: 0.7 };
+export const skillCast = (sk, lv) => (sval(sk.cast, lv) || 0) * SKILL_SPEED.cast;
+export const skillCd = (sk) => (sk.cd || 0) * SKILL_SPEED.cd;
 
 // สกิลของสายอาชีพนั้น (เรียงตามที่ประกาศ)
 export const jobSkills = (job) => Object.keys(SKILLS).filter((id) => SKILLS[id].job === job);

@@ -4,9 +4,9 @@
 //   · เชิญผ่านห้องรวม (pi → pr) · หัวหน้า = คนที่เข้าปาร์ตี้ก่อนสุด · สูงสุด 6 คน
 //   · แชร์ EXP: คนที่อยู่แมพเดียวกันแบ่ง EXP เท่ากัน + โบนัส 20% ต่อสมาชิกเพิ่ม 1 คน (มอนยังจำลองแยกเครื่อง — แชร์แค่ EXP)
 // กิลด์ — ข้อมูลถาวรในฐานข้อมูล (supabase/guild.sql) · ห้อง everlevel-guild-<id> ไว้แชตกิลด์ + ดูว่าใครออนไลน์
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p4.4';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p4.6';
 const MAPS_NAME = (id) => (MAPS[id] && MAPS[id].name) || '';
-import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.93.0-p4.4';
+import { emblemSvg, parseEmblem } from '../data/guildEmblems.js?v=0.93.0-p4.6';
 
 export const PARTY_MAX = 6;
 export const PARTY_GRACE = 25000;   // v0.94 (เดิม) — ตอนนี้ใช้แค่เป็นช่วง "เพิ่งหลุด" ที่ยังนับแชร์ EXP
@@ -426,7 +426,7 @@ export class Social {
           if (this.game.settings.chatSound) this.game.sfx('chat');
         } else if (ev === 'gu') this.refreshGuild();   // มีคนเข้า/ออก/ถูกเตะ/เปลี่ยนตรา → โหลดข้อมูลใหม่จากเซิร์ฟเวอร์
       },
-      onSync: (m) => { this.guildOnline = new Map([...m].map(([k, s]) => [k, { n: clean(s && s.n), lv: num(s && s.lv, 1, 99, 1), m: clean(s && s.m, 40) }])); this.changed(); },
+      onSync: (m) => { this.guildOnline = new Map([...m].map(([k, s]) => [k, { n: clean(s && s.n), lv: num(s && s.lv, 1, 150, 1), m: clean(s && s.m, 40) }])); this.changed(); },
     });
     this.guildCh.track(this.guildState());
   }

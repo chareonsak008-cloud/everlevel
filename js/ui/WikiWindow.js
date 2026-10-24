@@ -1,33 +1,33 @@
 // v0.49 วิกิในเกม — คู่มือผู้เล่นใหม่ + ฐานข้อมูลทุกอย่างในเกม (สร้างจากข้อมูลเกมจริง อัปเดตตามเกมอัตโนมัติ)
 // หมวด: คู่มือ · อุปกรณ์ · การ์ด · มอนสเตอร์ · แผนที่ · ไอเทม · สัตว์เลี้ยง · อาชีพ & สกิล
-import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.93.0-p4.4';
-import { MONSTERS } from '../data/monsters.js?v=0.93.0-p4.4';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p4.4';
-import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p4.4';
-import { CARD_SETS } from '../data/collection.js?v=0.93.0-p4.4';
-import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, jobTier, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.93.0-p4.4';
-import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.93.0-p4.4';
-import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, LUCK_CAP, boostedRate, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.93.0-p4.4';
-import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.93.0-p4.4';
-import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.93.0-p4.4';
-import { SHOPS, SELL_RATE, SELL_RATE_EQUIP, STORAGE_CAPACITY, sellPrice } from '../data/shops.js?v=0.93.0-p4.4';
-import { WORLD_BOSSES } from '../data/events.js?v=0.93.0-p4.4';
-import { CAVE, TOWER } from '../data/dungeons.js?v=0.93.0-p4.4';
-import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.93.0-p4.4';
-import { rollFits } from '../data/affixes.js?v=0.93.0-p4.4';
-import { statsToBonus } from '../data/affixes.js?v=0.93.0-p4.4';
-import { VIP_PERKS } from './CashShop.js?v=0.93.0-p4.4';
-import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.4';
-import { monsterThumb } from '../render/MonsterThumbs.js?v=0.93.0-p4.4';
-import { petThumb } from '../render/PetThumbs.js?v=0.93.0-p4.4';
+import { ITEMS, BASE_ITEMS, RARITY, EQUIP_SLOTS, describeBonus, weaponTypeName } from '../data/items.js?v=0.93.0-p4.6';
+import { MONSTERS } from '../data/monsters.js?v=0.93.0-p4.6';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p4.6';
+import { CARDS, cardSlotName } from '../data/cards.js?v=0.93.0-p4.6';
+import { CARD_SETS } from '../data/collection.js?v=0.93.0-p4.6';
+import { JOBS, STAT_INFO, START_STAT_POINTS, MAX_STAT, MAX_BASE_LEVEL, JOB_CHANGE_JOB_LEVEL, JOB2_JOB_LEVEL, JOB3_JOB_LEVEL, JOB3_BASE_LEVEL, jobTier, STAT_RESET_FREE_LEVEL, baseExpToNext, statPointsForLevel, statCost } from '../data/progression.js?v=0.93.0-p4.6';
+import { SKILLS, KIND_NAME, skillSp } from '../data/skills.js?v=0.93.0-p4.6';
+import { REFINE_RATE, REFINE_MAX, SAFE_LIMIT, BREAK_FROM, LUCK_BONUS, LUCK_CAP, boostedRate, canRefine, refineBonus, refineFee } from '../data/refine.js?v=0.93.0-p4.6';
+import { PETS, PET_ORDER, PET_RARITY, TIER_STATS, STAR_MAX, STAR_BONUS } from '../data/pets.js?v=0.93.0-p4.6';
+import { CONSUMABLES, USE_CATS } from '../data/consumables.js?v=0.93.0-p4.6';
+import { SHOPS, SELL_RATE, SELL_RATE_EQUIP, STORAGE_CAPACITY, sellPrice } from '../data/shops.js?v=0.93.0-p4.6';
+import { WORLD_BOSSES } from '../data/events.js?v=0.93.0-p4.6';
+import { CAVE, TOWER } from '../data/dungeons.js?v=0.93.0-p4.6';
+import { RESPAWN_MUL, SPAWN_MUL } from '../systems/MonsterAI.js?v=0.93.0-p4.6';
+import { rollFits } from '../data/affixes.js?v=0.93.0-p4.6';
+import { statsToBonus } from '../data/affixes.js?v=0.93.0-p4.6';
+import { VIP_PERKS } from './CashShop.js?v=0.93.0-p4.6';
+import { iconURL } from '../render/ItemIcons.js?v=0.93.0-p4.6';
+import { monsterThumb } from '../render/MonsterThumbs.js?v=0.93.0-p4.6';
+import { petThumb } from '../render/PetThumbs.js?v=0.93.0-p4.6';
 // v0.77 คู่มือระบบใหม่ (ภารกิจรายวัน · ดันเจี้ยนปาร์ตี้ · อันดับฤดูกาล · ฉายา · หลอมนิรันดร์กาล)
-import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.93.0-p4.4';
-import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.93.0-p4.4';
-import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.93.0-p4.4';
-import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.93.0-p4.4';
-import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.93.0-p4.4';   // v0.78
-import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.93.0-p4.4';   // v0.79
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p4.4';
+import { DAILY_TASKS, DAILY_COUNT, DAILY_REROLLS, DAILY_STREAK_BIG } from '../data/daily.js?v=0.93.0-p4.6';
+import { PD, PD_SHOP, PD_REWARD_TEXT } from '../data/partyDungeon.js?v=0.93.0-p4.6';
+import { SEASON_TITLES, SEASON_CAT_NAME, MAX_TITLES } from '../data/seasonTitles.js?v=0.93.0-p4.6';
+import { ETERNAL_LINES, ETERNAL_SLOTS, ETERNAL_RECIPE, eternalId, LUCK_STEP, LUCK_MAX, SHARD_DROPS } from '../data/eternal.js?v=0.93.0-p4.6';
+import { AR, AR_TIERS, AR_SHOP, AR_SEASON_REWARD } from '../data/arena.js?v=0.93.0-p4.6';   // v0.78
+import { FESTIVALS, FEST_SHOP, FEST_AURA_COST } from '../data/festivals.js?v=0.93.0-p4.6';   // v0.79
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p4.6';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(+n || 0).toLocaleString('en-US');
@@ -342,7 +342,7 @@ const GUIDES = [
     ]) },
   { id: 'controls', title: '🎮 การควบคุม', sub: 'ปุ่มลัดทั้งหมด', html: () =>
     table(['ปุ่ม', 'ทำอะไร'], [
-      ['คลิกพื้น / ' + K('W') + K('A') + K('S') + K('D'), 'เดิน'], ['คลิกมอนสเตอร์ / ' + K('Space'), 'โจมตี / ตีตัวใกล้สุด'], [K('F1') + '–' + K('F9'), 'ปุ่มลัดสกิล/ไอเทม (ลากจากหน้าต่างสกิลหรือกระเป๋ามาวาง)'],
+      ['คลิกพื้น / ' + K('W') + K('A') + K('S') + K('D'), 'เดิน'], ['คลิกมอนสเตอร์ / ' + K('Space'), 'โจมตี / ตีตัวใกล้สุด'], [K('1') + '–' + K('0'), 'ปุ่มลัดสกิล/ไอเทม (ลากจากหน้าต่างสกิลหรือกระเป๋ามาวาง)'],
       [K('C'), 'สถานะ / อัปสเตตัส'], [K('I'), 'กระเป๋า'], [K('G') + ' / แตะเหรียญอาชีพ', 'ดูตัวละคร + อุปกรณ์ที่สวมใส่'], [K('K'), 'สกิล'], [K('O'), 'ตู้แฟชั่น'], [K('J'), 'เควสต์'], [K('P'), 'สัตว์เลี้ยง'],
       [K('Z') + ' / ' + K('H'), 'เริ่ม-หยุดล่าอัตโนมัติ / ตั้งค่าออโต้'], [K('M'), 'จดหมาย'], [K('B'), 'สมุดสะสม'], [K('N'), 'แผนที่โลก'], [K('Enter'), 'แชต'],
       [K('Q') + ' ' + K('E'), 'หมุนกล้อง'], ['คลิกขวาลาก / ' + K('PgUp') + K('PgDn'), 'ปรับมุมก้มกล้อง'], ['คลิก NPC', 'ซื้อขาย · ฝากของ · วาร์ป · ตีบวก · รับเควสต์'], ['คลิกผู้เล่น', 'แลกเปลี่ยน · ชวนปาร์ตี้ · กระซิบ'],
@@ -468,5 +468,5 @@ const GUIDES = [
     `<h4>สิทธิ์ VIP</h4>` + table(['', 'สิทธิ์', 'รายละเอียด'], VIP_PERKS.map(([i, t, d]) => [i, `<b>${esc(t)}</b>`, esc(d)])) +
     `<h4>ร้านเพชร</h4>` + UL(['แฟชั่นและออร่า (เปลี่ยนรูปลักษณ์ ไม่เพิ่มค่าสถานะ)', 'สัตว์เลี้ยงทุกตัว', 'หินกันแตก / หินนำโชค', 'ขยายกระเป๋า/คลัง · เปลี่ยนชื่อ · รีเซ็ตสเตตัส/สกิล · โทรโข่ง', 'ใบคูณ EXP / ดรอป / ใบโคลเวอร์']) + P('เกมนี้ออกแบบให้เล่นฟรีได้สบาย — ของทุกชิ้นที่มีผลต่อการเล่นหาได้จากในเกมด้วย') },
   { id: 'tips', title: '💡 เคล็ดลับ', sub: 'รู้ไว้เล่นง่ายขึ้น', html: () =>
-    UL(['นั่งพักข้างกองไฟ HP/SP ฟื้นเร็วขึ้น', 'ลากสกิลและยาไปวางที่ปุ่มลัด F1–F9', 'หมดสติ: กลับไปฟื้นที่จุดเซฟ — ถ้ามี ' + itemLink('phoenix_feather') + ' ฟื้นตรงจุดเดิมได้', 'ของในกระเป๋าซ้อนได้ ช่องเต็มแล้วเก็บของไม่ได้ — ขยายกระเป๋าหรือฝากคลัง', 'กด ' + K('N') + ' ดูแผนที่โลก กดเลือกแผนที่ดูมอนและเลเวล', 'ใช้ช่องค้นหาด้านบนของวิกินี้หาข้อมูลได้ทุกอย่าง']) },
+    UL(['นั่งพักข้างกองไฟ HP/SP ฟื้นเร็วขึ้น', 'ลากสกิลและยาไปวางที่ปุ่มลัด 1–0', 'หมดสติ: กลับไปฟื้นที่จุดเซฟ — ถ้ามี ' + itemLink('phoenix_feather') + ' ฟื้นตรงจุดเดิมได้', 'ของในกระเป๋าซ้อนได้ ช่องเต็มแล้วเก็บของไม่ได้ — ขยายกระเป๋าหรือฝากคลัง', 'กด ' + K('N') + ' ดูแผนที่โลก กดเลือกแผนที่ดูมอนและเลเวล', 'ใช้ช่องค้นหาด้านบนของวิกินี้หาข้อมูลได้ทุกอย่าง']) },
 ];

@@ -1,7 +1,7 @@
 // หน้าต่างสกิล (K หรือ Alt+S): เรียนสกิลด้วย Skill Point ดูผลแต่ละเลเวล ตั้งปุ่มลัด
-import { SKILLS, jobSkills, skillTrees, skillSp, skillCast, KIND_NAME } from '../data/skills.js?v=0.93.0-p4.4';
-import { JOBS } from '../data/progression.js?v=0.93.0-p4.4';
-import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p4.4';
+import { SKILLS, jobSkills, skillTrees, skillSp, skillCast, KIND_NAME, skillCd } from '../data/skills.js?v=0.93.0-p4.6';
+import { JOBS } from '../data/progression.js?v=0.93.0-p4.6';
+import { skillIconURL } from '../render/SkillIcons.js?v=0.93.0-p4.6';
 
 export class SkillWindow {
   constructor(root, player, { onLearn, onAssign, onUse } = {}) {
@@ -68,6 +68,7 @@ export class SkillWindow {
       meta.push(`SP ${skillSp(sk, useLv)}`);
       const ct = skillCast(sk, useLv);
       if (ct) meta.push(`ร่าย ${ct.toFixed(1)} วิ`);
+      if (sk.cd) meta.push(`คูลดาวน์ ${skillCd(sk).toFixed(1)} วิ`);   // v0.94
       if (sk.range && sk.range !== 'weapon') meta.push(`ระยะ ${sk.range} ช่อง`);
       if (sk.bow) meta.push('ใช้ธนู');
     }
@@ -107,8 +108,8 @@ export class SkillWindow {
       ico.addEventListener('dblclick', () => this.onUse(id));
       if (this.keysFor === id) {
         const keys = document.createElement('div'); keys.className = 'd-keys sk-keys';
-        for (let i = 0; i < 9; i++) {
-          const k = document.createElement('button'); k.type = 'button'; k.textContent = `F${i + 1}`;
+        for (let i = 0; i < 10; i++) {
+          const k = document.createElement('button'); k.type = 'button'; k.textContent = i === 9 ? '0' : String(i + 1);
           if (p.hotbar[i] === 'skill:' + id) k.classList.add('on');
           k.addEventListener('click', () => { this.onAssign(i, 'skill:' + id); this.keysFor = null; this.render(); });
           keys.append(k);

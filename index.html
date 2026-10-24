@@ -17,11 +17,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Cinzel:wght@600;700&family=Lilita+One&family=Pixelify+Sans:wght@500;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=0.93.0-p4.4">
-<link rel="stylesheet" href="css/nameplates.css?v=0.93.0-p4.4">
-<link rel="stylesheet" href="css/events.css?v=0.93.0-p4.4">
-<link rel="stylesheet" href="css/trade.css?v=0.93.0-p4.4">
-<link rel="stylesheet" href="css/skin.css?v=0.93.0-p4.4">
+<link rel="stylesheet" href="css/style.css?v=0.93.0-p4.6">
+<link rel="stylesheet" href="css/nameplates.css?v=0.93.0-p4.6">
+<link rel="stylesheet" href="css/events.css?v=0.93.0-p4.6">
+<link rel="stylesheet" href="css/trade.css?v=0.93.0-p4.6">
+<link rel="stylesheet" href="css/skin.css?v=0.93.0-p4.6">
 </head>
 <body>
 <!--GAME-START-->
@@ -139,7 +139,7 @@
       <div class="stor-act" id="storAct"></div>
       <footer class="stor-foot"><button type="button" class="ghost" id="storAllEtc">ฝากของสะสมทั้งหมด</button></footer>
     </section>
-    <div class="hotbar" id="hotbar" aria-label="ปุ่มลัด F1 ถึง F9"></div>
+    <div class="hotbar" id="hotbar" aria-label="ปุ่มลัด 1 ถึง 0"></div>
     <section class="panel skw" id="skw" hidden aria-labelledby="skwTitle">
       <header class="st-head">
         <div><h2 id="skwTitle">สกิล</h2><p id="skwSub">Novice</p></div>
@@ -238,7 +238,7 @@
       <div class="qt-top"><button type="button" class="qt-head" id="qtHead">📜 เควส <span id="qtCount">0</span><i aria-hidden="true">▾</i></button><button type="button" class="qt-navtog" id="qtNavTog" title="เปิด/ปิดลูกศรนำทางเควส" aria-pressed="true">🧭 <b>เปิด</b></button></div>
       <div class="qt-list" id="qtList"></div>
     </div>
-    <div class="panel help">คลิกมอนสเตอร์เพื่อโจมตี · <kbd>Space</kbd> ตีตัวใกล้สุด · <kbd>C</kbd> สถานะ · <kbd>I</kbd> กระเป๋า · <kbd>K</kbd> สกิล · <kbd>O</kbd> ตู้แฟชั่น · <kbd>J</kbd> เควส · <kbd>P</kbd> สัตว์เลี้ยง · <kbd>H</kbd> ตั้งค่าออโต้ · <kbd>Z</kbd> เริ่ม/หยุดออโต้ · <kbd>M</kbd> จดหมาย · <kbd>B</kbd> สมุดสะสม · <kbd>N</kbd> แผนที่ · <kbd>F1</kbd>–<kbd>F9</kbd> ปุ่มลัด · <kbd>Enter</kbd> แชต · คลิก NPC เพื่อซื้อขาย/ฝากของ/วาร์ป · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> เดิน · <kbd>Q</kbd><kbd>E</kbd> หมุนกล้อง · คลิกขวาลากขึ้นลง หรือ <kbd>PgUp</kbd><kbd>PgDn</kbd> ปรับมุมก้ม · ⚙ ตั้งค่าเสียง/กราฟิก</div>
+    <div class="panel help">คลิกมอนสเตอร์เพื่อโจมตี · <kbd>Space</kbd> ตีตัวใกล้สุด · <kbd>C</kbd> สถานะ · <kbd>I</kbd> กระเป๋า · <kbd>K</kbd> สกิล · <kbd>O</kbd> ตู้แฟชั่น · <kbd>J</kbd> เควส · <kbd>P</kbd> สัตว์เลี้ยง · <kbd>H</kbd> ตั้งค่าออโต้ · <kbd>Z</kbd> เริ่ม/หยุดออโต้ · <kbd>M</kbd> จดหมาย · <kbd>B</kbd> สมุดสะสม · <kbd>N</kbd> แผนที่ · <kbd>1</kbd>–<kbd>0</kbd> ปุ่มลัด · <kbd>Enter</kbd> แชต · คลิก NPC เพื่อซื้อขาย/ฝากของ/วาร์ป · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> เดิน · <kbd>Q</kbd><kbd>E</kbd> หมุนกล้อง · คลิกขวาลากขึ้นลง หรือ <kbd>PgUp</kbd><kbd>PgDn</kbd> ปรับมุมก้ม · ⚙ ตั้งค่าเสียง/กราฟิก</div>
     <div class="skill-arc" id="skillArc" hidden aria-label="ปุ่มลัด 1 ถึง 4"></div>
     <button class="attack-btn" id="btnAttack" type="button" aria-label="โจมตีมอนสเตอร์ที่ใกล้ที่สุด">⚔</button>
     <button class="menu-btn" id="btnMenu" type="button" aria-label="เมนู" aria-expanded="false" aria-controls="menuPanel">☰</button>
@@ -307,7 +307,7 @@
   (function () {
     var root = document.getElementById('game'), L = document.getElementById('loading'); if (!root || !L) return;
     var fill = L.querySelector('.ld-fill'), gem = L.querySelector('.ld-gem'), party = L.querySelector('.ld-party'), pct = L.querySelector('.ld-pct'), step = L.querySelector('.ld-step'), tip = L.querySelector('.ld-tiptext');
-    var TIPS = ['ดับเบิลคลิกไอเทมในกระเป๋าเพื่อใช้หรือสวมใส่', 'ลากสกิลไปวางที่ปุ่มลัด F1–F9 ได้', 'แตะที่ผู้เล่นคนอื่นเพื่อขอแลกเปลี่ยนไอเทมหรือชวนเข้าปาร์ตี้', 'นายตลาดในเมืองรับฝากขายของ 7 วัน ใครซื้อเงินเข้าทันทีแม้ออฟไลน์', 'กด Z เพื่อเปิด/ปิดโหมดล่าอัตโนมัติ', 'เช็กอินทุกวันในหน้ากิจกรรมเพื่อรับของรางวัล', 'นั่งพักข้างกองไฟจะฟื้น HP/SP เร็วขึ้น', 'ตีบวกอุปกรณ์ได้ที่ช่างตีเหล็ก ยิ่งบวกสูงยิ่งเสี่ยง', 'สัตว์เลี้ยงจากร้านเพชรจะช่วยเก็บของให้อัตโนมัติ', 'หินนำโชคเพิ่มโอกาสตีบวกสำเร็จ +15% · คริสตัลพิทักษ์กันของแตก', 'กด Q / E เพื่อหมุนกล้อง'];
+    var TIPS = ['ดับเบิลคลิกไอเทมในกระเป๋าเพื่อใช้หรือสวมใส่', 'ลากสกิลไปวางที่ปุ่มลัด 1–0 ได้', 'แตะที่ผู้เล่นคนอื่นเพื่อขอแลกเปลี่ยนไอเทมหรือชวนเข้าปาร์ตี้', 'นายตลาดในเมืองรับฝากขายของ 7 วัน ใครซื้อเงินเข้าทันทีแม้ออฟไลน์', 'กด Z เพื่อเปิด/ปิดโหมดล่าอัตโนมัติ', 'เช็กอินทุกวันในหน้ากิจกรรมเพื่อรับของรางวัล', 'นั่งพักข้างกองไฟจะฟื้น HP/SP เร็วขึ้น', 'ตีบวกอุปกรณ์ได้ที่ช่างตีเหล็ก ยิ่งบวกสูงยิ่งเสี่ยง', 'สัตว์เลี้ยงจากร้านเพชรจะช่วยเก็บของให้อัตโนมัติ', 'หินนำโชคเพิ่มโอกาสตีบวกสำเร็จ +15% · คริสตัลพิทักษ์กันของแตก', 'กด Q / E เพื่อหมุนกล้อง'];
     var STEPS = [[0, 'กำลังโหลดไฟล์เกม…'], [22, 'กำลังวาดตัวละครและมอนสเตอร์…'], [45, 'กำลังเชื่อมต่อเซิร์ฟเวอร์…'], [65, 'กำลังสร้างโลก…'], [85, 'กำลังปลุกเหล่ามอนสเตอร์…']];
     var p = 0, last = 0, shown = -1, ti = Math.floor(Math.random() * TIPS.length), tipAt = 0, raf = 0, done = false, fade = 0;
     function setTip() { tip.textContent = TIPS[ti % TIPS.length]; ti++; }
@@ -336,7 +336,7 @@
   </script>
 </div>
 <script src="vendor/three.min.js"></script>
-<script type="module" src="js/main.js?v=0.93.0-p4.4"></script>
+<script type="module" src="js/main.js?v=0.93.0-p4.6"></script>
 <!--GAME-END-->
 </body>
 </html>

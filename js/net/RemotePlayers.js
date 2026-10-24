@@ -1,11 +1,11 @@
 // ผู้เล่นคนอื่นในแผนที่เดียวกัน (v0.11) — สร้างจาก presence ของห้องออนไลน์
 // ข้อมูลจากผู้เล่นอื่นเชื่อถือไม่ได้: กรองทุกช่องก่อนใช้ (สี ชื่อ ตัวเลข ไอดีแฟชั่น ข้อความ)
-import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p4.4';
-import { MAPS } from '../data/maps/index.js?v=0.93.0-p4.4';
-import { JOBS } from '../data/progression.js?v=0.93.0-p4.4';
-import { PETS } from '../data/pets.js?v=0.93.0-p4.4';
-import { OUTFIT_IDS } from '../data/outfits.js?v=0.93.0-p4.4';   // v0.91 สีชุด
-import { titleInfo, MAX_TITLES } from '../data/seasonTitles.js?v=0.93.0-p4.4';   // v0.76
+import { COSTUME_BY_ID } from '../data/costumes.js?v=0.93.0-p4.6';
+import { MAPS } from '../data/maps/index.js?v=0.93.0-p4.6';
+import { JOBS } from '../data/progression.js?v=0.93.0-p4.6';
+import { PETS } from '../data/pets.js?v=0.93.0-p4.6';
+import { OUTFIT_IDS } from '../data/outfits.js?v=0.93.0-p4.6';   // v0.91 สีชุด
+import { titleInfo, MAX_TITLES } from '../data/seasonTitles.js?v=0.93.0-p4.6';   // v0.76
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 const ENUMS = {
@@ -47,7 +47,7 @@ class RemotePlayer {
     this.mv = !!P.mv;
     this.dead = !!P.dead;
     this.hp = clampNum(P.h, 0, 1, 1) * 100;
-    const lv = clampNum(Math.floor(P.lv), 1, 99, 1);
+    const lv = clampNum(Math.floor(P.lv), 1, 150, 1);   // v0.94 เลเวลสูงสุด 150 (เดิมตัดที่ 99)
     this.baseLevel = lv;   // v0.36: กรอบป้ายชื่อตามเลเวล
     this.guildId = clampNum(Math.floor(P.gd), 0, 1e9, 0);   // v0.37: ป้ายกิลด์ (ชื่อ/ตราดึงจากเซิร์ฟเวอร์)
     const job = JOBS[P.j] ? JOBS[P.j].name : 'Novice';

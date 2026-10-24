@@ -2,13 +2,13 @@
 // ใช้:  const pet = new PetView('hamster', { world: scene });  scene.add(pet.root);
 //       ทุกเฟรม pet.update(dt, { moving, speed })  ·  pet.pick() = ท่าเก็บของ  ·  pet.cheer() = ท่าดีใจ
 //       pet.load = 0..1 (ของเต็มตัวแค่ไหน) · pet.mouth = จุดที่ของลอยเข้าไป · pet.range = รัศมี (หน่วยโลก ใช้กับเอฟเฟกต์)
-import { THREE } from './three.js?v=0.93.0-p4.4';
-import { toon, bake, addOutline, gradientMap } from './Toon.js?v=0.93.0-p4.4';
-import { shadeHex, blobShadowTexture } from './Textures.js?v=0.93.0-p4.4';
-import { mergeGeometries } from './Geo.js?v=0.93.0-p4.4';
-import * as TX from './FxTextures.js?v=0.93.0-p4.4';
-import { Particles } from './SkillFX.js?v=0.93.0-p4.4';
-import { PETS, PET_EGGS } from '../data/pets.js?v=0.93.0-p4.4';
+import { THREE } from './three.js?v=0.93.0-p4.6';
+import { toon, bake, addOutline, gradientMap } from './Toon.js?v=0.93.0-p4.6';
+import { shadeHex, blobShadowTexture } from './Textures.js?v=0.93.0-p4.6';
+import { mergeGeometries } from './Geo.js?v=0.93.0-p4.6';
+import * as TX from './FxTextures.js?v=0.93.0-p4.6';
+import { Particles } from './SkillFX.js?v=0.93.0-p4.6';
+import { PETS, PET_EGGS } from '../data/pets.js?v=0.93.0-p4.6';
 
 /* ================= ตัวช่วยพื้นฐาน ================= */
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
